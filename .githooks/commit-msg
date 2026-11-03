@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Git commit-msg hook: backstop that works for every tool/agent, not only Claude Code.
+# Install: git config core.hooksPath .githooks (versioned in this repo)
+if grep -qiE '^[[:space:]]*co-authored-by:|generated with.*claude' "$1"; then
+  echo "Commit rejected: attribution line (Co-Authored-By / Generated with Claude) is not allowed." >&2
+  exit 1
+fi
