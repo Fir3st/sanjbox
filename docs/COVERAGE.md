@@ -29,7 +29,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
-| F0 | 5 | 3 | 1 | 1 | 0 |
+| F0 | 5 | 3 | 2 | 0 | 0 |
 | F1 | 30 | 2 | 0 | 28 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
@@ -293,7 +293,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP0.2 | Repo, dokumentace, coverage | — | ✅ | první commit |
 | WP0.3 | Společná sada sond | — | ✅ | `spikes/common`: `sanjbox-whoami`, `sanjbox-canary`, formát protokolu; 16 testů |
 | WP0.4 | Nezávislá protistrana | — | ✅ | `sanjbox-counterpart`: TCP/UDP listener, log událostí, raw záchyt, kanárky vč. DNS labelů, `report` (neúplný běh = neplatné měření); 7 testů + 2 v sadě sond. ICMP a TLS obsah mimo rozsah (pcap na hostu) |
-| WP0.5 | Metodika a laboratoř | | ⬜ | registr strojů (vývoj na více Macích); čeká na zbytek F0.8 |
+| WP0.5 | Metodika a laboratoř | janfiedler / Codex + Astra | 🟨 | převzato: registr strojů, metodika a předem stanovená akceptace; F0.8 zůstává otevřené do výslovného rozhodnutí uživatele |
 | WP1.A1 | S1 příprava | — | ✅ | `spikes/s1-session`: skripty s dry-runem a úklidem, sonda relace (credentials, displeje, Metal, offscreen render s ověřením, prezentace, RAM, Screen Recording), loopback forwarder místo SSH, WebGL stránka; 6 testů. Části s `--apply` (root) ověří až běh L1 |
 | WP1.A2 | S1 běh (L1) | uživatel + impl. | ⬜ | |
 | WP1.A3 | Průzkum RFB výběru relace | | ⬜ | displej MVP i fallback F0.6 |
