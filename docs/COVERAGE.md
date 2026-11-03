@@ -13,7 +13,7 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-03 (WP0.3 hotovo; rozhodnutí F0, změny rozsahu MVP C-001 a C-002).
+Poslední aktualizace: 2026-11-03 (WP0.3 a WP0.4 hotovo; rozhodnutí F0, změny rozsahu MVP C-001 a C-002).
 
 **Rozsah MVP (F2):** CLI + jedno okno s plochou oblasti, bez Dockeru, data ven jen řízeným exportem.
 R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
@@ -29,7 +29,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
-| F0 | 5 | 2 | 1 | 2 | 0 |
+| F0 | 5 | 3 | 1 | 1 | 0 |
 | F1 | 30 | 0 | 0 | 30 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
@@ -292,7 +292,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP0.1 | Rozhodnutí F0 | uživatel | 🟨 | 6/8 rozhodnuto; otevřené F0.7 (rozsah integrací), F0.8 (min. konfigurace, výkonové cíle) |
 | WP0.2 | Repo, dokumentace, coverage | — | ✅ | první commit |
 | WP0.3 | Společná sada sond | — | ✅ | `spikes/common`: `sanjbox-whoami`, `sanjbox-canary`, formát protokolu; 16 testů |
-| WP0.4 | Nezávislá protistrana | | ⬜ | |
+| WP0.4 | Nezávislá protistrana | — | ✅ | `sanjbox-counterpart`: TCP/UDP listener, log událostí, raw záchyt, kanárky vč. DNS labelů, `report` (neúplný běh = neplatné měření); 7 testů + 2 v sadě sond. ICMP a TLS obsah mimo rozsah (pcap na hostu) |
 | WP0.5 | Metodika a laboratoř | | ⬜ | registr strojů (vývoj na více Macích); čeká na zbytek F0.8 |
 | WP1.A1 | S1 příprava | | ⬜ | |
 | WP1.A2 | S1 běh (L1) | uživatel + impl. | ⬜ | |

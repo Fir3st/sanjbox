@@ -81,20 +81,31 @@ public enum CanaryError: Error, Equatable {
 ///
 /// Matches the raw token and its hex encoding (any case), the form a DNS label can carry.
 public struct CanaryScanner: Sendable {
-    public struct Finding: Codable, Equatable, Sendable {
+    public struct Finding: Codable, Hashable, Sendable {
+        /// The matched token; `Canary.tokenPrefix` alone means some canary, possibly unregistered.
         public var token: String
         public var encoding: String
+
+        public init(token: String, encoding: String) {
+            self.token = token
+            self.encoding = encoding
+        }
     }
 
     private let patterns: [(token: String, encoding: String, bytes: Data)]
 
-    public init(canaries: [Canary]) {
-        patterns = canaries.flatMap { canary in
-            let raw = Data(canary.token.utf8)
+    /// - Parameter matchAnyCanary: also report the bare token prefix, so canaries created after
+    ///   the registry was loaded are not missed.
+    public init(canaries: [Canary], matchAnyCanary: Bool = false) {
+        let tokens = canaries.map(\.token) + (matchAnyCanary ? [Canary.tokenPrefix] : [])
+        patterns = tokens.flatMap { token in
+            let raw = Data(token.utf8)
             let hex = Data(raw.map { String(format: "%02x", $0) }.joined().utf8)
-            return [(canary.token, "raw", raw), (canary.token, "hex", hex)]
+            return [(token, "raw", raw), (token, "hex", hex)]
         }
     }
+
+    var longestPattern: Int { patterns.map(\.bytes.count).max() ?? 0 }
 
     public func findings(in data: Data) -> [Finding] {
         // Hex digits are matched case-insensitively by lowercasing ASCII letters of the input.
@@ -103,5 +114,23 @@ public struct CanaryScanner: Sendable {
             let haystack = pattern.encoding == "hex" ? lowered : data
             return haystack.range(of: pattern.bytes) == nil ? nil : Finding(token: pattern.token, encoding: pattern.encoding)
         }
+    }
+}
+
+/// Scans data that arrives in chunks: keeps enough of the previous chunk that a token split
+/// across a chunk boundary is still found.
+public struct CanaryStreamScanner: Sendable {
+    private let scanner: CanaryScanner
+    private var tail = Data()
+    public private(set) var findings: Set<CanaryScanner.Finding> = []
+
+    public init(scanner: CanaryScanner) {
+        self.scanner = scanner
+    }
+
+    public mutating func feed(_ chunk: Data) {
+        let window = tail + chunk
+        findings.formUnion(scanner.findings(in: window))
+        tail = window.suffix(max(0, scanner.longestPattern - 1))
     }
 }
