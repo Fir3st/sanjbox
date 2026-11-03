@@ -81,3 +81,27 @@ func invalidLabelsAreRejected(label: String) {
     #expect(swapped.removeFile() == .refused("not a regular file"))
     #expect(FileManager.default.fileExists(atPath: target.path))
 }
+
+@Test func streamScannerFindsTokensSplitAcrossChunks() throws {
+    let canary = try Canary.make(label: "stream")
+    let hex = Data(canary.token.utf8.map { String(format: "%02x", $0) }.joined().utf8)
+    var stream = CanaryStreamScanner(scanner: CanaryScanner(canaries: [canary]))
+
+    // One byte per chunk: no chunk ever holds a whole token.
+    for byte in Data("x\(canary.token)y".utf8) + hex { stream.feed(Data([byte])) }
+
+    #expect(stream.findings == [
+        CanaryScanner.Finding(token: canary.token, encoding: "raw"),
+        CanaryScanner.Finding(token: canary.token, encoding: "hex"),
+    ])
+}
+
+@Test func anyCanaryMatchingReportsUnregisteredTokens() throws {
+    let unregistered = try Canary.make(label: "late")
+    let data = Data(unregistered.token.utf8)
+
+    #expect(CanaryScanner(canaries: []).findings(in: data).isEmpty)
+    #expect(CanaryScanner(canaries: [], matchAnyCanary: true).findings(in: data) == [
+        CanaryScanner.Finding(token: Canary.tokenPrefix, encoding: "raw"),
+    ])
+}
