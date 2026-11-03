@@ -1,0 +1,137 @@
+{
+  "context": {
+    "audit": {
+      "auditUID": 501,
+      "flags": 24624,
+      "sessionID": 100002
+    },
+    "effectiveGID": 20,
+    "effectiveUID": 501,
+    "groupMembership": [
+      {
+        "gid": 20,
+        "isMember": true
+      }
+    ],
+    "kernelGroups": [
+      20,
+      12,
+      61,
+      79,
+      80,
+      81,
+      98,
+      701,
+      33,
+      100,
+      204,
+      250,
+      395,
+      398,
+      399,
+      400
+    ],
+    "launchdManager": {
+      "name": "Aqua",
+      "uid": 501
+    },
+    "parentPID": 86042,
+    "pid": 86064,
+    "realGID": 20,
+    "realUID": 501,
+    "userName": "host-user",
+    "windowSession": {
+      "auditSessionID": 100002,
+      "loginDone": true,
+      "onConsole": true,
+      "userID": 501,
+      "userName": "host-user"
+    }
+  },
+  "displays": [
+    {
+      "heightPoints": 1440,
+      "id": 2,
+      "isActive": true,
+      "isAsleep": false,
+      "isBuiltin": false,
+      "isMain": true,
+      "modelNumber": 2367,
+      "pixelHeight": 1440,
+      "pixelWidth": 3440,
+      "refreshRate": 100,
+      "scale": 1,
+      "vendorNumber": 16652,
+      "widthPoints": 3440
+    },
+    {
+      "heightPoints": 1050,
+      "id": 1,
+      "isActive": true,
+      "isAsleep": false,
+      "isBuiltin": true,
+      "isMain": false,
+      "modelNumber": 41032,
+      "pixelHeight": 2100,
+      "pixelWidth": 3360,
+      "refreshRate": 60,
+      "scale": 2,
+      "vendorNumber": 1552,
+      "widthPoints": 1680
+    }
+  ],
+  "errors": {},
+  "metalDevices": [
+    {
+      "architecture": "applegpu_g13g",
+      "hasUnifiedMemory": true,
+      "isHeadless": false,
+      "isLowPower": false,
+      "isRemovable": false,
+      "isSystemDefault": true,
+      "name": "Apple M1",
+      "recommendedMaxWorkingSetSize": 12713115648,
+      "registryID": 4294969030
+    }
+  ],
+  "mismatches": [],
+  "offscreen": {
+    "device": "Apple M1",
+    "frames": 60,
+    "gigaIterationsPerSecond": 204.8832369152175,
+    "gpuMillisecondsMedian": 10.481500001333188,
+    "gpuMillisecondsP95": 10.535374996834435,
+    "height": 2048,
+    "iterationsPerPixel": 512,
+    "mismatchedPixels": 0,
+    "verifiedPixels": 4096,
+    "wallSeconds": 0.6734639406204224,
+    "width": 2048
+  },
+  "presentation": {
+    "backingScale": 1,
+    "drawableHeight": 600,
+    "drawableTimeouts": 0,
+    "drawableWidth": 960,
+    "framesPresented": 483,
+    "framesSubmitted": 489,
+    "presentIntervalMedianMs": 10.001750000810716,
+    "presentIntervalP95Ms": 10.001875001762528,
+    "presentedFramesPerSecond": 96.6,
+    "screenMaximumFramesPerSecond": 100,
+    "seconds": 5,
+    "windowVisible": true
+  },
+  "probe": "sanjbox-s1-probe",
+  "screenCapture": {
+    "preflight": true
+  },
+  "timestamp": "2026-11-03T13:41:57.601Z",
+  "uidProcesses": {
+    "count": 527,
+    "physicalFootprintBytes": 22187621712,
+    "uid": 501,
+    "unreadable": 0
+  },
+  "valid": true
+}

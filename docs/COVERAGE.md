@@ -294,7 +294,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP0.2 | Repo, dokumentace, coverage | — | ✅ | první commit |
 | WP0.3 | Společná sada sond | — | ✅ | `spikes/common`: `sanjbox-whoami`, `sanjbox-canary`, formát protokolu; 16 testů |
 | WP0.4 | Nezávislá protistrana | — | ✅ | `sanjbox-counterpart`: TCP/UDP listener, log událostí, raw záchyt, kanárky vč. DNS labelů, `report` (neúplný běh = neplatné měření); 7 testů + 2 v sadě sond. ICMP a TLS obsah mimo rozsah (pcap na hostu) |
-| WP0.5 | Metodika a laboratoř | janfiedler / Codex + Astra | 🟨 | [LAB-v1](LAB.md): registr, sloty, předregistrace, návrhy prahů/statistik a šablony; neměnná historie běhů více autorů/strojů. Dokumentace dodaná; čeká na potvrzení P1–P6/F0.8. A2 ještě vyžaduje doplnění instrumentace; žádná brána nevyhodnocena |
+| WP0.5 | Metodika a laboratoř | janfiedler / Codex + Astra | 🟨 | [LAB-v1](LAB.md): registr, sloty, předregistrace, návrhy prahů/statistik a šablony; neměnná historie běhů více autorů/strojů. Doplněn [M1 host protokol 3×5 s](evidence/s1/20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb/verdict.md). Čeká na P1–P6/F0.8; A2 vyžaduje další instrumentaci. S1 ani jiná brána tím neprošly |
 | WP1.A1 | S1 příprava | — | ✅ | `spikes/s1-session`: skripty s dry-runem a úklidem, sonda relace (credentials, displeje, Metal, offscreen render s ověřením, prezentace, RAM, Screen Recording), loopback forwarder místo SSH, WebGL stránka; 6 testů. Části s `--apply` (root) ověří až běh L1 |
 | WP1.A2 | S1 běh (L1) | uživatel + impl. | ⬜ | |
 | WP1.A3 | Průzkum RFB výběru relace | | ⬜ | displej MVP i fallback F0.6 |

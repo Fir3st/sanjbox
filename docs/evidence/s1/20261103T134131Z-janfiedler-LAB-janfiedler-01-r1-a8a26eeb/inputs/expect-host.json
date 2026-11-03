@@ -1,0 +1,14 @@
+{
+  "effectiveUID": 501,
+  "realUID": 501,
+  "effectiveGID": 20,
+  "realGID": 20,
+  "userName": "host-user",
+  "requiredGroups": [
+    20
+  ],
+  "launchdManagerName": "Aqua",
+  "launchdManagerUID": 501,
+  "windowSessionUID": 501,
+  "onConsole": true
+}

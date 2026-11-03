@@ -70,6 +70,12 @@ neměnného protokolu běhu). Není to důkaz brány S1 ani měření M1 `LAB-ja
 - prezentace 118 zobrazených snímků/s při 120 Hz;
 - WebGL stránka v Electronu hlásí `ANGLE Metal Renderer: Apple M5 Pro` a akcelerovaný kontext.
 
+Samostatná host diagnostika M1 (`LAB-janfiedler-01`, 2026-11-03) má vlastní
+[protokol s raw a review](../../docs/evidence/s1/20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb/verdict.md).
+Tři 5s pokusy: GPU medián přibližně 10,483 ms, pokaždé 0 neshod ze 4096 pixelů;
+prezentace 96,6 / 99,0 / 99,8 fps na 100Hz hlavním externím displeji (1×). Tato série neměřila WebGL
+ani tři izolované relace. M5 údaje výše zůstávají zachované, konfigurace nejsou přímo srovnatelný benchmark.
+
 ### Jak `run-probe.sh` sondu spouští
 
 `launchctl asuser <uid>` převezme bootstrap namespace a audit session GUI relace uživatele; UID ani GID

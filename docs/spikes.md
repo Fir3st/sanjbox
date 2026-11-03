@@ -43,10 +43,11 @@ do jeho `verdict.md`, ne místo staršího výsledku v indexu.
 
 ## S1 — Neviditelná relace
 
-- Souhrn: **Neověřeno**. Žádný evidovaný běh ani závěr konfigurace.
+- Souhrn: **Neověřeno**. Evidována dílčí diagnostika sondy v host konzoli M1; žádný akceptační běh tří relací ani závěr konfigurace S1.
 
 | UTC / ID záznamu | Typ: běh / oprava / review / závěr konfigurace | Autor | Konfigurační klíč | Verdikt a rozsah | Důkaz / vazba na předchozí záznamy |
 |---|---|---|---|---|---|
+| 2026-11-03T13:41:57Z / 20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb | běh: dílčí host diagnostika | janfiedler / Codex; review Astra xhigh | LAB-janfiedler-01/r1, M1/16 GiB, 27.2/26B123, externí 3440×1440/100 Hz/1×, host konzole, kód 9462158, vlastní předregistrace 3×5 s | S1 **Neověřeno**; 3/3 platné host sondy, bez rozhodnutí F0.8/P1–P6 | [Výsledek a raw](evidence/s1/20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb/verdict.md); historický M5 záznam v README A1 zachován samostatně |
 
 ## S0 — Hranice a attack surface
 

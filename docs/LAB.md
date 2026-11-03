@@ -40,9 +40,20 @@ Přesné provozní údaje nezbytné pro test drží soukromý protokol; publikov
 
 | Stroj / revize | Veřejný vlastník | Ověřená metadata | Role a stav |
 |---|---|---|---|
-| LAB-janfiedler-01 / r1 | janfiedler | 2026-11-03, cílené čtení metadat: `MacBookPro17,1`, Apple M1, arm64, CPU 8 fyzických / 8 logických; RAM 17179869184 B = 16 GiB; macOS 27.2 (26B123); Xcode 27.0 (27A266a), Swift 6.4 (`swiftlang-6.4.0.34.1`) | Kandidát minima/reference. **Nepřipraveno:** GPU počet jader, displeje, napájení, volné místo, záloha a úklid nejsou ověřené. Žádný verdikt. |
+| LAB-janfiedler-01 / r1 | janfiedler | 2026-11-03, cílené čtení metadat: `MacBookPro17,1`, Apple M1, arm64, CPU 8 fyzických / 8 logických; RAM 17179869184 B = 16 GiB; macOS 27.2 (26B123); Xcode 27.0 (27A266a), Swift 6.4 (`swiftlang-6.4.0.34.1`) | Kandidát minima/reference. **Nepřipraveno pro L1:** GPU počet jader, volné místo, záloha a připravenost úklidu nejsou ověřené. Doplňující host měření a displeje viz níže; žádný verdikt brány. |
 
 Údaje o M5 Pro v README S1 jsou historická diagnostika host sondy; nejde o tento M1 ani o běh brány.
+
+### Samostatná host diagnostika M1 (2026-11-03)
+
+[Protokol M1](evidence/s1/20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb/verdict.md)
+uchovává tři předem naplánované 5s pokusy stejné Metal sondy v host konzoli. GPU mediány byly
+10,481500 / 10,483625 / 10,483042 ms, každý pokus s 0 neshodami z 4096 ověřených pixelů;
+prezentace 96,6 / 99,0 / 99,8 fps. Aktivní hlavní externí displej měl 3440×1440 pixelů, 100 Hz, 1×;
+druhý interní 1680×1050 bodů / 3360×2100 pixelů, 60 Hz, 2×. Napájení AC. Tyto údaje doplňují registr r1.
+Pozadí ani cache nebyly řízené, sonda běžela na běžném pracovním hostu. Nejde o S1/A2, měření RAM oblasti
+ani o přímé výkonnostní srovnání s M5; oba záznamy zůstávají samostatné. Podrobné zdroje, identita,
+sanitizované raw výstupy a review jsou v protokolu. P1–P6 zůstávají návrhem.
 
 ### Slot na konkrétním stroji
 
