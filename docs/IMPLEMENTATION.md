@@ -11,17 +11,23 @@ Při rozporu platí PLAN.md; tento dokument se opraví.
 
 ## 1. Principy rozdělení práce
 
-1. **Příprava je paralelní, laboratoř je sériová.** Psaní kódu, sond, skriptů, fixtures a mocků může běžet
-   souběžně ve více větvích. Běhy, které mění systém testovacího Macu (uživatelé, Sdílení obrazovky, pf,
-   `/opt`, ACL, TCC granty), probíhají po jednom v **laboratorních slotech** (§4). Systémové zásahy
-   a úklid se nesmějí překrývat (PLAN §Postup F1).
-2. **Privilegované kroky spouští uživatel.** Agent připraví skript s výchozím režimem `--dry-run`, popisem
+1. **Příprava je paralelní, laboratoř je sériová na každém stroji.** Psaní kódu, sond, skriptů, fixtures
+   a mocků může běžet souběžně ve více větvích. Běhy, které mění systém testovacího Macu (uživatelé,
+   Sdílení obrazovky, pf, `/opt`, ACL, TCC granty), probíhají na daném stroji po jednom v **laboratorních
+   slotech** (§4). Systémové zásahy a úklid se nesmějí překrývat (PLAN §Postup F1). Vývojáři s vlastními
+   Macy mohou běžet sloty souběžně, každý na svém stroji (F0.8).
+2. **Výsledek platí pro konfiguraci, na které byl změřen.** Ohrádka cílí na obecný Mac (F0.8). Každý běh
+   zapisuje konfiguraci stroje; brána prošla jen pro konfigurace, kde prošla. Výkonové brány se měří i na
+   minimální podporované konfiguraci (po jejím potvrzení v DECISIONS.md).
+3. **Rozsah MVP podle F0:** CLI + jedno okno s plochou oblasti (C-001), bez Dockeru (C-002), data z oblasti
+   ven jen řízeným exportem (F0.3). R4 a R6 zůstávají požadavky produktu pro F3/F4.
+4. **Privilegované kroky spouští uživatel.** Agent připraví skript s výchozím režimem `--dry-run`, popisem
    změn, záznamem původního stavu a úklidem. Root operace z oblasti neexistují.
-3. **Brána ≠ hotový balík.** Balík je hotový, když existuje jeho výstup (kód, skript, sonda). Brána je
+5. **Brána ≠ hotový balík.** Balík je hotový, když existuje jeho výstup (kód, skript, sonda). Brána je
    prošlá, až když důkaz splní akceptaci z PLAN.md. Coverage vede oba stavy zvlášť.
-4. **Bezpečnostní fail blokuje závislou integraci.** Po failu pokračuje jen nezávislý výzkum bez skutečných
+6. **Bezpečnostní fail blokuje závislou integraci.** Po failu pokračuje jen nezávislý výzkum bez skutečných
    dat (PLAN §Pořadí). Změna požadavku vyžaduje záznam v DECISIONS.md a výslovné rozhodnutí uživatele.
-5. **Vlastnictví adresářů.** Každý balík má vlastní adresář; sdílené kontrakty (`spikes/common/`,
+7. **Vlastnictví adresářů.** Každý balík má vlastní adresář; sdílené kontrakty (`spikes/common/`,
    `Contracts/`) se mění jen samostatným balíkem s review, aby paralelní větve nekolidovaly.
 
 ## 2. Role
@@ -45,7 +51,7 @@ laboratorní slot (§4). Stav balíků vede [COVERAGE.md §4](COVERAGE.md#4-prac
 | WP0.2 | Repo, dokumentace, coverage | Tento repozitář, GUIDE, COVERAGE | — | vše | ne |
 | WP0.3 | Společná sada sond `spikes/common/` | Swift knihovna + CLI `ohr-whoami`: ověření skutečného/efektivního UID/GID, skupin, audit session a bootstrap kontextu proti očekávání (nesoulad = neplatné měření); generátor syntetických kanárků; formát protokolu běhu | WP0.2 | WP0.4, WP0.5, S5 | ne |
 | WP0.4 | Nezávislá protistrana (oracle) | `spikes/common/counterpart`: listener na řízeném hostu, který nezávisle zaznamenává přijaté kanárky/bajty (pro S3, S5, S7) | WP0.3 (formát) | WP0.3, S5 | ne |
-| WP0.5 | Metodika měření a laboratoř | `docs/LAB.md`: baseline testovacího Macu (model, RAM, macOS, displeje), záloha před během, acceptance statistiky a délky testů (F0.8) zapsané **před** měřením | WP0.1 (bod 8) | WP0.3, WP0.4 | ne |
+| WP0.5 | Metodika měření a laboratoř | `docs/LAB.md`: registr testovacích strojů (model, čip, RAM, macOS + build, displeje, vlastník), minimální a referenční konfigurace, rezervace slotů per stroj, záloha před během, acceptance statistiky a délky testů (F0.8) zapsané **před** měřením | WP0.1 (bod 8: minimální konfigurace a výkonové cíle) | WP0.3, WP0.4 | ne |
 
 **Výstup F0:** rozhodnutí 1–8 zapsaná (nebo výslovně otevřená), sondy umí ověřit vlastní credentials,
 protistrana existuje, metodika je zafixovaná. Bez F0 nelze brány F1 vyhodnotit (PLAN §F0).
@@ -60,7 +66,7 @@ Rozděleno do **proudů**. Příprava všech proudů může začít hned po WP0.
 |---|---|---|---|---|---|
 | WP1.A1 | S1 příprava | `spikes/s1-session/`: `create-users.sh` (3 skrytí uživatelé, `IsHidden`, skupina `ohradka`, hesla do Klíčenky), `probe` (credentials, displeje, Metal, skutečný render, RAM), `observe.sh` (jen povolená metadata), `cleanup.sh`, README | WP0.3 | B, C, D, F-prep | ne |
 | WP1.A2 | S1 běh a vyhodnocení | Protokol + verdikt brány S1 v [spikes.md](spikes.md) | WP1.A1, WP0.5 | příprava ostatních | **L1** |
-| WP1.A3 | Průzkum výběru virtuální relace (RFB) | Poznámky k protokolu Apple auth + výběru relace; prototyp jen pokud S1 vyžaduje keeper | — | vše | ne |
+| WP1.A3 | Průzkum výběru virtuální relace (RFB) | Poznámky k protokolu Apple auth + výběru relace; prototyp klienta, protože okno plochy oblasti je MVP displej (C-001) i fallback F0.6 | — | vše | ne |
 | WP1.A4 | S0 příprava | `spikes/s0-boundary/`: `xpc-probe`, `tcc-probe`, `capture-probe`, `host-read-probe`, `ingress-probe`, `signing-probe`, `lifecycle-probe` | WP0.3 | B, C, D | ne |
 | WP1.A5 | S0 běh a vyhodnocení | Verdikt S0 mapovaný na R2/R3 | WP1.A2 (pass), WP1.A4 | příprava | **L2** |
 | WP1.A6 | S8 příprava | `spikes/s8-signing/`: kontrola hardened runtime a absence `get-task-allow`, SMAppService s Personal Team, self-signed varianta, same-UID attach test, fuzzer XPC brokeru | WP0.3 | vše | ne (statické části) |
@@ -104,14 +110,19 @@ Rozděleno do **proudů**. Příprava všech proudů může začít hned po WP0.
 | WP1.E1 | S6 příprava | `spikes/s6-brew/`: instalační skript prefixu `/opt/ohr/t001` (spouští uživatel), seznam top 200 formulí, sběr poměru bottle/kompilace, vzorek `brew test`, casky do `~/Applications`, ověření dat publikace pro cooldown | WP1.B3 | vše | ne |
 | WP1.E2 | S6 běh a vyhodnocení | Verdikt S6 (stahování schvaluje uživatel konkrétním příkazem) | WP1.B5 (pass), WP1.E1 | příprava | **L6** |
 
-#### Proud F — Coherence
+#### Proud F — Coherence (mimo MVP, C-001)
+
+S2 není podmínkou F2. Proud F je výzkum pro F3; jeho balíky nesmějí brát laboratorní kapacitu
+kritické cesty.
 
 | ID | Balík | Výstup | Závislosti | Paralelně | Lab |
 |---|---|---|---|---|---|
 | WP1.F1 | S2-A výzkumný prototyp | Ve tvé relaci, bez rootu, jen syntetická okna (TextEdit apod.): ScreenCaptureKit → samostatná proxy okna přes IOSurface, vstup, menu přes AX; více oken, překryvy, skrytá okna, resize, vazba popupů | WP0.3 | vše | TCC grant od uživatele |
 | WP1.F2 | S2-B v relaci oblasti | Agent v relaci, IOSurface přes Mach port brokerem, měření tří souběžných oblastí, input-to-photon, supported subset | WP1.A5, WP1.A7 (pass), WP1.F1 | příprava | **L7** |
 
-#### Proud G — Docker
+#### Proud G — Docker (mimo MVP, C-002, F4)
+
+S7 není podmínkou F2. Před S7 musí být v DECISIONS.md rozhodnutý budget start/stop (F0.8).
 
 | ID | Balík | Výstup | Závislosti | Paralelně | Lab |
 |---|---|---|---|---|---|
@@ -120,7 +131,11 @@ Rozděleno do **proudů**. Příprava všech proudů může začít hned po WP0.
 | WP1.G3 | S7 běh a vyhodnocení | Verdikt S7 | WP1.D7 (pass), WP1.G2 | — | **L8** |
 
 **Vstup do F2 (PLAN §Akceptační kontrakt):** S0, S1, S3/S3b, S4, S5, S6 a S8 prošly ve svém rozsahu.
-S2 a S7 nejsou podmínkou F2, ale bez nich F2 nedokazuje R6 ani R4.
+S2 a S7 nejsou podmínkou F2 (C-001, C-002); F2 proto nedokazuje R6 ani R4.
+
+**Pokud S1 neprojde:** fallback F0.6 (samostatná plocha na oblast) pokrývá selhání přežití relace bez klienta.
+Pokud macOS nedovolí souběžné relace vedle konzole nebo v nich akcelerované renderování, fallback nepomůže
+a vývoj se zastaví k novému rozhodnutí (DECISIONS F0.6). Stejně tak selhání S8 bez placeného účtu (F0.5).
 
 ### F2 — Jádro (po bráně vstupu do F2)
 
@@ -137,7 +152,9 @@ F2 začíná balíkem kontraktů, aby komponenty mohly vznikat paralelně proti 
 | WP2.6 | Ohrádka.app | `Ohradka/`: menu bar, schvalování s Touch ID, průvodce zpevněním, audit driftu, uninstall | WP2.0 | ostatní |
 | WP2.7 | CLI `ohradka` | `shell`, `run`, `pause`, `snapshot`, `rollback` přes XPC | WP2.0 | ostatní |
 | WP2.8 | Únikový test suite | `Tests/Escape/`: automatizace kapitol 1–4 a 7–11 z PLAN §Verifikace, běh ve třech souběžných oblastech | WP2.0 | ostatní |
-| WP2.9 | Integrace a brána F2 | Sestavení, běh test suite, verdikt; omezené MVP jen po rozhodnutí F0.2/F0.6 | 2.1–2.8 | — |
+| WP2.10 | Okno plochy oblasti (MVP displej) | Okno s plochou relace oblasti (vlastní RFB klient z WP1.A3, záloha Screen Sharing.app), jednoznačně označené oblastí; schránka jen řízeným mostem (preview + potvrzení), žádná automatická synchronizace | WP2.0, WP1.A3 | ostatní |
+| WP2.11 | Řízený export | Jediná cesta dat z oblasti na host (F0.3): výběr souborů, preview, karanténa (`com.apple.quarantine`), audit; host nemá ACL ke svazku oblasti | WP2.0, WP2.3 | ostatní |
+| WP2.9 | Integrace a brána F2 (MVP) | Sestavení, běh test suite, verdikt MVP v rozsahu C-001/C-002 | 2.1–2.8, 2.10, 2.11 | — |
 
 ### F3 — Coherence (po F2 a S2)
 
@@ -161,8 +178,10 @@ F2 začíná balíkem kontraktů, aby komponenty mohly vznikat paralelně proti 
 
 ## 4. Laboratorní sloty (sériové běhy)
 
-Běhy měnící systém se plánují do slotů. Slot začíná zápisem do `docs/LAB.md` (kdo, co, kdy, záloha)
-a končí úklidem ověřeným `observe`/`audit` skriptem. Dva sloty nikdy neběží souběžně.
+Běhy měnící systém se plánují do slotů. Slot začíná zápisem do `docs/LAB.md` (stroj, kdo, co, kdy, záloha)
+a končí úklidem ověřeným `observe`/`audit` skriptem. **Na jednom stroji** dva sloty nikdy neběží souběžně;
+různé stroje mohou běžet paralelně. Pořadí a předchozí podmínky platí pro konfiguraci daného stroje:
+slot L2 na stroji X vyžaduje, aby S1 prošla na stroji X (nebo na stejné konfiguraci).
 
 | Slot | Obsah | Předchozí podmínka |
 |---|---|---|
@@ -190,8 +209,9 @@ flowchart LR
   L5 --> L8[L8 S7]
   D[Proud D: brána, mocky, fixtures] --> L5
   F1[S2-A výzkum] --> L7
+  R[WP1.A3 RFB klient] --> F2
   L2 & L3 & L4 & L5 & L6 --> G{Vstup do F2}
-  G --> F2[F2 jádro: WP2.0 → 2.1–2.8 paralelně]
+  G --> F2[F2 MVP: WP2.0 → 2.1–2.11 paralelně]
   F2 --> F3[F3 Coherence]
   L7 --> F3
   F3 --> F4[F4 Docker, zařízení, git]
@@ -202,11 +222,13 @@ flowchart LR
 
 Tyto balíky lze rozdat současně hned po prvním commitu (každý do vlastní větve, viz GUIDE §5):
 
-1. **WP0.1** — uživatel vyplní DECISIONS.md.
+1. **WP0.1** — uživatel doplní otevřené podotázky F0.7 (rozsah integrací) a F0.8 (minimální konfigurace, výkonové cíle).
 2. **WP0.3 + WP0.4** — společné sondy a protistrana (blokují přípravu ostatních běhů, proto první).
 3. **WP1.D1 → D2/D3/D4** — typovaná brána s mocky (nepotřebuje laboratoř).
 4. **WP1.B1, WP1.B3** — audit metadat a manifest stavu.
-5. **WP1.C2** — rešerše ochrany nezávislé na pf (největší otevřený síťový blokátor).
-6. **WP1.A3, WP1.G1** — průzkum RFB a Docker runtime.
+5. **WP1.C2** — rešerše ochrany nezávislé na pf a uzavření resolveru/ICMP bez Network Extension
+   (největší otevřený síťový blokátor; F0.5 vylučuje NE).
+6. **WP1.A3** — RFB klient: displej MVP i fallback F0.6.
 
-Jakmile je hotové WP0.3, přidat WP1.A1, WP1.A4, WP1.A6, WP1.C1 a WP1.F1.
+Jakmile je hotové WP0.3, přidat WP1.A1, WP1.A4, WP1.A6 a WP1.C1. Proudy F a G (Coherence, Docker)
+jsou mimo MVP a berou kapacitu až po kritické cestě.

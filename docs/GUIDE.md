@@ -15,8 +15,8 @@ nebo agentů mohlo pracovat paralelně bez kolizí. Co dělat a v jakém pořad�
 
 | Položka | Požadavek |
 |---|---|
-| Hardware | Apple Silicon. Referenční stroj: M5 Pro, 64 GB RAM (přesnou baseline vede `docs/LAB.md`). |
-| macOS | 27.x. Každý verdikt brány uvádí přesnou verzi a build. |
+| Hardware | Obecný Mac s Apple Silicon (F0.8). Minimální podporovanou konfiguraci určuje DECISIONS.md; každý testovací stroj je zapsaný v registru `docs/LAB.md`. |
+| macOS | 27.x. Každý verdikt brány uvádí přesnou verzi a build; brána platí jen pro konfigurace, na kterých prošla. |
 | Xcode | 27.x (Swift 6.x). Žádné externí Swift balíčky ve spikech bez schválení (PLAN: brána bez závislostí). |
 | Podpis | Bezplatný Personal Team. **Nikdy `get-task-allow`** v podepsaných binárkách sond, agenta ani helperu; hardened runtime. |
 | Laboratoř | Testovací Mac s čerstvou zálohou před každým slotem. Bez skutečných projektů, účtů a tajemství v testovacích oblastech. |
@@ -71,8 +71,10 @@ Tests/Escape/           únikový test suite                               (WP2.
   Změny `spikes/common/`, `Contracts/` a PLAN.md jsou samostatné balíky/commity s review.
 - **Převzetí balíku:** v COVERAGE.md §4 nastav stav `🟨 rozpracováno` a vlastníka; commitni to jako první
   commit větve. Tím je vidět, kdo na čem dělá.
-- **Laboratoř:** před během zapiš rezervaci slotu do `docs/LAB.md`. Dva sloty nikdy neběží současně;
-  slot končí ověřeným úklidem.
+- **Laboratoř:** každý vývojář testuje na svém stroji zapsaném v registru `docs/LAB.md`. Před během zapiš
+  rezervaci slotu (stroj, slot, kdo, kdy). Na jednom stroji dva sloty nikdy neběží současně; různé stroje
+  mohou běžet paralelně. Slot končí ověřeným úklidem. Neměř na stroji se skutečnými tajemstvími v cestách,
+  které test zpevňuje, dokud nemáš zálohu a neprošel dry-run.
 - **Integrace:** větev se slučuje do `main` až s aktualizovanou COVERAGE.md. Konflikty v COVERAGE.md řeš
   ručně po řádcích; nikdy nepřepisuj cizí stav.
 
@@ -102,7 +104,7 @@ Každý běh brány vytvoří `docs/evidence/<brána>/<YYYY-MM-DD>-<běh>/`:
 
 | Položka | Obsah |
 |---|---|
-| `environment.md` | Model Macu, RAM, macOS + build, displeje, Xcode, souběžně běžící aplikace, verze kódu (commit) |
+| `environment.md` | ID stroje z registru LAB.md, model Macu, čip, RAM, macOS + build, displeje, Xcode, souběžně běžící aplikace, verze kódu (commit) |
 | `inputs.md` | Testované případy (ID z COVERAGE), vstupy, očekávaný výsledek a oracle stanovené **před** během |
 | `credentials.log` | Výstup `ohr-whoami` pro každou sondu |
 | `raw/` | Nezpracované výstupy sond a protistrany (bez tajemství, jen kanárky) |

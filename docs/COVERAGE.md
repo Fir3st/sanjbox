@@ -13,7 +13,10 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-03 (založení repozitáře).
+Poslední aktualizace: 2026-11-03 (rozhodnutí F0, změny rozsahu MVP C-001 a C-002).
+
+**Rozsah MVP (F2):** CLI + jedno okno s plochou oblasti, bez Dockeru, data ven jen řízeným exportem.
+R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 
 ## 0. Souhrn
 
@@ -21,14 +24,14 @@ Poslední aktualizace: 2026-11-03 (založení repozitáře).
 |---|---|---|---|---|---|
 | Požadavky R1–R8 | 8 | 0 | 0 | 0 | 8 |
 | Brány F1 (S0–S8 vč. S3b) | 10 | 0 | 0 | 0 | 10 |
-| Testové případy | 152 | 0 | 0 | 0 | 152 |
-| Rozhodnutí F0 | 8 | — | — | — | 8 otevřených |
+| Testové případy | 155 | 0 | 0 | 0 | 155 |
+| Rozhodnutí F0 | 8 | — | — | — | 6 rozhodnuto, 2 částečně (F0.7, F0.8) |
 
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
-| F0 | 5 | 1 | 0 | 4 | 0 |
+| F0 | 5 | 1 | 1 | 3 | 0 |
 | F1 | 30 | 0 | 0 | 30 | 0 |
-| F2 | 10 | 0 | 0 | 10 | 0 |
+| F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
 
@@ -39,17 +42,17 @@ Poslední aktualizace: 2026-11-03 (založení repozitáře).
 | R1 X oblastí, agenti, nástroje, Xcode, Android, Docker | S1, S6, S7, F2 | GUI-01…13, HB, DK, POS | Neověřeno |
 | R2 Žádný přístup k host datům, identitě, jiným oblastem; nepřežije vypnutí | S0, S4, S8, F2 | FS, ID, LC, RB, SG | Neověřeno; blokátory otevřené |
 | R3 Žádný nekontrolovaný únik do sítě | S3, S3b, S5, F2 | NET, GW | Neověřeno; blokátory otevřené |
-| R4 Docker bez únikové cesty | S7, F4 | DK | Neověřeno |
+| R4 Docker bez únikové cesty | S7, F4 | DK | Neověřeno; mimo MVP (C-002) |
 | R5 Nativní výkon, bez desktopové VM, rychlé zapnutí/vypnutí | S1, S2, F2 | GUI-12, GUI-17, PERF | Neověřeno |
-| R6 Jednotlivá okna v Docku, rozlišitelná oblast | S2, F3 | GUI-14…24 | Neověřeno |
-| R7 Práce s projektem, řízený import, testování, obnova | S4, F2 | RB, FS-10…11 | Neověřeno |
+| R6 Jednotlivá okna v Docku, rozlišitelná oblast | S2, F3 | GUI-14…24 | Neověřeno; mimo MVP (C-001), MVP: POS-08 |
+| R7 Práce s projektem, řízený import, testování, obnova | S4, F2 | RB, FS-10…12, POS-09 | Neověřeno |
 | R8 Agnostičnost bez bezpečnostního bypassu | S5, S6 | GW-12…19, HB | Neověřeno |
 
 ## 2. Brány
 
 | Brána | Rozsah | Testy | Závisí na | Stav | Verdikt |
 |---|---|---|---|---|---|
-| F0 | Rozhodnutí 1–8 | — | — | 8 otevřených | [DECISIONS.md](DECISIONS.md) |
+| F0 | Rozhodnutí 1–8 | — | — | 6 rozhodnuto, F0.7 a F0.8 částečně | [DECISIONS.md](DECISIONS.md) |
 | S1 | Neviditelné relace | GUI-01…13 | F0, WP0.3 | Neověřeno | — |
 | S0 | Hranice a attack surface | FS-01…09, ID-01…11, LC-01…11 | S1 | Neověřeno | — |
 | S8 | Signing, TCC, broker | SG-01…11 | S1 | Neověřeno | — |
@@ -58,10 +61,10 @@ Poslední aktualizace: 2026-11-03 (založení repozitáře).
 | S3b | Ingress a loopback | NET-10…12 | S0 | Neověřeno | — |
 | S5 | Typované brány | GW-01…20 | S3 (integrace) | Neověřeno | — |
 | S6 | Homebrew per oblast | HB-01…07 | S4 | Neověřeno | — |
-| S2 | Coherence | GUI-14…24 | S0, S8 | Neověřeno | — |
-| S7 | Docker | DK-01…10 | S5 | Neověřeno | — |
+| S2 | Coherence (mimo MVP, C-001) | GUI-14…24 | S0, S8 | Neověřeno | — |
+| S7 | Docker (mimo MVP, C-002) | DK-01…10 | S5, budget F0.8 | Neověřeno | — |
 | Vstup F2 | S0, S1, S3, S3b, S4, S5, S6, S8 prošly | — | — | Neověřeno | — |
-| F2 | Jádro | Escape 1–4, 7–11 | Vstup F2 | Neověřeno | — |
+| F2 | Jádro = MVP v rozsahu C-001/C-002 | Escape 1–4, 7–11; POS-08…09, FS-12 | Vstup F2 | Neověřeno | — |
 | F3 | Coherence produkčně | Escape 2, 8; POS-06…07 | F2, S2 | Neověřeno | — |
 | F4 | Docker, zařízení, git | Escape 5, 6 | F3, S7 | Neověřeno | — |
 
@@ -114,6 +117,7 @@ reálné integrace se evidují zvlášť a mají ve sloupci poznámku „uživat
 | FS-09 | Metadata služeb (`ps`, `mdfind`, `log show`, `netstat`, `system_profiler`/`ioreg`, `dscl`) nevydají testovací host data | R2 | S0 | 1 | Neověřeno | |
 | FS-10 | Průběžná ochrana: vytvoření/přesun/obnova kanárku za běhu oblasti bez okna přístupu | R2, R7 | S4 | 9 | Neověřeno | |
 | FS-11 | Nový install a nový/odemčený mount za běhu nezavedou přístupnou cestu | R2, R7 | S4 | 9 | Neověřeno | |
+| FS-12 | Host nemá ACL ani jiný přímý přístup ke svazku oblasti; data ven jen exportem (F0.3) | R2, R7 | S4/F2 | 1 | Neověřeno | |
 
 ### 3.3 ID — identita, IPC, TCC (S0)
 
@@ -273,6 +277,8 @@ reálné integrace se evidují zvlášť a mají ve sloupci poznámku „uživat
 | POS-05 | Bezpečná pauza celého UID odděleně od pauzy aplikací | R5 | F2 | 7 | Neověřeno | |
 | POS-06 | Most schránky: preview, potvrzení, karanténa | R2, R6 | F3 | 2 | Neověřeno | |
 | POS-07 | Proxy okna: Xcode, Simulator, Electron, Safari použitelné | R6 | F3 | 6 | Neověřeno | |
+| POS-08 | MVP okno plochy oblasti: jednoznačně označené, schránka jen řízeným mostem (C-001) | R2, R6 | F2 | 2, 6 | Neověřeno | |
+| POS-09 | Řízený export: výběr, preview, karanténa, audit; jiná cesta ven neexistuje (F0.3) | R2, R7 | F2 | 1 | Neověřeno | |
 | PERF-01 | `npm install`/build v oblasti vs. srovnatelně nativně | R5 | F2 | 7 | Neověřeno | |
 | PERF-02 | Detekce a reakce hlídače (detektor, ne gate R3) | R3 | S3 | 7 | Neověřeno | |
 | PERF-03 | Cold/warm login a resume proti cílům design card | R5 | F2 | 7 | Neověřeno | |
@@ -283,14 +289,14 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 
 | ID | Balík | Vlastník | Stav | Poznámka |
 |---|---|---|---|---|
-| WP0.1 | Rozhodnutí F0 | uživatel | ⬜ | [DECISIONS.md](DECISIONS.md) |
+| WP0.1 | Rozhodnutí F0 | uživatel | 🟨 | 6/8 rozhodnuto; otevřené F0.7 (rozsah integrací), F0.8 (min. konfigurace, výkonové cíle) |
 | WP0.2 | Repo, dokumentace, coverage | — | ✅ | první commit |
 | WP0.3 | Společná sada sond | | ⬜ | |
 | WP0.4 | Nezávislá protistrana | | ⬜ | |
-| WP0.5 | Metodika a laboratoř | | ⬜ | čeká na F0.8 |
+| WP0.5 | Metodika a laboratoř | | ⬜ | registr strojů (vývoj na více Macích); čeká na zbytek F0.8 |
 | WP1.A1 | S1 příprava | | ⬜ | |
 | WP1.A2 | S1 běh (L1) | uživatel + impl. | ⬜ | |
-| WP1.A3 | Průzkum RFB výběru relace | | ⬜ | |
+| WP1.A3 | Průzkum RFB výběru relace | | ⬜ | displej MVP i fallback F0.6 |
 | WP1.A4 | S0 příprava | | ⬜ | |
 | WP1.A5 | S0 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.A6 | S8 příprava | | ⬜ | |
@@ -301,7 +307,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.B4 | Snapshot/rollback prototyp | | ⬜ | |
 | WP1.B5 | S4 běh (L3) | uživatel + impl. | ⬜ | |
 | WP1.C1 | S3 příprava | | ⬜ | |
-| WP1.C2 | Ochrana nezávislá na pf | | ⬜ | otevřený blokátor R3 |
+| WP1.C2 | Ochrana nezávislá na pf | | ⬜ | otevřený blokátor R3; bez NE (F0.5) |
 | WP1.C3 | S3b příprava | | ⬜ | |
 | WP1.C4 | S3/S3b běh (L4) | uživatel + impl. | ⬜ | |
 | WP1.D1 | Jádro brány | | ⬜ | |
@@ -327,7 +333,9 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP2.6 | Ohrádka.app | | ⬜ | |
 | WP2.7 | CLI | | ⬜ | |
 | WP2.8 | Únikový test suite | | ⬜ | |
-| WP2.9 | Integrace a brána F2 | | ⬜ | |
+| WP2.10 | Okno plochy oblasti (MVP displej) | | ⬜ | C-001 |
+| WP2.11 | Řízený export | | ⬜ | F0.3 |
+| WP2.9 | Integrace a brána F2 (MVP) | | ⬜ | |
 | WP3.1 | Agent relace | | ⬜ | |
 | WP3.2 | Broker | | ⬜ | |
 | WP3.3 | Proxy appky v Docku | | ⬜ | |
@@ -345,9 +353,10 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 |---|---|---|---|
 | Ochrana nových dat, přesunů, obnov a mountů | R2 | S0, S4 (FS-04, FS-10, FS-11) | Otevřený |
 | Zákaz nového spuštění a zánik všech procesů UID; rozsah rollbacku a crash recovery | R2 | S0, S4, S8 (LC, RB) | Otevřený |
-| Resolver, mDNS, ICMP, AirDrop/APNs | R3 | S3 (NET-16…18) | Otevřený |
+| Resolver, mDNS, ICMP, AirDrop/APNs | R3 | S3 (NET-16…18); bez Network Extension (F0.5) | Otevřený |
 | Výpadek pf: ochrana nezávislá na rulesetu, staré states | R3 | S3, WP1.C2 (NET-20…25) | Otevřený |
 | Ingress a loopback, port squatting | R2, R3 | S3b (NET-10…12) | Otevřený |
 | Autorizace, scopes a passthrough | R2, R3, R8 | S5, S8 (GW-12…13) | Otevřený |
 | Cooldown jako kontrola artefaktů; metadata brew/tapů | R3 | S5, S6 (GW-01…06, HB-04) | Otevřený |
-| Tři akcelerované relace vedle host konzole, HP limit, keeper | R1, R5, R6 | S1, S2 (GUI-01…05, GUI-13) | Otevřený |
+| Tři akcelerované relace vedle host konzole, HP limit, keeper | R1, R5, R6 | S1, S2 (GUI-01…05, GUI-13); fallback F0.6 nepokrývá nemožnost souběžných relací | Otevřený |
+| Signing bez placeného účtu: S8 nemá náhradní cestu | R2 | S8 (SG-04…05); F0.5 | Otevřený |
