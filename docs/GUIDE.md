@@ -1,6 +1,6 @@
-# Ohrádka — průvodce pro implementaci
+# Sanďbox — průvodce pro implementaci
 
-Jak pracovat na Ohrádce tak, aby výsledky byly důkazem podle [PLAN.md](../PLAN.md) a aby více lidí
+Jak pracovat na Sanďboxu tak, aby výsledky byly důkazem podle [PLAN.md](../PLAN.md) a aby více lidí
 nebo agentů mohlo pracovat paralelně bez kolizí. Co dělat a v jakém pořadí: [IMPLEMENTATION.md](IMPLEMENTATION.md).
 
 ## 1. Co číst a v jakém pořadí
@@ -59,14 +59,14 @@ spikes/
   s0-boundary/ s1-session/ s2-coherence/ s3-pf/ s4-host/
   s5-gateway/ s6-brew/ s7-docker/ s8-signing/
 Contracts/              XPC schémata, stavový automat, formát politiky   (F2, WP2.0)
-Helper/ Broker/ SessionAgent/ Gateway/ Docker/ Ohradka/                 (F2–F4)
+Helper/ Broker/ SessionAgent/ Gateway/ Docker/ Sanjbox/                 (F2–F4)
 Tests/Escape/           únikový test suite                               (WP2.8)
 ```
 
 ## 5. Paralelní práce
 
 - **Jeden balík = jedna větev** `wp/<id>-<slug>`, např. `wp/1.D2-npm-typed`. Pro souběh na jednom stroji
-  použij git worktree: `git worktree add ../ohradka-wp-1.D2 -b wp/1.D2-npm-typed`.
+  použij git worktree: `git worktree add ../sanjbox-wp-1.D2 -b wp/1.D2-npm-typed`.
 - **Vlastnictví adresářů:** balík mění jen svůj adresář, svůj řádek v COVERAGE.md a případně vlastní protokoly.
   Změny `spikes/common/`, `Contracts/` a PLAN.md jsou samostatné balíky/commity s review.
 - **Převzetí balíku:** v COVERAGE.md §4 nastav stav `🟨 rozpracováno` a vlastníka; commitni to jako první
@@ -86,7 +86,7 @@ Každý `spikes/<brána>/` obsahuje:
 |---|---|
 | `README.md` | Cíl, mapování na R a testy z COVERAGE, prerekvizity, kroky (označené **[uživatel]** / **[implementátor]**), oracle, očekávaný výsledek, úklid |
 | skripty `*.sh` | Viz pravidla níže |
-| sondy (Swift) | První akce každé sondy: `ohr-whoami` kontrola credentials a session proti očekávání; nesoulad = sonda skončí s „neplatné měření“ |
+| sondy (Swift) | První akce každé sondy: `sanjbox-whoami` kontrola credentials a session proti očekávání; nesoulad = sonda skončí s „neplatné měření“ |
 
 Pravidla pro skripty:
 
@@ -106,7 +106,7 @@ Každý běh brány vytvoří `docs/evidence/<brána>/<YYYY-MM-DD>-<běh>/`:
 |---|---|
 | `environment.md` | ID stroje z registru LAB.md, model Macu, čip, RAM, macOS + build, displeje, Xcode, souběžně běžící aplikace, verze kódu (commit) |
 | `inputs.md` | Testované případy (ID z COVERAGE), vstupy, očekávaný výsledek a oracle stanovené **před** během |
-| `credentials.log` | Výstup `ohr-whoami` pro každou sondu |
+| `credentials.log` | Výstup `sanjbox-whoami` pro každou sondu |
 | `raw/` | Nezpracované výstupy sond a protistrany (bez tajemství, jen kanárky) |
 | `verdict.md` | Prošlo / Neprošlo / Nejasné pro každý případ, s odkazem na raw a mapováním na R1–R8 |
 

@@ -1,4 +1,4 @@
-# Ohrádka — implementační plán
+# Sanďbox — implementační plán
 
 Tento dokument převádí [PLAN.md](../PLAN.md) na pracovní balíky, které lze dělat paralelně.
 **PLAN.md je autoritativní kontrakt** (požadavky R1–R8, threat model, brány S0–S8, akceptace).
@@ -16,7 +16,7 @@ Při rozporu platí PLAN.md; tento dokument se opraví.
    Sdílení obrazovky, pf, `/opt`, ACL, TCC granty), probíhají na daném stroji po jednom v **laboratorních
    slotech** (§4). Systémové zásahy a úklid se nesmějí překrývat (PLAN §Postup F1). Vývojáři s vlastními
    Macy mohou běžet sloty souběžně, každý na svém stroji (F0.8).
-2. **Výsledek platí pro konfiguraci, na které byl změřen.** Ohrádka cílí na obecný Mac (F0.8). Každý běh
+2. **Výsledek platí pro konfiguraci, na které byl změřen.** Sanďbox cílí na obecný Mac (F0.8). Každý běh
    zapisuje konfiguraci stroje; brána prošla jen pro konfigurace, kde prošla. Výkonové brány se měří i na
    minimální podporované konfiguraci (po jejím potvrzení v DECISIONS.md).
 3. **Rozsah MVP podle F0:** CLI + jedno okno s plochou oblasti (C-001), bez Dockeru (C-002), data z oblasti
@@ -49,7 +49,7 @@ laboratorní slot (§4). Stav balíků vede [COVERAGE.md §4](COVERAGE.md#4-prac
 |---|---|---|---|---|---|
 | WP0.1 | Rozhodnutí F0 (8 bodů z PLAN §F0) | Vyplněné [DECISIONS.md](DECISIONS.md) | — | vše | ne |
 | WP0.2 | Repo, dokumentace, coverage | Tento repozitář, GUIDE, COVERAGE | — | vše | ne |
-| WP0.3 | Společná sada sond `spikes/common/` | Swift knihovna + CLI `ohr-whoami`: ověření skutečného/efektivního UID/GID, skupin, audit session a bootstrap kontextu proti očekávání (nesoulad = neplatné měření); generátor syntetických kanárků; formát protokolu běhu | WP0.2 | WP0.4, WP0.5, S5 | ne |
+| WP0.3 | Společná sada sond `spikes/common/` | Swift knihovna + CLI `sanjbox-whoami`: ověření skutečného/efektivního UID/GID, skupin, audit session a bootstrap kontextu proti očekávání (nesoulad = neplatné měření); generátor syntetických kanárků; formát protokolu běhu | WP0.2 | WP0.4, WP0.5, S5 | ne |
 | WP0.4 | Nezávislá protistrana (oracle) | `spikes/common/counterpart`: listener na řízeném hostu, který nezávisle zaznamenává přijaté kanárky/bajty (pro S3, S5, S7) | WP0.3 (formát) | WP0.3, S5 | ne |
 | WP0.5 | Metodika měření a laboratoř | `docs/LAB.md`: registr testovacích strojů (model, čip, RAM, macOS + build, displeje, vlastník), minimální a referenční konfigurace, rezervace slotů per stroj, záloha před během, acceptance statistiky a délky testů (F0.8) zapsané **před** měřením | WP0.1 (bod 8: minimální konfigurace a výkonové cíle) | WP0.3, WP0.4 | ne |
 
@@ -64,7 +64,7 @@ Rozděleno do **proudů**. Příprava všech proudů může začít hned po WP0.
 
 | ID | Balík | Výstup | Závislosti | Paralelně | Lab |
 |---|---|---|---|---|---|
-| WP1.A1 | S1 příprava | `spikes/s1-session/`: `create-users.sh` (3 skrytí uživatelé, `IsHidden`, skupina `ohradka`, hesla do Klíčenky), `probe` (credentials, displeje, Metal, skutečný render, RAM), `observe.sh` (jen povolená metadata), `cleanup.sh`, README | WP0.3 | B, C, D, F-prep | ne |
+| WP1.A1 | S1 příprava | `spikes/s1-session/`: `create-users.sh` (3 skrytí uživatelé, `IsHidden`, skupina `sanjbox`, hesla do Klíčenky), `probe` (credentials, displeje, Metal, skutečný render, RAM), `observe.sh` (jen povolená metadata), `cleanup.sh`, README | WP0.3 | B, C, D, F-prep | ne |
 | WP1.A2 | S1 běh a vyhodnocení | Protokol + verdikt brány S1 v [spikes.md](spikes.md) | WP1.A1, WP0.5 | příprava ostatních | **L1** |
 | WP1.A3 | Průzkum výběru virtuální relace (RFB) | Poznámky k protokolu Apple auth + výběru relace; prototyp klienta, protože okno plochy oblasti je MVP displej (C-001) i fallback F0.6 | — | vše | ne |
 | WP1.A4 | S0 příprava | `spikes/s0-boundary/`: `xpc-probe`, `tcc-probe`, `capture-probe`, `host-read-probe`, `ingress-probe`, `signing-probe`, `lifecycle-probe` | WP0.3 | B, C, D | ne |
@@ -107,7 +107,7 @@ Rozděleno do **proudů**. Příprava všech proudů může začít hned po WP0.
 
 | ID | Balík | Výstup | Závislosti | Paralelně | Lab |
 |---|---|---|---|---|---|
-| WP1.E1 | S6 příprava | `spikes/s6-brew/`: instalační skript prefixu `/opt/ohr/t001` (spouští uživatel), seznam top 200 formulí, sběr poměru bottle/kompilace, vzorek `brew test`, casky do `~/Applications`, ověření dat publikace pro cooldown | WP1.B3 | vše | ne |
+| WP1.E1 | S6 příprava | `spikes/s6-brew/`: instalační skript prefixu `/opt/snj/t001` (spouští uživatel), seznam top 200 formulí, sběr poměru bottle/kompilace, vzorek `brew test`, casky do `~/Applications`, ověření dat publikace pro cooldown | WP1.B3 | vše | ne |
 | WP1.E2 | S6 běh a vyhodnocení | Verdikt S6 (stahování schvaluje uživatel konkrétním příkazem) | WP1.B5 (pass), WP1.E1 | příprava | **L6** |
 
 #### Proud F — Coherence (mimo MVP, C-001)
@@ -149,8 +149,8 @@ F2 začíná balíkem kontraktů, aby komponenty mohly vznikat paralelně proti 
 | WP2.3 | Stav a rollback | Manifest, snapshot, obnova s recovery záznamem, rollback oblasti vs. rollback projektu | WP2.0 | ostatní |
 | WP2.4 | Síť | pf anchory, resolver, brána, hlídač (detektor), změna politiky a obnova (staré states, tunely), ochrana nezávislá na pf dle S3 | WP2.0 | ostatní |
 | WP2.5 | Typované brány | Produkční npm/PyPI/brew/git/API modelů, vkládání klíčů z Klíčenky, schvalování svázané s oblastí a operací | WP2.0, WP2.4 (rozhraní) | ostatní |
-| WP2.6 | Ohrádka.app | `Ohradka/`: menu bar, schvalování s Touch ID, průvodce zpevněním, audit driftu, uninstall | WP2.0 | ostatní |
-| WP2.7 | CLI `ohradka` | `shell`, `run`, `pause`, `snapshot`, `rollback` přes XPC | WP2.0 | ostatní |
+| WP2.6 | Sanjbox.app | `Sanjbox/`: menu bar, schvalování s Touch ID, průvodce zpevněním, audit driftu, uninstall | WP2.0 | ostatní |
+| WP2.7 | CLI `sanjbox` | `shell`, `run`, `pause`, `snapshot`, `rollback` přes XPC | WP2.0 | ostatní |
 | WP2.8 | Únikový test suite | `Tests/Escape/`: automatizace kapitol 1–4 a 7–11 z PLAN §Verifikace, běh ve třech souběžných oblastech | WP2.0 | ostatní |
 | WP2.10 | Okno plochy oblasti (MVP displej) | Okno s plochou relace oblasti (vlastní RFB klient z WP1.A3, záloha Screen Sharing.app), jednoznačně označené oblastí; schránka jen řízeným mostem (preview + potvrzení), žádná automatická synchronizace | WP2.0, WP1.A3 | ostatní |
 | WP2.11 | Řízený export | Jediná cesta dat z oblasti na host (F0.3): výběr souborů, preview, karanténa (`com.apple.quarantine`), audit; host nemá ACL ke svazku oblasti | WP2.0, WP2.3 | ostatní |

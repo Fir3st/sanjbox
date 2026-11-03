@@ -1,4 +1,4 @@
-# Ohrádka — verdikty bran F1
+# Sanďbox — verdikty bran F1
 
 Výstup F1 podle [PLAN.md §Výstup F1](../PLAN.md). Každá brána má jeden záznam, který odkazuje na protokoly
 v `docs/evidence/`. Postup: [GUIDE.md §7](GUIDE.md#7-důkazy-a-verdikty). Souhrnný stav: [COVERAGE.md §2](COVERAGE.md#2-brány).

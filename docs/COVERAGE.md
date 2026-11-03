@@ -1,4 +1,4 @@
-# Ohrádka — coverage plán
+# Sanďbox — coverage plán
 
 Jedno místo, kde je vidět, co je hotovo a co ne. Vztah vrstev:
 
@@ -273,7 +273,7 @@ reálné integrace se evidují zvlášť a mají ve sloupci poznámku „uživat
 | POS-01 | `npm`/`pip`/`brew install` v oblasti | R1 | S5/S6 | 6 | Neověřeno | |
 | POS-02 | Cargo, Go, Gradle, NuGet v oblasti | R1, R8 | S5 | 6 | Neověřeno | |
 | POS-03 | OpenCode CLI a alespoň jeden další agent v oblasti | R1, R8 | F2 | 6 | Neověřeno | |
-| POS-04 | `ohradka shell` v libovolném terminálu: UID a doména oblasti | R1 | F2 | 6 | Neověřeno | |
+| POS-04 | `sanjbox shell` v libovolném terminálu: UID a doména oblasti | R1 | F2 | 6 | Neověřeno | |
 | POS-05 | Bezpečná pauza celého UID odděleně od pauzy aplikací | R5 | F2 | 7 | Neověřeno | |
 | POS-06 | Most schránky: preview, potvrzení, karanténa | R2, R6 | F3 | 2 | Neověřeno | |
 | POS-07 | Proxy okna: Xcode, Simulator, Electron, Safari použitelné | R6 | F3 | 6 | Neověřeno | |
@@ -330,7 +330,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP2.3 | Stav a rollback | | ⬜ | |
 | WP2.4 | Síť | | ⬜ | |
 | WP2.5 | Typované brány | | ⬜ | |
-| WP2.6 | Ohrádka.app | | ⬜ | |
+| WP2.6 | Sanjbox.app | | ⬜ | |
 | WP2.7 | CLI | | ⬜ | |
 | WP2.8 | Únikový test suite | | ⬜ | |
 | WP2.10 | Okno plochy oblasti (MVP displej) | | ⬜ | C-001 |

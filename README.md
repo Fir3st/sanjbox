@@ -1,4 +1,4 @@
-# Ohrádka
+# Sanďbox
 
 Nativní izolované oblasti pro AI agenty na macOS, bez desktopové VM. Každá oblast je skrytý uživatel
 macOS s vlastní neviditelnou GUI relací a vlastním APFS stavem. Okna jejích aplikací se zobrazují na ploše

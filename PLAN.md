@@ -1,4 +1,4 @@
-# Ohrádka — nativní izolované oblasti pro AI agenty na macOS (bez desktopové VM)
+# Sanďbox — nativní izolované oblasti pro AI agenty na macOS (bez desktopové VM)
 
 ## Context
 
@@ -58,7 +58,7 @@ bez přiložených protokolů nejsou tato historická tvrzení důkazem splněn�
 | R8: kompatibilita bez bezpečnostního bypassu | S5/S6: matice nástroj × protokol × policy | Neověřeno |
 
 ### Rozhodnutí uživatele (2026-10-31)
-- GUI izolace: **každá oblast = vlastní neviditelná macOS relace**, jejíž okna Ohrádka zobrazuje na tvé ploše.
+- GUI izolace: **každá oblast = vlastní neviditelná macOS relace**, jejíž okna Sanďbox zobrazuje na tvé ploše.
 - **Bez placeného Apple Developer Programu** → žádná Network Extension, žádná Endpoint Security, žádné MDM PPPC.
   Vše stojí na mechanismech dostupných bez entitlementů. Lokální podpis musí dát stabilní identitu kvůli TCC,
   ale **nikdy nesmí obsahovat `get-task-allow`** — jinak je agent v oblasti injectable a jeho TCC granty jdou převzít.
@@ -92,14 +92,14 @@ Agent je ověřuje jen povolenými metadaty a syntetickými kanárky, nikdy čte
 
 **Kandidát oblasti = skrytý uživatel macOS + vlastní neviditelná GUI relace + APFS stav oblasti.**
 Oddělené UID a relace jsou základ, nikoli důkaz úplné izolace souborů, sítě nebo životního cyklu. Nikdy se ale
-nepřihlašuješ ani nepřepínáš: relace běží na pozadí a Ohrádka z ní vytahuje jednotlivá okna na tvou plochu.
+nepřihlašuješ ani nepřepínáš: relace běží na pozadí a Sanďbox z ní vytahuje jednotlivá okna na tvou plochu.
 Funguje to jako Parallels Coherence, jen bez desktopové VM. Všechno uvnitř je nativní proces na tvém jádře.
 Sdílí se jádro, GPU a globální system XPC služby; dopad rozlišuje §Otevřené blokátory a zbytková rizika.
 
 Co se u oddělené relace musí potvrdit v S0/S1:
 - oddělené `gui/<uid>` / login a `user/<uid>` domény; user doména může žít bez GUI přihlášení.
   Per-user služby a úlohy běží jako UID oblasti, ne jako ty; **globální system LaunchDaemons zůstávají společné**;
-- vlastní schránka, Klíčenka (login keychain s náhodným heslem, které spravuje Ohrádka), TCC, preference,
+- vlastní schránka, Klíčenka (login keychain s náhodným heslem, které spravuje Sanďbox), TCC, preference,
   Dock/Finder relace;
 - Accessibility a Screen Recording appky v oblasti **podle dostupných informací** působí jen na její relaci, ne na tvoji;
   S0 to ověří. **Input Monitoring, mikrofon, kamera a Bluetooth jsou shared hardware** a musí být otestované
@@ -108,7 +108,7 @@ Co se u oddělené relace musí potvrdit v S0/S1:
 ## Architektura
 
 ### 1. Identita a relace
-- Helper vytvoří skrytého standardního uživatele (`IsHidden`, vyhrazený blok UID, skupina `ohradka`,
+- Helper vytvoří skrytého standardního uživatele (`IsHidden`, vyhrazený blok UID, skupina `sanjbox`,
   bez `staff`/`admin`) s náhodným heslem uloženým ve tvé Klíčence.
 - Neviditelná relace: přihlášení do virtuální relace pro uživatele oblasti (mechanismus, kterým Sdílení obrazovky
   otevírá relaci jiného uživatele). **Musí se ověřit, že jde o skutečně paralelní session, ne fast user switching,
@@ -151,7 +151,7 @@ Co se u oddělené relace musí potvrdit v S0/S1:
   **F3 podporuje definovanou podmnožinu:** menu, popovery, základní klávesové zkratky. Secure input, systémové
   auth dialogy, notifikace, file open/save, drag & drop, tisk a audio mají samostatný design; bez něj se do
   proxy okna nespoléhat.
-- **Schránka**: oddělená. Ohrádka nabízí řízený most (vložit do oblasti / převzít z oblasti), ale **nikdy
+- **Schránka**: oddělená. Sanďbox nabízí řízený most (vložit do oblasti / převzít z oblasti), ale **nikdy
   automatickou synchronizaci**: obsah z oblasti je datová cesta do hostu, proto preview + potvrzení, karanténa
   a žádné automatické vkládání shell-like obsahu.
 - **Displej** relace: virtuální, Retina, rozlišení podle tvého monitoru. **Metal musí být akcelerovaný**; pokud
@@ -174,7 +174,7 @@ Co se u oddělené relace musí potvrdit v S0/S1:
     takže je nutný jiný ověřený mechanismus. Mount policy není per-UID mount namespace. Nový i už odemčený
     svazek musí zůstat nepřístupný bez přechodného okna; šifrování chrání uzamčená data, ne odemčený mount.
     Pokud to při zachování přístupu hosta nejde zajistit, S4 neprošel; varování není náhrada ochrany;
-  - ACL deny pro skupinu `ohradka` na citlivých world-connectable socketech (usbmuxd, sockety VPN klientů,
+  - ACL deny pro skupinu `sanjbox` na citlivých world-connectable socketech (usbmuxd, sockety VPN klientů,
     `/tmp/.s.PGSQL*`) a na `add_file`/`add_subdirectory`/`delete_child` v `/private/tmp`, `/private/var/tmp`,
     `/Users/Shared`, `/Library/Caches` (oblasti dostanou vlastní `TMPDIR`);
   - `cron.deny` / `at.deny` zapisují **jednotlivá uživatelská jména**, ne skupinu; zohlednit přednost allow souborů.
@@ -268,7 +268,7 @@ Co se u oddělené relace musí potvrdit v S0/S1:
 - **Změna politiky/obnova:** nejdřív zastavit přijímání nových operací, uzavřít dotčené tunely brány a odstranit
   relevantní staré pf states; změna pravidel sama neruší již povolená spojení. Po obnově znovu ověřit deny policy
   a funkční bránu, až pak povolit start/resume. Mechanismus musí zachovat síť hosta a ostatních oblastí.
-- Kolize portů mezi oblastmi (dvě oblasti na :3000) se neřeší skrytě: Ohrádka ukáže, která oblast port drží.
+- Kolize portů mezi oblastmi (dvě oblasti na :3000) se neřeší skrytě: Sanďbox ukáže, která oblast port drží.
   **Host → oblast port squatting je samostatný test S3b**, ne důsledek této UI.
 
 ### 5. Tajemství
@@ -288,14 +288,14 @@ Co se u oddělené relace musí potvrdit v S0/S1:
 
 ### 6. Nástroje
 - npm/pip/uv/bun/cargo: volně, do home a projektu oblasti.
-- **Homebrew per oblast**: stock brew v prefixu `/opt/ohr/<4 znaky>` (≤ 13 B → brew sám relokuje bottles),
+- **Homebrew per oblast**: stock brew v prefixu `/opt/snj/<4 znaky>` (≤ 13 B → brew sám relokuje bottles),
   zapisovatelném jen oblastí. Volně i z tapů. Tvůj `/opt/homebrew` po zpevnění jen ke čtení a host prefix oblasti
   nikdy nespouští. **Root instalace (`.pkg`, rozšíření) z oblasti neexistuje**; host-side instalace mimo oblast
   je vědomé rozhodnutí tebe, ne požadavek agenta.
 - Xcode + Simulator, Android Studio + emulátor (vlastní `ANDROID_ADB_SERVER_PORT` per oblast), Electron appky,
   prohlížeče: nativně v relaci oblasti. **Root komponenty (simulator runtimes, SDK pkg) instaluje host mimo oblast**;
   z oblasti jen fail + instrukce.
-- Terminálová práce: `ohradka shell <oblast>` v libovolném terminálu → shell jako UID oblasti v její launchd doméně
+- Terminálová práce: `sanjbox shell <oblast>` v libovolném terminálu → shell jako UID oblasti v její launchd doméně
   (CLI agenti, `xcodebuild`, `simctl` mluví se službami oblasti).
 - **Docker**: výjimka z R5 — linuxové kontejnery potřebují linuxové jádro. Preferovaně Apple `container`
   (macOS 26+) nebo Colima/Lima **s vlastní instancí per oblast** (sdílená instance by porušila izolaci);
@@ -307,15 +307,15 @@ Co se u oddělené relace musí potvrdit v S0/S1:
 ### Komponenty
 | Část | Role | Technologie |
 |---|---|---|
-| Ohrádka.app | Oblasti, menu bar, schvalování (Touch ID), proxy appky, zobrazení oken | SwiftUI, AppKit, Metal, LocalAuthentication |
-| ohradka-helper (system LaunchDaemon) | Uživatelé, svazky, relace, pf, hlídač, NATLOOK, broker frames/input, zpevnění hosta, ACL | SMAppService, OpenDirectory, APFS, pf |
+| Sanjbox.app | Oblasti, menu bar, schvalování (Touch ID), proxy appky, zobrazení oken | SwiftUI, AppKit, Metal, LocalAuthentication |
+| sanjbox-helper (system LaunchDaemon) | Uživatelé, svazky, relace, pf, hlídač, NATLOOK, broker frames/input, zpevnění hosta, ACL | SMAppService, OpenDirectory, APFS, pf |
 | Agent relace | Capture oken, vstup, menu, schránka, hlášení procesů a portů | ScreenCaptureKit, Accessibility, IOSurface |
 | Síťová brána | Spojení, DNS, typované brány, vkládání klíčů, log | Network.framework, SwiftNIO (HTTP/1–2, WebSocket) |
 | Docker runtime | Apple `container`/Colima (instance per oblast) nebo lazy mikro-VM | Containerization/Virtualization.framework |
-| CLI `ohradka` | shell, run, pause, snapshot, rollback | XPC |
+| CLI `sanjbox` | shell, run, pause, snapshot, rollback | XPC |
 
 Helper je system LaunchDaemon v global bootstrap namespace, takže je dosažitelný i z oblasti. Privilegované XPC
-přijímá jen od tvého UID, podepsané Ohrádky a podepsané brány (pro NATLOOK); agentovi oblasti poskytuje
+přijímá jen od tvého UID, podepsaného Sanďboxu a podepsané brány (pro NATLOOK); agentovi oblasti poskytuje
 **pouze úzký broker frames/input** s ověřením audit tokenu, code signature a session. Žádné jiné operace.
 To je nejcitlivější attack surface — viz S0, S8 a fuzzing v `Tests/Escape/`.
 
@@ -372,7 +372,7 @@ a drag & drop. Supported subset, ne plná náhrada Finderu.
 **F4 — Docker, zařízení, git:** Apple `container`/Colima (instance per oblast) nebo mikro-jádro, deploy klíče, iOS/Android
 zařízení (usbmuxd/adb jen s výslovným oprávněním oblasti). Až po tom, co F2/F3 projdou.
 
-Struktura repa: `Ohradka/` (appka), `Helper/`, `Broker/`, `SessionAgent/`, `Gateway/`, `Docker/`, `spikes/`, `Tests/Escape/`, `docs/`.
+Struktura repa: `Sanjbox/` (appka), `Helper/`, `Broker/`, `SessionAgent/`, `Gateway/`, `Docker/`, `spikes/`, `Tests/Escape/`, `docs/`.
 
 ## Postup F1 — detail spiků
 
@@ -407,7 +407,7 @@ Po bezpečnostním failu pokračovat jen nezávislým výzkumným prototypem bez
 
 ### S1 — Neviditelná relace (brána celého GUI návrhu)
 - Připravím `spikes/s1-session/`:
-  - `create-users.sh`: vytvoří 3 skryté testovací uživatele (`sysadminctl`, `IsHidden`, skupina `ohradka`)
+  - `create-users.sh`: vytvoří 3 skryté testovací uživatele (`sysadminctl`, `IsHidden`, skupina `sanjbox`)
     a jejich hesla uloží do tvé Klíčenky;
   - `probe`: Swift CLI uvnitř relace, hlásí skutečné/efektivní UID/GID, skupiny, audit session a bootstrap
     kontext, displeje, Metal zařízení, skutečnou renderovací zátěž a RAM procesů UID; neloguje tajemství;
@@ -435,7 +435,7 @@ Po bezpečnostním failu pokračovat jen nezávislým výzkumným prototypem bez
   splnit předem určené výkonnostní cíle. Chybné credentials zneplatňují měření, nejsou důkazem izolace.
   Android emulátor a Electron jsou součást R1; jejich selhání není pass bez explicitní změny rozsahu.
   Keeper varianta může projít jen jako samostatně změřená konstrukce včetně režie a chování po pádu klienta.
-- Navazuje: vlastní RFB klient v Ohrádce (Apple autentizace + výběr virtuální relace) je **optimalizace**;
+- Navazuje: vlastní RFB klient v Sanďboxu (Apple autentizace + výběr virtuální relace) je **optimalizace**;
   dokud není hotový, musí být prokázaná cesta přes Screen Sharing.app. Pokud zvolená konstrukce vyžaduje
   keeper, ten je naopak povinnou součástí runtime a brány S1. Protokol pro výběr relace je nutné prozkoumat.
 
@@ -560,7 +560,7 @@ Po bezpečnostním failu pokračovat jen nezávislým výzkumným prototypem bez
   Režie ≤ 1,1× nativně podle předem určeného měření; mock upstream není důkaz skutečné integrace SDK.
 
 ### S6 — Homebrew per oblast
-- V testovacím uživateli z S1 prefix `/opt/ohr/t001` (vytvoření v `/opt` spouštíš ty).
+- V testovacím uživateli z S1 prefix `/opt/snj/t001` (vytvoření v `/opt` spouštíš ty).
 - Instalace top 200 formulí (stažení schválíš). Měří se poměr nalitých bottles vs. kompilace,
   vzorek `brew test` a casky do `~/Applications` uživatele; **ověřit, zda API dává datum publikace pro cooldown**
   a zda metadata pokrývají přímo vydávaný artefakt. Pokud ne, označit cooldown jako nesplněný; vypuštění

@@ -1,4 +1,4 @@
-# Ohrádka — rozhodnutí
+# Sanďbox — rozhodnutí
 
 Rozhodnutí F0 z [PLAN.md §Postup F1](../PLAN.md) a záznamy o změnách kontraktu. Rozhoduje výhradně uživatel.
 Dokud je položka **Otevřeno**, platí původní požadavek a příslušné brány nelze vyhodnotit jako prošlé.
@@ -18,7 +18,7 @@ Označení „snížené riziko“ není souhlas se změnou (PLAN §Akceptační
 |---|---|---|---|---|
 | F0.1 | Kontrakt: potvrdit threat model; další výjimky z R2/R3? | **Potvrzeno beze změny.** Žádné další výjimky. | R2/R3 platí v plném rozsahu PLAN §Threat model. | 2026-11-03 |
 | F0.2 | R6 v první verzi: per-app Coherence, nebo jedna plocha na oblast? | **V první verzi stačí jedno okno s plochou oblasti.** | Změna rozsahu MVP C-001. R6 zůstává požadavkem celého produktu (F3). | 2026-11-03 |
-| F0.3 | Host access ke svazku projektu | **Jen řízený export.** | Host nedostane dědičnou ACL ke svazku oblasti; data ven jen přes export Ohrádky. | 2026-11-03 |
+| F0.3 | Host access ke svazku projektu | **Jen řízený export.** | Host nedostane dědičnou ACL ke svazku oblasti; data ven jen přes export Sanďboxu. | 2026-11-03 |
 | F0.4 | Docker: MVP, nebo F4? | **Ve fázi F4.** | Změna rozsahu MVP C-002. R4 zůstává požadavkem celého produktu. S7 není podmínkou F2. | 2026-11-03 |
 | F0.5 | Placený Developer ID / NE, pokud Personal Team nestačí? | **Žádný placený účet.** | Pokud S8 neprojde s Personal Team ani self-signed variantou, není náhradní cesta a vývoj se zastaví k novému rozhodnutí. Blokátor resolveru/ICMP (R3) se musí vyřešit bez Network Extension, jinak S3 neprošel. | 2026-11-03 |
 | F0.6 | Fallback při neúspěchu S1/S2 | **Každá oblast jako samostatná plocha** (okno Sdílení obrazovky / vlastní RFB klient). | Pokrývá selhání S2 a selhání přežití relace bez klienta (klient zůstává připojený). **Nepokrývá** případ, kdy macOS vůbec nedovolí souběžné relace více uživatelů vedle konzole nebo v nich nejde akcelerované renderování; pak je nutné nové rozhodnutí. VM zůstává odmítnutá. | 2026-11-03 |
