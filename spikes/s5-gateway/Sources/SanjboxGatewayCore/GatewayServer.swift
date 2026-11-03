@@ -30,20 +30,22 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
 @MainActor public final class GatewayServer {
     private let router: TypedRouter
     private let limits: GatewayLimits
+    private let tls: GatewayTLSConfiguration?
     private let queue = DispatchQueue(label: "sanjbox.gateway.network")
     private var listener: NWListener?
     private var sessions: [UUID: Session] = [:]
     public private(set) var port: UInt16?
 
-    public init(router: TypedRouter, limits: GatewayLimits = GatewayLimits()) {
+    public init(router: TypedRouter, limits: GatewayLimits = GatewayLimits(), tls: GatewayTLSConfiguration? = nil) {
         self.router = router
         self.limits = limits
+        self.tls = tls
     }
 
     /// No wildcard bind and no LAN mode. Port zero requests an ephemeral port.
     public func start(port requestedPort: UInt16 = 0) async throws -> UInt16 {
         guard listener == nil else { throw GatewayServerFailure.alreadyStarted }
-        let parameters = NWParameters.tcp
+        let parameters = tls?.parameters() ?? NWParameters.tcp
         parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: requestedPort)!)
         let listener = try NWListener(using: parameters)
         self.listener = listener
@@ -201,9 +203,23 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
                         // Handler errors are not reflected (may contain private upstream data).
                     }
                 }
+                monitorPeer()
             } else if eof { close() } else { receive() }
         } catch {
             respond(.error(error as? HTTPFailure == .tooLarge ? 413 : 400))
+        }
+    }
+
+    /// The one request is complete. Only observe EOF/error or prohibited extra
+    /// bytes; never parse a second request or accumulate a body. This propagates
+    /// client disconnect while a producer is waiting on its upstream.
+    func monitorPeer() {
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, eof, error in
+            Task { @MainActor in
+                guard let self, !self.closed else { return }
+                if eof || error != nil || data?.isEmpty == false { self.close() }
+                else { self.monitorPeer() }
+            }
         }
     }
 
