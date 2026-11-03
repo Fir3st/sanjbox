@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 8 | 1 | 21 | 0 |
+| F1 | 30 | 8 | 2 | 20 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -314,7 +314,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.D1 | Jádro brány | janfiedler / Codex | ✅ | `spikes/s5-gateway`: HTTP/1.1 + SSE, typed router, systémové DNS/interface snapshot, SSRF policy a připnutý TLS upstream; 45 unit/mock/lokálních testů; kontrakt pro D2/D3/D4 a limity v README. S5 zůstává Neověřeno |
 | WP1.D2 | npm typed | janfiedler / Codex + Astra | ✅ | `spikes/s5-gateway`: filtrované packumenty, přímé/scoped tarbally, čerstvá autorizace cache/redirectů, silné SRI a bounded audit transportu; 18 nových testů, celkem 63 debug prošlo bez skips včetně lokálního fixture `npm pack`; podmnožina a limity v NPM.md. Bez živých instalací; S5 zůstává Neověřeno |
 | WP1.D3 | API modelů | janfiedler / Codex + Astra | ✅ | `spikes/s5-gateway`: úzký Anthropic text-SSE, pouze syntetický trusted klíč, rate/konečný lokální budget, bounded audit, lazy single-use producer, backpressure/cancellation a HTTPS s oddělenou test CA; 16 nových testů, celkem 61 debug prošlo bez skips. MODEL-API.md vymezuje podmnožinu; F0.7/SDK/live billing neověřené, S5 zůstává Neověřeno |
-| WP1.D4 | Fixtures a mocky | | ⬜ | |
+| WP1.D4 | Fixtures a mocky | janfiedler / Codex + Astra | 🟨 | Samostatná sada deterministických fixtures/mocků nad veřejným D1 API; D2/D3 nejsou závislosti. Žádný verdikt brány. |
 | WP1.D5 | PyPI, Homebrew, git | | ⬜ | |
 | WP1.D6 | Matice kompatibility | | ⬜ | |
 | WP1.D7 | S5 integrace (L5) | uživatel + impl. | ⬜ | |
