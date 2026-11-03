@@ -1,0 +1,128 @@
+{
+  "schema": "sanjbox.state-manifest.v1",
+  "intent": "design-only",
+  "phase": "mvp",
+  "zone": {
+    "id": "t001",
+    "uid": 450,
+    "gid": 701
+  },
+  "containers": [
+    {
+      "id": "zone-pool",
+      "declaredUUID": null,
+      "planningBudgetBytes": null
+    }
+  ],
+  "volumes": [
+    {
+      "id": "state",
+      "containerID": "zone-pool",
+      "declaredUUID": null,
+      "mountPoint": "/Volumes/Sanjbox/t001/state",
+      "filesystem": "apfs",
+      "caseSensitive": false,
+      "ownership": "required",
+      "quota": {
+        "mode": "limited",
+        "limitBytes": 68719476736,
+        "reserveBytes": 0
+      }
+    },
+    {
+      "id": "tools",
+      "containerID": "zone-pool",
+      "declaredUUID": null,
+      "mountPoint": "/opt/snj/t001",
+      "filesystem": "apfs",
+      "caseSensitive": false,
+      "ownership": "required",
+      "quota": {
+        "mode": "limited",
+        "limitBytes": 17179869184,
+        "reserveBytes": 0
+      }
+    }
+  ],
+  "roots": [
+    {
+      "id": "home",
+      "role": "home",
+      "volumeID": "state",
+      "relativePath": "home",
+      "ownerUID": 450,
+      "rollback": "whole-volume",
+      "purpose": "Entire zone home including startup files, LaunchAgents and application state"
+    },
+    {
+      "id": "project",
+      "role": "project",
+      "volumeID": "state",
+      "relativePath": "project",
+      "ownerUID": 450,
+      "rollback": "whole-volume",
+      "purpose": "Controlled imported project and build outputs; host uses controlled export only"
+    },
+    {
+      "id": "prefix",
+      "role": "prefix",
+      "volumeID": "tools",
+      "relativePath": ".",
+      "ownerUID": 450,
+      "rollback": "whole-volume",
+      "purpose": "Candidate short per-zone Homebrew prefix; bottle compatibility remains unverified"
+    },
+    {
+      "id": "cache",
+      "role": "cache",
+      "volumeID": "state",
+      "relativePath": "cache",
+      "ownerUID": 450,
+      "rollback": "whole-volume",
+      "purpose": "Explicitly redirected tool caches; caches retained under home are also in its scope"
+    },
+    {
+      "id": "tmp",
+      "role": "tmp",
+      "volumeID": "state",
+      "relativePath": "tmp",
+      "ownerUID": 450,
+      "rollback": "whole-volume",
+      "purpose": "Candidate zone TMPDIR; default per-user/system temp routing is unverified"
+    }
+  ],
+  "runtimePolicy": "deferred-f4",
+  "rollback": {
+    "unitID": "t001-full-state",
+    "volumeIDs": [
+      "state",
+      "tools"
+    ],
+    "strategy": "rebuild-writable-state-then-switch",
+    "quiescence": "whole-uid-required",
+    "recoveryRequired": true,
+    "startPolicy": "deny-until-verified"
+  },
+  "hostControl": {
+    "directoryPath": "/Library/Application Support/Sanjbox/control/t001",
+    "ownerUID": 0,
+    "directoryMode": "0700",
+    "policyFile": "policy.json",
+    "recoveryFile": "recovery.json",
+    "rollback": "excluded"
+  },
+  "readOnlyInputs": [
+    {
+      "id": "xcode",
+      "path": "/Applications/Xcode.app",
+      "purpose": "Host-installed public tool input; actual access and mutability must be verified"
+    },
+    {
+      "id": "libraries",
+      "path": "/usr/lib",
+      "purpose": "Public system libraries, declared read-only input"
+    }
+  ],
+  "outsideWrites": "forbidden-unverified",
+  "hostAccess": "controlled-export-only"
+}

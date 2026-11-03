@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 5 | 1 | 24 | 0 |
+| F1 | 30 | 6 | 0 | 24 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -304,7 +304,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.A7 | S8 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.B1 | Audit hosta | janfiedler / Codex + Astra | ✅ | [metadata audit](../spikes/s4-host/README.md); 17 syntetických testů, S4/R2/R7 Neověřeno |
 | WP1.B2 | Zpevnění a uninstall | | ⬜ | |
-| WP1.B3 | Manifest a topologie | janfiedler / Codex + Astra | 🟨 | |
+| WP1.B3 | Manifest a topologie | janfiedler / Codex + Astra | ✅ | [návrhový manifest a validátor](../spikes/s4-state/README.md); 21 syntetických testů, skutečná topologie/kvóty/rollback a S4 Neověřeno |
 | WP1.B4 | Snapshot/rollback prototyp | | ⬜ | |
 | WP1.B5 | S4 běh (L3) | uživatel + impl. | ⬜ | |
 | WP1.C1 | S3 příprava | | ⬜ | |
