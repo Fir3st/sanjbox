@@ -55,7 +55,7 @@ class ProgressTests(unittest.TestCase):
         after = progress.collect(changed, self.implementation)
         self.assertEqual(after["summary"]["tests"]["done"], before["summary"]["tests"]["done"] + 1)
         self.assertEqual(after["summary"]["gates"], before["summary"]["gates"])
-        html = progress.render(after, [], "Example/project", "abc123", False)["index.html"]
+        html = progress.render(after, [], "Example/project", "abc123", False)["progress.html"]
         self.assertIn('href="https://github.com/Example/project/blob/abc123/docs/evidence/S1/run/verdict.md"', html)
 
     def test_unsafe_evidence_and_case_id_are_rejected(self):
@@ -94,7 +94,7 @@ class ProgressTests(unittest.TestCase):
         data = progress.collect(self.coverage, self.implementation)
         data["packages"][0]["title"] = '<script>alert("x")</script>'
         pages = progress.render(data, [], "Fir3st/sanjbox", "a" * 40, True)
-        html = pages["index.html"]
+        html = pages["progress.html"]
         self.assertNotIn('<script>alert', html)
         self.assertIn('&lt;script&gt;', html)
         self.assertNotIn("{{", html)
@@ -162,7 +162,14 @@ class HistoryTests(unittest.TestCase):
         stored = json.loads((out / "progress.json").read_text())
         self.assertEqual(stored["summary"], data["summary"])
         self.assertEqual(len(json.loads((out / "history.json").read_text())["days"]), 1)
-        self.assertEqual((out / "index.html").read_bytes(), (out / "progress.html").read_bytes())
+        home = (out / "index.html").read_text()
+        self.assertNotEqual(home, (out / "progress.html").read_text())
+        self.assertIn('id="about"', home)
+        self.assertIn('id="approach"', home)
+        self.assertIn('id="status"', home)
+        self.assertNotIn('class="filter-section"', home)
+        self.assertIn('href="progress.html"', home)
+        self.assertIn('href="history.html"', home)
         self.assertTrue((out / ".nojekyll").is_file())
         ET.parse(out / "progress.svg")
 
@@ -179,7 +186,7 @@ class HistoryTests(unittest.TestCase):
                     if name in attrs:
                         self.targets.append(attrs[name])
 
-        for name in ("index.html", "history.html"):
+        for name in ("index.html", "progress.html", "history.html"):
             parser = Links()
             parser.feed((out / name).read_text())
             for url in parser.targets:
@@ -188,7 +195,12 @@ class HistoryTests(unittest.TestCase):
                 elif url.startswith("#"):
                     self.assertIn(url[1:], parser.ids)
                 else:
-                    self.assertTrue((out / url).is_file(), url)
+                    path, _, fragment = url.partition('#')
+                    self.assertTrue((out / path).is_file(), url)
+                    if fragment:
+                        destination = Links()
+                        destination.feed((out / path).read_text())
+                        self.assertIn(fragment, destination.ids)
 
     def test_chart_uses_elapsed_days_and_handles_single_point(self):
         data = progress.collect(self.coverage, (ROOT / "docs/IMPLEMENTATION.md").read_text())

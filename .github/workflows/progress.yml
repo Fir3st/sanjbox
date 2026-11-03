@@ -36,11 +36,13 @@ jobs:
           import json
           from pathlib import Path
           data = json.loads(Path('build/progress/progress.json').read_text())
-          print('## Sanďbox development progress\n')
+          print('## Sanďbox project website\n')
           for key in ('packages', 'gates', 'tests', 'requirements'):
               item = data['summary'][key]
               print(f"- {key}: {item['done']}/{item['total']} ({item['percent']}%)")
-          print('\nCompleted packages do not prove isolation. Download the progress-preview artifact to inspect the site.')
+          print('\nProject homepage: index.html; development status: progress.html; history: history.html.')
+          print('The main branch deploys this website to GitHub Pages. The progress-preview artifact is for PR review only.')
+          print('Completed packages do not prove isolation.')
           PY
       - name: Upload reviewable preview
         uses: actions/upload-artifact@v4

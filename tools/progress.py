@@ -329,16 +329,34 @@ def render(data, records, repository, sha, dirty):
         history_rows.append('<tr>' + ''.join(f'<td>{cell}</td>' for cell in cells) + '</tr>')
     charts = ''.join(f'<article class="panel"><div class="panel-heading"><h2>{title}</h2></div>{chart(records, key, title)}<div class="legend"><span class="done">━ Hotovo / prošlo</span><span>┄ Celkem v evidenci</span></div></article>' for key, title in (("packages", "Pracovní balíky"), ("tests", "Akceptační případy")))
     history_body = f'''<section class="history-hero"><p class="eyebrow">PROGRESS HISTORY</p><h1>Postup v čase<span>.</span></h1><p class="intro">Hotové balíky a ověřené případy vůči celému evidovanému rozsahu.</p></section><div class="map-panels">{charts}</div><p class="fine">Jeden bod za den UTC: poslední commit dne na first-parent historii zvoleného refu. Počítáno stejnými pravidly jako aktuální přehled. Nové balíky a případy mohou zvětšit celkový rozsah. Dny bez commitů nepřidávají bod. Lokální necommitované změny do historie nevstupují.</p><section class="section"><div class="section-heading"><h2>Denní záznamy</h2>{link('history.json', 'Surová data JSON ↗', 'subtle')}</div>{table(['Den (UTC)', 'Commit', 'Balíky hotovo', 'Brány F1 prošlo', 'Případy prošlo', 'Požadavky splněno'], history_rows, 'Historie progresu')}</section>'''
+    completed = ''.join(
+        f'<li><span class="mono">{escape(p["id"])}</span><span>{escape(plain(p["title"]))}</span>'
+        f'{link("progress.html#package-" + p["id"], "Podrobnosti ↗")}</li>'
+        for p in data['packages'] if p['state'] == 'done')
+    home_values = {
+        'cards': cards, 'phases': phases, 'completed': completed,
+        'repository': f'https://github.com/{repository}',
+        'plan': source_url(repository, sha, 'PLAN.md'),
+        'guide': source_url(repository, sha, 'docs/GUIDE.md'),
+        'decisions': source_url(repository, sha, 'docs/DECISIONS.md'),
+        'blockers': str(summary['blockers']['states'].get('open', 0)),
+    }
+    home = re.sub(r'\{\{(\w+)\}\}', lambda m: home_values[m[1]],
+                  (ASSETS / 'home.html').read_text(encoding='utf-8'))
     template = (ASSETS / "page.html").read_text(encoding="utf-8")
     pages = {}
-    for name, title, body in (("index.html", "Stav vývoje", overview), ("history.html", "Historie vývoje", history_body)):
+    for name, title, body in (("index.html", "Nativní oblasti pro AI agenty na macOS", home),
+                             ("progress.html", "Stav vývoje", overview),
+                             ("history.html", "Historie vývoje", history_body)):
         values = {"title": title, "body": body, "repository": f"https://github.com/{repository}",
+                  "description": "Sanďbox zkoumá nativní izolované oblasti pro AI agenty na macOS. Cíle projektu, navržená architektura a aktuální stav vývoje." if name == 'index.html' else 'Sanďbox: stav implementace, ověřovací brány a historie vývoje.',
                   "coverage": source_url(repository, sha, "docs/COVERAGE.md"),
                   "method": source_url(repository, sha, "docs/PROGRESS.md"), "sha": sha[:7],
                   "snapshot": "Lokální náhled · necommitované změny" if dirty else "Commit " + sha[:7],
-                  "overview_current": 'aria-current="page"' if name == "index.html" else "",
+                  "home_current": 'aria-current="page"' if name == "index.html" else "",
+                  "overview_current": 'aria-current="page"' if name == "progress.html" else "",
                   "history_current": 'aria-current="page"' if name == "history.html" else ""}
-        pages[name] = re.sub(r"\{\{(\w+)\}\}", lambda m: values[m[1]] if m[1] in ("body", "overview_current", "history_current") else escape(values[m[1]], quote=True), template)
+        pages[name] = re.sub(r"\{\{(\w+)\}\}", lambda m: values[m[1]] if m[1] in ("body", "home_current", "overview_current", "history_current") else escape(values[m[1]], quote=True), template)
     return pages
 
 
@@ -358,8 +376,6 @@ def build(root, out, repository, ref="HEAD"):
     out.mkdir(parents=True, exist_ok=True)
     for name, html in pages.items():
         (out / name).write_text(html, encoding="utf-8")
-    # AnyPS5-style stable URL as well as a conventional index page.
-    (out / "progress.html").write_text(pages["index.html"], encoding="utf-8")
     for name, payload in (("progress.json", data), ("history.json", {"schema_version": 1, "ref": sha, "days": records})):
         (out / name).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (out / "progress.svg").write_text(overview_svg(data), encoding="utf-8")

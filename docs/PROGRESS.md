@@ -1,10 +1,23 @@
-# Sanďbox — stav vývoje a historie
+# Sanďbox — projektový web na GitHub Pages
 
-Statický přehled inspirovaný [AnyPS5 progress](https://boykopovar.github.io/AnyPS5/progress.html)
-a [historií progresu](https://boykopovar.github.io/AnyPS5/history.html). Vlastní implementace bez cizího
+Projektový web inspirovaný [AnyPS5](https://boykopovar.github.io/AnyPS5/), jeho
+[progresem](https://boykopovar.github.io/AnyPS5/progress.html) a
+[historií](https://boykopovar.github.io/AnyPS5/history.html). Vlastní implementace bez cizího
 kódu, frameworku, CDN, analytiky, tokenů nebo Python/JS balíčků. Stačí Python 3.11+ a Git.
 
-## Zobrazení lokálně
+## Veřejný web a struktura
+
+Hlavní výstup je trvale dostupný web na **GitHub Pages** pod
+`https://fir3st.github.io/sanjbox/`, který se aktualizuje po změnách na `main`.
+`index.html` je úvodní stránka projektu: vysvětluje, proč Sanďbox vzniká, co má dělat,
+jaká je navržená architektura, co už existuje a kam vývoj směřuje. Stav čerpá ze stejných
+dat jako detailní podstránky `progress.html` a `history.html`.
+
+Web v této branchi ještě není publikovaný. Zapnutí Pages a první nasazení popisuje sekce níže.
+Artefakt v CI slouží jen k náhledu změn při review. Návštěvník publikovaného webu nic nestahuje,
+nesestavuje ani lokálně nespouští; stránky otevírá přímo v prohlížeči.
+
+## Lokální náhled pro vývojáře
 
 Z kořene repozitáře:
 
@@ -21,7 +34,8 @@ Po změně dokumentace generátor spusť znovu a obnov stránku.
 
 | Soubor v `build/progress/` | Účel |
 |---|---|
-| `index.html`, `progress.html` | Metriky, mapa balíků a případů, roadmapa, filtrovatelné tabulky, brány, požadavky a blokátory |
+| `index.html` | Hlavní stránka projektu: cíle, architektura, aktuální stav, hotové části a roadmapa |
+| `progress.html` | Podrobné metriky, mapa balíků a případů, filtrovatelné tabulky, brány, požadavky a blokátory |
 | `history.html` | Grafy hotových položek vůči celkovému rozsahu, denní tabulka a odkazy na commity |
 | `progress.json` | Aktuální záznamy, souhrny, provenance a verze schématu |
 | `history.json` | Denní metriky a úplné SHA zdrojových commitů |
@@ -93,7 +107,9 @@ python3 -m unittest discover -s tools/tests -v
 3. Aktualizuj odpovídající souhrny COVERAGE §0 podle stávajícího postupu.
 4. Spusť generátor nebo si v pull requestu stáhni CI artefakt `progress-preview`.
 
-Pro změnu přehledu samotného uprav `tools/progress.py` nebo `tools/progress-site/` a spusť testy.
+Pro změnu webu uprav `tools/progress.py` nebo `tools/progress-site/` a spusť testy.
+Redakční obsah úvodní stránky je v `tools/progress-site/home.html`; počty a seznam hotových balíků
+se do něj doplní automaticky. Tvrzení o schopnostech a rozsahu musí odpovídat PLAN a DECISIONS.
 Při přidání/změně významu metrik uprav tuto metodiku i regresní testy. Pro kopii repozitáře předej
 `--repository owner/name`; CI použije automaticky `${{ github.repository }}`.
 
@@ -106,10 +122,14 @@ Workflow lze ručně spustit pomocí `workflow_dispatch` (nasazení je povolené
 
 Jednorázové zapnutí po review větve:
 
-1. V GitHub repozitáři **Settings → Pages → Build and deployment → Source** vyber **GitHub Actions**.
-2. Slouč větev do `main`; workflow nasadí přehled. Pokud už merge proběhl, spusť workflow na `main` ručně.
+1. **Správce repozitáře** v **Settings → Pages → Build and deployment → Source** vybere **GitHub Actions**.
+   Připojený účet má podle kontroly 2026-11-03 právo `push`, ale nemá `admin` ani `maintain`;
+   tímto účtem nelze jednorázové zapnutí Pages dokončit.
+2. Slouč větev do `main`; workflow nasadí projektový web včetně hlavní stránky a podstránek.
+   Pokud už merge proběhl, spusť workflow na `main` ručně.
 3. URL vrátí deploy job. Při standardním nastavení tohoto repozitáře bude
-   [fir3st.github.io/sanjbox](https://fir3st.github.io/sanjbox/), historie pod `history.html`.
+   [fir3st.github.io/sanjbox](https://fir3st.github.io/sanjbox/), progres pod `progress.html`
+   a historie pod `history.html`. V nastavení About repozitáře lze tuto URL uvést jako Website.
 
 Workflow nemění nastavení ani viditelnost repozitáře a nevyžaduje PAT nebo push do `gh-pages`.
 Práva `pages: write` a `id-token: write` dostává pouze deploy job na `main`. Preview job má pouze

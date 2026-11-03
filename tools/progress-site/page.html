@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Sanďbox: aktuální stav vývoje, mapa implementace, ověřovací brány a historie progresu.">
+  <meta name="description" content="{{description}}">
   <meta name="color-scheme" content="dark light">
   <title>Sanďbox · {{title}}</title>
   <link rel="stylesheet" href="style.css">
@@ -13,9 +13,10 @@
   <a class="skip" href="#main">Přejít na obsah</a>
   <header>
     <div class="header-inner">
-      <a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">s.</span> Sanďbox <span class="brand-note">/ vývoj</span></a>
+      <a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">s.</span> Sanďbox</a>
       <nav aria-label="Hlavní navigace">
-        <a href="index.html" {{overview_current}}>Přehled</a>
+        <a href="index.html" {{home_current}}>O projektu</a>
+        <a href="progress.html" {{overview_current}}>Stav vývoje</a>
         <a href="history.html" {{history_current}}>Historie</a>
         <a href="{{coverage}}">Dokumentace ↗</a>
         <a href="{{repository}}">GitHub ↗</a>
