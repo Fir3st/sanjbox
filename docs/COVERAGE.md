@@ -13,7 +13,7 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-03 (WP0.3, WP0.4 a WP1.D1 hotovo; rozhodnutí F0, změny rozsahu MVP C-001 a C-002).
+Poslední aktualizace: 2026-11-03 (WP0.3, WP0.4, WP1.A1 a WP1.D1 hotovo; rozhodnutí F0, změny rozsahu MVP C-001 a C-002).
 
 **Rozsah MVP (F2):** CLI + jedno okno s plochou oblasti, bez Dockeru, data ven jen řízeným exportem.
 R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
@@ -30,7 +30,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 1 | 1 | 0 |
-| F1 | 30 | 1 | 0 | 29 | 0 |
+| F1 | 30 | 2 | 0 | 28 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -294,7 +294,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP0.3 | Společná sada sond | — | ✅ | `spikes/common`: `sanjbox-whoami`, `sanjbox-canary`, formát protokolu; 16 testů |
 | WP0.4 | Nezávislá protistrana | — | ✅ | `sanjbox-counterpart`: TCP/UDP listener, log událostí, raw záchyt, kanárky vč. DNS labelů, `report` (neúplný běh = neplatné měření); 7 testů + 2 v sadě sond. ICMP a TLS obsah mimo rozsah (pcap na hostu) |
 | WP0.5 | Metodika a laboratoř | | ⬜ | registr strojů (vývoj na více Macích); čeká na zbytek F0.8 |
-| WP1.A1 | S1 příprava | | ⬜ | |
+| WP1.A1 | S1 příprava | — | ✅ | `spikes/s1-session`: skripty s dry-runem a úklidem, sonda relace (credentials, displeje, Metal, offscreen render s ověřením, prezentace, RAM, Screen Recording), loopback forwarder místo SSH, WebGL stránka; 6 testů. Části s `--apply` (root) ověří až běh L1 |
 | WP1.A2 | S1 běh (L1) | uživatel + impl. | ⬜ | |
 | WP1.A3 | Průzkum RFB výběru relace | | ⬜ | displej MVP i fallback F0.6 |
 | WP1.A4 | S0 příprava | | ⬜ | |
