@@ -1,0 +1,136 @@
+{
+  "schema": "sanjbox.wp1-c2.static-inspection.v1",
+  "access_date": "2026-11-03",
+  "kind": "static source inspection; no enforcement experiments",
+  "reported_environment": {
+    "ProductVersion": "27.2",
+    "BuildVersion": "26B123",
+    "architecture": "arm64",
+    "sdk_metadata_version": "27.2",
+    "sdk_lookup": "xcrun --show-sdk-version failed; direct public header and SDKSettings.json reads succeeded",
+    "product_qualified_builds": []
+  },
+  "local_sources": [
+    {
+      "id": "L1",
+      "path": "/usr/share/man/man8/pfctl.8",
+      "sha256": "e8754dccfa5edaf93f3e1eb71339927da6901cd2b4290f2ecf062a42a552eaff"
+    },
+    {
+      "id": "L2",
+      "path": "/usr/share/man/man5/pf.conf.5",
+      "sha256": "2708d9f123d88d445f4c15ef32d4f71f57921fc8cc3f12fad7cce4cd08b7b61f"
+    },
+    {
+      "id": "L3",
+      "path": "/usr/share/man/man1/sandbox-exec.1",
+      "sha256": "0d264f72dc6a8e0db5474840f33b512542c469beb109ed146c17055da287336b"
+    },
+    {
+      "id": "L4",
+      "path": "/Library/Developer/CommandLineTools/SDKs/MacOSX27.2.sdk/usr/include/sandbox.h",
+      "sha256": "a2321eb6f1d41fcc7fd8b260d5c3cef985df9e4cf0a6a7c23d91bbfd7c8f26e0"
+    },
+    {
+      "id": "L5",
+      "path": "/Library/Developer/CommandLineTools/SDKs/MacOSX27.2.sdk/usr/include/EndpointSecurity/ESClient.h",
+      "sha256": "c86990c441569c9d1c8cd62e3f86eaad187d80705a203f6422b59bc68f7cb7a2"
+    },
+    {
+      "id": "L6",
+      "path": "/Library/Developer/CommandLineTools/SDKs/MacOSX27.2.sdk/usr/include/EndpointSecurity/ESTypes.h",
+      "sha256": "620d47c1100ed55dc395f2e01120bf9092b9a8e95d5d90bd9579e742d2bd4d4f"
+    },
+    {
+      "id": "L7",
+      "path": "/usr/share/man/man8/route.8",
+      "sha256": "72d3cd9317e02a1c819cd2e42e4d51ff6a1b73f1f4689c4d5f28a4635423eb1e"
+    },
+    {
+      "id": "L8",
+      "path": "/usr/share/man/man8/ifconfig.8",
+      "sha256": "b8e44622877646b4908a041ad4454b29806305845d1deb304f9b8d776ecf3e1d"
+    },
+    {
+      "id": "L9",
+      "path": "/usr/share/man/man8/socketfilterfw.8",
+      "sha256": "eaa8177b0be19b911f415ad65bc6864c3a969d729c325350a8dbb70c0c3d579e"
+    },
+    {
+      "id": "L10",
+      "path": "/usr/share/man/man8/mDNSResponder.8",
+      "sha256": "029623c15b636b50bc7094d9f90b5f71d8297ef7964209d526f6e235f1dea0fe"
+    },
+    {
+      "id": "SDK",
+      "path": "/Library/Developer/CommandLineTools/SDKs/MacOSX27.2.sdk/SDKSettings.json",
+      "sha256": "82165b15ee21419d4cffaba8895797391b908ac9499ba70f561f3e1bd16758d6"
+    }
+  ],
+  "apple_oss_sources": [
+    {
+      "repository": "xnu",
+      "revision": "f6217f891ac0bb64f3d375211650a4c1ff8ca1ea",
+      "commit_date": "2025-10-16",
+      "path": "bsd/net/pf.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/net/pf.c",
+      "sha256": "9d032ac8d1f350f9358cdae509709f0c59b1fc78990c10fa860015c82e97651a",
+      "binary_build_match": "not established"
+    },
+    {
+      "repository": "xnu",
+      "revision": "f6217f891ac0bb64f3d375211650a4c1ff8ca1ea",
+      "commit_date": "2025-10-16",
+      "path": "bsd/net/pf_ioctl.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/net/pf_ioctl.c",
+      "sha256": "e18120b6decbae9687233126dae5c5cda7e36478b28bc3b280c8735243bce013",
+      "binary_build_match": "not established"
+    },
+    {
+      "repository": "xnu",
+      "revision": "f6217f891ac0bb64f3d375211650a4c1ff8ca1ea",
+      "commit_date": "2025-10-16",
+      "path": "bsd/net/necp.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/net/necp.c",
+      "sha256": "7e45888f786347d13e66115f64fc66844cbc4dae4054eb2c595230d699ce3e80",
+      "binary_build_match": "not established"
+    },
+    {
+      "repository": "xnu",
+      "revision": "f6217f891ac0bb64f3d375211650a4c1ff8ca1ea",
+      "commit_date": "2025-10-16",
+      "path": "security/mac_socket.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/security/mac_socket.c",
+      "sha256": "1c2095defdb5fa6c6e5a0da8cf8fd8587cbc4533478fcdc944932f951f0d0d57",
+      "binary_build_match": "not established"
+    },
+    {
+      "repository": "xnu",
+      "revision": "f6217f891ac0bb64f3d375211650a4c1ff8ca1ea",
+      "commit_date": "2025-10-16",
+      "path": "security/mac_policy.h",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/security/mac_policy.h",
+      "sha256": "5e0f5f294319ce005d0ec3de8b6130e9bcf7e1274b89d736fe852a2390db79db",
+      "binary_build_match": "not established"
+    },
+    {
+      "repository": "mDNSResponder",
+      "revision": "d4658af3f5f291311c6aee4210aa6d39bda82bbe",
+      "commit_date": "2025-10-16",
+      "path": "mDNSShared/uds_daemon.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/mDNSResponder/d4658af3f5f291311c6aee4210aa6d39bda82bbe/mDNSShared/uds_daemon.c",
+      "sha256": "c8abaed4f1923db4eb27e5a6f6f0b48bef48e17ce9d49be27960736fc5d50c99",
+      "binary_build_match": "not established"
+    },
+    {
+      "repository": "mDNSResponder",
+      "revision": "d4658af3f5f291311c6aee4210aa6d39bda82bbe",
+      "commit_date": "2025-10-16",
+      "path": "mDNSShared/ClientRequests.c",
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/mDNSResponder/d4658af3f5f291311c6aee4210aa6d39bda82bbe/mDNSShared/ClientRequests.c",
+      "sha256": "0b1a7e1937f3b26f52971d51cd56c5437f4827ad5b5466d094c19e9880198f45",
+      "binary_build_match": "not established"
+    }
+  ],
+  "runtime_gate_evidence": false
+}
