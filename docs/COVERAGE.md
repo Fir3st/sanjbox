@@ -13,7 +13,7 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-03 (WP0.3 a WP0.4 hotovo; rozhodnutí F0, změny rozsahu MVP C-001 a C-002).
+Poslední aktualizace: 2026-11-03 (WP0.3, WP0.4 a WP1.D1 hotovo; rozhodnutí F0, změny rozsahu MVP C-001 a C-002).
 
 **Rozsah MVP (F2):** CLI + jedno okno s plochou oblasti, bez Dockeru, data ven jen řízeným exportem.
 R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
@@ -30,7 +30,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 1 | 1 | 0 |
-| F1 | 30 | 0 | 0 | 30 | 0 |
+| F1 | 30 | 1 | 0 | 29 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -310,7 +310,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.C2 | Ochrana nezávislá na pf | | ⬜ | otevřený blokátor R3; bez NE (F0.5) |
 | WP1.C3 | S3b příprava | | ⬜ | |
 | WP1.C4 | S3/S3b běh (L4) | uživatel + impl. | ⬜ | |
-| WP1.D1 | Jádro brány | | ⬜ | |
+| WP1.D1 | Jádro brány | janfiedler / Codex | ✅ | `spikes/s5-gateway`: HTTP/1.1 + SSE, typed router, systémové DNS/interface snapshot, SSRF policy a připnutý TLS upstream; 45 unit/mock/lokálních testů; kontrakt pro D2/D3/D4 a limity v README. S5 zůstává Neověřeno |
 | WP1.D2 | npm typed | | ⬜ | |
 | WP1.D3 | API modelů | | ⬜ | |
 | WP1.D4 | Fixtures a mocky | | ⬜ | |
