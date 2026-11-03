@@ -15,3 +15,21 @@ se skutečnými projekty, účty nebo tajemstvími, dokud příslušné brány v
 | [docs/COVERAGE.md](docs/COVERAGE.md) | Co je hotovo a co ne: požadavky, brány, testy, balíky, blokátory |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Rozhodnutí F0 a změny kontraktu |
 | [docs/spikes.md](docs/spikes.md) | Verdikty bran F1 |
+
+## Zákaz atribuce v commitech
+
+V commitech jsou zakázané řádky `Co-Authored-By`, „Generated with Claude Code“ a odkazy `claude.com/claude-code`. Platí tři vrstvy:
+
+1. `.claude/settings.json`: `attribution.commit` a `attribution.pr` jsou prázdné, takže Claude Code nepřidává vlastní patičku.
+2. `.claude/hooks/block-attribution.sh`: hook PreToolUse (matcher Bash), který zamítne `git commit` (i `git -C x commit`), jehož text obsahuje zakázaný řádek. Commit se vůbec nespustí.
+3. `.githooks/commit-msg`: hook gitu, který zprávu odmítne (exit 1). Platí pro jakýkoli nástroj nebo agenta.
+
+Claude hook vidí jen text příkazu, takže nezachytí zprávu načtenou ze souboru (`git commit -F soubor`). Tuto mezeru kryje vrstva 3.
+
+Instalace (jednou po klonování; `core.hooksPath` se v gitu nepřenáší samo):
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Vrstvy 1 a 2 se načtou samy s `.claude/settings.json`. Hooky vyžadují jen bash a grep.
