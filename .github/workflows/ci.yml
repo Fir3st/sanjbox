@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  packages:
+    name: Discover Swift packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Include every tracked Swift package
+        id: discover
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import PurePosixPath
+          import subprocess
+
+          files = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          packages = sorted({
+              str(PurePosixPath(path).parent)
+              for path in files if PurePosixPath(path).name == "Package.swift"
+          })
+          if not packages:
+              raise SystemExit("No Swift packages found; refusing an empty test matrix")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("matrix=" + json.dumps({"package": packages}) + "\n")
+          print("Packages:", ", ".join(packages))
+          PY
+
+  swift-tests:
+    name: Swift (${{ matrix.package }}, ${{ matrix.configuration }})
+    needs: packages
+    # Apple Silicon + macOS 27 / Xcode 27, matching docs/GUIDE.md.
+    # This GitHub-hosted image is currently in public preview.
+    runs-on: xcode-27
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.packages.outputs.matrix).package }}
+        configuration: [debug, release]
+    env:
+      PACKAGE_PATH: ${{ matrix.package }}
+      CONFIGURATION: ${{ matrix.configuration }}
+      CI_LOG_DIR: ${{ runner.temp }}/sanjbox-ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify and record the environment
+        run: |
+          set -euo pipefail
+          mkdir -p "$CI_LOG_DIR"
+          {
+            sw_vers
+            uname -m
+            xcodebuild -version
+            xcrun swift --version
+            /usr/bin/openssl version
+          } | tee "$CI_LOG_DIR/environment.log"
+          [[ "$(uname -m)" == arm64 ]]
+          [[ "$(sw_vers -productVersion)" == 27.* ]]
+          [[ "$(xcodebuild -version)" == Xcode\ 27.* ]]
+      - name: Build all products
+        run: |
+          set -euo pipefail
+          swift build --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
+            2>&1 | tee "$CI_LOG_DIR/build.log"
+      - name: Run all tests
+        run: |
+          set -euo pipefail
+          swift test --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
+            --xunit-output "$CI_LOG_DIR/tests.xml" \
+            2>&1 | tee "$CI_LOG_DIR/tests.log"
+      - name: Upload logs and test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: swift-${{ strategy.job-index }}-${{ matrix.configuration }}
+          path: ${{ env.CI_LOG_DIR }}/
+          if-no-files-found: warn
+          retention-days: 14
+
+  required:
+    # Stable required status check; keep this in sync with the main ruleset.
+    name: CI required
+    if: ${{ always() }}
+    needs: [packages, swift-tests]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      PACKAGES_RESULT: ${{ needs.packages.result }}
+      TESTS_RESULT: ${{ needs.swift-tests.result }}
+    steps:
+      - name: Require every build and test job to succeed
+        run: |
+          set -euo pipefail
+          echo "Package discovery: $PACKAGES_RESULT"
+          echo "Builds and tests: $TESTS_RESULT"
+          [[ "$PACKAGES_RESULT" == success && "$TESTS_RESULT" == success ]]
