@@ -310,7 +310,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.C2 | Ochrana nezávislá na pf | | ⬜ | otevřený blokátor R3; bez NE (F0.5) |
 | WP1.C3 | S3b příprava | | ⬜ | |
 | WP1.C4 | S3/S3b běh (L4) | uživatel + impl. | ⬜ | |
-| WP1.D1 | Jádro brány | | ⬜ | |
+| WP1.D1 | Jádro brány | janfiedler / Codex | 🟨 | HTTP/1.1 + SSE, typed routing a SSRF policy; příprava bez laboratoře |
 | WP1.D2 | npm typed | | ⬜ | |
 | WP1.D3 | API modelů | | ⬜ | |
 | WP1.D4 | Fixtures a mocky | | ⬜ | |
