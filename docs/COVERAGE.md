@@ -297,7 +297,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP0.5 | Metodika a laboratoř | janfiedler / Codex + Astra | 🟨 | [LAB-v1](LAB.md): registr, sloty, předregistrace, návrhy prahů/statistik a šablony; neměnná historie běhů více autorů/strojů. Doplněn [M1 host protokol 3×5 s](evidence/s1/20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb/verdict.md). Čeká na P1–P6/F0.8; A2 vyžaduje další instrumentaci. S1 ani jiná brána tím neprošly |
 | WP1.A1 | S1 příprava | — | ✅ | `spikes/s1-session`: skripty s dry-runem a úklidem, sonda relace (credentials, displeje, Metal, offscreen render s ověřením, prezentace, RAM, Screen Recording), loopback forwarder místo SSH, WebGL stránka; 6 testů. Části s `--apply` (root) ověří až běh L1 |
 | WP1.A2 | S1 běh (L1) | uživatel + impl. | ⬜ | |
-| WP1.A3 | Průzkum RFB výběru relace | janfiedler / Codex + Astra | 🟨 rozpracováno | displej MVP i fallback F0.6; připravuje se offline protokolový prototyp a rešerše |
+| WP1.A3 | Průzkum RFB výběru relace | janfiedler / Codex + Astra | 🟨 rozpracováno | Částečně: `spikes/s1-rfb` — primární zdroje k Apple auth/výběru relace, omezený offline Swift 6 RFB 3.8/Raw prototyp a mock testy. Apple auth, výběr relace a živý klient nejsou implementované/ověřené; zůstává uživatelská cesta Screen Sharing.app. Žádná změna bran. |
 | WP1.A4 | S0 příprava | | ⬜ | |
 | WP1.A5 | S0 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.A6 | S8 příprava | | ⬜ | |
