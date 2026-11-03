@@ -10,6 +10,9 @@ let package = Package(
     targets: [
         .target(name: "S1Probe", dependencies: [.product(name: "SanjboxProbeKit", package: "common")]),
         .target(name: "S1Forward"),
+        .target(name: "S1Instrumentation", dependencies: ["S1Probe", .product(name: "SanjboxProbeKit", package: "common")]),
+        .executableTarget(name: "sanjbox-s1-instrument", dependencies: ["S1Instrumentation"]),
+        .testTarget(name: "S1InstrumentationTests", dependencies: ["S1Instrumentation"]),
         .executableTarget(
             name: "sanjbox-s1-probe",
             dependencies: ["S1Probe", .product(name: "SanjboxProbeKit", package: "common")]
