@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 9 | 2 | 19 | 0 |
+| F1 | 30 | 9 | 3 | 18 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -322,7 +322,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.E2 | S6 běh (L6) | uživatel + impl. | ⬜ | |
 | WP1.F1 | S2-A výzkumný prototyp | | ⬜ | TCC grant od uživatele |
 | WP1.F2 | S2-B (L7) | uživatel + impl. | ⬜ | |
-| WP1.G1 | Rešerše Docker runtime | | ⬜ | |
+| WP1.G1 | Rešerše Docker runtime | Codex / Astra | 🟨 | Primární zdroje a návrh ověření S7 v `spikes/s7-docker/research/wp1-g1-runtime/`; bez runtime měření, mimo MVP (C-002) |
 | WP1.G2 | S7 příprava | | ⬜ | |
 | WP1.G3 | S7 běh (L8) | uživatel + impl. | ⬜ | |
 | WP2.0 | Kontrakty | | ⬜ | čeká na vstup F2 |
