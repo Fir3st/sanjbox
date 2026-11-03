@@ -1,0 +1,8 @@
+{
+  "collector_original_sha256": "45fa1c0e17cc4810212e6533b03b8aabadda0036269cbb25f520ae65323dcdb9",
+  "timeout_seconds_per_attempt": 60,
+  "planned_attempts": 3,
+  "presentation_seconds_per_attempt": 5,
+  "annotation": "Post-run provenance: timeout was fixed in collector before measurement but not stated explicitly in inputs.md; original preregistration is retained unchanged. No timeout occurred. Collector paths/original outputs retained privately; published data transformations listed in publication.json.",
+  "binary_sha256_verified_after_run": "df8f94244b21fa54374d1fb967a1ba137cedfb0f5f32d40dd26c8d9458366674"
+}

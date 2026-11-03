@@ -1,0 +1,27 @@
+{
+  "published_utc": "2026-11-03T13:45:11.650828+00:00",
+  "transformations": [
+    "userName fields replaced consistently with host-user in context/expectation",
+    "uidProcesses.largest omitted to avoid publishing other host app names; UID totals unchanged",
+    "JSON formatting normalized; metrics, UID/GID/groups/session, timestamps and envelopes unchanged"
+  ],
+  "expectation_original_private_sha256": "e56865bd8725c5039587d5ef7b89cdbb326531ea64a4927930f70ee1cf65416b",
+  "expectation_published_sha256": "57a9f5a565fad77ab0cc8fa4d40d6b1ce8303c7aabb26b790722712ab3cd7fcd",
+  "attempts": [
+    {
+      "attempt": 1,
+      "original_private_sha256": "2a9fa37a06ed4b0bc070ffd61ab96d53c13a10b7e76556e6b6ed5f9f0d24ceca",
+      "published_sanitized_sha256": "14305b39529a31a3b8dff8718c0341ebcb34112ea99a10ff85551a6f4ebf26cd"
+    },
+    {
+      "attempt": 2,
+      "original_private_sha256": "de31a7475936980265c3f90c815b5ea8bab62a48738e9b8568dc1d53a8a7846e",
+      "published_sanitized_sha256": "807693651559c8d6433d1b560a5e5f5d20b0ac06b28379abec5abd7785f46304"
+    },
+    {
+      "attempt": 3,
+      "original_private_sha256": "c23398c50aafcd599efef5cc193f9f434cda6baaf4e02839d9b93b1006fec137",
+      "published_sanitized_sha256": "a598ef865edc7d512e744d8a7cd98447a5cd0aadb8eae6f85585c3d4d864a0df"
+    }
+  ]
+}

@@ -49,6 +49,10 @@ Označení „snížené riziko“ není souhlas se změnou (PLAN §Akceptační
 | Výkonové cíle | Dle PLAN design card: cold login 10–30 s, warm/resume < 2 s, input-to-photon 30–50 ms při 60 fps, `npm install` přes bránu ≤ 1,1× nativně |
 | Docker start/stop | Rozhodnout nejpozději před S7 (F4) |
 
+Konkrétní návrh **LAB-v1 / P1–P6** v [LAB.md §1](LAB.md#1-návrh-rozhodnutí-f08) doplňuje statistiky,
+workloady, délky, RAM/GPU/prezentační cíle a podmínky měření. **Dosud není schválený**; jeho dodání
+nemění stav F0.8. Před akceptačním během zde uživatel zaznamená přijatou verzi/commit nebo změny.
+
 ## Změny kontraktu
 
 Každá změna požadavku nebo fallbacku musí mít záznam. Bez tvého výslovného rozhodnutí platí původní požadavek.

@@ -14,6 +14,7 @@ se skutečnými projekty, účty nebo tajemstvími, dokud příslušné brány v
 | [docs/GUIDE.md](docs/GUIDE.md) | Pravidla práce, struktura repa, jak psát spiky a evidovat důkazy |
 | [docs/COVERAGE.md](docs/COVERAGE.md) | Co je hotovo a co ne: požadavky, brány, testy, balíky, blokátory |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Rozhodnutí F0 a změny kontraktu |
+| [docs/LAB.md](docs/LAB.md) | Registr strojů, rezervace slotů, návrh metodiky a šablony běhů (F0.8 otevřené) |
 | [docs/spikes.md](docs/spikes.md) | Verdikty bran F1 |
 
 ## Zákaz atribuce v commitech

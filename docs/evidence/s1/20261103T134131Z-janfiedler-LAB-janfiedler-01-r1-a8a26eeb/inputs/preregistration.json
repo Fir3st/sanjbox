@@ -1,0 +1,41 @@
+{
+  "run_id": "20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb",
+  "prepared_utc": "2026-11-03T13:41:32.164211+00:00",
+  "commit": "9462158e1072eaf36d6dc8662ed33d0b3a3bdcf6",
+  "binary_sha256": "df8f94244b21fa54374d1fb967a1ba137cedfb0f5f32d40dd26c8d9458366674",
+  "source_sha256": {
+    "spikes/common/Package.swift": "2bfd2db5a5fd75c2eea3dc6615cb8b737929a0bcb99a73861ca55799c1499ca2",
+    "spikes/common/Sources/SanjboxProbeKit/Canary.swift": "153c235ee0f8041c15b02c9ef486a1d24656a2a35ca688806d1d9b545a6a2573",
+    "spikes/common/Sources/SanjboxProbeKit/CommandLine.swift": "0888835da2792d70ff66d1ac2d98784bae7fca908e0f2c11ecc3e3ccbf1deec3",
+    "spikes/common/Sources/SanjboxProbeKit/JSONLines.swift": "27c4d8d423c897513dbe1c76b9c3bb8cb932b4fbd7e813862f9e895fbd248fb7",
+    "spikes/common/Sources/SanjboxProbeKit/ProbeContext.swift": "107bb560abc058e22cb31c013fa501795f148a359dba09634404daa8583d1173",
+    "spikes/common/Sources/SanjboxProbeKit/ProbeExpectation.swift": "fc7a6d04ce4b98096176d17e0fa8a1cc9a858448ba8fb31ccd9c056e70847507",
+    "spikes/common/Sources/SanjboxProbeKit/RunRecord.swift": "79f891b1cc0bba4b0b95adad35ae3509a1e72bd81e771445e3630eadcadbf147",
+    "spikes/s1-session/Package.swift": "804cd980b180a3d3dbbeceb04f9cf20a712ffcc980c6ab1c1caf6c1bca5de58d",
+    "spikes/s1-session/Sources/S1Forward/Forwarder.swift": "bcd7c4b347489c49a5714d88b4c7f1f1458185cad83a76d500af70d81d275818",
+    "spikes/s1-session/Sources/S1Probe/OffscreenWorkload.swift": "048a25c63708c5687a52f2eb69523a871ccd5c9791b302031f682f95e29babe3",
+    "spikes/s1-session/Sources/S1Probe/Presentation.swift": "bbefa4e25b47da2d5cae47d08f8df3c8f5384127d620843af836a5e166c63059",
+    "spikes/s1-session/Sources/S1Probe/S1Measurement.swift": "1f1d5b0b3d21f188b457709b5bf852d8662e6452366f49c1b21ee81c70bca341",
+    "spikes/s1-session/Sources/S1Probe/SessionInfo.swift": "ca39f392473c6e5be538a205ff75772bd33273d65e30bc0ea3285d39142b286e",
+    "spikes/s1-session/Sources/sanjbox-s1-forward/main.swift": "93b4ff5cb4ad3a27b17347bdb3c2b9be403d5fafe1f2b4bf7561506cd21fb7b1",
+    "spikes/s1-session/Sources/sanjbox-s1-probe/main.swift": "e53dfcd3d1e15cf8c3ed7da6d8089f3089f1e4da8da62353fe6808918d7c49b8"
+  },
+  "hardware": {
+    "hw.model": "MacBookPro17,1",
+    "hw.memsize": "17179869184",
+    "hw.physicalcpu": "8",
+    "hw.logicalcpu": "8",
+    "machdep.cpu.brand_string": "Apple M1"
+  },
+  "macos": "ProductName:\t\tmacOS\nProductVersion:\t\t27.2\nBuildVersion:\t\t26B123",
+  "xcode": "Xcode 27.0\nBuild version 27A266a",
+  "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.2.0",
+  "power": "Now drawing from 'AC Power'",
+  "audit_session_id": 100002,
+  "window_audit_session_id": 100002,
+  "expectation_sha256": "e56865bd8725c5039587d5ef7b89cdbb326531ea64a4927930f70ee1cf65416b",
+  "presentation_seconds": 5,
+  "planned_attempts": 3,
+  "scope": "partial host-console diagnostic; no S1 gate verdict; no P1-P6 acceptance",
+  "privacy": "originals private; published copies alias userName and omit uidProcesses.largest"
+}

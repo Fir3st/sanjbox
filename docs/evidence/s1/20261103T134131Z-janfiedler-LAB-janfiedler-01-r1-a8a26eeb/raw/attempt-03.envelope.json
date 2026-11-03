@@ -1,0 +1,9 @@
+{
+  "attempt": 3,
+  "start_utc": "2026-11-03T13:42:10.805179+00:00",
+  "end_utc": "2026-11-03T13:42:17.411926+00:00",
+  "start_monotonic_ns": 18601050988208,
+  "end_monotonic_ns": 18607657664750,
+  "elapsed_seconds": 6.606676542,
+  "exit_code": 0
+}

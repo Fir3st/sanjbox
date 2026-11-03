@@ -8,6 +8,8 @@ souběžné relace nebo akcelerované renderování nedovolí, vývoj se zastav�
 
 Pokrývá případy GUI-01 až GUI-13 v [COVERAGE.md](../../docs/COVERAGE.md#31-gui--relace-a-coherence-s1-s2).
 Běh a verdikt jsou WP1.A2 (slot L1).
+Metodika, navržené prahy a známé chybějící důkazy pro A2 jsou v [LAB.md](../../docs/LAB.md).
+F0.8 je otevřené; tento návod dodává dílčí kroky, sám není úplnou akceptační sérií LAB-v1.
 
 ## Obsah
 
@@ -62,10 +64,17 @@ Sonda nic nehodnotí. Prošlo nebo neprošlo se rozhoduje až proti cílům zaps
 Selhání sekce (např. žádný Metal) je výsledek v `errors`, ne chyba sondy. Návratové kódy: 0 změřeno,
 3 neplatné měření, 2 chyba použití.
 
-Ověřeno v host konzoli (M5 Pro, macOS 27.2):
+Historická diagnostika v host konzoli (M5 Pro, macOS 27.2; původní záznam WP1.A1, bez přiloženého
+neměnného protokolu běhu). Není to důkaz brány S1 ani měření M1 `LAB-janfiedler-01` z registru:
 - offscreen 3,2 ms GPU na snímek, 0 neshod;
 - prezentace 118 zobrazených snímků/s při 120 Hz;
 - WebGL stránka v Electronu hlásí `ANGLE Metal Renderer: Apple M5 Pro` a akcelerovaný kontext.
+
+Samostatná host diagnostika M1 (`LAB-janfiedler-01`, 2026-11-03) má vlastní
+[protokol s raw a review](../../docs/evidence/s1/20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb/verdict.md).
+Tři 5s pokusy: GPU medián přibližně 10,483 ms, pokaždé 0 neshod ze 4096 pixelů;
+prezentace 96,6 / 99,0 / 99,8 fps na 100Hz hlavním externím displeji (1×). Tato série neměřila WebGL
+ani tři izolované relace. M5 údaje výše zůstávají zachované, konfigurace nejsou přímo srovnatelný benchmark.
 
 ### Jak `run-probe.sh` sondu spouští
 
@@ -84,22 +93,36 @@ ji spustí, ale nevymění.
 ## Běh L1 (WP1.A2)
 
 Kroky jsou označené **[uživatel]**, protože všechno, co mění systém, spouštíš ty. Před během musí být
-stroj zapsaný v `docs/LAB.md` (WP0.5) a mít čerstvou zálohu. Testovací relace smějí obsahovat jen sondy
+stroj zapsaný v [LAB.md](../../docs/LAB.md), rezervovaný slot, čerstvou ověřenou zálohu a schválenou
+předregistraci. [LAB §8](../../docs/LAB.md#8-připravenost-a2-a-mapování-s1) uvádí instrumentaci, která
+pro úplný akceptační běh ještě chybí. Testovací relace smějí obsahovat jen sondy
 a požadované aplikace s prázdnými profily; žádné skutečné projekty ani účty.
 
 ### 0. Příprava protokolu
 
-1. **[uživatel]** Sestav balík (jako ty, bez `sudo`):
+1. **[uživatel]** Z kořene repozitáře nastav absolutní cesty, nové jedinečné run ID a sestav balík
+   (jako ty, bez `sudo`). Alias a stroj nahraď svým veřejným záznamem z LAB:
 
    ```bash
-   cd spikes/s1-session && swift build -c release
+   LAB_REPO_ROOT=$(git rev-parse --show-toplevel)
+   LAB_AUTHOR=vas-verejny-alias
+   LAB_MACHINE=LAB-vas-verejny-alias-01
+   LAB_REVISION=r1
+   LAB_RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-${LAB_AUTHOR}-${LAB_MACHINE}-${LAB_REVISION}-$(uuidgen | tr -d '-' | cut -c1-8)"
+   RUN="$LAB_REPO_ROOT/docs/evidence/s1/$LAB_RUN_ID"
+   mkdir -p "$LAB_REPO_ROOT/docs/evidence/s1"
+   mkdir "$RUN" &&
+     mkdir "$RUN/raw" "$RUN/state" "$RUN/inputs" &&
+     cd "$LAB_REPO_ROOT/spikes/s1-session" &&
+     swift build -c release
    ```
 
-2. **[uživatel]** Založ adresář běhu, např. `RUN=docs/evidence/s1/2026-11-10-l1` s podadresáři `raw` a
-   `state`.
-3. **[uživatel]** **Před měřením** vyplň `environment.md` a `inputs.md` (GUIDE §7). Do `inputs.md` patří
-   případy, oracle a cíle: čas přihlášení a RAM na relaci (F0.8, zatím otevřené), poměr GPU času relace
-   vůči host konzoli, minimální zobrazené snímky/s a délka sledování 10 min.
+2. **[uživatel]** `mkdir "$RUN"` musí uspět jako vytvoření nového adresáře; existující běh nikdy
+   nepoužij znovu. V dalších terminálech nastav stejnou absolutní hodnotu `RUN` pro tento běh.
+3. **[uživatel]** **Před měřením** vyplň `environment.md` a `inputs.md` podle
+   [šablony](../../docs/templates/lab/run.md) a LAB. Zafixuj commity, konfiguraci, workloads,
+   credentials, oracle, délky, opakování a přijaté cíle F0.8. Chybějící cíle nebo recorder znamenají
+   pouze dílčí diagnostický běh; bez nich nelze vyhodnotit kompletní S1.
 
 ### 1. Uživatelé a ochrana portů
 
@@ -168,7 +191,9 @@ a požadované aplikace s prázdnými profily; žádné skutečné projekty ani 
    ```
 
    Pro srovnání změř i host konzoli. Předem zapiš `inputs/expect-host.json` se svým UID
-   (`id -u`), např. `{"effectiveUID": 501, "onConsole": true}`, pak spusť:
+   (`id -u`). Např. `{"effectiveUID": 501, "onConsole": true}` je **pouze minimální diagnostické
+   očekávání**; pro akceptaci vyplň také skutečné/efektivní UID/GID, očekávané skupiny, bootstrap,
+   window session a audit session podle LAB §3 a `ProbeExpectation` ze společné sady. Potom spusť:
 
    ```bash
    .build/release/sanjbox-s1-probe measure --expect "$RUN/inputs/expect-host.json" --case GUI-05 --log "$RUN/raw/s1-probe-host.jsonl"
@@ -178,14 +203,15 @@ a požadované aplikace s prázdnými profily; žádné skutečné projekty ani 
 
 1. **[uživatel]** Zavři okno Sdílení obrazovky. Relaci neodhlašuj.
 2. **[uživatel]** Počkej 10 minut a sleduj `observe-watch.tsv`: musí trvat `gui_domain=1` a procesy Dock
-   i Finder.
+   i Finder. Pro kompletní GUI-02 podle LAB se ověřuje i kontinuita identit relací a prezentace během
+   celého intervalu ve všech třech oblastech; jednorázová sonda na konci to nenahrazuje.
 3. **[uživatel]** Změř relaci bez připojeného klienta:
 
    ```bash
    sudo ./run-probe.sh --user snjt1 --run "$RUN" --case GUI-02 --apply
    ```
 
-   Zobrazené snímky > 0 znamenají, že relace komponuje i bez klienta.
+   Zobrazené snímky > 0 dokládají kompozici v okamžiku sondy. O průběhu předchozích 10 minut nevypovídají.
 4. **[uživatel]** Ověř, že tvá konzole zůstala funkční.
 
 Keeper (GUI-13) se zkoumá, jen pokud relace bez klienta nepřežije.
@@ -194,35 +220,44 @@ Keeper (GUI-13) se zkoumá, jen pokud relace bez klienta nepřežije.
 
 1. **[uživatel]** Pro `snjt2` a `snjt3` spusť vlastní forwardery (`--listen 5912`, `--listen 5913`) a
    přihlas se stejně jako v kroku 2.
-2. **[uživatel]** Změř všechny tři relace najednou, každou v jiném terminálu:
+2. **[uživatel]** Připrav instalaci binárky a očekávání pro všechny UID **sériově** přes `run-probe.sh`
+   z kroku 2; tento launcher současně zapisuje do společné instalační cesty a společného JSONL.
+   Nespouštěj jeho instalace souběžně. Pro samotné souběžné měření použij připravené Terminaly uvnitř
+   jednotlivých relací a oddělené nové logy, např. v `snjt1`:
+
+   V každém Terminalu nastav `LAB_RUN_ID` na přesné ID tohoto běhu z kroku 0 (bez založení nového ID).
 
    ```bash
-   sudo ./run-probe.sh --user snjt1 --run "$RUN" --case GUI-03 --apply
+   "/Library/Application Support/Sanjbox/s1/bin/sanjbox-s1-probe" measure --expect "/Library/Application Support/Sanjbox/s1/expect/snjt1.json" --render-seconds 60 --case GUI-03 --log "$HOME/${LAB_RUN_ID}-snjt1-concurrent-001.jsonl"
    ```
 
-   Stejně pro `snjt2` a `snjt3`. Souběžně spusť i host sondu.
+   V dalších relacích použij jejich vlastní očekávání; každý další pokus dostane nový název souboru.
+   Souběžně běží host kontrola. Dolož skutečné společné okno jednotlivých fází podle LAB, nikoli pouze
+   časy spuštění z terminálů. Výstupy pak uživatel přenese pod odlišnými názvy obsahujícími UID do
+   `raw/` tohoto běhu. Tento příklad je diagnostika; chybějící časové řady pro akceptaci uvádí LAB §8.
 3. **[uživatel]** Zkus režim High Performance pro druhou relaci a zapiš chování (GUI-04). Brána nesmí
    stát na více než jedné High Performance relaci.
 
 ### 5. Aplikace (GUI-06 až GUI-09)
 
-V relaci `snjt1`:
+V **každé ze tří současně aktivních relací**, podle profilů WX/WA/WE/WS/WM v LAB:
 
 | Případ | Postup | Oracle |
 |---|---|---|
-| GUI-06 Xcode + Simulator | Nový projekt ze šablony, spuštění v Simulatoru | `sudo ./observe.sh`: `CoreSimulatorService` a `launchd_sim` pod UID 4501, Simulator vykresluje |
-| GUI-07 Android Studio + emulátor | Vyžaduje stažení SDK a obrazu emulátoru do home testovacího uživatele; **jen s tvým schválením konkrétního stažení** | Emulátor běží s hardwarovou akcelerací; `qemu-system-*` pod UID 4501 |
-| GUI-08 Electron | Libovolná nainstalovaná Electron appka; do DevTools konzole vlož obsah skriptu z `webgl-check.html`, nebo stránku otevři přímo | `acceleratedContext: true`, renderer s Apple GPU, snímky/s blízko frekvence displeje |
+| GUI-06 Xcode + Simulator | Nový projekt ze šablony, spuštění v Simulatoru | `sudo ./observe.sh`: `CoreSimulatorService` a `launchd_sim` pod UID odpovídající oblasti, Simulator skutečně vykresluje |
+| GUI-07 Android Studio + emulátor | Vyžaduje stažení SDK a obrazu emulátoru do home testovacího uživatele; **jen s tvým schválením konkrétního stažení** | Emulátor skutečně vykresluje s hardwarovou akcelerací; proces emulátoru pod UID odpovídající oblasti |
+| GUI-08 Electron | Předem určená nainstalovaná Electron appka; do DevTools konzole vlož obsah skriptu z `webgl-check.html`, nebo stránku otevři přímo | `acceleratedContext: true`, renderer s Apple GPU a viditelný měnící se výstup; počet rAF callbacků sám není počet prezentovaných snímků |
 | GUI-09 Safari | Otevři soubor `webgl-check.html` (zkopíruj ho do `/Users/Shared` nebo k uživateli) | Totéž |
 
 Safari a Electron v S1 běží bez síťové izolace (S3 ještě neprošla). Otevírej jen lokální soubory.
 
 ### 6. TCC (GUI-10)
 
-1. **[uživatel]** V relaci `snjt1` otevři Terminal a spusť:
+1. **[uživatel]** V každé relaci otevři Terminal, nastav stejné `LAB_RUN_ID` a použij vlastní očekávání
+   a jméno logu (příklad pro `snjt1`; všechna jeho opakování TCC v tomto běhu přibývají do tohoto logu):
 
    ```bash
-   "/Library/Application Support/Sanjbox/s1/bin/sanjbox-s1-probe" measure --request-screen-capture --case GUI-10 --log ~/s1-tcc.jsonl
+   "/Library/Application Support/Sanjbox/s1/bin/sanjbox-s1-probe" measure --expect "/Library/Application Support/Sanjbox/s1/expect/snjt1.json" --request-screen-capture --case GUI-10 --log "$HOME/${LAB_RUN_ID}-snjt1-tcc.jsonl"
    ```
 
 2. **[uživatel]** Prompt Screen Recording musí být v relaci vidět a potvrditelný. Povol Terminal.
@@ -231,16 +266,18 @@ Safari a Electron v S1 běží bez síťové izolace (S3 ještě neprošla). Ote
 4. **[uživatel]** Zkopíruj protokol do běhu:
 
    ```bash
-   sudo cp /Users/snjt1/s1-tcc.jsonl "$RUN/raw/"
+   sudo cp -n "/Users/snjt1/${LAB_RUN_ID}-snjt1-tcc.jsonl" "$RUN/raw/s1-tcc-snjt1.jsonl"
    ```
 
 ### 7. Čas přihlášení a RAM (GUI-12)
 
-- **Cold login:** první přihlášení nového uživatele. **Warm login:** po odhlášení (v relaci Apple menu ›
-  Odhlásit) a novém přihlášení.
-- **Čas přihlášení** = od zapsaného kliknutí do prvního řádku `observe-watch.tsv` s `dock=1` a `finder=1`.
-- **RAM relace** = `uidProcesses.physicalFootprintBytes` ze sondy plus nový proces `WindowServer` relace.
-  Ten běží pod `_windowserver`, ne pod UID oblasti; najdeš ho v `observe.sh` ve výpisu WindowServer.
+- **First-run** nového uživatele, **cold** připraveného profilu po restartu, **warm** opětovný login,
+  reconnect a skutečné resume jsou rozdílné série ([LAB §5](../../docs/LAB.md#5-login-first-run-warm-a-resume-gui-12)).
+- **Čas přihlášení:** od potvrzení přihlašovacího požadavku do první interaktivní plochy se správným
+  kontextem. Dock/Finder jsou pouze mezníky. Sekundový watch nemá přesnost pro cíl < 2 s.
+- **RAM:** systémový přírůstek celé konstrukce včetně WindowServerů/klientů podle
+  [LAB §6](../../docs/LAB.md#6-ram-a-sdílené-služby-gui-12). Snapshot footprint UID je diagnostika a zahrnuje
+  i sondu; nelze k němu přičíst RSS WindowServeru z `observe.sh` ani sdílený proces započítat vícekrát.
 
 ### 8. Úklid
 
@@ -267,6 +304,11 @@ Safari a Electron v S1 běží bez síťové izolace (S3 ještě neprošla). Ote
 
    Účty musí být `absent`, skupina pro Sdílení obrazovky zpět ve stavu před během.
 
+7. **[uživatel + reviewer]** Ověř i zbylé procesy testovacích UID, vlastní instalované objekty, listenery
+   a obnovení vlastních změn služeb/pf. Konflikt nebo zbytek drží slot blokovaný. Po kontrole veřejných
+   výstupů uzavři běh s manifestem hashů; přidej nový řádek do indexu S1 v [spikes.md](../../docs/spikes.md).
+   Starší výsledky jiných vývojářů/strojů se nepřepisují; pravidla oprav a review stanoví LAB §3.
+
 `cleanup.sh` odmítne běžet, dokud je Sdílení obrazovky zapnuté. Maže jen záznamy se značkou
 `sanjbox-s1-test` a s očekávaným UID. Domovskou složku nemaže podle cesty; pokud ji `sysadminctl`
 nesmaže, nahlásí to.
@@ -279,14 +321,14 @@ určeným cílům.
 | Případ | Rozhodující důkaz |
 |---|---|
 | GUI-01 | Souběžně s tvou konzolí: `onConsole: false`, vlastní audit session, zobrazené snímky > 0 v relaci a zároveň funkční host konzole |
-| GUI-02 | Po 10 min bez klienta `gui_domain=1`, Dock/Finder běží, sonda zobrazí snímky |
-| GUI-03 | Tři platná měření ve stejném okně, tři různé audit session, host sonda souběžně |
+| GUI-02 | Kontinuita stejných session ID, domén/procesů a prezentace ve všech třech oblastech po celé 3×600 s bez klientů podle LAB; funkční host konzole |
+| GUI-03 | Tři platná měření s doloženým souběhem relevantních fází, tři různé audit session, funkční host konzole |
 | GUI-04 | Zapsané chování High Performance; tři relace bez spoléhání na něj |
-| GUI-05 | Offscreen 0 neshod a GPU čas srovnatelný s host konzolí; zobrazené snímky/s; WebGL `acceleratedContext: true` |
+| GUI-05 | Offscreen 0 neshod a párové GPU srovnání; prezentace a výpadky podle předem schválené LAB; WebGL jen podpůrně |
 | GUI-06–09 | Tabulka v kroku 5 |
 | GUI-10 | Prompt viditelný a potvrditelný, `preflight: true` po znovupřipojení |
 | GUI-11 | Každé měření `valid: true`; neplatné měření se opakuje, nikdy se nebere jako důkaz |
-| GUI-12 | Časy a RAM proti cílům F0.8 |
+| GUI-12 | Oddělené časové série a systémová RAM proti schváleným cílům F0.8/LAB; chybějící instrumentace není pass |
 | GUI-13 | Jen pokud je keeper nutný: samostatně změřená konstrukce |
 
 ## Známá omezení přípravy
