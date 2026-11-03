@@ -1,0 +1,9 @@
+# HYPOTHESIS ONLY. Same constraints as transparent-v4.pf.in, separate IPv6 run.
+rdr on lo0 inet6 proto tcp from any to @TARGET_V6@ port @TARGET_PORT@ tagged @TAG@ -> ::1 port @GATEWAY_PORT@
+pass out quick route-to (lo0 ::1) inet6 proto tcp from any to @TARGET_V6@ port @TARGET_PORT@ user @UID@ tag @TAG@ keep state
+pass in quick on lo0 inet6 proto tcp from any to ::1 port @GATEWAY_PORT@ tagged @TAG@ keep state
+block drop out quick inet proto tcp from any to any user @UID@
+block drop out quick inet proto udp from any to any user @UID@
+block drop out quick inet6 proto tcp from any to any user @UID@
+block drop out quick inet6 proto udp from any to any user @UID@
+# IPv6 rdr / route-to loopback semantics must be established, not inferred from v4.

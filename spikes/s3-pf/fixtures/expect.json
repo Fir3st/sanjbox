@@ -1,0 +1,23 @@
+{
+  "identity": {
+    "effectiveUID": 4501,
+    "realUID": 4501,
+    "effectiveGID": 4500,
+    "realGID": 4500,
+    "requiredGroups": [
+      4500
+    ],
+    "forbiddenGroups": [
+      20,
+      80
+    ],
+    "launchdManagerName": "Aqua",
+    "launchdManagerUID": 4501,
+    "windowSessionUID": 4501,
+    "onConsole": false,
+    "forbiddenAuditSessionIDs": [
+      999999
+    ]
+  },
+  "auditSessionID": 999998
+}

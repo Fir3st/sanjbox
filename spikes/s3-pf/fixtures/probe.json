@@ -1,0 +1,1 @@
+{"caseID":"NET-05","address":"192.0.2.10","port":18080,"transport":"tcp","canary":"SANJBOX-CANARY-c1-fixture-00000000000000000000000000000000","sendCount":8,"intervalMilliseconds":500,"controlledTarget":true}
