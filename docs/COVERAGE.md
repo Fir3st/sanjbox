@@ -310,7 +310,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.C2 | Ochrana nezávislá na pf | | ⬜ | otevřený blokátor R3; bez NE (F0.5) |
 | WP1.C3 | S3b příprava | | ⬜ | |
 | WP1.C4 | S3/S3b běh (L4) | uživatel + impl. | ⬜ | |
-| WP1.D1 | Jádro brány | janfiedler / Codex | 🟨 | `spikes/s5-gateway`: první část HTTP/1.1 + SSE, typed router, SSRF policy; 18 lokálních/mock testů; zbývá DNS + připnutý TLS upstream (README) |
+| WP1.D1 | Jádro brány | janfiedler / Codex | ✅ | `spikes/s5-gateway`: HTTP/1.1 + SSE, typed router, systémové DNS/interface snapshot, SSRF policy a připnutý TLS upstream; 45 unit/mock/lokálních testů; kontrakt pro D2/D3/D4 a limity v README. S5 zůstává Neověřeno |
 | WP1.D2 | npm typed | | ⬜ | |
 | WP1.D3 | API modelů | | ⬜ | |
 | WP1.D4 | Fixtures a mocky | | ⬜ | |

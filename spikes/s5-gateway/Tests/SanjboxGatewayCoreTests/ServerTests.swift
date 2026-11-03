@@ -162,7 +162,7 @@ func activeSSEIsCancelledByStopOrLifetime(useLifetime: Bool) async throws {
     }
     if !useLifetime { server.stop() }
     var iterator = notice.makeAsyncIterator()
-    let cancelled = await iterator.next()
+    let cancelled: Void? = await iterator.next()
     #expect(cancelled != nil)
 }
 
@@ -190,4 +190,31 @@ func activeSSEIsCancelledByStopOrLifetime(useLifetime: Bool) async throws {
         #expect(text.hasPrefix(path == "/early" ? "HTTP/1.1 500 " : "HTTP/1.1 200 "))
         if path == "/late" { #expect(text.hasSuffix("d\r\ndata: first\n\n\r\n")) }
     }
+}
+
+@Test @MainActor func cancelledListenerStartCanBeStartedAgain() async throws {
+    let server = GatewayServer(router: try TypedRouter(routes: []))
+    defer { server.stop() }
+    let cancelled = Task { try await server.start() }
+    cancelled.cancel()
+    await #expect(throws: CancellationError.self) { _ = try await cancelled.value }
+    #expect(server.port == nil)
+    _ = try await server.start()
+    #expect(server.port != nil)
+}
+
+@Test @MainActor func oldListenerStartCannotStopItsReplacement() async throws {
+    let server = GatewayServer(router: try TypedRouter(routes: []))
+    defer { server.stop() }
+    let old = Task { try await server.start() }
+    await Task.yield()
+    server.stop()
+    let port = try await server.start()
+    _ = try? await old.value
+    #expect(server.port == port)
+    let (connection, deadline) = client(port: port)
+    defer { deadline.cancel(); connection.cancel() }
+    try await send(Data("GET /unknown HTTP/1.1\r\nHost: 127.0.0.1:\(port)\r\n\r\n".utf8), on: connection)
+    let response = String(decoding: try await readToEnd(connection), as: UTF8.self)
+    #expect(response.hasPrefix("HTTP/1.1 404 "))
 }

@@ -47,29 +47,32 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
         parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: requestedPort)!)
         let listener = try NWListener(using: parameters)
         self.listener = listener
-        listener.newConnectionHandler = { [weak self] connection in
-            Task { @MainActor in self?.accept(connection) }
+        listener.newConnectionHandler = { [weak self, weak listener] connection in
+            Task { @MainActor in
+                guard let self, let listener, self.listener === listener else { connection.cancel(); return }
+                self.accept(connection)
+            }
         }
         do {
-            let actualPort: UInt16 = try await withCheckedThrowingContinuation { continuation in
-                // Listener state callbacks run on this queue in order. A separate
-                // gate avoids resuming the start continuation twice after cancel.
-                let gate = ListenerStart(continuation)
+            let actualPort: UInt16 = try await boundedIO(timeout: limits.requestTimeout,
+                                                         cancel: { listener.cancel() }) { [queue, listener] gate in
                 listener.stateUpdateHandler = { [weak listener] state in
                     switch state {
                     case .ready: gate.finish(.success(listener?.port?.rawValue ?? 0))
-                    case .failed(let error): gate.finish(.failure(error))
+                    case .failed: gate.finish(.failure(GatewayServerFailure.unavailable))
                     case .cancelled: gate.finish(.failure(CancellationError()))
                     default: break
                     }
                 }
                 listener.start(queue: queue)
             }
+            try Task.checkCancellation()
+            guard self.listener === listener else { throw CancellationError() }
             guard actualPort != 0 else { throw GatewayServerFailure.unavailable }
             port = actualPort
             return actualPort
         } catch {
-            stop()
+            if self.listener === listener { stop() } else { listener.cancel() }
             throw error
         }
     }
@@ -94,17 +97,6 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
         }
         sessions[id] = session
         session.start(queue: queue)
-    }
-}
-
-/// Only touched by the listener's serial queue; synchronization is confined here.
-private final class ListenerStart: @unchecked Sendable {
-    private var continuation: CheckedContinuation<UInt16, any Error>?
-    init(_ continuation: CheckedContinuation<UInt16, any Error>) { self.continuation = continuation }
-    func finish(_ result: Result<UInt16, any Error>) {
-        guard let continuation else { return }
-        self.continuation = nil
-        continuation.resume(with: result)
     }
 }
 

@@ -66,7 +66,7 @@ public struct ApprovedDestination: Sendable {
     public let hostname: String
     public let port: UInt16
     public let addresses: [IPAddress]
-    fileprivate init(hostname: String, port: UInt16, addresses: [IPAddress]) {
+    init(hostname: String, port: UInt16, addresses: [IPAddress]) {
         self.hostname = hostname
         self.port = port
         self.addresses = addresses
@@ -74,11 +74,15 @@ public struct ApprovedDestination: Sendable {
 }
 
 public struct DestinationPolicy: Sendable {
-    private let hostAddresses: Set<IPAddress>
+    private let hostAddressProvider: any HostAddressProvider
 
     /// Caller supplies a fresh, complete host-interface snapshot per attempt.
     /// Public addresses of the host are also forbidden upstream destinations.
-    public init(hostAddresses: Set<IPAddress>) { self.hostAddresses = hostAddresses }
+    public init(hostAddresses: Set<IPAddress>) { hostAddressProvider = FixedHostAddresses(values: hostAddresses) }
+
+    /// Production callers collect the snapshot after DNS resolution, immediately
+    /// before dialing, so a slow lookup cannot leave a stale interface snapshot.
+    public init(hostAddressProvider: any HostAddressProvider) { self.hostAddressProvider = hostAddressProvider }
 
     public func approve(scheme: String = "https", hostname: String, port: UInt16 = 443,
                         encryptedClientHello: Bool = false,
@@ -86,9 +90,10 @@ public struct DestinationPolicy: Sendable {
         guard !encryptedClientHello else { throw DestinationFailure.encryptedClientHello }
         guard scheme == "https" else { throw DestinationFailure.nonTLS }
         guard port == 443 else { throw DestinationFailure.invalidPort }
-        let name = try Self.hostname(hostname)
+        let name = try Self.validatedHostname(hostname)
         let answers = try await resolver.addresses(for: name)
         guard !answers.isEmpty else { throw DestinationFailure.noAddresses }
+        let hostAddresses = try hostAddressProvider.addresses()
         // Reject the entire set if even one answer is unsafe. Re-run for every
         // new connection and redirect; a successful earlier lookup grants no cache exemption.
         guard answers.allSatisfy({ $0.isPublicUnicast && !hostAddresses.contains($0) }) else {
@@ -97,7 +102,7 @@ public struct DestinationPolicy: Sendable {
         return ApprovedDestination(hostname: name, port: port, addresses: answers)
     }
 
-    private static func hostname(_ input: String) throws -> String {
+    static func validatedHostname(_ input: String) throws -> String {
         let name = input.lowercased()
         var legacy = in_addr()
         // inet_aton also recognizes shortened, integer, octal and hex IPv4 forms.

@@ -89,7 +89,7 @@ public struct HTTPRequestDecoder: Sendable {
         }
     }
 
-    private static func validTarget(_ target: String) -> Bool {
+    static func validTarget(_ target: String) -> Bool {
         guard target.hasPrefix("/"), !target.hasPrefix("//"),
               !target.contains("#"), !target.contains("\\"),
               target.utf8.allSatisfy({ (33...126).contains($0) }),
