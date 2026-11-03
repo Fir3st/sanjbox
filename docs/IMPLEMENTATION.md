@@ -7,6 +7,7 @@ Při rozporu platí PLAN.md; tento dokument se opraví.
 - Postupy a pravidla práce: [GUIDE.md](GUIDE.md)
 - Stav požadavků, bran, testů a balíků: [COVERAGE.md](COVERAGE.md)
 - Rozhodnutí F0: [DECISIONS.md](DECISIONS.md)
+- Laboratoř, návrh akceptace a šablony: [LAB.md](LAB.md)
 - Výsledky bran F1: [spikes.md](spikes.md)
 
 ## 1. Principy rozdělení práce

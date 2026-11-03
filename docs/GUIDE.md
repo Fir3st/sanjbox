@@ -10,6 +10,7 @@ nebo agentů mohlo pracovat paralelně bez kolizí. Co dělat a v jakém pořad�
 3. [IMPLEMENTATION.md](IMPLEMENTATION.md): fáze, pracovní balíky, laboratorní sloty.
 4. [COVERAGE.md](COVERAGE.md): co je hotovo, co prošlo, co ne.
 5. Tento průvodce: pravidla, postupy, šablony.
+6. [LAB.md](LAB.md): registr strojů, rezervace, předregistrace a metodika (návrh čekající na F0.8).
 
 ## 2. Prerekvizity
 
@@ -53,7 +54,8 @@ docs/
   DECISIONS.md          rozhodnutí F0 a změny kontraktu
   spikes.md             verdikty bran F1
   LAB.md                baseline laboratoře, metodika, rezervace slotů   (WP0.5)
-  evidence/<brána>/<YYYY-MM-DD>-<běh>/   protokoly běhů                 (§7)
+  templates/lab/        šablony stroje/slotu a protokolu běhu           (WP0.5)
+  evidence/<brána>/<run-id>/  neměnné protokoly jednotlivých běhů       (§7)
 spikes/
   common/               sdílené sondy a protistrana                      (WP0.3, WP0.4)
   s0-boundary/ s1-session/ s2-coherence/ s3-pf/ s4-host/
@@ -100,7 +102,9 @@ Pravidla pro skripty:
 
 ## 7. Důkazy a verdikty
 
-Každý běh brány vytvoří `docs/evidence/<brána>/<YYYY-MM-DD>-<běh>/`:
+Každý běh brány vytvoří nový `docs/evidence/<brána>/<run-id>/`; formát jedinečného ID je
+`<UTC-YYYYMMDDTHHMMSSZ>-<veřejný-alias>-<stroj>-<revize>-<náhodných-8-hex>` podle [LAB §3](LAB.md#3-předregistrace-a-platnost-důkazu).
+Předregistrace a šablony jsou v [LAB.md](LAB.md). Žádný adresář běhu se nepoužije podruhé.
 
 | Položka | Obsah |
 |---|---|
@@ -109,13 +113,19 @@ Každý běh brány vytvoří `docs/evidence/<brána>/<YYYY-MM-DD>-<běh>/`:
 | `credentials.log` | Výstup `sanjbox-whoami` pro každou sondu |
 | `raw/` | Nezpracované výstupy sond a protistrany (bez tajemství, jen kanárky) |
 | `verdict.md` | Prošlo / Neprošlo / Nejasné pro každý případ, s odkazem na raw a mapováním na R1–R8 |
+| `manifest.sha256` | Hashe publikovaných souborů při uzavření (bez hashe manifestu samotného); následné opravy jsou nové záznamy |
+| `amendments/`, `reviews/` | Nové datované opravy interpretace/metadat a následná review s autorem, důvodem a odkazem na původní soubor; původní důkaz zůstává |
 
 Pravidla:
 
 - Rozlišuj **měřeno**, **odvozeno**, **mock** a **hypotéza**. Mock nikdy nedokazuje reálnou integraci.
 - Prahy a statistiky se nemění po měření. Pokud se metodika ukáže chybná, nový běh s novou metodikou.
 - Chybné credentials sondy = neplatné měření, ne důkaz izolace.
-- Verdikt brány zapiš do [spikes.md](spikes.md) a aktualizuj [COVERAGE.md](COVERAGE.md). Bránu uzavírá review.
+- Uzavřené běhy jsou neměnné. Zachovej všechny výsledky různých vývojářů/strojů i neplatné a neúspěšné
+  běhy; nové měření má nové ID. Oprava kódu nikdy nepřepíše staré raw ani verdict.
+- Přidej běh do indexu konkrétní brány v [spikes.md](spikes.md); při merge zachovej oba souběžné záznamy.
+  Verdikty platí pro konkrétní konfigurace, rozdíly a rozpory zůstávají viditelné. [COVERAGE.md](COVERAGE.md)
+  pouze odvozuje souhrn z indexu, nikdy nepřebírá automaticky poslední výsledek. Bránu uzavírá review.
 
 ## 8. Definice hotového
 
