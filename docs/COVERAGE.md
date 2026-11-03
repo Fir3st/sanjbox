@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 2 | 0 | 28 | 0 |
+| F1 | 30 | 2 | 1 | 27 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -302,7 +302,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.A5 | S0 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.A6 | S8 příprava | | ⬜ | |
 | WP1.A7 | S8 běh (L2) | uživatel + impl. | ⬜ | |
-| WP1.B1 | Audit hosta | | ⬜ | |
+| WP1.B1 | Audit hosta | janfiedler / Codex + Astra | 🟨 | |
 | WP1.B2 | Zpevnění a uninstall | | ⬜ | |
 | WP1.B3 | Manifest a topologie | | ⬜ | |
 | WP1.B4 | Snapshot/rollback prototyp | | ⬜ | |
