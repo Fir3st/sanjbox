@@ -1,0 +1,472 @@
+Building for production...
+[Using on-disk description]
+[2 / 5] SanjboxGatewayCore
+[3 / 6] SanjboxGatewayCore
+[12 / 15] sanjbox-gateway-product
+[14 / 17] sanjbox-gateway-product
+[16 / 17] sanjbox-gateway-product
+[16 / 17] SanjboxGatewayCoreTests-product
+[21 / 25] SanjboxGatewayCoreTests-product
+[23 / 25] SanjboxGatewayCoreTests-product
+[24 / 24] sanjbox-gateway-product
+Build complete! (24,94 secs)
+Test Suite 'All tests' started at 2026-11-04 22:41:24.516.
+Test Suite 'All tests' passed at 2026-11-04 22:41:24.517.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test sseEncodesMultilineDataAndRejectsMetadataInjection() started.
+◇ Test npmCooldownUnknownFutureInvalidDatesAndUnsupportedSourcesDenyDirectRequests() started.
+◇ Test modelRateBoundaryRollbackAuditCapacityAndCancellationFailClosed() started.
+◇ Test modelJSONRejectsDuplicateEscapedKeysNumbersDepthAndOversize() started.
+◇ Test upstreamBodyAndStreamLimitsApplyBeforeDelivery() started.
+◇ Test npmDirectLockfileTargetFetchesFreshMetadataAndAuditsOnlyTransportOutcome() started.
+◇ Test homebrewMalformedMissingOrRedirectedMetadataCannotEnableDownload() started.
+◇ Test modelTypedStreamInjectsOnlyTrustedKeyAndReconstructsOutput() started.
+◇ Test npmIntegrityUsesStrongestAlgorithmAndRejectsBadOrMissingSRI() started.
+◇ Test upstreamSSERejectsOversizeMalformedAndIncompleteEvents() started.
+◇ Test cancelledDNSCallerDoesNotWaitForBlockingLookup() started.
+◇ Test conflictingRoutesFailAtConfigurationTime() started.
+◇ Test npmCacheIsRevalidatedAndMetadataChangeAfterFetchNeverIssuesBytes() started.
+◇ Test homebrewKnownDigestNeverSubstitutesForArtifactPublicationTime() started.
+◇ Test pypiTimeBoundaryMissingFutureImpossibleAndSubmillisecondPrecision() started.
+◇ Suite TLSTransportTests started.
+◇ Test npmCacheHitRefetchesMetadataTwiceWithoutArtifactAndBoundedCacheEvicts() started.
+◇ Suite ModelAPITLSTests started.
+◇ Test npmMalformedDuplicateOrOversizedMetadataAndArtifactAreNeverPublished() started.
+◇ Test gitOnlyExactProjectServicesReachFixedUpstreamWithoutClientHeaders() started.
+◇ Test typedUpstreamRequestOwnsAuthorityAndFraming() started.
+◇ Test dnsTimeoutRetainsBoundedWorkerUntilLibcReturns() started.
+◇ Test npmAuditCapacityConcurrencyCancellationAndDeadlineAreBounded() started.
+◇ Test cancelledListenerStartCanBeStartedAgain() started.
+◇ Test boundedOperationChecksCancelledParentEvenWhenChildIgnoresCancellation() started.
+◇ Test handlerFailureDoesNotReflectPrivateErrorOrAppendSecondResponse() started.
+◇ Test ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test realListenerHandlesFragmentedRequestsAndClosesConnection() started.
+◇ Test pypiDoesNotAcceptUnknownIdentityWeakHashesBooleanSizesOrYankedFiles() started.
+◇ Test npmBareFileDependencySpecsCannotLeavePackumentOrAuthorizeDirectTarball() started.
+◇ Test modelDisconnectAndTimeoutReleaseCapacityWithoutRefund() started.
+◇ Test gitRedirectAuthDumbHTTPAndOversizedResponseNeverEscape() started.
+◇ Test pypiFinalDNSRebindingClockRollbackAndAuditCapacityDeny() started.
+◇ Test npmClockRollbackIdentityMismatchAndMissingIntegrityCannotIssue() started.
+◇ Test systemLookupAndSnapshotFailuresArePropagated() started.
+◇ Test unsafeRequestsAreRejected(wire:) started.
+◇ Test npmMethodsCredentialsBodiesAndRangeAreRejectedBeforeUpstream() started.
+◇ Test pypiFiltersPerFileUploadTimesAndReconstructsJSON() started.
+◇ Test limitsAreAppliedBeforeBodyAndHeaderAccumulation() started.
+◇ Test upstreamRedirectRequiresExplicitNewApprovalAndDoesNotRelayCredentials() started.
+◇ Test modelStreamNeverReflectsErrorsIDsUnknownJSONOrIncompleteSuccess() started.
+◇ Test modelRequestsDenyForeignAuthRoutesModelsAndUnsupportedFieldsBeforeDial() started.
+◇ Test pypiHashAndSizeMismatchOrChangedFinalMetadataNeverReleaseBytes() started.
+◇ Test boundedOperationRejectsSynchronousLateValueRegardlessOfTimerScheduling() started.
+◇ Test libcResolverConvertsLocalhostAnswers() started.
+◇ Test modelBackpressureHoldsReadAndConcurrentBudgetReservationCannotOverspend() started.
+◇ Test upstreamSSESurvivesUTF8AndAllLineBoundaries() started.
+◇ Test upstreamResponseSurvivesEveryFragmentBoundary(chunked:) started.
+◇ Test npmRedirectReauthorizesMetadataAndEveryHopUsesFreshDNS() started.
+◇ Test gitReadOnlyWrongMethodContentTypeBodyAndSizeFailBeforeNetwork() started.
+◇ Test ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test upstreamSSEWaitsForConsumerBeforeReadingAndSharesConcurrencyLimit() started.
+◇ Test typedRoutingDoesNotFallBackToPassthrough() started.
+◇ Test upstreamTruncationAndNonSSEResponsesCloseConnection() started.
+◇ Test interfaceSnapshotAndSockaddrConversionUseCanonicalAddresses() started.
+◇ Test modelCallerCancellationClosesUpstreamAndFinalizesRecord() started.
+◇ Test pypiPipDownloadsOnlySyntheticWheelThroughRealLoopbackGateway() started.
+◇ Test modelActiveCapRefusesParallelDispatchBeforeDebitAndReleasesOnCancel() started.
+◇ Test pypiFilenameIdentityIsBoundToProjectAndVersionForDirectRequests() started.
+◇ Test mixedAnswersHostAddressesAndRebindingAreRejected() started.
+◇ Test npmPackumentFiltersTimesTagsAndReconstructsOnlySafeFields() started.
+◇ Test incompleteRequestsTimeOutAndListenerCanRestart() started.
+◇ Test tlsECHAndPortPolicyFailBeforeResolution() started.
+◇ Test pypiLimitsCancellationDeadlineAndConcurrencyReleaseCapacity() started.
+◇ Test activeSSEIsCancelledByStopOrLifetime(useLifetime:) started.
+◇ Test npmDiscardedTimeoutOrCancelledChildCannotOrphanAuditCapacity() started.
+◇ Test modelLazySingleUseProducerCannotOrphanOrRepeatReservation() started.
+◇ Test pypiRejectsClientAuthorityCredentialsAlternatePathsAndRangesBeforeNetwork() started.
+◇ Test upstreamLimitsAndTruncationFailClosed() started.
+◇ Test realListenerRejectsForeignHostCredentialsAndMalformedFraming() started.
+◇ Test npmCacheEntryAndByteBudgetsEvictRatherThanGrow() started.
+◇ Test modelUpstreamRedirectJSONErrorsAndRebindingNeverForwardKeyElsewhere() started.
+◇ Test numericTargetsCannotBypassDNSPolicy(host:) started.
+◇ Test npmScopedPathsCanonicalizeAndAmbiguousTargetsNeverDial() started.
+◇ Test pypiDirectFileRequiresFreshMetadataBeforeAndAfterEveryDownload() started.
+◇ Test homebrewDiagnosticAndAllBottleCatalogCaskPathsStayClosed() started.
+◇ Test npmRedirectUnapprovedOriginLoopChangedMetadataAndHashFailClosed() started.
+◇ Test interfaceSnapshotIsCollectedAfterDNSAndFailuresNeverDial() started.
+◇ Test gitCLICloneAndPushOnlyGeneratedProjectThroughRealLoopbackGateway() started.
+◇ Test pypiRejectsAmbiguousMetadataAndUnsupportedStatusVersions() started.
+◇ Test upstreamPinsOneApprovalPerOperationAndRejectsRebindingAndMixedAnswers() started.
+◇ Test pypiEveryRedirectAndNonJSONMetadataFailClosed() started.
+◇ Test npmCLIExactPinPacksOnlySyntheticArchiveThroughRealLoopbackGateway() started.
+◇ Test modelStreamDetectsKeyAcrossEverySplitAndUTF8WithoutPassingIt() started.
+◇ Test sseFirstEventArrivesBeforeProducerCompletes() started.
+◇ Test requestSurvivesEveryByteBoundary() started.
+◇ Test gitOtherRepositoryTraversalEncodingQueryAndProtocolV2NeverDial() started.
+◇ Test wholeOperationDeadlineIncludesDNSAndReleasesConcurrencySlot() started.
+◇ Test unsafeDNSAnswersFailClosed(address:) started.
+◇ Test modelResponseEventAndByteLimitsTerminateWithoutSuccess() started.
+◇ Test npmCacheFinalCheckAndCDNHashMismatchRefuseRelease() started.
+◇ Test publicAnswersArePinnedInPolicyResult() started.
+◇ Test oldListenerStartCannotStopItsReplacement() started.
+◇ Test case passing 1 argument host → "localhost" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api.local" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api.localhost" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api.lan" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api.internal" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api.home" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api.example." to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "user@api.example" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api.example/a" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api.example%00" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "api..example" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "-api.example" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument host → "ápi.example" to ambiguousOrLocalNamesAreRejected(host:) started.
+◇ Test case passing 1 argument wire → "GET http://example.com/a HTTP/1.1
+Host: x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "CONNECT example.com:443 HTTP/1.1
+Host: x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET //example.com/a HTTP/1.1
+Host: x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET /a HTTP/1.0
+Host: x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET / HTTP/1.1
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET / HTTP/1.1
+Host: x
+host: y
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET / HTTP/1.1
+Host : x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET / HTTP/1.1
+Host: x
+ folded: yes
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET / HTTP/1.1
+Host: x
+Bad: x
+y
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "POST / HTTP/1.1
+Host: x
+Content-Length: +1
+
+a" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "POST / HTTP/1.1
+Host: x
+Content-Length: 1
+Content-Length: 1
+
+a" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "POST / HTTP/1.1
+Host: x
+Transfer-Encoding: chunked
+Content-Length: 0
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET / HTTP/1.1
+Host: x
+Upgrade: websocket
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "POST / HTTP/1.1
+Host: x
+Expect: 100-continue
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET / HTTP/1.1
+Host: x
+Connection: Authorization
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument chunked → false to upstreamResponseSurvivesEveryFragmentBoundary(chunked:) started.
+◇ Test case passing 1 argument wire → "GET /api/%2e%2e/a HTTP/1.1
+Host: x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET /api/%0d%0aX HTTP/1.1
+Host: x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument chunked → true to upstreamResponseSurvivesEveryFragmentBoundary(chunked:) started.
+◇ Test case passing 1 argument wire → "GET /api/%zz HTTP/1.1
+Host: x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "GET / HTTP/1.1
+Host: x
+
+GET / HTTP/1.1
+Host: x
+
+" to unsafeRequestsAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 100 Continue
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.0 200 OK
+Content-Length: 0
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+
+close-delimited" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Content-Length: 0
+Content-Length: 0
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+Content-Length: 0
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Transfer-Encoding: gzip, chunked
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Content-Length: +1
+
+x" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Content-Length: 0
+ folded: value
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Content-Length: 0
+X: a
+b
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Content-Length: 0
+Content-Encoding: gzip
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Content-Length: 0
+Connection: Content-Length
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Content-Length: 0
+
+HTTP/1.1 200 OK
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 204 No Content
+Content-Length: 1
+
+x" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+
+1;ext=x
+x
+0
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Content-Length : 0
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+
+-1
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+
+ffffffffffffffff
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+
+1
+xXX" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument wire → "HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+
+0
+X: trailer
+
+" to ambiguousUpstreamResponsesAreRejected(wire:) started.
+◇ Test case passing 1 argument useLifetime → false to activeSSEIsCancelledByStopOrLifetime(useLifetime:) started.
+◇ Test case passing 1 argument useLifetime → true to activeSSEIsCancelledByStopOrLifetime(useLifetime:) started.
+✔ Test sseEncodesMultilineDataAndRejectsMetadataInjection() passed after 0.010 seconds.
+✔ Test modelJSONRejectsDuplicateEscapedKeysNumbersDepthAndOversize() passed after 0.010 seconds.
+◇ Test case passing 1 argument host → "127.0.0.1" to numericTargetsCannotBypassDNSPolicy(host:) started.
+◇ Test case passing 1 argument host → "127.1" to numericTargetsCannotBypassDNSPolicy(host:) started.
+◇ Test case passing 1 argument host → "2130706433" to numericTargetsCannotBypassDNSPolicy(host:) started.
+◇ Test case passing 1 argument host → "0177.0.0.1" to numericTargetsCannotBypassDNSPolicy(host:) started.
+◇ Test case passing 1 argument host → "0x7f000001" to numericTargetsCannotBypassDNSPolicy(host:) started.
+◇ Test case passing 1 argument host → "[::1]" to numericTargetsCannotBypassDNSPolicy(host:) started.
+◇ Test case passing 1 argument host → "::1" to numericTargetsCannotBypassDNSPolicy(host:) started.
+✔ Test conflictingRoutesFailAtConfigurationTime() passed after 0.011 seconds.
+✔ Test upstreamSSERejectsOversizeMalformedAndIncompleteEvents() passed after 0.011 seconds.
+✔ Test npmIntegrityUsesStrongestAlgorithmAndRejectsBadOrMissingSRI() passed after 0.011 seconds.
+◇ Test case passing 1 argument address → "0.0.0.0" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "0.1.2.3" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "10.0.0.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "100.64.0.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "100.127.255.255" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "127.0.0.2" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "169.254.169.254" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "172.16.0.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "192.168.1.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "172.31.255.255" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "192.0.0.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "192.0.2.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "192.88.99.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "198.19.255.255" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "198.51.100.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "203.0.113.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "224.0.0.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "239.255.255.255" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "198.18.0.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "255.255.255.255" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "::" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "::1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "::ffff:127.0.0.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "::ffff:8.8.8.8" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "::127.0.0.1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "fc00::1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "fd00::1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "fe80::1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "ff02::1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "2001::1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "2002:7f00:1::" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "64:ff9b::7f00:1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test case passing 1 argument address → "3fff::1" to unsafeDNSAnswersFailClosed(address:) started.
+◇ Test numericDialPreservesSNIHostAndVerifiesSyntheticIdentity() started.
+✔ Test homebrewKnownDigestNeverSubstitutesForArtifactPublicationTime() passed after 0.014 seconds.
+◇ Test modelHTTPSUsesZoneCAAndRejectsWrongRootNameUntrustedAndPlainHTTP() started.
+✔ Test typedUpstreamRequestOwnsAuthorityAndFraming() passed after 0.014 seconds.
+✔ Test unsafeRequestsAreRejected(wire:) with 19 test cases passed after 0.014 seconds.
+✔ Test ambiguousOrLocalNamesAreRejected(host:) with 13 test cases passed after 0.014 seconds.
+✔ Test npmMethodsCredentialsBodiesAndRangeAreRejectedBeforeUpstream() passed after 0.014 seconds.
+✔ Test upstreamResponseSurvivesEveryFragmentBoundary(chunked:) with 2 test cases passed after 0.014 seconds.
+✔ Test gitReadOnlyWrongMethodContentTypeBodyAndSizeFailBeforeNetwork() passed after 0.014 seconds.
+✔ Test ambiguousUpstreamResponsesAreRejected(wire:) with 20 test cases passed after 0.014 seconds.
+✔ Test typedRoutingDoesNotFallBackToPassthrough() passed after 0.014 seconds.
+✔ Test upstreamSSESurvivesUTF8AndAllLineBoundaries() passed after 0.014 seconds.
+✔ Test interfaceSnapshotAndSockaddrConversionUseCanonicalAddresses() passed after 0.014 seconds.
+◇ Test case passing 1 argument address → "2001:db8::1" to unsafeDNSAnswersFailClosed(address:) started.
+✔ Test modelRequestsDenyForeignAuthRoutesModelsAndUnsupportedFieldsBeforeDial() passed after 0.014 seconds.
+✔ Test mixedAnswersHostAddressesAndRebindingAreRejected() passed after 0.013 seconds.
+✔ Test tlsECHAndPortPolicyFailBeforeResolution() passed after 0.013 seconds.
+✔ Test upstreamLimitsAndTruncationFailClosed() passed after 0.013 seconds.
+✔ Test libcResolverConvertsLocalhostAnswers() passed after 0.015 seconds.
+✔ Test numericTargetsCannotBypassDNSPolicy(host:) with 7 test cases passed after 0.013 seconds.
+✔ Test pypiRejectsClientAuthorityCredentialsAlternatePathsAndRangesBeforeNetwork() passed after 0.013 seconds.
+✔ Test gitOtherRepositoryTraversalEncodingQueryAndProtocolV2NeverDial() passed after 0.013 seconds.
+✔ Test publicAnswersArePinnedInPolicyResult() passed after 0.013 seconds.
+✔ Test unsafeDNSAnswersFailClosed(address:) with 34 test cases passed after 0.013 seconds.
+✔ Test limitsAreAppliedBeforeBodyAndHeaderAccumulation() passed after 0.014 seconds.
+✔ Test requestSurvivesEveryByteBoundary() passed after 0.013 seconds.
+✔ Test interfaceSnapshotIsCollectedAfterDNSAndFailuresNeverDial() passed after 0.023 seconds.
+✔ Test upstreamSSEWaitsForConsumerBeforeReadingAndSharesConcurrencyLimit() passed after 0.029 seconds.
+✔ Test upstreamRedirectRequiresExplicitNewApprovalAndDoesNotRelayCredentials() passed after 0.030 seconds.
+✔ Test homebrewDiagnosticAndAllBottleCatalogCaskPathsStayClosed() passed after 0.028 seconds.
+✔ Test modelTypedStreamInjectsOnlyTrustedKeyAndReconstructsOutput() passed after 0.030 seconds.
+✔ Test upstreamBodyAndStreamLimitsApplyBeforeDelivery() passed after 0.030 seconds.
+✔ Test boundedOperationChecksCancelledParentEvenWhenChildIgnoresCancellation() passed after 0.030 seconds.
+✔ Test modelLazySingleUseProducerCannotOrphanOrRepeatReservation() passed after 0.029 seconds.
+✔ Test modelBackpressureHoldsReadAndConcurrentBudgetReservationCannotOverspend() passed after 0.031 seconds.
+✔ Test upstreamPinsOneApprovalPerOperationAndRejectsRebindingAndMixedAnswers() passed after 0.029 seconds.
+✔ Test modelCallerCancellationClosesUpstreamAndFinalizesRecord() passed after 0.031 seconds.
+✔ Test pypiFiltersPerFileUploadTimesAndReconstructsJSON() passed after 0.035 seconds.
+✔ Test modelRateBoundaryRollbackAuditCapacityAndCancellationFailClosed() passed after 0.035 seconds.
+✔ Test npmPackumentFiltersTimesTagsAndReconstructsOnlySafeFields() passed after 0.034 seconds.
+✔ Test upstreamTruncationAndNonSSEResponsesCloseConnection() passed after 0.035 seconds.
+✔ Test modelResponseEventAndByteLimitsTerminateWithoutSuccess() passed after 0.034 seconds.
+✔ Test npmDirectLockfileTargetFetchesFreshMetadataAndAuditsOnlyTransportOutcome() passed after 0.037 seconds.
+✔ Test modelActiveCapRefusesParallelDispatchBeforeDebitAndReleasesOnCancel() passed after 0.037 seconds.
+✔ Test homebrewMalformedMissingOrRedirectedMetadataCannotEnableDownload() passed after 0.041 seconds.
+✔ Test boundedOperationRejectsSynchronousLateValueRegardlessOfTimerScheduling() passed after 0.040 seconds.
+✔ Test npmScopedPathsCanonicalizeAndAmbiguousTargetsNeverDial() passed after 0.042 seconds.
+✔ Test gitOnlyExactProjectServicesReachFixedUpstreamWithoutClientHeaders() passed after 0.044 seconds.
+✔ Test pypiLimitsCancellationDeadlineAndConcurrencyReleaseCapacity() passed after 0.044 seconds.
+✔ Test pypiDirectFileRequiresFreshMetadataBeforeAndAfterEveryDownload() passed after 0.048 seconds.
+✔ Test pypiFilenameIdentityIsBoundToProjectAndVersionForDirectRequests() passed after 0.053 seconds.
+✔ Test pypiHashAndSizeMismatchOrChangedFinalMetadataNeverReleaseBytes() passed after 0.053 seconds.
+✔ Test npmRedirectReauthorizesMetadataAndEveryHopUsesFreshDNS() passed after 0.053 seconds.
+✔ Test npmCacheFinalCheckAndCDNHashMismatchRefuseRelease() passed after 0.052 seconds.
+✔ Test modelUpstreamRedirectJSONErrorsAndRebindingNeverForwardKeyElsewhere() passed after 0.053 seconds.
+✔ Test modelStreamNeverReflectsErrorsIDsUnknownJSONOrIncompleteSuccess() passed after 0.056 seconds.
+✔ Test npmMalformedDuplicateOrOversizedMetadataAndArtifactAreNeverPublished() passed after 0.058 seconds.
+✔ Test gitRedirectAuthDumbHTTPAndOversizedResponseNeverEscape() passed after 0.058 seconds.
+✔ Test pypiRejectsAmbiguousMetadataAndUnsupportedStatusVersions() passed after 0.056 seconds.
+✔ Test npmClockRollbackIdentityMismatchAndMissingIntegrityCannotIssue() passed after 0.060 seconds.
+✔ Test pypiFinalDNSRebindingClockRollbackAndAuditCapacityDeny() passed after 0.061 seconds.
+✔ Test npmCacheHitRefetchesMetadataTwiceWithoutArtifactAndBoundedCacheEvicts() passed after 0.061 seconds.
+✔ Test pypiTimeBoundaryMissingFutureImpossibleAndSubmillisecondPrecision() passed after 0.064 seconds.
+✔ Test npmCacheIsRevalidatedAndMetadataChangeAfterFetchNeverIssuesBytes() passed after 0.065 seconds.
+✔ Test modelDisconnectAndTimeoutReleaseCapacityWithoutRefund() passed after 0.065 seconds.
+✔ Test npmCooldownUnknownFutureInvalidDatesAndUnsupportedSourcesDenyDirectRequests() passed after 0.070 seconds.
+✔ Test cancelledDNSCallerDoesNotWaitForBlockingLookup() passed after 0.070 seconds.
+✔ Test systemLookupAndSnapshotFailuresArePropagated() passed after 0.070 seconds.
+✔ Test pypiEveryRedirectAndNonJSONMetadataFailClosed() passed after 0.070 seconds.
+✔ Test npmCacheEntryAndByteBudgetsEvictRatherThanGrow() passed after 0.072 seconds.
+✔ Test npmRedirectUnapprovedOriginLoopChangedMetadataAndHashFailClosed() passed after 0.072 seconds.
+✔ Test pypiDoesNotAcceptUnknownIdentityWeakHashesBooleanSizesOrYankedFiles() passed after 0.075 seconds.
+✔ Test modelStreamDetectsKeyAcrossEverySplitAndUTF8WithoutPassingIt() passed after 0.079 seconds.
+✔ Test npmAuditCapacityConcurrencyCancellationAndDeadlineAreBounded() passed after 0.085 seconds.
+✔ Test npmBareFileDependencySpecsCannotLeavePackumentOrAuthorizeDirectTarball() passed after 0.100 seconds.
+✔ Test wholeOperationDeadlineIncludesDNSAndReleasesConcurrencySlot() passed after 0.115 seconds.
+✔ Test dnsTimeoutRetainsBoundedWorkerUntilLibcReturns() passed after 0.118 seconds.
+✔ Test cancelledListenerStartCanBeStartedAgain() passed after 1.031 seconds.
+✔ Test oldListenerStartCannotStopItsReplacement() passed after 1.042 seconds.
+✔ Test realListenerHandlesFragmentedRequestsAndClosesConnection() passed after 1.045 seconds.
+✔ Test sseFirstEventArrivesBeforeProducerCompletes() passed after 1.042 seconds.
+✔ Test handlerFailureDoesNotReflectPrivateErrorOrAppendSecondResponse() passed after 1.052 seconds.
+✔ Test numericDialPreservesSNIHostAndVerifiesSyntheticIdentity() passed after 1.046 seconds.
+◇ Test untrustedCertificateAndWrongHostnameFailBeforeHTTPRequest() started.
+✔ Test realListenerRejectsForeignHostCredentialsAndMalformedFraming() passed after 1.059 seconds.
+✔ Test untrustedCertificateAndWrongHostnameFailBeforeHTTPRequest() passed after 0.011 seconds.
+◇ Test realTLSStreamsBeforeUpstreamCompletion() started.
+✔ Test realTLSStreamsBeforeUpstreamCompletion() passed after 0.007 seconds.
+◇ Test realTLSDisconnectAndIdleDeadlineNeverReturnPartialSuccess() started.
+✔ Test modelHTTPSUsesZoneCAAndRejectsWrongRootNameUntrustedAndPlainHTTP() passed after 1.069 seconds.
+◇ Test modelHTTPSRejectsInvalidPKCS12WithoutInstallingIdentity() started.
+✔ Test modelHTTPSRejectsInvalidPKCS12WithoutInstallingIdentity() passed after 0.001 seconds.
+◇ Test modelHTTPSPeerDisconnectCancelsWaitingUpstreamAndKeepsDebit() started.
+✔ Test activeSSEIsCancelledByStopOrLifetime(useLifetime:) with 2 test cases passed after 1.621 seconds.
+✔ Test incompleteRequestsTimeOutAndListenerCanRestart() passed after 1.623 seconds.
+✔ Test modelHTTPSPeerDisconnectCancelsWaitingUpstreamAndKeepsDebit() passed after 0.553 seconds.
+✔ Suite ModelAPITLSTests passed after 1.637 seconds.
+D5 local pip client: pip 26.2.2 from /opt/homebrew/lib/python3.15/site-packages/pip (python 3.15)
+✔ Test pypiPipDownloadsOnlySyntheticWheelThroughRealLoopbackGateway() passed after 1.902 seconds.
+✔ Test realTLSDisconnectAndIdleDeadlineNeverReturnPartialSuccess() passed after 0.894 seconds.
+◇ Test cancelledTLSReadReturnsPromptlyAndClosesSocket() started.
+✔ Test cancelledTLSReadReturnsPromptlyAndClosesSocket() passed after 0.007 seconds.
+◇ Test wholeTLSStreamLifetimeIsBoundedDespiteHeartbeats() started.
+✔ Test npmDiscardedTimeoutOrCancelledChildCannotOrphanAuditCapacity() passed after 2.146 seconds.
+✔ Test npmCLIExactPinPacksOnlySyntheticArchiveThroughRealLoopbackGateway() passed after 2.164 seconds.
+D5 local git client: git version 2.54.0 (Apple Git-157)
+✔ Test gitCLICloneAndPushOnlyGeneratedProjectThroughRealLoopbackGateway() passed after 2.282 seconds.
+✔ Test wholeTLSStreamLifetimeIsBoundedDespiteHeartbeats() passed after 0.402 seconds.
+◇ Test typedHandlerRelaysRealTLSUpstreamAsLocalSSE() started.
+✔ Test typedHandlerRelaysRealTLSUpstreamAsLocalSSE() passed after 0.007 seconds.
+✔ Suite TLSTransportTests passed after 2.391 seconds.
+✔ Test run with 101 tests in 2 suites passed after 2.391 seconds.

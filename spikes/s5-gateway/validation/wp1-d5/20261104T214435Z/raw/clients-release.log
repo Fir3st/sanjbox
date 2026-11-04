@@ -1,0 +1,257 @@
+Building for production...
+[Pre-planning 1 / 154]
+[Planning deferred tasks]
+[6 / 16] SanjboxGatewayCoreTests-product
+error: SwiftCompile normal arm64 failed with a nonzero exit code. Command line:     cd /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes
+    
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:79:40: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+ 77 |                   ["--git-dir=owner/fixture.git", "config", "http.receivepack", "true"],
+ 78 |                   ["init", "--template=", "--initial-branch=main", "seed"] ] {
+ 79 |         #expect(try workspace.sync(args).status == 0)
+    |                                        `- error: missing argument for parameter #2 in call
+ 80 |     }
+ 81 |     try Data("only a generated fixture\n".utf8).write(to: workspace.root.appendingPathComponent("seed/canary.txt"))
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:79:36: error: cannot convert value of type '[String]' to expected argument type 'String'
+ 77 |                   ["--git-dir=owner/fixture.git", "config", "http.receivepack", "true"],
+ 78 |                   ["init", "--template=", "--initial-branch=main", "seed"] ] {
+ 79 |         #expect(try workspace.sync(args).status == 0)
+    |                                    `- error: cannot convert value of type '[String]' to expected argument type 'String'
+ 80 |     }
+ 81 |     try Data("only a generated fixture\n".utf8).write(to: workspace.root.appendingPathComponent("seed/canary.txt"))
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:82:90: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+ 80 |     }
+ 81 |     try Data("only a generated fixture\n".utf8).write(to: workspace.root.appendingPathComponent("seed/canary.txt"))
+ 82 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "add", "canary.txt"]).status == 0)
+    |                                                                                          `- error: missing argument for parameter #2 in call
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:82:53: error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+ 80 |     }
+ 81 |     try Data("only a generated fixture\n".utf8).write(to: workspace.root.appendingPathComponent("seed/canary.txt"))
+ 82 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "add", "canary.txt"]).status == 0)
+    |                                                     `- error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:83:106: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+ 81 |     try Data("only a generated fixture\n".utf8).write(to: workspace.root.appendingPathComponent("seed/canary.txt"))
+ 82 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "add", "canary.txt"]).status == 0)
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+    |                                                                                                          `- error: missing argument for parameter #2 in call
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+ 85 |     let initial = try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:83:53: error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+ 81 |     try Data("only a generated fixture\n".utf8).write(to: workspace.root.appendingPathComponent("seed/canary.txt"))
+ 82 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "add", "canary.txt"]).status == 0)
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+    |                                                     `- error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+ 85 |     let initial = try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:84:109: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+ 82 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "add", "canary.txt"]).status == 0)
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+    |                                                                                                             `- error: missing argument for parameter #2 in call
+ 85 |     let initial = try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
+ 86 |     let backend = D5Backend { _, request, _ in
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:84:53: error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+ 82 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "add", "canary.txt"]).status == 0)
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+    |                                                     `- error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+ 85 |     let initial = try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
+ 86 |     let backend = D5Backend { _, request, _ in
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:85:90: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+ 85 |     let initial = try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
+    |                                                                                          `- error: missing argument for parameter #2 in call
+ 86 |     let backend = D5Backend { _, request, _ in
+ 87 |         let parts = request.target.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:85:38: error: cannot convert value of type '[String]' to expected argument type 'String'
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+ 85 |     let initial = try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
+    |                                      `- error: cannot convert value of type '[String]' to expected argument type 'String'
+ 86 |     let backend = D5Backend { _, request, _ in
+ 87 |         let parts = request.target.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:88:80: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+ 86 |     let backend = D5Backend { _, request, _ in
+ 87 |         let parts = request.target.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
+ 88 |         let result = try workspace.sync(workspace.gitOptions + ["http-backend"], body: request.body, extra: [
+    |                                                                                `- error: missing argument for parameter #2 in call
+ 89 |             "GIT_PROJECT_ROOT": workspace.root.path, "GIT_HTTP_EXPORT_ALL": "1",
+ 90 |             "PATH_INFO": String(parts[0]), "QUERY_STRING": parts.count == 2 ? String(parts[1]) : "",
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:88:62: error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+ 86 |     let backend = D5Backend { _, request, _ in
+ 87 |         let parts = request.target.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
+ 88 |         let result = try workspace.sync(workspace.gitOptions + ["http-backend"], body: request.body, extra: [
+    |                                                              `- error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+ 89 |             "GIT_PROJECT_ROOT": workspace.root.path, "GIT_HTTP_EXPORT_ALL": "1",
+ 90 |             "PATH_INFO": String(parts[0]), "QUERY_STRING": parts.count == 2 ? String(parts[1]) : "",
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:109:115: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+107 |     #expect(try Data(contentsOf: workspace.root.appendingPathComponent("clone/canary.txt")) == Data("only a generated fixture\n".utf8))
+108 |     try Data("own synthetic change\n".utf8).write(to: workspace.root.appendingPathComponent("clone/canary.txt"))
+109 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "clone", "commit", "-am", "second synthetic fixture"]).status == 0)
+    |                                                                                                                   `- error: missing argument for parameter #2 in call
+110 |     let push = try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "clone", "push", "origin", "HEAD:refs/heads/canary"])
+111 |     #expect(push.status == 0, "push: \(String(decoding: push.error, as: UTF8.self))")
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:109:53: error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+107 |     #expect(try Data(contentsOf: workspace.root.appendingPathComponent("clone/canary.txt")) == Data("only a generated fixture\n".utf8))
+108 |     try Data("own synthetic change\n".utf8).write(to: workspace.root.appendingPathComponent("clone/canary.txt"))
+109 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "clone", "commit", "-am", "second synthetic fixture"]).status == 0)
+    |                                                     `- error: cannot convert value of type 'Array<String>' to expected argument type 'String'
+110 |     let push = try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "clone", "push", "origin", "HEAD:refs/heads/canary"])
+111 |     #expect(push.status == 0, "push: \(String(decoding: push.error, as: UTF8.self))")
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:112:72: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+110 |     let push = try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "clone", "push", "origin", "HEAD:refs/heads/canary"])
+111 |     #expect(push.status == 0, "push: \(String(decoding: push.error, as: UTF8.self))")
+112 |     let local = try workspace.sync(["-C", "clone", "rev-parse", "HEAD"]).output
+    |                                                                        `- error: missing argument for parameter #2 in call
+113 |     #expect(try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "refs/heads/canary"]).output == local)
+114 |     #expect(local != initial)
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:112:36: error: cannot convert value of type '[String]' to expected argument type 'String'
+110 |     let push = try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "clone", "push", "origin", "HEAD:refs/heads/canary"])
+111 |     #expect(push.status == 0, "push: \(String(decoding: push.error, as: UTF8.self))")
+112 |     let local = try workspace.sync(["-C", "clone", "rev-parse", "HEAD"]).output
+    |                                    `- error: cannot convert value of type '[String]' to expected argument type 'String'
+113 |     #expect(try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "refs/heads/canary"]).output == local)
+114 |     #expect(local != initial)
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:113:97: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+111 |     #expect(push.status == 0, "push: \(String(decoding: push.error, as: UTF8.self))")
+112 |     let local = try workspace.sync(["-C", "clone", "rev-parse", "HEAD"]).output
+113 |     #expect(try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "refs/heads/canary"]).output == local)
+    |                                                                                                 `- error: missing argument for parameter #2 in call
+114 |     #expect(local != initial)
+115 |     let callsBefore = backend.calls.count
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:113:32: error: cannot convert value of type '[String]' to expected argument type 'String'
+111 |     #expect(push.status == 0, "push: \(String(decoding: push.error, as: UTF8.self))")
+112 |     let local = try workspace.sync(["-C", "clone", "rev-parse", "HEAD"]).output
+113 |     #expect(try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "refs/heads/canary"]).output == local)
+    |                                `- error: cannot convert value of type '[String]' to expected argument type 'String'
+114 |     #expect(local != initial)
+115 |     let callsBefore = backend.calls.count
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:121:86: error: missing argument for parameter #2 in call
+ 42 |         return (process, output, errors, handles)
+ 43 |     }
+ 44 |     func sync(_ executable: String = "/usr/bin/git", _ args: [String], body: Data = Data(), extra: [String: String] = [:]) throws -> D5ProcessResult {
+    |          `- note: 'sync(_:_:body:extra:)' declared here
+ 45 |         let (process, output, errors, handles) = try process(executable, args, body: body, extra: extra)
+ 46 |         defer { handles.forEach { try? $0.close() } }
+    :
+119 |     #expect(backend.calls.contains { $0.1.method == "POST" && $0.1.target.hasSuffix("/git-upload-pack") })
+120 |     #expect(backend.calls.contains { $0.1.method == "POST" && $0.1.target.hasSuffix("/git-receive-pack") })
+121 |     print("D5 local git client: " + String(decoding: try workspace.sync(["--version"]).output, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines))
+    |                                                                                      `- error: missing argument for parameter #2 in call
+122 | }
+123 | 
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:121:73: error: cannot convert value of type '[String]' to expected argument type 'String'
+119 |     #expect(backend.calls.contains { $0.1.method == "POST" && $0.1.target.hasSuffix("/git-upload-pack") })
+120 |     #expect(backend.calls.contains { $0.1.method == "POST" && $0.1.target.hasSuffix("/git-receive-pack") })
+121 |     print("D5 local git client: " + String(decoding: try workspace.sync(["--version"]).output, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines))
+    |                                                                         `- error: cannot convert value of type '[String]' to expected argument type 'String'
+122 | }
+123 | 
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:85:19: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 83 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+ 84 |     #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+ 85 |     let initial = try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
+    |                   `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 86 |     let backend = D5Backend { _, request, _ in
+ 87 |         let parts = request.target.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
+
+/Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift:112:17: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+110 |     let push = try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "clone", "push", "origin", "HEAD:refs/heads/canary"])
+111 |     #expect(push.status == 0, "push: \(String(decoding: push.error, as: UTF8.self))")
+112 |     let local = try workspace.sync(["-C", "clone", "rev-parse", "HEAD"]).output
+    |                 `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+113 |     #expect(try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "refs/heads/canary"]).output == local)
+114 |     #expect(local != initial)
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/DerivedSources/test_entry_point.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5Fixtures.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/DestinationPolicyTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/HTTPTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/HomebrewGitTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/ModelAPITLSTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/ModelAPITests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/NPMGatewayTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/OperationDeadlineTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/PyPITests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/ServerTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/SystemAddressTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/TLSTransportTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/UpstreamClientTests.swift /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/UpstreamHTTPTests.swift -supplementary-output-file-map /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/supplementaryOutputs-1 -target arm64-apple-macos15.0 -module-can-import-version Testing 2084 0 -module-can-import-version XCTest 25228 0 -disable-cross-import-overlay-search -swift-module-cross-import Darwin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Darwin.swiftcrossimport/xlocale.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/AppKit.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreGraphics.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreImage.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreTransferable.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/Foundation.swiftoverlay -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing/libTestingMacros.dylib\#\#TestingMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/SanjboxGatewayCoreTests-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /private/tmp/sanjbox-d5-3coxyxk2/build/out/Products/Release -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /private/tmp/sanjbox-d5-3coxyxk2/build/out/Products/Release/PackageFrameworks -F /private/tmp/sanjbox-d5-3coxyxk2/build/out/Products/Release -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=5 -swift-version 6 -O -D SWIFT_PACKAGE -D Xcode -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /private/tmp/sanjbox-d5-3coxyxk2/build/out/ModuleCache.noindex/Session.modulevalidation -disable-sandbox -Xcc -working-directory -Xcc /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes -file-compilation-dir /Users/janfiedler/.codex/worktrees/sanjbox-d5-typed/sanjbox/spikes -Xcc -ivfsstatcache -Xcc /private/tmp/sanjbox-d5-3coxyxk2/build/out/SDKStatCaches.noindex/macosx27.0-26A425-a0facfad118c1a7a18f0aad9463f65497231f6df4def33e022ae2eb8f782df1a.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/private/tmp/sanjbox-d5-3coxyxk2/build/out/Products/Release/include -Xcc -I/private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/DerivedSources-normal/arm64 -Xcc -I/private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/DerivedSources/arm64 -Xcc -I/private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/DerivedSources -Xcc -DSWIFT_PACKAGE -no-auto-bridging-header-chaining -module-name SanjboxGatewayCoreTests -package-name s5_gateway -const-gather-protocols-file /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/SanjboxGatewayCoreTests_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -enable-default-cmo -parse-as-library -num-threads 8 -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/test_entry_point.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/D5ClientTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/D5Fixtures.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/DestinationPolicyTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/HTTPTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/HomebrewGitTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/ModelAPITLSTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/ModelAPITests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/NPMGatewayTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/OperationDeadlineTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/PyPITests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/ServerTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/SystemAddressTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/TLSTransportTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/UpstreamClientTests.o -o /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/UpstreamHTTPTests.o -debug-module-path /private/tmp/sanjbox-d5-3coxyxk2/build/out/Intermediates.noindex/SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/SanjboxGatewayCoreTests.swiftmodule -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/test_entry_point.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/D5ClientTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/D5Fixtures.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/DestinationPolicyTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/HTTPTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/HomebrewGitTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/ModelAPITLSTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/ModelAPITests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/NPMGatewayTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/OperationDeadlineTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/PyPITests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/ServerTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/SystemAddressTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/TLSTransportTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/UpstreamClientTests.o -index-unit-output-path /SanjboxGateway.build/Release/SanjboxGatewayCoreTests-p.build/Objects-normal/arm64/UpstreamHTTPTests.o
+error: Build failed
+error: fatalError

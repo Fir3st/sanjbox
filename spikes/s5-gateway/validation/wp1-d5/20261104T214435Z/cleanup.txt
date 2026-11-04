@@ -1,0 +1,5 @@
+Owned scratch directory /private/tmp/sanjbox-d5-3coxyxk2 verified as a non-symlink directory owned by the executing UID, then removed.
+Removed 106420 KiB (du -sk allocation) of build/module/package cache, transient source downloads and copied logs.
+All submitted logs, source manifest and tested-source hashes remain in this validation directory.
+D5 fixture cleanup is asserted by the two local client tests; both passed.
+No system settings, users, credentials, certificates, Keychain entries or live databases were changed.

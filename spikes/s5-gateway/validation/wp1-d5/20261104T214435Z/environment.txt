@@ -1,0 +1,23 @@
+Development/fixture verification only; not a gate or isolation evidence.
+
+$ sw_vers
+ProductName:		macOS
+ProductVersion:		27.2
+BuildVersion:		26B123
+
+$ swift --version
+swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)
+Target: arm64-apple-macosx27.2.0
+
+$ xcodebuild -version
+Xcode 27.0
+Build version 27A266a
+
+$ uname -m
+arm64
+
+$ git rev-parse HEAD
+ca4e50d8e343cc307cd289b4d09ce711e5b09632
+
+Base main: afae1ca; HEAD above includes claim and separate deadline fix.
+Uncommitted D5 source content is pinned in tested-source.sha256.
