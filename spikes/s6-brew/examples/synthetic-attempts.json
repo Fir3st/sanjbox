@@ -1,0 +1,22 @@
+[
+  {
+    "name": "ca-certificates",
+    "exit_code": 0
+  },
+  {
+    "name": "openssl@3",
+    "exit_code": 0
+  },
+  {
+    "name": "gh",
+    "exit_code": 1
+  },
+  {
+    "name": "xz",
+    "exit_code": 0
+  },
+  {
+    "name": "node",
+    "exit_code": 0
+  }
+]

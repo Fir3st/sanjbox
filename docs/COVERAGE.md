@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 10 | 7 | 13 | 0 |
+| F1 | 30 | 11 | 6 | 13 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -318,7 +318,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.D5 | PyPI, Homebrew, git | | ⬜ | |
 | WP1.D6 | Matice kompatibility | | ⬜ | |
 | WP1.D7 | S5 integrace (L5) | uživatel + impl. | ⬜ | |
-| WP1.E1 | S6 příprava | janfiedler / Codex + Astra | 🟨 rozpracováno | Offline příprava `spikes/s6-brew`; bez instalací, změn `/opt` a bez verdiktu S6. |
+| WP1.E1 | S6 příprava | janfiedler / Codex + Astra | ✅ | `spikes/s6-brew`: pinned top 200 + vzorek 20 testů, offline plán instalací/casků, receipt report, unknown-publication refusal, dry-run prefix scaffold a konzervativní úklid; 46 native Python tests. Příprava hotová, E2 měření neprovedeno; HB-01…07/S6 zůstávají Neověřeno. Viz [VALIDATION](../spikes/s6-brew/VALIDATION.md). |
 | WP1.E2 | S6 běh (L6) | uživatel + impl. | ⬜ | |
 | WP1.F1 | S2-A výzkumný prototyp | | ⬜ | TCC grant od uživatele |
 | WP1.F2 | S2-B (L7) | uživatel + impl. | ⬜ | |

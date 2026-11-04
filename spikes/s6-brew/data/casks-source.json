@@ -1,0 +1,20 @@
+[
+  {
+    "name": "rectangle",
+    "url": "https://formulae.brew.sh/api/cask/rectangle.json",
+    "retrieved_at": "2026-11-04T21:34:27.965229+00:00",
+    "sha256": "2e2ff0c0746b4c172aa8b45907f0fe22f8b91f2b3987fd80b59fc447d50d32f4"
+  },
+  {
+    "name": "coteditor",
+    "url": "https://formulae.brew.sh/api/cask/coteditor.json",
+    "retrieved_at": "2026-11-04T21:34:27.966706+00:00",
+    "sha256": "b1d318d5491bb303c25f1a8f75f2e50c5cf57cfb0091516c758b52442f9acd07"
+  },
+  {
+    "name": "itsycal",
+    "url": "https://formulae.brew.sh/api/cask/itsycal.json",
+    "retrieved_at": "2026-11-04T21:36:46.954732+00:00",
+    "sha256": "878937a425de1eb7e1c6eab1846b05c42493d6aeb3a9eddfbf4eb77984a99def"
+  }
+]

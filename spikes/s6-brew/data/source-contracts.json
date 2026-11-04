@@ -1,0 +1,58 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/docs/Installation.md",
+    "revision": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "path": "docs/Installation.md",
+    "sha256": "03a277a9117ac062641e7c3ec6d97e3198463535deac34ac5d2a176e5b370735",
+    "bytes": 13189,
+    "retrieved_at": "2026-11-04T21:30:23.071417+00:00"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/docs/Support-Tiers.md",
+    "revision": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "path": "docs/Support-Tiers.md",
+    "sha256": "5905e1b47de98283e20edf31697922fb82d6f9dced20dc6e929cf587a49ee23c",
+    "bytes": 9784,
+    "retrieved_at": "2026-11-04T21:30:23.335587+00:00"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/docs/Bottles.md",
+    "revision": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "path": "docs/Bottles.md",
+    "sha256": "d82114f919aca9a614ba1c9c06efe02f34b4aac501f6f7db17a96fc7abe7d5ef",
+    "bytes": 5652,
+    "retrieved_at": "2026-11-04T21:30:23.923138+00:00"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/docs/Manpage.md",
+    "revision": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "path": "docs/Manpage.md",
+    "sha256": "dc2b4aa1c8c77c8532454ee7620e850ce9c23fb0c63ac4d9d86aae5d1a0057ae",
+    "bytes": 138454,
+    "retrieved_at": "2026-11-04T21:30:24.278051+00:00"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/Library/Homebrew/tab.rb",
+    "revision": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "path": "Library/Homebrew/tab.rb",
+    "sha256": "33760c128a96d1f9fd1f3f43f9a0bd72848a9840239af243f4c4e1aeec01d9d9",
+    "bytes": 6743,
+    "retrieved_at": "2026-11-04T21:30:24.567519+00:00"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/Library/Homebrew/formula.rb",
+    "revision": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "path": "Library/Homebrew/formula.rb",
+    "sha256": "9ae87f453225163996acab9a8b0248ca7846543afdca084974fa0d3f9a192c87",
+    "bytes": 182343,
+    "retrieved_at": "2026-11-04T21:30:24.980058+00:00"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/Homebrew/install/959bdd728192d78c47287c177796c3d86d111f09/install.sh",
+    "revision": "959bdd728192d78c47287c177796c3d86d111f09",
+    "sha256": "5f333bbe53bc490e51e7ccb1df8779b3dd6ee73a1a7379efda216edb08ccb148",
+    "bytes": 35651,
+    "retrieved_at": "2026-11-04T21:30:25.622976+00:00",
+    "commit_date": "2026-11-04T09:23:08Z"
+  }
+]
