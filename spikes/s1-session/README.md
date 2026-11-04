@@ -11,6 +11,14 @@ Běh a verdikt jsou WP1.A2 (slot L1).
 Metodika, navržené prahy a známé chybějící důkazy pro A2 jsou v [LAB.md](../../docs/LAB.md).
 F0.8 je otevřené; tento návod dodává dílčí kroky, sám není úplnou akceptační sérií LAB-v1.
 
+## Instrumentace připravená ve WP1.A2
+
+Nový [runbook instrumentace](INSTRUMENTATION.md) popisuje `sanjbox-s1-instrument`: oddělenou lehkou
+prezentaci, systémový RAM time-series recorder, strict identity/ASID, společný pevný harmonogram,
+create-new per-UID výstupy a offline fixed-window výpočet. Výchozí režim je dry-run; nová cesta nevolá
+TCC/preflight. A2/L1 zůstává **rozpracované**, LAB prahy jsou návrh a S1 zůstává Neověřeno.
+Původní postupy níže jsou zachované pro kompatibilitu; samy nenahrazují nový časový recorder ani L1.
+
 ## Obsah
 
 | Soubor | Kdo spouští | Co dělá |
