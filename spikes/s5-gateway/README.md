@@ -1,12 +1,16 @@
-# S5 — jádro a npm typed brána (WP1.D1, WP1.D2)
+# S5 — jádro, npm typed brána a API modelů (WP1.D1, WP1.D2, WP1.D3)
 
 Swift 6 + Network.framework, bez externích balíčků; jediná závislost je lokální `../common`
-(WP0.3). Obsahuje npm handler WP1.D2 a základ pro WP1.D3 (API modelů) a WP1.D4 (fixtures).
-**Hotové balíky D1/D2 nejsou důkaz síťové izolace ani prošlá brána S5.** CLI nabízí pouze lokální mock;
+(WP0.3). Obsahuje npm handler WP1.D2, API modelů WP1.D3 a základ pro WP1.D4 (fixtures).
+**Hotové balíky D1/D2/D3 nejsou důkaz síťové izolace ani prošlá brána S5.** CLI nabízí pouze lokální mock;
 knihovna obsahuje samostatný HTTPS upstream klient pro důvěryhodné typed handlery.
 
 **WP1.D2:** [npm typed handler, protokol, limity a integrační příklad](NPM.md). Kontroluje packumenty,
 přímé tarbally, cache a redirecty; přidává bounded audit vydání. Živé npm registry testy neběžely.
+
+**WP1.D3:** [API modelů, lokální HTTPS/per-zone CA, budget a limity](MODEL-API.md). Úzký Anthropic
+text-stream subset používá pouze syntetický klíč; skutečný loopback TLS má izolované testy. F0.7 a
+živá SDK kompatibilita zůstávají otevřené.
 
 ## Cíl a rozsah
 
@@ -15,7 +19,7 @@ přímé tarbally, cache a redirecty; přidává bounded audit vydání. Živé 
 | `HTTPRequestDecoder` | Inkrementální HTTP/1.1 origin-form; limity hlaviček/těla; povinný Host; odmítá duplicitní/foldované hlavičky, TE, TE+CL, Expect, Upgrade, neplatné délky a nadbytečná data |
 | `TypedRouter` | Explicitní jednosegmentové mounty, např. `/npm`, `/api`; hranice segmentu, žádný catch-all ani CONNECT; pouze registrované GET/POST operace; ostatní metody 403 |
 | Auth policy | Authorization, Proxy-Authorization, Cookie, X-API-Key a Api-Key od klienta jsou před handlerem odmítnuté; nejde o autentizaci volající oblasti |
-| `GatewayServer` | NWListener pouze `127.0.0.1`, přesný Host `127.0.0.1:<port>`, jeden požadavek na spojení, Connection: close; limity spojení, velikostí a času; stop/restart/cancellation |
+| `GatewayServer` | NWListener pouze `127.0.0.1`, přesný Host `127.0.0.1:<port>`, jeden požadavek na spojení, Connection: close; volitelné explicitní TLS z D3; limity spojení, velikostí a času; stop/restart/cancellation a peer EOF monitor |
 | Odchozí SSE klientovi | HTTP chunked odpověď; event má limit 64 KiB; producer sekvenčně awaituje každý send; úspěšný konec má nulový chunk |
 | `DestinationPolicy` | Všechny A/AAAA výsledky musí být veřejný unicast a mimo vlastní IP hosta; IP literály, lokální hostname, ECH, non-TLS a port jiný než 443 jsou odmítnuté |
 | `SystemDestinationResolver` | AF_UNSPEC `getaddrinfo`, absolutní DNS jméno bez search suffixů, nejvýše 64 různých adres; bounded workers, timeout a cancellation volajícího |
@@ -54,7 +58,10 @@ Content-Length nebo chunked framing; 204/304 bez těla. Odmítá 1xx, duplicitn�
 TE+CL, compression, upgrade, trailers, chunk extensions a close-delimited tělo. Framing chunků má
 samostatný limit 16 KiB + min(body limit, 1 MiB). Poškozené nebo neúplné
 odpovědi nejsou úspěch. HTTP keep-alive, HEAD, HTTP/2, WebSocket a chunked request body nejsou podporované.
-Tyto konzervativní limity jsou kontrakt spike; npm podmnožinu vymezuje [D2](NPM.md), další kompatibilitu ověří D3/D6.
+Tyto konzervativní limity jsou kontrakt spike; npm podmnožinu vymezuje [D2](NPM.md), [D3](MODEL-API.md) má vlastní
+podmnožinu, další kompatibilitu ověří D6.
+Po requestu listener sleduje EOF/error nebo další zakázaný bajt, aby odpojení rušilo i čekající
+upstream. Request half-close a pipelining nejsou podporované; klient musí pro odpověď držet spojení.
 
 SSE přijímá BOM, UTF-8 rozdělené mezi TCP čteními, CR/LF/CRLF, multiline data, event a sticky id.
 Komentáře a neznámá pole nevytvářejí události. Neprovádí reconnect ani retry. Neúplný poslední event
@@ -165,7 +172,7 @@ redirect policy, backpressure a skutečný lokální TLS transport. Další změ
   request/session timeout, stop/restart/cancellation; host-interface snapshot, sockaddr převod a skutečný libc překlad `localhost`;
   propojený typed handler → TLS upstream → SSE klient; skutečný Network.framework TLS handshake se syntetickou identitou, SNI a HTTP Host;
   nedůvěryhodný certifikát/chybný hostname odmítnuté před HTTP; TLS stream, odpojení a timeout/cancellation.
-- **Neměřeno:** živé veřejné DNS/PKI/upstream služby, npm/API kompatibilita mimo [lokální fixture D2](NPM.md), oblast a její síťové omezení,
+- **Neměřeno:** živé veřejné DNS/PKI/upstream služby, npm/SDK kompatibilita mimo lokální fixtures [D2](NPM.md) a [D3](MODEL-API.md), oblast a její síťové omezení,
   transparentní ECH detekce, pf/NATLOOK, souběh tří oblastí a podepsané laboratorní sondy.
 
 Oracle: zakázaný cíl nikdy nedojde k dialu; špatná TLS identita nikdy neodešle HTTP request; redirect nevytvoří
@@ -175,8 +182,8 @@ jako úspěch; handler chyba nesmí odhalit obsah chyby ani připojit druhou HTT
 Mapování: příprava pro **R2/R3/R8**, části **GW-08, GW-09, GW-10, GW-12, GW-14** a **NET-13…15**.
 Tyto testy **neuzavírají** žádný případ COVERAGE. S5 i jednotlivé případy zůstávají **Neověřeno**.
 Laboratorní integrace D7 vyžaduje S3/S3b a nezávislou protistranu WP0.4 (již v `spikes/common`).
-npm cooldown, metadata a artefaktový audit dodává [WP1.D2](NPM.md). Per-zone CA, klíče, provider
-rate/budget a širší fixtures zůstávají další balíky.
+npm cooldown, metadata a artefaktový audit dodává [WP1.D2](NPM.md). [D3](MODEL-API.md) dodává lokální HTTPS
+s oddělenou testovací CA, syntetický klíč a rate/budget. Skutečné identity/scopes a širší fixtures zůstávají další balíky.
 
 Použité kontrakty: [HTTP/1.1 framing, RFC 9112](https://www.rfc-editor.org/rfc/rfc9112.html),
 [SSE formát](https://html.spec.whatwg.org/multipage/server-sent-events.html),
