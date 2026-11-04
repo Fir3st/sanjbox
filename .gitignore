@@ -7,6 +7,10 @@ DerivedData/
 *.xcuserstate
 xcuserdata/
 
+# Generated development status (published as an Actions / Pages artifact)
+build/progress/
+__pycache__/
+
 # Secrets never belong in this repository
 .env
 .env.*

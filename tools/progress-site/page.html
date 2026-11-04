@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{description}}">
+  <meta name="color-scheme" content="dark light">
+  <title>Sanďbox · {{title}}</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Přejít na obsah</a>
+  <header>
+    <div class="header-inner">
+      <a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">s.</span> Sanďbox</a>
+      <nav aria-label="Hlavní navigace">
+        <a href="index.html" {{home_current}}>O projektu</a>
+        <a href="progress.html" {{overview_current}}>Stav vývoje</a>
+        <a href="history.html" {{history_current}}>Historie</a>
+        <a href="{{coverage}}">Dokumentace ↗</a>
+        <a href="{{repository}}">GitHub ↗</a>
+      </nav>
+      <button class="theme-toggle" type="button" aria-label="Přepnout barevný režim" hidden>◐</button>
+    </div>
+  </header>
+  <main id="main">
+    <div class="snapshot"><span><span class="live-dot" aria-hidden="true"></span> {{snapshot}}</span><a href="progress.json">Data JSON ↗</a></div>
+    {{body}}
+    <section class="method"><h2>Jak číst tato čísla</h2><p>Stav vychází z řádků COVERAGE.md a definic v IMPLEMENTATION.md. Počet hotových balíků sleduje implementaci; prošlé případy a brány sledují důkazy. Unit testy ani mocky samy neuzavírají laboratorní bránu. Procenta balíků nejsou odhad zbývající práce.</p><a href="{{method}}">Metodika a aktualizace ↗</a><noscript><p>JavaScript je vypnutý. Všechny přehledy, grafy a odkazy fungují; hledání a přepnutí tématu vyžadují JavaScript.</p></noscript></section>
+  </main>
+  <footer><a class="brand" href="index.html">Sanďbox<span class="brand-note"> / nativně, odděleně, ověřitelně.</span></a><a href="{{repository}}/commit/{{sha}}">Zdrojový commit {{sha}} ↗</a></footer>
+</body>
+</html>

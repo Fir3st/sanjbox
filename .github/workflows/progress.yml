@@ -1,0 +1,77 @@
+name: Development progress
+
+on:
+  push:
+    branches: [main, codex/development-status]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: progress-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Test counting rules and history
+        run: python -m unittest discover -s tools/tests -v
+      - name: Generate status, history and SVG
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: python tools/progress.py --repository "$REPOSITORY"
+      - name: Publish build summary
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          data = json.loads(Path('build/progress/progress.json').read_text())
+          print('## Sanďbox project website\n')
+          for key in ('packages', 'gates', 'tests', 'requirements'):
+              item = data['summary'][key]
+              print(f"- {key}: {item['done']}/{item['total']} ({item['percent']}%)")
+          print('\nProject homepage: index.html; development status: progress.html; history: history.html.')
+          print('The main branch deploys this website to GitHub Pages. The progress-preview artifact is for PR review only.')
+          print('Completed packages do not prove isolation.')
+          PY
+      - name: Upload reviewable preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: progress-preview
+          path: build/progress
+          retention-days: 14
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: build/progress
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy generated progress
+        id: deployment
+        uses: actions/deploy-pages@v4

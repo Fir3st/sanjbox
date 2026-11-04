@@ -7,6 +7,15 @@ hosta a síť jde jen přes řízenou bránu.
 **Stav:** návrh k ověření. Žádná izolace zatím není prokázaná. Nic z tohoto repozitáře nepoužívej
 se skutečnými projekty, účty nebo tajemstvími, dokud příslušné brány v COVERAGE.md neprojdou.
 
+**[Web projektu](https://fir3st.github.io/sanjbox/)** ·
+[Stav vývoje](https://fir3st.github.io/sanjbox/progress.html) ·
+[Historie](https://fir3st.github.io/sanjbox/history.html)
+
+Úvodní GitHub Pages stránka představuje cíle, navrženou architekturu a aktuální stav Sanďboxu.
+Podrobný progres se aktualizuje automaticky z dokumentace a historie Gitu.
+Web bude dostupný po sloučení PR a jednorázové aktivaci Pages správcem;
+[postup publikování](docs/PROGRESS.md#github-actions-a-pages).
+
 | Dokument | Obsah |
 |---|---|
 | [PLAN.md](PLAN.md) | Autoritativní kontrakt: požadavky R1–R8, threat model, architektura, brány S0–S8 |
@@ -16,6 +25,7 @@ se skutečnými projekty, účty nebo tajemstvími, dokud příslušné brány v
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Rozhodnutí F0 a změny kontraktu |
 | [docs/LAB.md](docs/LAB.md) | Registr strojů, rezervace slotů, návrh metodiky a šablony běhů (F0.8 otevřené) |
 | [docs/spikes.md](docs/spikes.md) | Verdikty bran F1 |
+| [docs/PROGRESS.md](docs/PROGRESS.md) | Web se stavem vývoje, historie, pravidla počítání a nasazení na Pages |
 
 ## Zákaz atribuce v commitech
 
