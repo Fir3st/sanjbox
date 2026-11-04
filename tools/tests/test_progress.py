@@ -133,7 +133,8 @@ class HistoryTests(unittest.TestCase):
         # Both local dates land on the same UTC day. Only the latter is retained.
         self.commit("2026-10-30T23:30:00-0200", self.coverage)
         last = self.commit("2026-10-31T05:00:00+0100", self.coverage)
-        row = next(line for line in self.coverage.splitlines() if line.startswith("| WP0.5 |"))
+        # Any package not started yet; a fixed ID breaks as soon as that package progresses.
+        row = next(line for line in self.coverage.splitlines() if line.startswith("| WP") and "| ⬜ |" in line)
         changed = self.coverage.replace(row, row.replace("⬜", "✅"))
         self.commit("2026-11-02T12:00:00+0100", changed)
         records = progress.history(self.root, "HEAD")
