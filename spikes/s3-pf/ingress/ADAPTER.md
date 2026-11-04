@@ -120,6 +120,18 @@ se počítá z přesných dodaných source bytes a slouží pouze k reprodukci i
 - C1 identity/send context se porovnává s přesným matrix initiator PID/credentials/session,
   včetně skutečné membership odpovědi sdíleným validátorem. Receiver nemá procesní identitu;
   `remote` je síťový tuple, **ne audit token nebo důkaz identity peeru**.
+- Raw accepted/closed/payload/packet observations a odpovídající matrix události se párují
+  **jedna ku jedné**. Deterministické maximum bipartitní párování přes augmenting paths
+  zohledňuje druh, flow, actor/stage, doložené tuple/provenance a čas včetně uncertainty.
+  Pozdější observation může přeuspořádat dřívější shodu; překryv časových intervalů proto
+  nezpůsobí falešný konflikt kvůli první greedy volbě. Každá occurrence má vlastní vrchol,
+  i při stejném timestampu. Nepřiřazené raw **i** matrix události se explicitně hlásí.
+  Každá strana má nejvýše 256 událostí pro druh/flow; algoritmus má mez O(V×E).
+- Payload vyžaduje přesnou shodu skutečně uvedeného `bytes` s matrix `value`, bez sčítání
+  nebo domýšlení. Explicitních 0 B smí mít žádný payload event nebo právě odpovídající
+  zero-valued event; nemůže podpořit kladný matrix payload. Chybějící `bytes` jsou neznámé,
+  nikdy nula, a nepodpoří ani zero-valued claim. Chybějící counterpart binding/terminal
+  nemůže skrýt existující matrix payload. Zero-byte kontakty v globálních findings zůstávají.
 - Exact canary findings se vážou na dodaný syntetický canary; generic prefix není nonce.
   Nesoulad canary, tuple či count je konflikt. I shoda canary na receiveru nedoplní chybějící
   C1 canary/flow field. C1 více UDP sendů se nesmí rozdělit na zdánlivě ověřené jednotlivé flow.

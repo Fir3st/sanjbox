@@ -69,4 +69,66 @@ finally:
     if process.poll() is None:
         process.kill(); process.wait()
     process.stdin.close(); process.stdout.close(); process.stderr.close()
+# Fresh independent review counterexamples and valid ambiguity controls.
+def rows_in(f, source):
+    return [json.loads(line) for line in f['sources'][source]['text'].splitlines()]
+
+def rows_out(f, source, rows):
+    f['sources'][source]['text'] = ''.join(json.dumps(row, separators=(',', ':')) + '\n' for row in rows)
+
+def matrix_out(f, matrix):
+    matrix['cells'][0]['events'].sort(key=lambda event: event['timeMs'])
+    f['matrixJSON'] = json.dumps(matrix, separators=(',', ':'))
+
+def problems(value):
+    return '\n'.join(value['links'][0]['problems'])
+
+def zero_bytes(f):
+    rows = rows_in(f, 1)
+    rows[2]['bytes'] = 0; rows[2]['findings'] = []; rows[2].pop('rawFile', None)
+    rows_out(f, 1, rows)
+
+f = fresh(); zero_bytes(f)
+value, _ = invoke(['link'], encoded(f))
+assert value['links'][0]['status'] == 'conflictingOrIncompleteLink'
+assert 'matrix payload' in problems(value) and 'lacks matching raw observation' in problems(value)
+assert len(value['findings']) == 3 and any(x.get('bytes') == 0 for x in value['findings'])
+print('P2 payload reproduction: conflicting matrix claim; zero-byte contact retained')
+
+for raw_times, matrix_times, conflict in (
+        ([1201, 1201], [1201, 1800], True),
+        ([1201, 1800], [1201, 1800], False),
+        ([1201, 1201], [1201, 1201], False),
+        ([1201, 1202], [1200, 1203], False)):
+    f = fresh(); rows = rows_in(f, 2)
+    packet = rows[1]
+    packets = [dict(packet, timestamp=f'2026-11-04T12:00:{t//1000:02d}.{t%1000:03d}Z') for t in raw_times]
+    rows_out(f, 2, [rows[0], *packets, rows[2]])
+    matrix = json.loads(f['matrixJSON'])
+    event = next(e for e in matrix['cells'][0]['events'] if e['kind'] == 'packetContact')
+    matrix['cells'][0]['events'] = [e for e in matrix['cells'][0]['events'] if e['kind'] != 'packetContact']
+    matrix['cells'][0]['events'] += [dict(event, timeMs=t) for t in matrix_times]
+    matrix_out(f, matrix)
+    value, _ = invoke(['link'], encoded(f))
+    assert value['links'][0]['status'] == ('conflictingOrIncompleteLink' if conflict else 'partialLinkNeedsReview'), value['links'][0]['problems']
+    assert len(value['findings']) == 2 + len(raw_times)
+    if conflict:
+        assert 'raw packetContact time/value lacks matching matrix event' in problems(value)
+        assert 'matrix packetContact' in problems(value) and 'lacks matching raw observation' in problems(value)
+        print('P2 packet reproduction: unmatched raw and matrix occurrences reported; both packet records retained')
+
+f = fresh(); zero_bytes(f); matrix = json.loads(f['matrixJSON'])
+matrix['cells'][0]['events'] = [e for e in matrix['cells'][0]['events'] if e['kind'] != 'payload']
+matrix_out(f, matrix)
+value, _ = invoke(['link'], encoded(f))
+assert value['links'][0]['status'] == 'partialLinkNeedsReview'
+f = fresh(); rows = rows_in(f, 1); rows[2].pop('bytes'); rows_out(f, 1, rows)
+matrix = json.loads(f['matrixJSON'])
+next(e for e in matrix['cells'][0]['events'] if e['kind'] == 'payload')['value'] = 0
+matrix_out(f, matrix)
+value, _ = invoke(['link'], encoded(f))
+assert 'matrix payload' in problems(value) and 'lacks matching raw observation' in problems(value)
+f = fresh(); f['bindings'][0].pop('counterpart')
+value, _ = invoke(['link'], encoded(f))
+assert 'matrix payload' in problems(value) and len(value['findings']) == 3
 print(f'{count}/{count} offline CLI checks passed; 0 skipped; no smoke/identity/network operations')

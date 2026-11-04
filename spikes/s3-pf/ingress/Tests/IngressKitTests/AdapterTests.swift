@@ -358,3 +358,146 @@ func unsupportedAndWildcardPeerEndpointsAreNotGuessed(_ host: String) throws {
     #expect(r.sources.first { $0.id == "receiver" }!.problems.contains { $0.contains("exceeds 256") })
     #expect(r.links[0].status == "conflictingOrIncompleteLink")
 }
+
+private func payloadFixture(udp: Bool = false) throws -> AdapterInput {
+    var f = try adapterFixture()
+    if udp {
+        f.sources[1].text = try #require(producerVectors()["commonUDP"])
+        f.endpoints[0].transport = .udp
+        try rewriteRows(&f, source: 2) { $0[1]["transport"] = "udp" }
+        try rewriteMatrix(&f) { $0.cells[0].events.removeAll { $0.kind == .accepted || $0.kind == .closed } }
+    }
+    return f
+}
+
+@Test(arguments: ["tcp-zero", "tcp-missing", "tcp-absent", "udp-zero", "udp-missing", "udp-absent"])
+func matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_ variant: String) throws {
+    let udp = variant.hasPrefix("udp")
+    var f = try payloadFixture(udp: udp)
+    try rewriteRows(&f) { rows in
+        let terminal = udp ? 1 : 2
+        if variant.hasSuffix("absent") { rows.remove(at: terminal) }
+        else if variant.hasSuffix("missing") { rows[terminal].removeValue(forKey: "bytes") }
+        else {
+            rows[terminal]["bytes"] = 0; rows[terminal]["findings"] = []
+            rows[terminal].removeValue(forKey: "rawFile")
+        }
+    }
+    let r = try linked(f)
+    #expect(r.links[0].status == "conflictingOrIncompleteLink")
+    #expect(issues(r).contains("matrix payload") && issues(r).contains("lacks matching raw observation"))
+    #expect(r.findings.count == (udp ? 2 : 3) - (variant.hasSuffix("absent") ? 1 : 0))
+    if variant.hasSuffix("zero") { #expect(r.findings.contains { $0.bytes == 0 }) }
+    #expect(!r.packetAbsenceProven && r.externalReviewRequired)
+}
+
+@Test(arguments: ["tcp-zero-event", "tcp-no-event", "udp-zero-event", "udp-no-event"])
+func explicitZeroCanMatchZeroClaimOrHaveNoPayloadEvent(_ variant: String) throws {
+    var f = try payloadFixture(udp: variant.hasPrefix("udp"))
+    try rewriteRows(&f) { rows in
+        let i = variant.hasPrefix("udp") ? 1 : 2
+        rows[i]["bytes"] = 0; rows[i]["findings"] = []; rows[i].removeValue(forKey: "rawFile")
+    }
+    try rewriteMatrix(&f) { matrix in
+        if variant.contains("no-event") { matrix.cells[0].events.removeAll { $0.kind == .payload } }
+        else { matrix.cells[0].events[matrix.cells[0].events.firstIndex { $0.kind == .payload }!].value = 0 }
+    }
+    let r = try linked(f)
+    #expect(r.links[0].status == "partialLinkNeedsReview", "\(r.links[0].problems)")
+    #expect(r.findings.contains { $0.bytes == 0 })
+    #expect(!r.packetAbsenceProven && !r.links[0].missingBindings.isEmpty)
+}
+
+@Test(arguments: ["unbound", "duplicate", "missingMatrix", "falseZero"])
+func payloadReconciliationReportsUnmatchedOccurrencesInBothDirections(_ variant: String) throws {
+    var f = try adapterFixture()
+    if variant == "unbound" { f.bindings[0].counterpart = nil }
+    else {
+        try rewriteMatrix(&f) { matrix in
+            let i = matrix.cells[0].events.firstIndex { $0.kind == .payload }!
+            if variant == "duplicate" { matrix.cells[0].events.insert(matrix.cells[0].events[i], at: i) }
+            else if variant == "falseZero" { matrix.cells[0].events[i].value = 0 }
+            else { matrix.cells[0].events.remove(at: i) }
+        }
+    }
+    let r = try linked(f)
+    #expect(r.links[0].status == "conflictingOrIncompleteLink")
+    if variant == "missingMatrix" || variant == "falseZero" { #expect(issues(r).contains("raw payload time/value lacks matching matrix event")) }
+    if variant != "missingMatrix" { #expect(issues(r).contains("matrix payload") && issues(r).contains("lacks matching raw observation")) }
+    #expect(r.findings.count == 3 && r.findings.contains { $0.bytes == 51 })
+}
+
+private func packetOccurrenceFixture(rawTimes: [Int], matrixTimes: [Int]) throws -> AdapterInput {
+    var f = try adapterFixture()
+    try rewriteRows(&f, source: 2) { rows in
+        let original = rows[1]
+        let packets = rawTimes.map { time -> [String: Any] in
+            var p = original
+            p["timestamp"] = String(format: "2026-11-04T12:00:%02d.%03dZ", time / 1000, time % 1000)
+            return p
+        }
+        rows = [rows[0]] + packets + [rows[2]]
+    }
+    try rewriteMatrix(&f) { matrix in
+        let original = matrix.cells[0].events.first { $0.kind == .packetContact }!
+        matrix.cells[0].events.removeAll { $0.kind == .packetContact }
+        matrix.cells[0].events += matrixTimes.map { time in
+            var event = original; event.timeMs = time; return event
+        }
+        matrix.cells[0].events.sort { $0.timeMs < $1.timeMs }
+    }
+    return f
+}
+
+@Test(arguments: ["reused", "distinct", "sameTime", "extraRaw", "extraMatrix", "boundary", "outside", "overlap"])
+func packetOccurrencesRequireAOneToOneTimeMatching(_ variant: String) throws {
+    let raw: [Int], matrix: [Int], conflict: Bool
+    switch variant {
+    case "reused": raw = [1201, 1201]; matrix = [1201, 1800]; conflict = true
+    case "distinct": raw = [1201, 1800]; matrix = [1201, 1800]; conflict = false
+    case "sameTime": raw = [1201, 1201]; matrix = [1201, 1201]; conflict = false
+    case "extraRaw": raw = [1201, 1201]; matrix = [1201]; conflict = true
+    case "extraMatrix": raw = [1201]; matrix = [1201, 1201]; conflict = true
+    case "boundary": raw = [1201]; matrix = [1203]; conflict = false
+    case "outside": raw = [1201]; matrix = [1204]; conflict = true
+    default: raw = [1201, 1202]; matrix = [1200, 1203]; conflict = false
+    }
+    let r = try linked(packetOccurrenceFixture(rawTimes: raw, matrixTimes: matrix))
+    #expect(r.links[0].status == (conflict ? "conflictingOrIncompleteLink" : "partialLinkNeedsReview"), "\(r.links[0].problems)")
+    #expect(r.findings.filter { $0.kind == "packetContact" }.count == raw.count)
+    #expect(r.findings.count == raw.count + 2)
+    if variant == "reused" || variant == "outside" || variant == "extraRaw" { #expect(issues(r).contains("raw packetContact time/value lacks matching matrix event")) }
+    if variant == "reused" || variant == "outside" || variant == "extraMatrix" { #expect(issues(r).contains("matrix packetContact") && issues(r).contains("lacks matching raw observation")) }
+}
+
+@Test func packetMatchingCannotConsumeARecordWithConflictingTuple() throws {
+    var f = try packetOccurrenceFixture(rawTimes: [1201, 1201], matrixTimes: [1201, 1201])
+    try rewriteRows(&f, source: 2) { $0[2]["remote"] = ["host": "127.0.0.2", "port": 49152] }
+    let r = try linked(f)
+    #expect(issues(r).contains("raw packetContact time/value lacks matching matrix event"))
+    #expect(issues(r).contains("matrix packetContact") && issues(r).contains("lacks matching raw observation"))
+    #expect(r.findings.count == 4)
+}
+
+@Test func observationMatchingReassignsGreedyChoicesAndIsMaximumOnAllSmallGraphs() {
+    #expect(maximumObservationMatching([[0, 1], [0]], matrixCount: 2) == [1, 0])
+    // Exhaustively compare all 3x3 compatibility graphs with an independent enumeration
+    // of every possible partial assignment, not another augmenting-path implementation.
+    for mask in 0..<512 {
+        let edges = (0..<3).map { raw in (0..<3).filter { matrix in mask & (1 << (raw * 3 + matrix)) != 0 } }
+        let matches = maximumObservationMatching(edges, matrixCount: 3)
+        var best = 0
+        for a in -1..<3 { for b in -1..<3 { for c in -1..<3 {
+            let assignment = [a, b, c]
+            let used = assignment.filter { $0 >= 0 }
+            if Set(used).count == used.count && assignment.enumerated().allSatisfy({ $0.element == -1 || edges[$0.offset].contains($0.element) }) {
+                best = max(best, used.count)
+            }
+        } } }
+        #expect(matches.compactMap { $0 }.count == best)
+        #expect(Set(matches.compactMap { $0 }).count == best)
+        #expect(matches.enumerated().allSatisfy { $0.element == nil || edges[$0.offset].contains($0.element!) })
+    }
+    let complete = Array(repeating: Array(0..<256), count: 256)
+    #expect(maximumObservationMatching(complete, matrixCount: 256).compactMap { $0 }.count == 256)
+}

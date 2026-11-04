@@ -144,3 +144,51 @@ se nemění. Důvěryhodný peer handshake, capture provenance, bind policy, sku
 fixed-port squatting a plné controls/délky/opakování zůstávají otevřené. C1 se neměnilo,
 proto nebyla znovu spouštěna jeho oddělená Swift/Python suite. Nezávislé review větve následuje
 samostatně; tato sekce je validace implementátora, nikoli již provedené nezávislé review.
+
+## Opravy po nezávislém review — 2026-11-05, 00:14 CET (nový záznam)
+
+Čerstvé nezávislé review přesného HEAD `91733c7cd8f16482e9ecc1d776e08cb4effc3081`
+reprodukovalo dvě P2 mezery, přestože výše uvedených 44 testů/17 CLI kontrol prošlo.
+Předchozí výsledky a časové údaje jsou zachovány; tyto nové výsledky je nepřepisují.
+
+1. Raw TCP `closed` s `bytes: 0`, prázdnými findings a bez rawFile mohl zůstat
+   `partialLinkNeedsReview` bez problémů, zatímco matrix tvrdila payload 51 B. Kontrola
+   běžela jen pro kladné raw bytes a chyběla opačná kontrola matrix claimu.
+2. Dva raw packet records ve 1201 ms mohly oba použít stejný matrix packet ve 1201 ms,
+   zatímco druhý matrix packet v 1800 ms zůstal nepokrytý. Shodný počet 2:2 tento konflikt
+   nezjistil, protože každá raw kontrola používala samostatné `contains`.
+
+Oprava páruje jednotlivé raw a matrix occurrences jedna ku jedné, v obou směrech, podle
+actor/stage, druhu, flow, časové nejistoty a dostupných tuple/provenance polí. Deterministické
+maximum bipartitní párování s augmenting paths může přeuspořádat dřívější shody; nespoléhá
+na první greedy volbu při překryvu oken. Horní mez je 256 vrcholů na každé straně pro druh/flow,
+časová složitost O(V×E), hloubka nejvýše 256. Duplicitní timestampy se nededuplicují.
+
+Payload vyžaduje přesnou známou hodnotu receiver bytes. Explicitní 0 může mít žádný payload
+claim nebo odpovídající zero-valued claim; nepodpoří 51 B. Chybějící bytes jsou neznámé,
+ne nula. Chybějící terminal nebo counterpart binding nepokryje existující matrix payload.
+Všechny nepokryté matrix claims a povinné raw occurrences mají explicitní problém.
+Globální raw finding ledger se nemění: zero-byte accept/datagram i každý packet zůstávají.
+
+| Kontrola | Nový skutečný výsledek |
+|---|---|
+| Kompletní native Release Swift Testing | **50/50 testů, 0 failures, 0 skips**, start **2026-11-05 00:14:08 CET**; 44 předchozích + 6 nových named tests s parametrizovanými variantami. |
+| Skutečný offline CLI harness | **25/25 kontrol, 0 skips**; původních 17 + 8 navazujících reprodukcí/controlů. Obě přesné P2 reprodukce nyní dávají `conflictingOrIncompleteLink`; první zachová zero-byte kontakt, druhá zachová oba packet records a hlásí nepřiřazený raw i matrix event. |
+| Producer compatibility vectors | **9/9 v aktuální kompletní suite**; producer wire/model ani vektory se nemění. |
+| Maximální matching | Všechny **512 grafy 3×3** porovnány s nezávislým vyčerpávajícím výčtem částečných přiřazení; explicitní greedy counterexample `[[0,1],[0]]` a plný **256×256** graf prošly. |
+| Formát, scope, historie | `git diff --check` a relativní odkazy pass; původní VALIDATION obsah zůstává nezměněným prefixem. |
+| Vlastní scratch a výstupy | Nový `/private/tmp/sanjbox-c3-reconcile-fGvnGW` po ověření přesné cesty/UID/módu/inode odstraněn včetně vlastní build/cache/tmp/logů; žádný C3 run/link zbytek, žádné cizí nebo uzavřené důkazy odstraněny. |
+
+Nové regrese pokrývají TCP/UDP bytes **zero / missing / absent terminal**, zero-valued i
+nepřítomný matrix payload, chybějící counterpart binding, duplicitní/nesprávné matrix payload
+claims a pozitivní raw payload bez matrix eventu. Packet regrese mají původní 1201/1800 ms
+counterexample, platné odlišné shody, duplicitní stejný čas na obou stranách, extra raw/matrix
+occurrence, přesnou hranici uncertainty, bod vně hranice, překrývající se intervaly a tuple
+nesoulad. Každý případ kontroluje zachování raw findings. Reprodukce používá stejné příkazy
+v ADAPTER.md a rozšířený `tools/check-offline-cli.py`; žádný živý smoke ani producer se nespouští.
+
+Změny: pouze C3 `EvidenceAdapter.swift`, jeho fixtures testy/offline CLI harness, aktuální
+ADAPTER dokumentace, tento přidávací záznam a vlastní COVERAGE řádek. Žádné wire/schema změny,
+C1/common/Contracts/PLAN změny, systémové zásahy, síť, capture ani pf. C3 zůstává partial;
+S3b/NET-10…12 a F1 agregát beze změny. Finální commit čeká na opětovné nezávislé review;
+tato sekce popisuje ověření oprav implementátorem, nikoli výsledek tohoto dalšího review.

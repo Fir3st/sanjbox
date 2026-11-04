@@ -168,13 +168,43 @@ public enum EvidenceAdapter {
             }
             if time - u < lower || time + u > upper { result.problems.append("\(t.sourceID) line \(t.line): time/uncertainty crosses requested stage window") }
         }
-        func matrixEvent(_ kind: EventKind, time: TimeProjection, value: Int? = nil) {
-            guard let cell, let t = time.relativeMs, let uncertainty = time.uncertaintyMs else { return }
-            let expected = cell.events.filter { $0.flowID == binding.flowID && $0.kind == kind &&
-                ($0.stage == binding.stage || binding.stage == .test && $0.stage == .drain) }
-            if !expected.contains(where: { abs($0.timeMs - t) <= uncertainty && (value == nil || $0.value == value) }) {
-                result.problems.append("\(time.sourceID) line \(time.line): raw \(kind.rawValue) time/value lacks matching matrix event")
-            } else { result.checks.append("raw \(kind.rawValue) time/value matches matrix event under supplied clock bound") }
+        var observations: [MatrixObservation] = []
+        func reconcileObservations() {
+            guard let cell else { return }
+            for kind in [EventKind.accepted, .closed, .payload, .packetContact] {
+                let raw = observations.filter { $0.kind == kind }
+                // Keep all claims for this flow, including wrong-stage/actor claims, so
+                // neither side can disappear merely because it has no eligible edge.
+                let expected = cell.events.enumerated().filter { $0.element.flowID == binding.flowID && $0.element.kind == kind }
+                let actor: Actor = kind == .packetContact ? .oracle : .listener
+                let edges = raw.map { observation -> [Int] in
+                    guard observation.eligible, let t = observation.time.relativeMs,
+                          let uncertainty = observation.time.uncertaintyMs else { return [] }
+                    return expected.indices.filter { index in
+                        let event = expected[index].element
+                        return event.actor == actor &&
+                            (event.stage == binding.stage || binding.stage == .test && event.stage == .drain) &&
+                            abs(event.timeMs - t) <= uncertainty &&
+                            (kind != .payload || observation.value == event.value)
+                    }
+                }
+                let matches = maximumObservationMatching(edges, matrixCount: expected.count)
+                for index in raw.indices {
+                    if matches[index] == nil {
+                        if raw[index].requiresMatrixEvent {
+                            let time = raw[index].time
+                            result.problems.append("\(time.sourceID) line \(time.line): raw \(kind.rawValue) time/value lacks matching matrix event in one-to-one reconciliation")
+                        }
+                    } else {
+                        result.checks.append("raw \(kind.rawValue) time/value matches a distinct matrix event under supplied clock bound")
+                    }
+                }
+                let consumed = Set(matches.compactMap { $0 })
+                for index in expected.indices where !consumed.contains(index) {
+                    let (position, event) = expected[index]
+                    result.problems.append("matrix \(kind.rawValue) event \(position + 1) (timeMs \(event.timeMs), value \(event.value)) lacks matching raw observation in one-to-one reconciliation")
+                }
+            }
         }
         func lifecycleCoverage(_ start: TimeProjection?, _ end: TimeProjection?, label: String) {
             guard let cell, let window = cell.window, let a = start?.relativeMs, let au = start?.uncertaintyMs,
@@ -236,12 +266,21 @@ public enum EvidenceAdapter {
                 if let endpoint, r.transport != endpoint.transport || r.local?.matches(endpoint.local) != true || r.remote?.matches(endpoint.remote) != true {
                     result.problems.append("common flow local/remote tuple or transport differs from exact allowlist")
                 } else if endpoint != nil { result.checks.append("common flow tuple matches exact allowlisted endpoints") }
+                let eligible = row.problems.isEmpty && endpoint.map {
+                    r.transport == $0.transport && r.local?.matches($0.local) == true && r.remote?.matches($0.remote) == true
+                } == true
                 switch r.kind {
-                case .accepted: matrixEvent(.accepted, time: t)
-                case .closed:
-                    matrixEvent(.closed, time: t)
-                    if let bytes = r.bytes, bytes > 0 { matrixEvent(.payload, time: t, value: bytes) }
-                case .datagram: matrixEvent(.payload, time: t, value: r.bytes)
+                case .accepted:
+                    observations.append(.init(kind: .accepted, time: t, value: nil, eligible: eligible))
+                case .closed, .datagram:
+                    if r.kind == .closed { observations.append(.init(kind: .closed, time: t, value: nil, eligible: eligible)) }
+                    // Missing bytes are not zero and can never match a payload claim.
+                    // Explicit zero can support an optional zero-valued matrix event;
+                    // absence of a payload event for a zero-byte contact is also valid.
+                    if let bytes = r.bytes, bytes >= 0 {
+                        observations.append(.init(kind: .payload, time: t, value: bytes,
+                            eligible: eligible, requiresMatrixEvent: bytes > 0))
+                    }
                 default: result.problems.append("non-flow event has counterpart flow ID")
                 }
             }
@@ -278,10 +317,9 @@ public enum EvidenceAdapter {
             for row in rows {
                 let r = row.record
                 // All capture metadata are checked, including other flows: a swapped capture is not a match.
-                if r.runID != input.runID || r.scenarioID != binding.scenarioID || r.family != scenario?.family ||
-                    r.clockID != source.clock?.id || r.oracleInstanceID != oracle?.instanceID || r.interface != starts.first?.record.interface {
-                    result.problems.append("capture run/case/family/clock/interface/oracle provenance mismatch")
-                }
+                let provenanceMatches = r.runID == input.runID && r.scenarioID == binding.scenarioID && r.family == scenario?.family &&
+                    r.clockID == source.clock?.id && r.oracleInstanceID == oracle?.instanceID && r.interface == starts.first?.record.interface
+                if !provenanceMatches { result.problems.append("capture run/case/family/clock/interface/oracle provenance mismatch") }
                 if r.kind == .packetContact && r.flowID != binding.flowID { continue }
                 reference(source, row.line)
                 let p = project(r.timestamp, source: source, line: row.line)
@@ -295,17 +333,19 @@ public enum EvidenceAdapter {
                     if let endpoint, r.transport != endpoint.transport || r.local?.matches(endpoint.local) != true || r.remote?.matches(endpoint.remote) != true {
                         result.problems.append("packet tuple/transport differs from exact allowlist")
                     }
-                    matrixEvent(.packetContact, time: p)
+                    let tupleMatches = endpoint.map {
+                        r.transport == $0.transport && r.local?.matches($0.local) == true && r.remote?.matches($0.remote) == true
+                    } == true
+                    observations.append(.init(kind: .packetContact, time: p, value: nil,
+                        eligible: row.problems.isEmpty && provenanceMatches && tupleMatches))
                 }
             }
-            let packets = rows.filter { $0.record.kind == .packetContact && $0.record.flowID == binding.flowID }
-            let expectedPackets = cell?.events.filter { $0.kind == .packetContact && $0.flowID == binding.flowID } ?? []
-            if packets.count != expectedPackets.count { result.problems.append("matrix packet observations and imported flow packet records differ in count") }
             lifecycleCoverage(start, end, label: "imported packet capture")
             if rows.isEmpty { result.problems.append("referenced imported capture absent") }
             result.missingBindings.append("packetImportV1 is a separate supplied transcript; original capture and recorder identity/topology are not authenticated here")
         } else { result.missingBindings.append("independent packet capture import; common accept/bytes cannot fill it") }
 
+        reconcileObservations()
         if let w = cell?.window, let retry = w.retryUpperBoundMs, let rtt = w.roundTripUpperBoundMs,
            let uncertainty = w.clockUncertaintyMs {
             let rawMax = result.times.compactMap(\.uncertaintyMs).max() ?? 0
@@ -324,4 +364,40 @@ public enum EvidenceAdapter {
         if !result.problems.isEmpty { result.status = "conflictingOrIncompleteLink" }
         return result
     }
+}
+
+private struct MatrixObservation {
+    var kind: EventKind
+    var time: TimeProjection
+    var value: Int?
+    var eligible: Bool
+    var requiresMatrixEvent = true
+}
+
+/// Deterministic maximum-cardinality bipartite matching via augmenting paths. A matrix
+/// occurrence has at most one owner; a later raw observation can reassign earlier matches
+/// rather than fail because a greedy first choice consumed its only candidate. Parser bounds
+/// limit each side to 256 occurrences per kind/flow (O(V*E), <=256 recursion depth). Duplicate
+/// equal-time occurrences remain separate vertices. Only explicit compatibility edges match.
+func maximumObservationMatching(_ edges: [[Int]], matrixCount: Int) -> [Int?] {
+    var owners = [Int?](repeating: nil, count: matrixCount)
+    func augment(_ raw: Int, visited: inout [Bool]) -> Bool {
+        for matrix in edges[raw] where !visited[matrix] {
+            visited[matrix] = true
+            if owners[matrix] == nil || augment(owners[matrix]!, visited: &visited) {
+                owners[matrix] = raw
+                return true
+            }
+        }
+        return false
+    }
+    for raw in edges.indices {
+        var visited = [Bool](repeating: false, count: matrixCount)
+        _ = augment(raw, visited: &visited)
+    }
+    var matches = [Int?](repeating: nil, count: edges.count)
+    for matrix in owners.indices {
+        if let raw = owners[matrix] { matches[raw] = matrix }
+    }
+    return matches
 }
