@@ -1,8 +1,8 @@
 # WP1.C3 — nezávislá příprava ingress/bind
 
 **C3 je částečné. S3b, NET-10…12 a R2/R3 zůstávají Neověřeno.** Tento samostatný Swift 6.4 balík
-připravuje scénáře a přístroj. Není to bind policy, firewall ani důkaz izolace. Integrace C1 a skutečný
-uživatelský běh L4 zbývají. Nevychází z kódu neintegrovaných větví; jediná závislost je lokální veřejné
+připravuje scénáře a přístroj. Není to bind policy, firewall ani důkaz izolace. Dílčí offline C1/common
+adapter je dostupný; chybějící producer metadata a skutečný uživatelský běh L4 zbývají. Nevychází z kódu neintegrovaných větví; jediná závislost je lokální veřejné
 API `../../common` (`ProbeContext`, `ProbeExpectation`, jejich Codable modely).
 
 ## Co lze provést nyní
@@ -13,6 +13,7 @@ API `../../common` (`ProbeContext`, `ProbeExpectation`, jejich Codable modely).
   ověří přesnou identitu/session a vlastní podpis, pak provede TCP transport control výhradně na
   `127.0.0.1:0` a `[::1]:0`. Port se bere ze skutečného `getsockname`; uživatel nemůže zadat port ani host.
 - `evaluate`: čisté offline vyhodnocení JSON ze stdin. Neprovádí sběr identity, systémových metadat ani sítě.
+- `link`: offline [C1/common raw adapter](ADAPTER.md), přesné dostupné vazby, explicitní mezery a zachované findings; bez sběru nebo automatického pass.
 - `cleanup --run-id UUID`: dry-run ověření vlastních dvou souborů; `--apply` provede jejich ne-rekurzivní úklid.
 
 Žádný režim neotevírá wildcard listener, LAN ani externí spojení. Není zde obecný runner příkazů,
@@ -121,7 +122,7 @@ navzájem; oracle má samostatný proces. `onConsole` se nepoužívá jako unive
 Záznamy pozitivních kontrol před/po musí obsahovat konzistentní sequence attempt → connected → accepted
 → listener handshake → initiator handshake → closed pro tutéž flow a nonce, plus nezávislý packet contact.
 Listener i capture musejí pokrývat celé okno včetně kontrol a drainu; neznámé losses/gaps/retry/RTT/clock
-nebo krátký drain jsou chybějící důkaz. Skutečný 60s+600s L4 protokol a raw adapter zde nejsou.
+nebo krátký drain jsou chybějící důkaz. Skutečný 60s+600s L4 protokol zde není. Navazující dílčí offline adapter viz [ADAPTER.md](ADAPTER.md).
 
 Výstup obsahuje všech 28 plánovaných kombinací IPv4/IPv6 × loopback/wildcard × 7 směrů/operací:
 
@@ -133,12 +134,14 @@ Výstup obsahuje všech 28 plánovaných kombinací IPv4/IPv6 × loopback/wildca
 | `incomplete` | Chybí kontroly, časové/capture pokrytí, expected counterpart/handshake nebo integrační adapter. |
 | `observedViolationNeedsReview` | Přijatý kontakt, payload či nabytí host portu při platné deklarované identitě; finding se neztratí kvůli neúplnému capture. |
 
-**Žádný vstup nedá pass.** I jinak úplný měřený transcript zůstává `incomplete`: nezávislá příprava
-zatím nemá C1/L4 adapter, který sváže raw listener endpoint (rodinu, bind adresu, port), remote tuple,
-packet source a handshake s buňkou. Samotné scenarioID tuto vazbu nedokazuje. Dodaný JSON včetně
-signing booleans je tvrzení, nikoli kryptografická atestace. Reviewer musí ověřit původ raw, identit,
-clock/capture topologii a mechanismus hranice; classifier není náhrada review. Pozorovaný finding je
-výslovně **k review**, ne automatický závěr o skutečném porušení, pokud jeho původ nelze ověřit.
+**Žádný vstup nedá pass.** Samostatný `evaluate` nemá raw bindings. Nový příkaz
+`link < adapter-input.json` propojuje skutečný C1 RunRecord stream, common counterpart JSONL,
+ingress matrix a oddělený packet import; kontroluje dostupné tuple/canary/identity/time vazby
+a vydává deterministický report. [Formát, příklady, producer zdroje a přesné mezery](ADAPTER.md).
+C1 stále nevydává run/flow/tuple/canary metadata a common nemá identity ani packet capture;
+adapter je nedopočítává. Dodaný JSON včetně signing booleans je tvrzení, nikoli atestace.
+Findings v raw zůstávají i při neplatné/neúplné jiné evidence. Reviewer musí ověřit jejich
+původ, identity, clock/capture topologii a mechanismus hranice. C3 zůstává partial.
 
 ## Vlastní výstupy a úklid
 

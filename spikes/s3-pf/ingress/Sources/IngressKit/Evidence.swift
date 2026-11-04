@@ -199,8 +199,9 @@ public enum Adjudicator {
                 problems.append("participants do not match preregistered route roles"); identityValid = false
             }
         } else { problems.append("missing preregistered host/zone identity role map"); identityValid = false }
-        // C1 raw socket/capture adapter is intentionally not implemented in this independent package.
-        problems.append("endpoint tuple and packet-source association await C1/L4 raw adapter; cannot substantiate scenario bind/family/port from a scenario ID")
+        // Standalone matrix declarations do not carry raw endpoint bindings. The offline link report
+        // checks available producer facts separately and never upgrades this classifier to a gate pass.
+        problems.append("endpoint tuple and packet-source association require the separate offline link report and external C1/L4 review; a scenario ID alone is insufficient")
         if let initiator = byActor[.initiator], let listener = byActor[.listener], let oracle = byActor[.oracle] {
             if oracle.machine != "target" || oracle.pid == listener.pid || oracle.pid == initiator.pid {
                 problems.append("oracle is not a separate target-side process")

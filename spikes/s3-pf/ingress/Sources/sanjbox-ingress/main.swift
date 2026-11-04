@@ -7,10 +7,11 @@ usage: sanjbox-ingress [plan]
        sanjbox-ingress identity
        sanjbox-ingress smoke --expect-json JSON [--apply]
        sanjbox-ingress evaluate < strict-evidence.json
+       sanjbox-ingress link < adapter-input.json
        sanjbox-ingress cleanup --run-id UUID [--apply]
 Default is dry-run. Live smoke accepts no host, port, PID, file or command.
 identity only reports own metadata; inspect and explicitly supply --expect-json before smoke.
-evaluate reads at most 1 MiB from stdin within 2 seconds; no identity/OS/network collection.
+evaluate/link read at most 1 MiB from stdin within 2 seconds; no identity/OS/network collection.
 """
 func printValue<T: Encodable>(_ value: T) throws {
     var bytes = try encodeJSON(value); bytes.append(10); FileHandle.standardOutput.write(bytes)
@@ -49,6 +50,9 @@ do {
     case "evaluate":
         guard args.isEmpty else { throw IngressError(usage) }
         try printValue(Adjudicator.evaluate(EvidenceInput.decode(stdinJSON())))
+    case "link":
+        guard args.isEmpty else { throw IngressError(usage) }
+        try printValue(EvidenceAdapter.link(stdinJSON()))
     case "smoke":
         let apply = args.last == "--apply"
         if apply { args.removeLast() }

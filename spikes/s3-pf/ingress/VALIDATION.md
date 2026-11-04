@@ -88,3 +88,59 @@ plný souběh a opakování, failure modes a review původu důkazů. Ad-hoc pod
 Offline transcript je neautentizované tvrzení: ani kompletní deklarované flags nedají pass; kvůli
 chybějícímu endpoint adapteru vždy zůstává integrační gap explicitní. Lokální transport control má
 stejný proces/UID/session a nemá nezávislý oracle.
+
+## Navazující offline adapter — 2026-11-05 (nový záznam)
+
+Výchozí čistý main `afae1ca7dfe78f03d5006c42b6b01093772eba0c`, vlastní claim `f326cd7`.
+Tato sekce doplňuje novou validaci; výše uvedené historické protokoly 21/21 a 24/24 včetně
+jejich limitů zůstávají beze změny. Scope: `ingress/` a vlastní C3 řádek COVERAGE; žádné změny
+C1 produceru, common, Contracts, PLAN, bran nebo jednotlivých acceptance testů. C3 zůstává
+partial, agregát F1 **10 done / 5 partial / 15 todo** se nemění.
+
+Prostředí ověřeno: arm64, macOS **27.2 (26B123)**, Xcode **27.0 (27A266a)**,
+Apple Swift **6.4 (swiftlang-6.4.0.34.1, clang 2100.3.34.1)**.
+Finální native Release test začal **2026-11-05 00:03:40 CET**. Bez externích balíčků;
+lokální závislost je pouze veřejný SanjboxProbeKit. Testy nevolají živou identitu, sender,
+listener, capture, pf ani síť. Stávající owned-output fixtures používají vlastní dočasné
+soubory/ACL/flags/GID, stejně jako historická suite.
+
+| Kontrola | Výsledek | Rozsah |
+|---|---|---|
+| Kompletní ingress native Release Swift Testing | **44/44 testů, 0 failures, 0 skips** | 21 původních a 23 nových testů, včetně parametrizovaných adversarial variant. ACL/GID/flags fixtures nebyly přeskočeny. |
+| Skutečný Release CLI, [pevný offline harness](tools/check-offline-cli.py) | **17/17, 0 skips** | Plan/default, prázdná evaluate matice, deterministický link, skutečný C1 error wire, zero-byte contact při invalid matrix, neplatný packet sibling, unsupported format, duplicate/unknown/oversized envelope, odmítnutí file/PID/command/`--apply` argumentů, nezávisle vynucený 2s stdin timeout. |
+| Nativní producer compatibility vektory | **9/9 vytvořeno a parsováno** | Čistý [generátor](tools/producer-vectors/main.swift) zkompilovaný s nezměněným common CounterpartEvent.swift a actual shared models/encoders; žádné sockety ani capture. C1 success/error/invalid identity, common TCP/UDP/zero-byte/IPv6/wildcard. C1 re-encode proti actual public RunRecord encoderu je součást suite. |
+| `git diff --check`, relativní dokumentační odkazy | **pass** | Bez neplatných lokálních odkazů. |
+| Vlastní výstupy a scratch | **uklizeno** | Po sérii žádné `sanjbox-c3-run-*`/`sanjbox-c3-link-*` zbytky. Vlastní build/cache/tmp a vývojové logy byly odstraněny z jediného přesně ověřeného nového scratch rootu; žádné cizí či historické důkazy. |
+
+Reprodukce build/test a producer vektorů: [ADAPTER.md](ADAPTER.md). Po stejném buildu:
+
+```bash
+python3 -B spikes/s3-pf/ingress/tools/check-offline-cli.py \
+  "$C3_TMP/build/release/sanjbox-ingress"
+```
+
+Nové fixture testy ověřují skutečný bounded parser a linker: multiline C1 stdout, exact
+common JSONL, unknown/duplicate/escaped keys, vnořené formáty a meze, unbound nálezy i při
+invalid matrix/identity/capture, duplicate/reused flows, obrácenou či změněnou tuple,
+case/run/stage/canary/PID/audit/membership nesoulady, source hash a line provenance,
+oddělení originů, wildcard/IPv6 literal canonicalization, explicitní mapped/scoped omezení,
+capture ID/interface/oracle/clock/run/family podvrhy, chybějící lifecycle/packet binding,
+loss/gap/clock jump/unknown bounds, příliš krátký drain a opožděný zero-byte close v drainu.
+
+Vývojové neúspěchy se nezamlčují: první rozšířená kompilace odhalila omezení Swift Testing
+makra s keypath predikátem (`allSatisfy`); nahrazeno ekvivalentní explicitní closure. Další
+série odmítla validní fractional timestamps, protože reformatování parsed Date dokázalo
+znovu useknout 1 ms. Oprava validuje celé UTC calendar seconds a zachová literal ms; samostatná
+regrese pokrývá `.009`, `.010`, `.201`, `.999` a odmítá neplatná data/časové formáty. Doplněna
+opačná kontrola matrix packet count → raw packet records, aby podvržený capture ID neskryl
+chybějící odpovídající packet. Finální suite i CLI byly spuštěny po těchto opravách.
+
+**Přesný dílčí závěr:** nyní existuje použitelný offline adapter skutečných producer wire
+výstupů, dostupné receiver tuple/canary/časové a sender context vazby kontroluje a všechny
+parsed contact findings zachovává. Chybějící C1 run/flow/target/canary/interval a common
+identity/capture metadata nedoplňuje. Imported packet JSON není pcap důkaz; identity flags
+ani hash nejsou atestace. Žádný výsledek není automatický pass a žádné S3b/NET/R2/R3 stavy
+se nemění. Důvěryhodný peer handshake, capture provenance, bind policy, skutečný L4,
+fixed-port squatting a plné controls/délky/opakování zůstávají otevřené. C1 se neměnilo,
+proto nebyla znovu spouštěna jeho oddělená Swift/Python suite. Nezávislé review větve následuje
+samostatně; tato sekce je validace implementátora, nikoli již provedené nezávislé review.
