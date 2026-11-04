@@ -303,7 +303,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.A6 | S8 příprava | janfiedler / Codex + Astra | 🟨 | [Částečná příprava](../spikes/s8-signing/README.md): Security kontrola vlastních thin fixtures, přesná identita/session, bounded mock policy/fuzzer, 28 testů, šest service/signing plánů. Chybí SMAppService host, platný same-UID attach oracle a skutečný XPC fuzzer (Contracts/Broker neexistují); S8 i SG-01…11 zůstávají Neověřeno |
 | WP1.A7 | S8 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.B1 | Audit hosta | janfiedler / Codex + Astra | ✅ | [metadata audit](../spikes/s4-host/README.md); 17 syntetických testů, S4/R2/R7 Neověřeno |
-| WP1.B2 | Zpevnění a uninstall | janfiedler / Codex + Astra | 🟨 | Převzato; konzervativní metadata hardening a konfliktní uninstall nad syntetickými stromy; brány Neověřeno |
+| WP1.B2 | Zpevnění a uninstall | janfiedler / Codex + Astra | 🟨 | [Částečný mode-only hardening/uninstall](../spikes/s4-host/HARDENING.md): dry-run, trvalý before/after deník, konflikty a syntetické testy; ACL hardening, host kompatibilita, poslední TOCTOU mezera a S4/RB-09/10 Neověřeno |
 | WP1.B3 | Manifest a topologie | janfiedler / Codex + Astra | ✅ | [návrhový manifest a validátor](../spikes/s4-state/README.md); 21 syntetických testů, skutečná topologie/kvóty/rollback a S4 Neověřeno |
 | WP1.B4 | Snapshot/rollback prototyp | | ⬜ | |
 | WP1.B5 | S4 běh (L3) | uživatel + impl. | ⬜ | |
