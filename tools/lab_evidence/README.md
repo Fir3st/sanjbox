@@ -163,3 +163,24 @@ symlink/hardlink/FIFO rejection, resource limits, permission failures, determini
 file/directory/index replacement, unchanged bytes, CLI output and exit codes.
 They use unique temporary directories and remove only their own fixtures. Linux
 Python 3.11 CI already discovers `tools/tests`; no dependency or CI change is needed.
+
+## Validation history
+
+- Initial implementation `3f94c0966fc73fbfce5b5f5230bb3b08e107f685`: **56/56** tool
+  tests passed on macOS Python 3.9.6, no skips. The documented M1 CLI reported
+  21 files / 29,230 bytes / 12 JSON files, structural consistency, declared S1
+  `Neověřeno` and acceptance `unverified`.
+- 2026-11-05, review fixes: manifests split only on literal LF and reject control
+  or Unicode line separators, including otherwise correct manifests that retain
+  their final LF. Gate context ends at unrelated H1/H2 headings; nested H3–H6
+  headings retain the current section. Only recognized level-two ATX gate headings
+  establish/reopen it. Setext H1/H2 headings end it without establishing a gate;
+  standalone thematic breaks and fenced heading examples do not end it. Primary
+  rows outside their gate remain reported but cannot satisfy index membership.
+  Added five regression tests, including CLI failure and preserved original bytes.
+  The full suite passed **61/61** on macOS Python 3.9.6, no skips; the exact
+  documented M1 JSON command still reported 21 files / 29,230 bytes / 12 JSON,
+  `Neověřeno` and `unverified`. Prior evidence, manifests, reviews and the index
+  were unchanged. Unique temporary fixtures were cleaned; no bytecode/build
+  artifacts were created. The limited Markdown dialect and scientific/provenance
+  limitations above remain unchanged; Linux verification belongs to existing CI.

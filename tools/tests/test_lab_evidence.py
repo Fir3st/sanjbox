@@ -133,6 +133,37 @@ class EvidenceTests(unittest.TestCase):
         (self.run / "manifest.sha256").write_text("0" * 64 + "  raw/sample.json")
         self.assert_code(self.check(), "incomplete_manifest")
 
+    def test_manifest_rejects_non_lf_separators_without_normalizing_bytes(self):
+        # Each fixture is otherwise the complete, correct-hash manifest. Preserve
+        # its final LF so this specifically tests internal separator acceptance.
+        (self.run / "raw/ASCII_Example-01.txt").write_bytes(b"synthetic fixture\n")
+        self.manifest()
+        manifest = self.run / "manifest.sha256"
+        original = manifest.read_bytes()
+        self.assertEqual(self.check()["structural_status"], "consistent")
+        records = original.decode("ascii")[:-1].split("\n")
+        for separator in ("\v", "\f", "\x1c", "\x1d", "\x1e", "\x85", "\u2028", "\u2029",
+                          "\r", "\r\n", "\t", "\x00", "\x7f"):
+            with self.subTest(separator=repr(separator)):
+                data = (separator.join(records) + "\n").encode("utf-8")
+                manifest.write_bytes(data)
+                report = self.check()
+                self.assertEqual(report["structural_status"], "failed")
+                self.assertEqual(manifest.read_bytes(), data)
+        manifest.write_bytes(original)
+        self.assertEqual(self.check()["structural_status"], "consistent")
+
+    def test_non_lf_manifest_is_a_cli_failure(self):
+        manifest = self.run / "manifest.sha256"
+        original = manifest.read_bytes()
+        manifest.write_bytes(original[:-1].replace(b"\n", b"\xc2\x85") + b"\n")
+        result = subprocess.run([sys.executable, "-B", "-m", "tools.lab_evidence", "--root", str(self.root),
+                                 "--run", self.selection, "--format", "json"],
+                                cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["structural_status"], "failed")
+        self.assertEqual(result.stderr, "")
+
     def test_canonical_selection_and_duplicate_ids(self):
         for selection in ("s1/../" + RUN_A, "s1//" + RUN_A, "/s1/" + RUN_A, "s9/" + RUN_A,
                           "s1/" + RUN_A.replace("1104", "0230")):
@@ -387,6 +418,38 @@ class EvidenceTests(unittest.TestCase):
         index.write_text(index.read_text().replace("## S1", "## S0"))
         self.assert_code(self.check(index=index), "index_gate_mismatch")
         self.assert_code(self.check(index=self.index([self.row().replace("/verdict.md", "/absent.md")])), "index_target_missing")
+
+    def test_index_primary_outside_gate_section_does_not_establish_membership(self):
+        self.make_run("s1/" + RUN_B)
+        for boundary in ("## Appendix", "# Appendix", "  ## Appendix ###", "##", "# S1 — Appendix",
+                         "## S10 — Appendix", "## S1-invalid", "Appendix\n---", "Appendix\n==="):
+            with self.subTest(boundary=boundary):
+                index = self.index([self.row(), boundary, self.row(RUN_B)])
+                report = self.check([self.selection, "s1/" + RUN_B], index)
+                self.assertEqual(report["structural_status"], "failed")
+                self.assertEqual(report["runs"][0]["structural_status"], "consistent")
+                codes = {f["code"] for f in report["runs"][1]["findings"]}
+                self.assertIn("index_gate_mismatch", codes)
+                self.assertIn("index_run_missing", codes)
+                self.assertEqual(report["runs"][1]["index_records"][0]["declared_verdict"], "Neověřeno")
+
+    def test_index_nested_headings_preserve_genuine_rows_and_reviews(self):
+        review = self.row().replace("běh: mock", "review")
+        index = self.index(["### Runs", self.row(), "#### S0 — nested discussion", review,
+                            "", "---", "", "```markdown", "## Appendix", "```"])
+        report = self.check(index=index)
+        self.assertEqual(report["structural_status"], "consistent")
+        self.assertEqual([r["primary_run"] for r in report["runs"][0]["index_records"]], [True, False])
+        self.assertEqual([r["declared_verdict"] for r in report["runs"][0]["index_records"]],
+                         ["Neověřeno", "Neověřeno"])
+
+    def test_index_only_recognized_gate_heading_can_reopen_a_section(self):
+        index = self.index(["## Appendix", "### S1 — nested heading", self.row()])
+        report = self.check(index=index)
+        self.assert_code(report, "index_gate_mismatch")
+        self.assert_code(report, "index_run_missing")
+        index = self.index(["## Appendix", "  ## S1 — reopened ###", self.row()])
+        self.assertEqual(self.check(index=index)["structural_status"], "consistent")
 
     def test_index_malformed_links_and_unknown_outcomes(self):
         self.assert_code(self.check(index=self.index([self.row(verdict="Almost")])), "unknown_or_ambiguous_index_verdict")

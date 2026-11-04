@@ -378,7 +378,11 @@ def check_manifest(files, report):
     manifest = {}
     if not source.endswith("\n"):
         raise CheckError("incomplete_manifest", path="manifest.sha256")
-    for line in source.splitlines():
+    # str.splitlines() also recognizes VT, NEL and Unicode line separators;
+    # accepting them would silently widen the documented LF-only wire format.
+    if re.search(r"[\x00-\x09\x0b-\x1f\x7f-\x9f\u2028\u2029]", source):
+        raise CheckError("malformed_manifest", path="manifest.sha256")
+    for line in source[:-1].split("\n"):
         match = re.fullmatch(r"([0-9a-f]{64})  (.+)", line)
         if not match:
             raise CheckError("malformed_manifest", path="manifest.sha256")
@@ -534,15 +538,34 @@ def check_index(data, runs, available):
     counts = {selection: 0 for selection in runs}
     record_count = 0
     reference_count = 0
+    previous_text = False
     for number, line in enumerate(source.splitlines(), 1):
         if line.lstrip().startswith(("```", "~~~")):
             fenced = not fenced
+            previous_text = False
             continue
         if fenced:
             continue
-        match = re.match(r"## (S(?:[0-8]|3b))\b", line)
-        if match:
-            heading = match.group(1).lower()
+        # Only actual level-two ATX gate headings establish a gate section.
+        # Level-one/two headings close it; deeper headings remain inside it.
+        atx = re.fullmatch(r" {0,3}(#{1,6})(?:[ \t]+(.*))?", line)
+        if atx:
+            if len(atx.group(1)) <= 2:
+                heading = None
+                if len(atx.group(1)) == 2:
+                    title = re.sub(r"[ \t]+#+[ \t]*$", "", atx.group(2) or "").strip()
+                    gate_title = re.match(r"(S(?:[0-8]|3b))(?=$|[ \t])", title)
+                    if gate_title:
+                        heading = gate_title.group(1).lower()
+            previous_text = False
+            continue
+        # Setext H1/H2 headings also end a section, but are not part of the
+        # supported gate-heading dialect. A standalone thematic break does not.
+        if previous_text and re.fullmatch(r" {0,3}(?:=+|-+)[ \t]*", line):
+            heading = None
+            previous_text = False
+            continue
+        previous_text = bool(line.strip()) and not line.startswith("|")
         if not line.startswith("|"):
             continue
         # Only selected rows are in scope. Other runs are neither opened nor ranked.
@@ -571,7 +594,7 @@ def check_index(data, runs, available):
                 continue
             if heading != gate:
                 finding(report, "index_gate_mismatch", path="spikes.md")
-            if primary:
+            if primary and heading == gate:
                 counts[selection] += 1
             verdicts = re.findall(r"(?<!\w)(?:Prošlo|Neprošlo|Nejasné|Neověřeno)(?!\w)", cells[4])
             if len(verdicts) != 1:
