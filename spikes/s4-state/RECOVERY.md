@@ -88,12 +88,23 @@ různými UID: fyzická cesta je oddělená, bezpečnostní izolace zatím není
 - Deník je append-only, exkluzivní `O_EXCL` create, `0600`, kanonický sorted-key JSON + newline.
   Hash chain váže pořadí na manifest a transakci; schema, exact phase, volume IDs a receipt names
   se kontrolují. Mezery v pořadí, unknown/duplicate JSON keys, změna hashů a cizí entries jsou chyba.
+  Kanonické bytes ani správný hash samy o sobě nedokazují, že dřívější flush uspěl.
 - Nejvýše 100 eventů (16 svazků), nejvýše 128 entries na adresář, nejvýše 64 KiB na JSON záznam,
   depth 16, 128 prvků/klíčů a 4096 B string podle společného B3 preflightu. Model images mají
   nejvýše 65 entries, path 1024 B a value 256 B. B3 vstup manifestu zůstává 256 KiB, ale mock jej
   pro uložení do control musí umět zakódovat do 64 KiB. Větší návrh konzervativně odmítne.
-- Zápis: `fsync` + `F_FULLFSYNC` souboru, `fsync` parenta, znovu `F_FULLFSYNC`; chyba znamená stop.
-  Záznamy se nepřepisují. `flock(LOCK_EX | LOCK_NB)` chrání souběh spolupracujících instancí.
+- Zápis: `fsync` + `F_FULLFSYNC` souboru, `fsync` jeho adresáře a adresářů kořene fixture i
+  `/private/tmp`, znovu `F_FULLFSYNC`; chyba uzamkne aktuální instanci do deny, i když na disku
+  již leží úplný `verified` záznam. Stejnou instanci nelze resetovat ani použít k úklidu.
+- Nová zamčená instance před přijetím každého dosud neověřeného receipt provede znovu celý flush
+  souboru a uvedených directory bindings. Před/po ověří přesný inode, metadata, ctime a obsah.
+  Týká se lock souboru, identity, policy, manifestu, celého deníku i všech používaných snapshotů, obrazů a selektorů.
+  `inspect()` tedy může provést durable I/O; není to jen čtení hashů. Opakovaná chyba znovu uzamkne deny.
+- Úspěšný reflush celého konzistentního stavu umožní zotavení po předchozí chybě flush. Není to
+  tvrzení, že původní flush uspěl. Neúplný/poškozený záznam a pending intent zůstávají odmítnuté.
+  Cache platí jen pro přesný receipt úspěšně flushnutý v aktuální instanci; změna identity/bytes/ctime
+  ji zneplatní. Tento postup vyžaduje stále tentýž důvěryhodný výlučný namespace.
+- Záznamy se nepřepisují. `flock(LOCK_EX | LOCK_NB)` chrání souběh spolupracujících instancí.
 
 Host namespace musí být důvěryhodný a výlučný. Hash chain není podpis ani ochrana proti přepsání
 host vlastníkem. Descriptor checks nejsou atomický filesystem snapshot: mezi poslední kontrolou
@@ -141,7 +152,7 @@ fixtures. Pád celého test runneru může ponechat fixture k samostatnému poso
 |---|---|---|
 | RB-02/05 | Witness preconditions a stale/lost witness testy | Skutečné whole-UID quiescence, fork/job race, fully-off a fd/mapping closure |
 | RB-03/04 | Restore všech rolí a odstranění inertního startup kanárku v JSON modelu | Native APFS writable reconstruction a skutečné kanárky/app crash consistency |
-| RB-06/07 | 31 procesních crash bodů, fresh-process inspect/recovery, smíšené volume bindingy | APFS/device/power-loss chyby, reboot recovery, OS start interlock |
+| RB-06/07 | 31 procesních crash bodů, 6 injected flush-error hranic, fresh-process deny/reflush recovery, smíšené bindingy | Skutečné APFS/device/power-loss chyby, reboot recovery, OS start interlock |
 | RB-08 | Policy/manifest/control mimo modelovanou obnovu, kontrola driftu | Root ownership a nepřístupnost z UID oblasti, durable host-side produkční záznam |
 
 Žádné automatické testy tohoto balíku neuzavírají bránu. Přesné příkazy, vývojové neúspěchy,

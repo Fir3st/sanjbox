@@ -29,9 +29,20 @@ private func stamp(_ fd: Int32, directory: Bool) throws -> RecoveryStamp {
                  changeNanos: directory ? 0 : Int64(s.st_ctimespec.tv_nsec))
 }
 
-private func recoveryFlush(_ fd: Int32, directory: Int32) throws {
-    guard fsync(fd) == 0, fcntl(fd, F_FULLFSYNC) == 0, fsync(directory) == 0, fcntl(fd, F_FULLFSYNC) == 0
-    else { throw RecoveryFailure("durable flush failed; retain fixture and deny start") }
+private func recoveryFlush(_ fd: Int32, directory: Int32, ancestors: [Int32] = [],
+                           beforeStep: (String) throws -> Void = { _ in }) throws {
+    try beforeStep("file-fsync")
+    guard fsync(fd) == 0 else { throw RecoveryFailure("durable file fsync failed") }
+    try beforeStep("file-fullfsync")
+    guard fcntl(fd, F_FULLFSYNC) == 0 else { throw RecoveryFailure("durable file fullfsync failed") }
+    try beforeStep("directory-fsync")
+    guard fsync(directory) == 0 else { throw RecoveryFailure("durable directory fsync failed") }
+    for (index, ancestor) in ancestors.enumerated() {
+        try beforeStep("ancestor-\(index)-fsync")
+        guard fsync(ancestor) == 0 else { throw RecoveryFailure("durable ancestor fsync failed") }
+    }
+    try beforeStep("final-fullfsync")
+    guard fcntl(fd, F_FULLFSYNC) == 0 else { throw RecoveryFailure("durable final fullfsync failed") }
 }
 
 private func bootIdentity() throws -> String {
@@ -55,6 +66,10 @@ final class RecoveryStore {
     let manifest: Manifest
     private let rootName: String
     private let identityReceipt: RecoveryReceipt
+    private var durableReceipts: [String: RecoveryReceipt] = [:]
+    private var failedDurability = false
+    // Internal deterministic fault injection only; there is no production CLI fault switch.
+    var beforeFlush: (String, String) throws -> Void = { _, _ in }
 
     static func create(manifest: Manifest) throws -> RecoveryStore {
         guard getuid() == geteuid(), geteuid() != 0, Validator().validate(manifest).consistentDesign else {
@@ -142,6 +157,7 @@ final class RecoveryStore {
     deinit { for fd in [lockFD, stateFD, controlFD, rootFD, parentFD] { close(fd) } }
 
     func verify() throws {
+        guard !failedDurability else { throw RecoveryFailure("durability failure latched; deny start and reopen for explicit revalidation") }
         guard try stamp(rootFD, directory: true) == identity.root,
               try stamp(controlFD, directory: true) == identity.control,
               try stamp(stateFD, directory: true) == identity.state,
@@ -151,8 +167,9 @@ final class RecoveryStore {
             guard fstatat(parent, name, &named, AT_SYMLINK_NOFOLLOW) == 0, fstat(fd, &pinned) == 0,
                   named.st_dev == pinned.st_dev, named.st_ino == pinned.st_ino else { throw RecoveryFailure("mock directory or lock binding replaced") }
         }
+        _ = try readDurable(area: "control", name: "lock")
         for expected in [identityReceipt, identity.manifest, identity.policy] {
-            guard try Self.read(area: expected.area, name: expected.name, fd: controlFD).1 == expected else { throw RecoveryFailure("host control changed") }
+            guard try readDurable(area: expected.area, name: expected.name).1 == expected else { throw RecoveryFailure("host control changed") }
         }
     }
 
@@ -165,19 +182,55 @@ final class RecoveryStore {
 
     func read(_ receipt: RecoveryReceipt) throws -> Data {
         try verify()
-        let pair = try Self.read(area: receipt.area, name: receipt.name, fd: fd(receipt.area))
+        let pair = try readDurable(area: receipt.area, name: receipt.name)
         guard pair.1 == receipt else { throw RecoveryFailure("recorded object changed: \(receipt.name)") }
         return pair.0
     }
     func read(area: String, name: String) throws -> (Data, RecoveryReceipt) {
         try verify()
-        return try Self.read(area: area, name: name, fd: fd(area))
+        return try readDurable(area: area, name: name)
     }
     func write<T: Encodable>(_ value: T, area: String, name: String) throws -> RecoveryReceipt {
         try verify()
-        let receipt = try Self.write(value, area: area, name: name, fd: fd(area))
+        let receipt = try Self.write(value, area: area, name: name, fd: fd(area)) { descriptor, parent in
+            try self.flush(descriptor, directory: parent, context: "write:\(area)/\(name)")
+        }
+        durableReceipts[area + "/" + name] = receipt
         try verify()
         return receipt
+    }
+
+    private func flush(_ descriptor: Int32, directory: Int32, context: String) throws {
+        do {
+            try recoveryFlush(descriptor, directory: directory, ancestors: [rootFD, parentFD]) {
+                try self.beforeFlush(context, $0)
+            }
+        } catch {
+            failedDurability = true
+            throw error
+        }
+    }
+
+    /// Complete canonical bytes are not evidence that an earlier writer's flush succeeded. A fresh
+    /// session must flush each exact receipt, its directory and ancestor bindings before accepting it.
+    /// Cache only the identity/content/ctime that was successfully flushed in this locked session.
+    private func readDurable(area: String, name: String) throws -> (Data, RecoveryReceipt) {
+        guard !failedDurability else { throw RecoveryFailure("durability failure latched; deny start") }
+        let parent = try fd(area)
+        let pair = try Self.read(area: area, name: name, fd: parent)
+        let key = area + "/" + name
+        if durableReceipts[key] == pair.1 { return pair }
+        let descriptor = openat(parent, name, O_RDONLY | O_NOFOLLOW_ANY | O_NONBLOCK | O_CLOEXEC)
+        guard descriptor >= 0 else { throw RecoveryFailure("revalidation descriptor unavailable") }
+        defer { close(descriptor) }
+        guard try stamp(descriptor, directory: false) == pair.1.stamp else { throw RecoveryFailure("record changed before durable revalidation") }
+        try flush(descriptor, directory: parent, context: "revalidate:" + key)
+        guard try Self.read(area: area, name: name, fd: parent).1 == pair.1 else {
+            failedDurability = true
+            throw RecoveryFailure("record changed across durable revalidation; deny start")
+        }
+        durableReceipts[key] = pair.1
+        return pair
     }
 
     private static func read(area: String, name: String, fd parent: Int32) throws -> (Data, RecoveryReceipt) {
@@ -202,7 +255,8 @@ final class RecoveryStore {
         return (data, .init(area: area, name: name, stamp: after, digest: recoveryHash(data)))
     }
 
-    private static func write<T: Encodable>(_ value: T, area: String, name: String, fd parent: Int32) throws -> RecoveryReceipt {
+    private static func write<T: Encodable>(_ value: T, area: String, name: String, fd parent: Int32,
+                                            flush: (Int32, Int32) throws -> Void = { try recoveryFlush($0, directory: $1) }) throws -> RecoveryReceipt {
         guard validName(name) else { throw RecoveryFailure("invalid record filename") }
         let data = try recoveryEncode(value)
         let fd = openat(parent, name, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW_ANY | O_CLOEXEC, 0o600)
@@ -217,7 +271,7 @@ final class RecoveryStore {
                 offset += n
             }
         }
-        try recoveryFlush(fd, directory: parent)
+        try flush(fd, parent)
         return try read(area: area, name: name, fd: parent).1
     }
 
@@ -250,7 +304,7 @@ final class RecoveryStore {
         let fd = openat(stateFD, before.name, O_RDONLY | O_NOFOLLOW_ANY | O_CLOEXEC)
         guard fd >= 0 else { throw RecoveryFailure("switched selector unavailable") }
         defer { close(fd) }
-        try recoveryFlush(fd, directory: stateFD)
+        try flush(fd, directory: stateFD, context: "switch:state/" + before.name)
         let after = try read(area: "state", name: before.name).1
         guard after.stamp.inode == prepared.stamp.inode, after.stamp.device == prepared.stamp.device,
               after.digest == prepared.digest else { throw RecoveryFailure("unexpected selector after switch") }

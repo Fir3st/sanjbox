@@ -60,7 +60,7 @@ Při opakování zvol nový vlastní cache adresář; výše uvedený byl po bě
 Testy samy generují `/private/tmp/sanjbox-b4-mock.XXXXXX` a odstraňují jen identitou ověřené vlastní
 fixtures. Produkční CLI default dry-run i `--apply` jsou testované přes shell wrapper.
 
-## Výsledky a oracle
+## Původní ověření před nezávislým review
 
 - Finální plná Release sada: **40 XCTest metod, 0 failures**, 24,222 s (19 B4 + 21 původních B3).
 - Po závěrečné úpravě idempotence cleanupu: oba dotčené Release testy prošly (1,701 s).
@@ -104,11 +104,52 @@ případy a finální plná sada 40 metod znovu prošla. Po idempotentním clean
 přímo ovlivněné metody. Finální kontrola zahrnula newline do 64 KiB encoded limitu a přidala
 hraniční store/decode regresi; spolu s existující corruption regresí se spustily cíleně. Žádné testovací selhání nebylo přejmenováno na prošlý výsledek.
 
+## Oprava po nezávislém review: chyba flush
+
+Review zjistilo, že původní writer mohl zanechat úplné kanonické `verified` bytes i po chybě
+`fsync`/`F_FULLFSYNC`; původní reader je zaměňoval za durable completion. Oprava uzamkne aktuální
+instanci do deny a při novém otevření vyžaduje skutečný úspěšný reflush každého relevantního receipt
+včetně jeho adresáře, kořene fixture a `/private/tmp`. Cache platí jen pro přesný již flushnutý receipt
+aktuální instance. Kanonický obsah sám již není potvrzení durability.
+
+Regrese vytváří právě původní nebezpečný stav: úplný `015.json` s `phase: verified` a následně
+injektovanou chybu na každé z šesti syscall hranic (file fsync, file fullfsync, directory fsync,
+fixture-root fsync, temp-parent fsync, final fullfsync). Kontroluje deny stejné instance i po vypnutí
+fault hooku. Pro každou hranici nový proces znovu injektuje chybu při revalidation a musí zůstat deny;
+druhý nový proces bez chyby musí nejdřív úspěšně flushnout lock/identity/policy/manifest, všech 16 eventů,
+oba snapshoty, restored obrazy a aktuální selektory, teprve potom smí vrátit mock allow. Celkem
+12 dalších subprocessů. Produkční CLI stále nemá fault switch.
+
+Použita nová vlastní cache s uloženým UID/device/inode. Přesné příkazy z kořene B4:
+
+```bash
+env CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-b4-flush-build.bdnuii7m/module \
+  SWIFTPM_MODULECACHE_OVERRIDE=/private/tmp/sanjbox-b4-flush-build.bdnuii7m/module \
+  swift test -c release --package-path spikes/s4-state \
+  --scratch-path /private/tmp/sanjbox-b4-flush-build.bdnuii7m/build \
+  --cache-path /private/tmp/sanjbox-b4-flush-build.bdnuii7m/cache --disable-sandbox \
+  --filter RecoveryTests/testCompleteVerifiedBytesAfterEveryFlushFailureDenyUntilFreshSuccessfulRevalidation
+
+env CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-b4-flush-build.bdnuii7m/module \
+  SWIFTPM_MODULECACHE_OVERRIDE=/private/tmp/sanjbox-b4-flush-build.bdnuii7m/module \
+  swift test -c release --package-path spikes/s4-state \
+  --scratch-path /private/tmp/sanjbox-b4-flush-build.bdnuii7m/build \
+  --cache-path /private/tmp/sanjbox-b4-flush-build.bdnuii7m/cache --disable-sandbox
+```
+
+Focused flush-error regrese prošla: 1 metoda, 0 failures, 5,048 s. Finální plná Release sada po
+zahrnutí lock souboru prošla: **42 metod, 0 failures, 27,574 s** (21 B4 + 21 zachovaných B3).
+Původních 31 crash/restart scénářů, CLI a všechny konfliktní/bounded-input testy znovu prošly.
+`git diff --check` a oba `bash -n` wrapper checks: exit 0. Druhá vlastní 130 MiB cache byla po
+kontrole uložené identity odstraněna; žádné B4 mock fixtures ani archivy nezůstaly.
+
+Injektované chyby testují error paths; nejsou měřením skutečné chyby zařízení, ztráty napájení nebo pravdivosti filesystemového flush API.
+
 ## Omezení
 
 Není implementován nativní APFS snapshot/writable reconstruction/mount switch ani OS whole-UID
 lifecycle/start interlock. Caller-owned sibling control není root-owned ochrana proti oblasti.
-Není měřen fyzický výpadek napájení, zařízení/flush failure, reboot recovery, aplikační crash
+Není měřen fyzický výpadek napájení, skutečná chyba zařízení/flush, reboot recovery, aplikační crash
 consistency, skutečné fd/mappings, nové mounty ani současné tři oblasti. Poslední check/rename
 nebo check/unlink interval vyžaduje důvěryhodný výlučný namespace; nejde o atomický CAS.
 Pending intent vyžaduje ruční posouzení; automatická oprava všech přerušení není prokázána.

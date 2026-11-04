@@ -283,6 +283,39 @@ final class RecoveryTests: XCTestCase {
         XCTAssertFalse(otherEngine.inspect().mockStartAllowed)
     }
 
+    private var flushBoundaries: [String] {
+        ["file-fsync", "file-fullfsync", "directory-fsync", "ancestor-0-fsync", "ancestor-1-fsync", "final-fullfsync"]
+    }
+    func testCompleteVerifiedBytesAfterEveryFlushFailureDenyUntilFreshSuccessfulRevalidation() throws {
+        for boundary in flushBoundaries {
+            let f = try fixture()
+            try exerciseFailedVerifiedWrite(f, boundary: boundary)
+            // Each child is a fresh process with an empty durability cache.
+            try child(f, point: boundary, mode: "flush-denied", expected: 0)
+            try child(f, point: boundary, mode: "flush-healthy", expected: 0)
+        }
+    }
+    private func exerciseFailedVerifiedWrite(_ fixture: RecoveryFixture, boundary: String) throws {
+        let (store, backend, engine) = try fixture.open()
+        try engine.takeSnapshot(); try backend.simulateChanges()
+        var injected = false
+        store.beforeFlush = { context, step in
+            if context == "write:control/015.json", step == boundary {
+                injected = true
+                throw RecoveryFailure("injected durable syscall failure: " + boundary)
+            }
+        }
+        XCTAssertThrowsError(try engine.rollback())
+        XCTAssertTrue(injected, boundary)
+        // The regression requires the original dangerous condition: complete canonical final bytes exist.
+        let data = try Data(contentsOf: URL(fileURLWithPath: fixture.path + "/control/015.json"))
+        XCTAssertEqual(try recoveryDecode(RecoveryEvent.self, data).phase, "verified")
+        XCTAssertFalse(engine.inspect().mockStartAllowed, boundary)
+        store.beforeFlush = { _, _ in }
+        XCTAssertFalse(engine.inspect().mockStartAllowed, "failure must remain latched in the same store")
+        XCTAssertThrowsError(try engine.rollback())
+    }
+
     func testCrashEveryPhaseAndMutationWindowThenFreshProcessRecovery() throws {
         var points = ["before-begun", "after-begun", "after-snapshot-ready", "before-restore-begun", "after-restore-begun", "before-verified", "after-verified"]
         for phase in ["snapshot", "prepare", "switch"] {
@@ -312,6 +345,39 @@ final class RecoveryTests: XCTestCase {
         guard let path = env["SANJBOX_B4_TEST_PATH"], let point = env["SANJBOX_B4_TEST_POINT"], let mode = env["SANJBOX_B4_TEST_MODE"] else { return }
         let store = try RecoveryStore(reopening: path), backend = FileBackedRecoveryMock(store: store)
         let engine = RecoveryCoordinator(store: store, backend: backend)
+        if mode == "flush-denied" {
+            var injected = false
+            store.beforeFlush = { context, step in
+                if context == "revalidate:control/015.json", step == point {
+                    injected = true
+                    throw RecoveryFailure("injected persistent reflush error")
+                }
+            }
+            XCTAssertFalse(engine.inspect().mockStartAllowed)
+            XCTAssertTrue(injected, point)
+            store.beforeFlush = { _, _ in }
+            XCTAssertFalse(engine.inspect().mockStartAllowed, "failed revalidation must latch")
+            XCTAssertThrowsError(try engine.rollback())
+            return
+        }
+        if mode == "flush-healthy" {
+            var observed: [String: Set<String>] = [:]
+            store.beforeFlush = { context, step in observed[context, default: []].insert(step) }
+            let report = engine.inspect()
+            XCTAssertTrue(report.mockStartAllowed, report.reason)
+            XCTAssertFalse(report.realStartAllowed)
+            var required = ["lock", "identity.json", "manifest.json", "policy.json"].map { "revalidate:control/" + $0 }
+            required += (0..<16).map { String(format: "revalidate:control/%03d.json", $0) }
+            for volume in ["state", "tools"] {
+                required += ["snapshot", "restored", "slot"].map { "revalidate:state/\($0)-\(volume).json" }
+            }
+            for context in required { XCTAssertEqual(observed[context], Set(flushBoundaries), context) }
+            // The exact receipts have now been made durable; repeated inspect can use this session's cache.
+            observed.removeAll()
+            XCTAssertTrue(engine.inspect().mockStartAllowed)
+            XCTAssertTrue(observed.isEmpty)
+            return
+        }
         if mode == "crash" {
             engine.hook = { if $0 == point { _exit(77) } }
             try engine.takeSnapshot()
