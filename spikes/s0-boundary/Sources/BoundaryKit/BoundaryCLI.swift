@@ -15,10 +15,9 @@ public enum BoundaryProbe: String, CaseIterable, Sendable {
              "changes": "temporary 127.0.0.1:ephemeral TCP listener and own client; close every socket",
              "missing": "wildcard ingress, host/LAN/other-area reachability, IPv6 and port squatting"]
         case .xpc:
-            ["implemented": "own anonymous NSXPCListener; positive/negative/positive round trips; 2 seconds per reply",
-             "changes": "temporary in-process anonymous listener/client; invalidate both",
-             "mock": "exact request match models authorization; no audit-token authentication",
-             "missing": "global Mach/XPC inventory, cross-session reachability and operation authorization"]
+            ["implemented": "own embedded service/client; exact OS signing requirement plus connection EUID/EGID/ASID",
+             "changes": "activate only bundled fixture service; bounded own record and fixed watchdog exit",
+             "missing": "full peer audit token/auditUID, global inventory, cross-UID/session boundary; explicit bundle/run/hash preregistration required"]
         case .lifecycle:
             ["implemented": "one fixed /bin/cat child, exact stdin/stdout canary, EOF and exclusive waitpid; 2-second I/O deadline",
              "changes": "spawn/reap own child with sanitized environment; timeout signals only its unreaped PID",
@@ -75,7 +74,7 @@ public enum BoundaryCLI {
         probe: BoundaryProbe, arguments: [String],
         capture: (Set<UInt32>) throws -> ProbeContext = ContextCollector.capture,
         validateSignature: () throws -> Bool = { try SigningSelf.observe().policyMatches },
-        perform: (BoundaryProbe) throws -> (BoundaryReport.Status, [String: String]) = perform
+        perform: ((BoundaryProbe) throws -> (BoundaryReport.Status, [String: String]))? = nil
     ) -> BoundaryReport {
         func report(_ status: BoundaryReport.Status, _ details: [String: String],
                     context: ProbeContext? = nil, mismatches: [String] = []) -> BoundaryReport {
@@ -105,7 +104,7 @@ public enum BoundaryCLI {
                     return report(.invalidMeasurement, ["error": "own signature requires hardened runtime and no get-task-allow; no probe interaction performed"], context: context)
                 }
             }
-            let (status, details) = try perform(probe)
+            let (status, details) = try perform?(probe) ?? Self.perform(probe, expected: expected)
             return report(status, details, context: context)
         } catch BoundaryError.conflict(let error) {
             return report(.cleanupRefused, ["error": error, "action": "preserve changed fixture; manual review, no blind recursive delete"], context: context)
@@ -114,10 +113,10 @@ public enum BoundaryCLI {
         }
     }
 
-    private static func perform(_ probe: BoundaryProbe) throws -> (BoundaryReport.Status, [String: String]) {
+    private static func perform(_ probe: BoundaryProbe, expected: BoundaryExpectation) throws -> (BoundaryReport.Status, [String: String]) {
         switch probe {
         case .tcc, .capture: return (.notImplemented, probe.plan)
-        case .xpc: return (.fixturePassed, try XPCFixture.run())
+        case .xpc: return (.fixturePassed, try XPCFixture.run(expected: expected))
         case .ingress: return (.fixturePassed, try LoopbackFixture.run())
         case .signing:
             let observation = try SigningSelf.observe()

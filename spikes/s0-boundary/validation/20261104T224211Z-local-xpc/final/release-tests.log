@@ -1,0 +1,135 @@
+Building for production...
+[0/32] /private/tmp/sanjbox-a4-xpc-validation-7llvvsdo/build/arm64-apple-macosx/release/SanjboxBoundaryPreparationPackageTests.derived/runner.swift
+[1/32] Write sources
+[13/32] Write swift-version--58304C5D6DBC2206.txt
+[15/33] Compiling SanjboxProbeKit Canary.swift
+[16/34] Compiling BoundaryKit BoundaryCLI.swift
+[17/42] Compiling capture_probe main.swift
+[18/42] Compiling tcc_probe main.swift
+[19/42] Compiling xpc_probe main.swift
+[20/42] Compiling ingress_probe main.swift
+[20/42] Write Objects.LinkFileList
+[25/42] Compiling lifecycle_probe main.swift
+[26/42] Compiling xpc_fixture_service main.swift
+[27/42] Compiling host_read_probe main.swift
+[27/42] Write Objects.LinkFileList
+[30/42] Compiling signing_probe main.swift
+[30/42] Write Objects.LinkFileList
+[31/43] Linking capture-probe
+[32/43] Write Objects.LinkFileList
+[33/43] Linking xpc-fixture-service
+[34/43] Linking ingress-probe
+[35/43] Linking tcc-probe
+[36/43] Linking host-read-probe
+[37/43] Linking lifecycle-probe
+[38/43] Linking xpc-probe
+[39/43] Linking signing-probe
+[41/43] Compiling BoundaryKitTests BoundaryTests.swift
+[42/44] Compiling SanjboxBoundaryPreparationPackageTests runner.swift
+[42/44] Write Objects.LinkFileList
+[43/44] Linking SanjboxBoundaryPreparationPackageTests
+Build complete! (19.26s)
+Test Suite 'All tests' started at 2026-11-04 23:42:09.245.
+Test Suite 'SanjboxBoundaryPreparationPackageTests.xctest' started at 2026-11-04 23:42:09.246.
+Test Suite 'BoundaryTests' started at 2026-11-04 23:42:09.246.
+Test Case '-[BoundaryKitTests.BoundaryTests testAbsentWindowIsExplicitAndExact]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testAbsentWindowIsExplicitAndExact]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testActualOwnChildTimeoutTerminatesAndReapsOnlyItsChild]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testActualOwnChildTimeoutTerminatesAndReapsOnlyItsChild]' passed (2.016 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testActualOwnedChildEchoAndReap]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testActualOwnedChildEchoAndReap]' passed (0.016 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testActualOwnedLoopbackRoundTrip]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testActualOwnedLoopbackRoundTrip]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testArbitraryPathPIDServiceAndDuplicateFlagsRejected]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testArbitraryPathPIDServiceAndDuplicateFlagsRejected]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testBoundedJSONRejectsOversizeDepthFloatsTrailingDataAndInvalidUTF8Escapes]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testBoundedJSONRejectsOversizeDepthFloatsTrailingDataAndInvalidUTF8Escapes]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testChildDispositionPrerequisiteRejectsAutoReapingOrCustomHandler]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testChildDispositionPrerequisiteRejectsAutoReapingOrCustomHandler]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testDryRunOfAllSevenProbesDoesNotCollectOrInteract]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testDryRunOfAllSevenProbesDoesNotCollectOrInteract]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testDuplicateEscapedAndNestedKeysAreRejected]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testDuplicateEscapedAndNestedKeysAreRejected]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testEveryMandatoryIdentityFieldRejectsMismatch]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testEveryMandatoryIdentityFieldRejectsMismatch]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testExactIdentityAcceptsCompletePreRegisteredContext]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testExactIdentityAcceptsCompletePreRegisteredContext]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testExtraMissingDuplicateAndUnresolvedGroupsAreInvalid]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testExtraMissingDuplicateAndUnresolvedGroupsAreInvalid]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testInvalidASIDsGroupsRootAndScopeAreRejected]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testInvalidASIDsGroupsRootAndScopeAreRejected]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testMalformedExpectationIsInvalidBeforeCaptureOrInteraction]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testMalformedExpectationIsInvalidBeforeCaptureOrInteraction]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testMismatchPreventsEveryProbeInteraction]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testMismatchPreventsEveryProbeInteraction]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testMissingAuditManagerAndWindowCannotPass]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testMissingAuditManagerAndWindowCannotPass]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testPositiveIdentityInvokesOnlyRequestedProbeOnce]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testPositiveIdentityInvokesOnlyRequestedProbeOnce]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testRawUndecodableEntitlementsAreInvalidNotAnEmptyGrantSet]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testRawUndecodableEntitlementsAreInvalidNotAnEmptyGrantSet]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testSchemaRejectsEveryMissingTopLevelFieldAndUnknownFields]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testSchemaRejectsEveryMissingTopLevelFieldAndUnknownFields]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testSignaturePrerequisiteBlocksEveryImplementedInteraction]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testSignaturePrerequisiteBlocksEveryImplementedInteraction]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testSigningPolicyMockAcceptsRuntimeAndRejectsEitherEntitlementSpelling]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testSigningPolicyMockAcceptsRuntimeAndRejectsEitherEntitlementSpelling]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testUnavailableProbesCannotReportPass]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testUnavailableProbesCannotReportPass]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.BoundaryTests testXPCPreregistrationRequiresCompleteCanonicalFields]' started.
+Test Case '-[BoundaryKitTests.BoundaryTests testXPCPreregistrationRequiresCompleteCanonicalFields]' passed (0.002 seconds).
+Test Suite 'BoundaryTests' passed at 2026-11-04 23:42:11.306.
+	 Executed 23 tests, with 0 failures (0 unexpected) in 2.055 (2.060) seconds
+Test Suite 'FixtureTests' started at 2026-11-04 23:42:11.306.
+Test Case '-[BoundaryKitTests.FixtureTests testAlreadyUnlinkedFileIsAnIdempotentCleanupCase]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testAlreadyUnlinkedFileIsAnIdempotentCleanupCase]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testContentChangeConflictsBeforeAnyUnlink]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testContentChangeConflictsBeforeAnyUnlink]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testDirectoryModeChangeConflictsWithoutDeletingEntries]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testDirectoryModeChangeConflictsWithoutDeletingEntries]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testExtendedACLChangeConflictsBeforeAnyUnlink]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testExtendedACLChangeConflictsBeforeAnyUnlink]' passed (0.003 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testFIFOReplacementDoesNotBlockReadOrCleanup]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testFIFOReplacementDoesNotBlockReadOrCleanup]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testFreshPermissionDenialWithPositiveControlsAndIdempotentCleanup]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testFreshPermissionDenialWithPositiveControlsAndIdempotentCleanup]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testGroupChangeConflictsBeforeAnyUnlink]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testGroupChangeConflictsBeforeAnyUnlink]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testHardlinkRejectedAndCleanupPreservesBothFiles]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testHardlinkRejectedAndCleanupPreservesBothFiles]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testImmutableFlagChangeConflictsBeforeAnyUnlink]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testImmutableFlagChangeConflictsBeforeAnyUnlink]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testModeChangeConflictsBeforeAnyUnlink]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testModeChangeConflictsBeforeAnyUnlink]' passed (0.001 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testRenameOutIsConflictAndDoesNotSearchOrDeleteElsewhere]' started.
+Test Case '-[BoundaryKitTests.FixtureTests testRenameOutIsConflictAndDoesNotSearchOrDeleteElsewhere]' passed (0.002 seconds).
+Test Case '-[BoundaryKitTests.FixtureTests testSymlinkReplacementNeverFollowsTarget]' started.
+Test Case '-[Bowarning: '--build-system native' has been deprecated and will be removed in a future release; please report an issue at https://github.com/swiftlang/swift-package-manager/issues if you are unable to adopt the default build system.
+undaryKitTests.FixtureTests testSymlinkReplacementNeverFollowsTarget]' passed (0.001 seconds).
+Test Suite 'FixtureTests' passed at 2026-11-04 23:42:11.329.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.021 (0.022) seconds
+Test Suite 'XPCFixtureTests' started at 2026-11-04 23:42:11.329.
+Test Case '-[BoundaryKitTests.XPCFixtureTests testCancellationIsTerminalAndLateReplyDoesNotRevive]' started.
+Test Case '-[BoundaryKitTests.XPCFixtureTests testCancellationIsTerminalAndLateReplyDoesNotRevive]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.XPCFixtureTests testCodeHashRequirementIsExactAndCannotInjectSyntax]' started.
+Test Case '-[BoundaryKitTests.XPCFixtureTests testCodeHashRequirementIsExactAndCannotInjectSyntax]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.XPCFixtureTests testDeadlineIsTerminalAndLateReplyDoesNotRevive]' started.
+Test Case '-[BoundaryKitTests.XPCFixtureTests testDeadlineIsTerminalAndLateReplyDoesNotRevive]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.XPCFixtureTests testFirstReplyWinsAndDuplicateCannotReplaceIt]' started.
+Test Case '-[BoundaryKitTests.XPCFixtureTests testFirstReplyWinsAndDuplicateCannotReplaceIt]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.XPCFixtureTests testFixedOperationRejectsCrossRunClaimsUnknownAndOversize]' started.
+Test Case '-[BoundaryKitTests.XPCFixtureTests testFixedOperationRejectsCrossRunClaimsUnknownAndOversize]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.XPCFixtureTests testPolicyRejectsEveryCredentialMismatchAndUnknown]' started.
+Test Case '-[BoundaryKitTests.XPCFixtureTests testPolicyRejectsEveryCredentialMismatchAndUnknown]' passed (0.000 seconds).
+Test Case '-[BoundaryKitTests.XPCFixtureTests testQueuedSuccessCannotEscapeAbsoluteDeadline]' started.
+Test Case '-[BoundaryKitTests.XPCFixtureTests testQueuedSuccessCannotEscapeAbsoluteDeadline]' passed (0.000 seconds).
+Test Suite 'XPCFixtureTests' passed at 2026-11-04 23:42:11.331.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'SanjboxBoundaryPreparationPackageTests.xctest' passed at 2026-11-04 23:42:11.331.
+	 Executed 42 tests, with 0 failures (0 unexpected) in 2.078 (2.085) seconds
+Test Suite 'All tests' passed at 2026-11-04 23:42:11.331.
+	 Executed 42 tests, with 0 failures (0 unexpected) in 2.078 (2.086) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

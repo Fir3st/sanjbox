@@ -1,0 +1,62 @@
+[
+  {
+    "case": "positive-denials-positive",
+    "runID": "D67F7747-75B0-4DEE-A72C-37A13C5627CD",
+    "operations": 2,
+    "clientExit": 0,
+    "serviceExitObserved": true,
+    "serviceExitRecord": true,
+    "clientReaped": true,
+    "fixtureRemoved": true
+  },
+  {
+    "case": "wrong-signature",
+    "runID": "3E73DF86-6112-41AC-9E4D-6FEB2F4A7D2D",
+    "operations": 0,
+    "clientExit": 3,
+    "serviceExitObserved": true,
+    "serviceExitRecord": false,
+    "clientReaped": true,
+    "fixtureRemoved": true
+  },
+  {
+    "case": "wrong-peer-session",
+    "runID": "0BEF889D-A309-403F-91F2-6F107CF706A3",
+    "operations": 0,
+    "clientExit": 3,
+    "serviceExitObserved": true,
+    "serviceExitRecord": false,
+    "clientReaped": true,
+    "fixtureRemoved": true
+  },
+  {
+    "case": "cross-run",
+    "runID": "9BE6E20D-5625-4201-9AF8-D79B8D1F71CE",
+    "operations": 0,
+    "clientExit": 3,
+    "serviceExitObserved": true,
+    "serviceExitRecord": true,
+    "clientReaped": true,
+    "fixtureRemoved": true
+  },
+  {
+    "case": "deadline",
+    "runID": "41D48215-1C20-45DC-AA19-2B129BFA5252",
+    "operations": 0,
+    "clientExit": 3,
+    "serviceExitObserved": true,
+    "serviceExitRecord": true,
+    "clientReaped": true,
+    "fixtureRemoved": true
+  },
+  {
+    "case": "cancel-client",
+    "runID": "04D8AD02-6B66-40BC-9104-9A0B1EA1BA8C",
+    "operations": 0,
+    "clientExit": -15,
+    "serviceExitObserved": true,
+    "serviceExitRecord": false,
+    "clientReaped": true,
+    "fixtureRemoved": true
+  }
+]

@@ -11,7 +11,7 @@ není schválená oblast ani běh L2. Neobsahuje nástroj k libovolnému spušt�
 | CLI | Skutečná operace a oracle | Mock / co tím není doložené |
 |---|---|---|
 | `host-read-probe` | Dva vlastní syntetické soubory v novém UUID adresáři. Čitelný kanárek před a po pokusu; nový `openat` souboru mode `000` musí vrátit `EACCES`/`EPERM`. Ověřený úklid. | Stejné UID; vlastník může změnit mode. Žádná ochrana hosta/jiné oblasti, zápisových kořenů nebo mountů. |
-| `xpc-probe` | Vlastní anonymní `NSXPCListener`, vlastní spojení; pozitivní echo, odmítnutá operace, opět pozitivní echo. Každá odpověď musí přijít do 2 s. | **Autorizace je mock** přesné shody požadavku. Žádný globální Mach název, inventura, audit token, cross-UID/session ani broker. |
+| `xpc-probe` | Vlastní podepsaný embedded XPC service v jiném procesu. OS kontroluje přesný cdhash každé zprávy, server porovnává connection EUID/EGID/ASID; dvě canary operace obklopují čtyři odmítnutí. Nezávislý serverový journal a NOTE_EXIT oracle. | Veřejné NSXPC neposkytuje peer auditUID/plný audit token. Jde o stejný UID/session a vlastní fixture, nikoli cross-session hranici, globální inventuru nebo broker. [Podrobnosti a živý runner](XPC-FIXTURE.md). |
 | `ingress-probe` | Vlastní `127.0.0.1:0` TCP listener a klient, ověření adres/portu protistrany před čtením, přesný kanárek na serveru a ACK u klienta. Celé I/O má deadline 2 s. | Pouze pozitivní kontrola vlastní komunikace. Žádná negativní síťová hranice, `0.0.0.0`, LAN, IPv6 či port squatting. |
 | `lifecycle-probe` | Jediný vlastní `/bin/cat -u`, syntetický vstup, přesný výstup, EOF, úspěšný exit a vlastní `waitpid`. I/O deadline 2 s. | Není odpojený CLI, pauza/vypnutí celého UID, zákaz restartu, forkování nebo launchd job. |
 | `signing-probe` | `SecCodeCopySelf`, validace vlastní běžící signatury bez sítě, flags a přítomnost zakázaného entitlementu. | Jen profil vlastní binárky. Žádná podpisová identita/Keychain, certifikát/Team/trust, TCC persistence, attach, SMAppService ani náhrada WP1.A6. |
@@ -55,7 +55,7 @@ Jediná aktivní syntaxe je:
 host-read-probe --apply --expect-json '<úplné předregistrované JSON očekávání>'
 ```
 
-Ostatní binárky mají stejnou syntax. Žádné souborové `--expect`, `--path`, `--pid`, `--service`,
+Ostatní binárky mají stejnou syntax. XPC navíc vyžaduje vlastní dočasný bundle a pole `xpc` s přesným `runID`, `clientCodeHash`, `serviceCodeHash`; tyto hodnoty připravuje [omezený fixture runner](XPC-FIXTURE.md) před aktivací. Žádné souborové `--expect`, `--path`, `--pid`, `--service`,
 `--command`, volný host/port ani identitní bypass neexistují. Očekávání je inline, nejvýše 16 KiB,
 s přesnými známými klíči, bez duplicitních (včetně escapovaných) JSON klíčů. Čísla jsou nezáporné
 desítkové celé hodnoty, skupiny bez duplicit a konfliktů. Nulové/root UID, nekladný auditSessionID,
@@ -198,7 +198,7 @@ akceptace. Žádný z 155 případů se syntetickými unit testy neuzavírá.
 | ID-03, ID-04, ID-08 | `capture`/`tcc` explicitně unavailable | Syntetická okna/vstupy ve třech session, pozitivní kontrola a nezávislý příjemce |
 | ID-05 | Jen profil vlastní signatury | Attach na vlastní kontrolované testovací targety; vazba na S8 |
 | ID-06 | Nic aktivního | Otevření prázdné fixture aplikace jen v očekávané relaci |
-| ID-07 | Reálný anonymní XPC transport + mock authorization | Inventura globálních Mach/XPC služeb a oprávněnost konkrétních operací |
+| ID-07 | Reálný embedded XPC transport, OS cdhash a connection EUID/EGID/ASID autorizace vlastních fixtures | Inventura globálních Mach/XPC služeb a oprávněnost konkrétních operací |
 | ID-09, ID-10 | `tcc` explicitně unavailable | Hardware politika/testy, AppleEvents a notifikace s kontrolovaným příjemcem |
 | ID-11 | Vlastní TCP/XPC transport jsou jen infrastruktura | Kontrolovaný host agent/socket a skutečné cross-UID odmítnutí |
 | LC-01, LC-02, LC-03, LC-04 | Nic aktivního | LaunchAgent, cron/at, login item/SMAppService a user domain v L2 |

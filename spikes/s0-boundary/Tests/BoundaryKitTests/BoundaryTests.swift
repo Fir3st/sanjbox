@@ -170,15 +170,19 @@ final class BoundaryTests: XCTestCase {
         XCTAssertThrowsError(try SigningSelf.evaluateMetadata([flags: NSNumber(value: 0x10000), decoded: "invalid"]))
         XCTAssertFalse(try SigningSelf.evaluateMetadata([flags: NSNumber(value: 0x10000), decoded: ["get-task-allow": false]]).policyMatches)
     }
-    func testMockXPCPolicyNeedsExactBoundedRequestAndDoesNotLeakOnDenial() {
-        let canary = Data("synthetic-canary".utf8)
-        XCTAssertEqual(FixtureService.response(to: Data("echo:".utf8) + canary, canary: canary), canary)
-        for request in [Data(), Data("echo:wrong".utf8), Data(repeating: 97, count: 129)] {
-            XCTAssertEqual(FixtureService.response(to: request, canary: canary), Data("denied".utf8))
+    func testXPCPreregistrationRequiresCompleteCanonicalFields() throws {
+        var object = expectationObject()
+        let fields = ["runID": "6FD11621-FAD4-4E67-A170-51B66D311E71", "clientCodeHash": String(repeating: "a", count: 40),
+                      "serviceCodeHash": String(repeating: "b", count: 40)]
+        object["xpc"] = fields
+        XCTAssertEqual(try BoundaryExpectation.parse(json(object)).xpc?.runID, fields["runID"])
+        for key in fields.keys {
+            var missing = fields; missing.removeValue(forKey: key); object["xpc"] = missing
+            XCTAssertThrowsError(try BoundaryExpectation.parse(json(object)))
         }
-    }
-    func testActualAnonymousXPCPositiveNegativePositive() throws {
-        XCTAssertEqual(try XPCFixture.run()["positiveControls"], "before and after denial")
+        object["xpc"] = NSNull(); XCTAssertThrowsError(try BoundaryExpectation.parse(json(object)))
+        object["xpc"] = fields.merging(["claimedUID": "501"]) { _, new in new }
+        XCTAssertThrowsError(try BoundaryExpectation.parse(json(object)))
     }
     func testActualOwnedLoopbackRoundTrip() throws {
         XCTAssertEqual(try LoopbackFixture.run()["acknowledgedByClient"], "true")

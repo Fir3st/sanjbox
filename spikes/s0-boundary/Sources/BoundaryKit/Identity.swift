@@ -25,6 +25,7 @@ struct BoundaryExpectation: Codable, Equatable {
     let launchdManagerName: String
     let launchdManagerUID: UInt32
     let window: WindowExpectation?
+    let xpc: XPCFixtureExpectation?
 
     struct WindowExpectation: Codable, Equatable {
         let userID: UInt32
@@ -37,7 +38,7 @@ struct BoundaryExpectation: Codable, Equatable {
         let data = Data(text.utf8)
         try StrictJSON.validate(data)
         guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              Set(object.keys) == Set([
+              Set(object.keys).subtracting(["xpc"]) == Set([
                 "schemaVersion", "scope", "realUID", "effectiveUID", "realGID", "effectiveGID",
                 "kernelGroups", "forbiddenGroups", "auditSessionID", "auditUID",
                 "launchdManagerName", "launchdManagerUID", "window",
@@ -47,7 +48,12 @@ struct BoundaryExpectation: Codable, Equatable {
                   Set(window.keys) == Set(["userID", "auditSessionID", "onConsole", "loginDone"])
             else { throw BoundaryError.invalid("expectation: incomplete window context") }
         }
+        if let xpc = object["xpc"] {
+            guard let fields = xpc as? [String: Any], Set(fields.keys) == Set(["runID", "clientCodeHash", "serviceCodeHash"])
+            else { throw BoundaryError.invalid("incomplete XPC preregistration") }
+        }
         let value = try JSONDecoder().decode(Self.self, from: data)
+        try value.xpc?.validate()
         guard value.schemaVersion == 1, value.scope == "synthetic-self-fixture",
               value.realUID > 0, value.effectiveUID > 0,
               value.realUID != UInt32.max, value.effectiveUID != UInt32.max,

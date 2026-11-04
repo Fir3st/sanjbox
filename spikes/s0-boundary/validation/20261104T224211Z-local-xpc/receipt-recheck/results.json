@@ -1,0 +1,12 @@
+[
+  {
+    "case": "positive-denials-positive",
+    "runID": "D3419874-6B0B-444A-8FB8-15C6447A8D60",
+    "operations": 2,
+    "clientExit": 0,
+    "serviceExitObserved": true,
+    "serviceExitRecord": true,
+    "clientReaped": true,
+    "fixtureRemoved": true
+  }
+]
