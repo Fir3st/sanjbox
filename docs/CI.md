@@ -15,12 +15,16 @@ Samotný workflow merge neblokuje: správce musí ruleset jednorázově aktivova
 | Swift (`balík`, `debug`) | `swift build` všech produktů a `swift test` všech testů balíku |
 | Swift (`balík`, `release`) | Stejné sestavení a testy s optimalizacemi |
 | Python (`tools/tests`) | Testy generátoru webu se stavem vývoje (`tools/progress.py`), Python 3.11 jako workflow webu |
-| CI required | Projde pouze při úspěšném nalezení balíků, všech bězích matice a Python testech |
+| Python (spikes, macOS) | Každý adresář pod `spikes/` s verzovanými `test*.py`, systémový `/usr/bin/python3 -I -B` na stejném macOS runneru jako Swift |
+| CI required | Projde pouze při úspěšném nalezení balíků, všech bězích matice a obou Python jobech |
 
-Aktuálně jde o osm běhů Swift: `spikes/common`, `spikes/s1-session`, `spikes/s4-host`
-a `spikes/s5-gateway`, všechny v debug a release, a jeden běh Python testů.
+K 2026-11-04 jde o dvanáct běhů Swift: `spikes/common`, `spikes/s1-session`, `spikes/s3-pf`,
+`spikes/s4-host`, `spikes/s4-state` a `spikes/s5-gateway`, všechny v debug a release, a dva Python joby.
 Samostatný běh `common` je nutný: `swift test` v gateway nespouští testy jeho závislostí.
 Nový verzovaný Swift balík se přidá automaticky a musí obsahovat testy.
+Python testy spiků běží systémovým Pythonem, pro který jsou psané laboratorní skripty (např.
+`spikes/s3-pf/load.sh`), a smějí používat API dostupná jen na macOS. Nový adresář s `test*.py`
+pod `spikes/` se přidá automaticky. Dokud žádný neexistuje, job to vypíše a projde.
 
 Workflow běží pro každý pull request včetně změn dokumentace, po pushi do `main`, při `merge_group`
 a při ručním spuštění. Nemá filtry cest. Pull request testuje slučovací commit vytvořený GitHubem.
@@ -91,6 +95,9 @@ for package in $(git ls-files -- '*Package.swift' | xargs -n1 dirname); do
   done
 done
 python3 -m unittest discover -s tools/tests
+git ls-files -- ':(glob)spikes/**/test*.py' | sed 's|/[^/]*$||' | sort -u | while IFS= read -r dir; do
+  /usr/bin/python3 -I -B -m unittest discover -s "$dir" || exit
+done
 ```
 
 Seznam balíků se bere ze stejného zdroje jako v CI, takže nový balík se ověří i lokálně.
@@ -102,8 +109,8 @@ a 16 Python testů generátoru webu.
 xUnit XML obsahuje odpovídající
 výsledky; Swift Testing používá příponu `-swift-testing.xml`, která se spolu s ostatními logy
 zahrne do artefaktu. Ověřena byla také syntaxe YAML/JSON a shellových kroků, nalezení Swift balíků
-a všechny kombinace výsledků vstupních jobů (po přidání Python testů 64): povinná kontrola přijímá
-pouze tři úspěchy.
+a všechny kombinace výsledků vstupních jobů (po přidání Python testů spiků 256): povinná kontrola přijímá
+pouze čtyři úspěchy.
 Samotný běh v GitHub Actions a vynucení ochrany se ověří až po nasazení podle postupu výše.
 
 ## Rozsah důkazu a rozšiřování
