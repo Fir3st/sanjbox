@@ -26,6 +26,7 @@ Web bude dostupný po sloučení PR a jednorázové aktivaci Pages správcem;
 | [docs/LAB.md](docs/LAB.md) | Registr strojů, rezervace slotů, návrh metodiky a šablony běhů (F0.8 otevřené) |
 | [docs/spikes.md](docs/spikes.md) | Verdikty bran F1 |
 | [docs/PROGRESS.md](docs/PROGRESS.md) | Web se stavem vývoje, historie, pravidla počítání a nasazení na Pages |
+| [docs/CI.md](docs/CI.md) | Automatické testy v GitHub Actions a povinné kontroly před sloučením PR |
 
 ## Zákaz atribuce v commitech
 
