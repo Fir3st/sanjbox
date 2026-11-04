@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 11 | 7 | 12 | 0 |
+| F1 | 30 | 11 | 8 | 11 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -316,7 +316,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.D3 | API modelů | janfiedler / Codex + Astra | ✅ | `spikes/s5-gateway`: úzký Anthropic text-SSE, pouze syntetický trusted klíč, rate/konečný lokální budget, bounded audit, lazy single-use producer, backpressure/cancellation a HTTPS s oddělenou test CA; 16 nových testů, celkem 61 debug prošlo bez skips. MODEL-API.md vymezuje podmnožinu; F0.7/SDK/live billing neověřené, S5 zůstává Neověřeno |
 | WP1.D4 | Fixtures a mocky | janfiedler / Codex + Astra | ✅ | `spikes/s5-fixtures`: 8 syntetických artefaktů, 40 scénářů vydání, 15 OAuth mocků, 6 redirect fixtures; veřejné D1 API a 33 testů (včetně 3 opt-in skutečných npm testů). D2/D3 adaptéry a S5 integrace neověřené; žádný verdikt brány. |
 | WP1.D5 | PyPI, Homebrew, git | janfiedler / Codex + Astra | 🟨 rozpracováno | [Částečný typed prototyp](../spikes/s5-gateway/TYPED-REGISTRIES.md): PyPI per-file upload-time/hash/cooldown a audit, Git smart HTTP v0 jen projekt, Homebrew bez publication-time vždy odmítne. [Release 101/101](../spikes/s5-gateway/VALIDATION-D5.md), 0 skips; lokální pip download a git clone/push, opraven zděděný deadline race. Brew cooldown nesplněný, live/F0.7/D7 a S5/S6/GW zůstávají Neověřeno. |
-| WP1.D6 | Matice kompatibility | | ⬜ | |
+| WP1.D6 | Matice kompatibility | Codex / Astra | 🟨 rozpracováno | Samostatná příprava `spikes/s5-compatibility`: připnuté podmnožiny, primární zdroje a offline validátor; žádná změna verdiktu S5/GW-19 |
 | WP1.D7 | S5 integrace (L5) | uživatel + impl. | ⬜ | |
 | WP1.E1 | S6 příprava | janfiedler / Codex + Astra | ✅ | `spikes/s6-brew`: pinned top 200 + vzorek 20 testů, offline plán instalací/casků, receipt report, unknown-publication refusal, dry-run prefix scaffold a konzervativní úklid; 46 native Python tests. Příprava hotová, E2 měření neprovedeno; HB-01…07/S6 zůstávají Neověřeno. Viz [VALIDATION](../spikes/s6-brew/VALIDATION.md). |
 | WP1.E2 | S6 běh (L6) | uživatel + impl. | ⬜ | |
