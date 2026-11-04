@@ -1,0 +1,210 @@
+[
+  {
+    "case": "host-root-share",
+    "path": [
+      "zones",
+      0,
+      "shares"
+    ],
+    "value": [
+      {
+        "source": "/",
+        "target": "/host",
+        "read_only": true
+      }
+    ]
+  },
+  {
+    "case": "cross-zone-project",
+    "path": [
+      "zones",
+      0,
+      "project_root"
+    ],
+    "value": "/S7-LAB-ONLY/zones/t002/project"
+  },
+  {
+    "case": "shared-socket",
+    "path": [
+      "zones",
+      1,
+      "socket"
+    ],
+    "value": "/S7-LAB-ONLY/zones/t001/run/docker.sock"
+  },
+  {
+    "case": "remote-builder",
+    "path": [
+      "zones",
+      0,
+      "builder_socket"
+    ],
+    "value": "tcp://example.invalid:2375"
+  },
+  {
+    "case": "root-uid",
+    "path": [
+      "zones",
+      0,
+      "uid"
+    ],
+    "value": 0
+  },
+  {
+    "case": "bool-uid",
+    "path": [
+      "zones",
+      0,
+      "uid"
+    ],
+    "value": true
+  },
+  {
+    "case": "duplicate-uid",
+    "path": [
+      "zones",
+      1,
+      "uid"
+    ],
+    "value": 450
+  },
+  {
+    "case": "duplicate-gid",
+    "path": [
+      "zones",
+      1,
+      "gid"
+    ],
+    "value": 701
+  },
+  {
+    "case": "duplicate-cid",
+    "path": [
+      "zones",
+      1,
+      "vsock_cid"
+    ],
+    "value": 1001
+  },
+  {
+    "case": "reserved-cid",
+    "path": [
+      "zones",
+      0,
+      "vsock_cid"
+    ],
+    "value": 2
+  },
+  {
+    "case": "foreign-daemon",
+    "path": [
+      "zones",
+      0,
+      "daemon_id"
+    ],
+    "value": "mock-daemon-t002"
+  },
+  {
+    "case": "nic",
+    "path": [
+      "zones",
+      0,
+      "nics"
+    ],
+    "value": [
+      "user-v2"
+    ]
+  },
+  {
+    "case": "traversal",
+    "path": [
+      "root"
+    ],
+    "value": "/S7-LAB-ONLY/../Users"
+  },
+  {
+    "case": "shell-path",
+    "path": [
+      "root"
+    ],
+    "value": "/S7-LAB-ONLY;echo"
+  },
+  {
+    "case": "trailing-slash",
+    "path": [
+      "root"
+    ],
+    "value": "/S7-LAB-ONLY/"
+  },
+  {
+    "case": "zone-owned-control",
+    "path": [
+      "control",
+      "owner_uid"
+    ],
+    "value": 450
+  },
+  {
+    "case": "mutable-policy",
+    "path": [
+      "control",
+      "zone_writable"
+    ],
+    "value": true
+  },
+  {
+    "case": "launcher-override",
+    "path": [
+      "control",
+      "launcher_override"
+    ],
+    "value": true
+  },
+  {
+    "case": "generic-relay",
+    "path": [
+      "control",
+      "general_relay"
+    ],
+    "value": true
+  },
+  {
+    "case": "wrong-control-root",
+    "path": [
+      "control",
+      "root"
+    ],
+    "value": "/S7-LAB-ONLY/zones/t001/policy"
+  },
+  {
+    "case": "invented-approved-budget",
+    "path": [
+      "budget",
+      "kind"
+    ],
+    "value": "approved"
+  },
+  {
+    "case": "partial-budget",
+    "path": [
+      "budget",
+      "cold_ms"
+    ],
+    "value": 100
+  },
+  {
+    "case": "wrong-artifact",
+    "path": [
+      "artifacts",
+      "kernel"
+    ],
+    "value": "latest"
+  },
+  {
+    "case": "wrong-kind",
+    "path": [
+      "kind"
+    ],
+    "value": "runtime-pass"
+  }
+]

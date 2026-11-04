@@ -1,0 +1,236 @@
+[
+  {
+    "case": "scoped-pull",
+    "bound_zone": "t001",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t001/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-allow"
+  },
+  {
+    "case": "push",
+    "bound_zone": "t001",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t001/probe",
+      "operation": "push",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "foreign-repo",
+    "bound_zone": "t001",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t999/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "auth-realm",
+    "bound_zone": "t001",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t001/probe",
+      "operation": "pull",
+      "realm": "https://untrusted.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "redirect",
+    "bound_zone": "t001",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t001/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": "https://untrusted.s7.invalid/blob",
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "foreign-auth",
+    "bound_zone": "t001",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t001/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": true
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "scoped-pull",
+    "bound_zone": "t002",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t002/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-allow"
+  },
+  {
+    "case": "push",
+    "bound_zone": "t002",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t002/probe",
+      "operation": "push",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "foreign-repo",
+    "bound_zone": "t002",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t999/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "auth-realm",
+    "bound_zone": "t002",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t002/probe",
+      "operation": "pull",
+      "realm": "https://untrusted.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "redirect",
+    "bound_zone": "t002",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t002/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": "https://untrusted.s7.invalid/blob",
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "foreign-auth",
+    "bound_zone": "t002",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t002/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": true
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "scoped-pull",
+    "bound_zone": "t003",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t003/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-allow"
+  },
+  {
+    "case": "push",
+    "bound_zone": "t003",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t003/probe",
+      "operation": "push",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "foreign-repo",
+    "bound_zone": "t003",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t999/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "auth-realm",
+    "bound_zone": "t003",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t003/probe",
+      "operation": "pull",
+      "realm": "https://untrusted.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "redirect",
+    "bound_zone": "t003",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t003/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": "https://untrusted.s7.invalid/blob",
+      "client_auth": false
+    },
+    "expected": "synthetic-deny"
+  },
+  {
+    "case": "foreign-auth",
+    "bound_zone": "t003",
+    "request": {
+      "registry": "registry.s7.invalid",
+      "repository": "zone/t003/probe",
+      "operation": "pull",
+      "realm": "https://auth.s7.invalid/mock",
+      "redirect": null,
+      "client_auth": true
+    },
+    "expected": "synthetic-deny"
+  }
+]

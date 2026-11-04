@@ -1,0 +1,96 @@
+{
+  "schema": "sanjbox.s7-preparation.v1",
+  "kind": "synthetic-design-only",
+  "root": "/S7-LAB-ONLY",
+  "candidate": "unselected",
+  "control": {
+    "root": "/S7-LAB-ONLY/host-control",
+    "owner_uid": 0,
+    "zone_writable": false,
+    "launcher_override": false,
+    "general_relay": false
+  },
+  "zones": [
+    {
+      "id": "t001",
+      "uid": 450,
+      "gid": 701,
+      "state_root": "/S7-LAB-ONLY/zones/t001",
+      "project_root": "/S7-LAB-ONLY/zones/t001/project",
+      "config_root": "/S7-LAB-ONLY/zones/t001/docker-config",
+      "socket": "/S7-LAB-ONLY/zones/t001/run/docker.sock",
+      "builder_socket": "/S7-LAB-ONLY/zones/t001/run/docker.sock",
+      "daemon_id": "mock-daemon-t001",
+      "vm_id": "mock-vm-t001",
+      "vsock_cid": 1001,
+      "shares": [
+        {
+          "source": "/S7-LAB-ONLY/zones/t001/project",
+          "target": "/project",
+          "read_only": false
+        }
+      ],
+      "nics": []
+    },
+    {
+      "id": "t002",
+      "uid": 451,
+      "gid": 702,
+      "state_root": "/S7-LAB-ONLY/zones/t002",
+      "project_root": "/S7-LAB-ONLY/zones/t002/project",
+      "config_root": "/S7-LAB-ONLY/zones/t002/docker-config",
+      "socket": "/S7-LAB-ONLY/zones/t002/run/docker.sock",
+      "builder_socket": "/S7-LAB-ONLY/zones/t002/run/docker.sock",
+      "daemon_id": "mock-daemon-t002",
+      "vm_id": "mock-vm-t002",
+      "vsock_cid": 1002,
+      "shares": [
+        {
+          "source": "/S7-LAB-ONLY/zones/t002/project",
+          "target": "/project",
+          "read_only": false
+        }
+      ],
+      "nics": []
+    },
+    {
+      "id": "t003",
+      "uid": 452,
+      "gid": 703,
+      "state_root": "/S7-LAB-ONLY/zones/t003",
+      "project_root": "/S7-LAB-ONLY/zones/t003/project",
+      "config_root": "/S7-LAB-ONLY/zones/t003/docker-config",
+      "socket": "/S7-LAB-ONLY/zones/t003/run/docker.sock",
+      "builder_socket": "/S7-LAB-ONLY/zones/t003/run/docker.sock",
+      "daemon_id": "mock-daemon-t003",
+      "vm_id": "mock-vm-t003",
+      "vsock_cid": 1003,
+      "shares": [
+        {
+          "source": "/S7-LAB-ONLY/zones/t003/project",
+          "target": "/project",
+          "read_only": false
+        }
+      ],
+      "nics": []
+    }
+  ],
+  "artifacts": {
+    "runtime": null,
+    "cli": null,
+    "engine": null,
+    "buildkit": null,
+    "kernel": null,
+    "initrd": null,
+    "guest_image": null,
+    "probe_image": null
+  },
+  "budget": {
+    "kind": "unresolved",
+    "cold_ms": null,
+    "warm_ms": null,
+    "stop_ms": null,
+    "samples": null,
+    "statistic": null
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schema": "sanjbox.s7-observations.v1",
+  "kind": "synthetic-only",
+  "manifest_sha256": "414a2c15d2c4b520fb978b9d8d2a8f181358c157c10949b24d0e966515d54516",
+  "observations": [
+    {
+      "scenario": "DK-01/build-copy",
+      "zone": "t001",
+      "attempted": true,
+      "controls_before": true,
+      "controls_after": true,
+      "complete": true,
+      "result": {
+        "exit_code": 0,
+        "output_sha256": "1a5ebe2ac7dbae566072020b326690255dd51da9f0ec9eea61c22102615c4b16",
+        "daemon_id": "mock-daemon-t001"
+      }
+    },
+    {
+      "scenario": "DK-02/mac-root",
+      "zone": "t001",
+      "attempted": true,
+      "controls_before": true,
+      "controls_after": true,
+      "complete": true,
+      "result": {
+        "protected_bytes": 1,
+        "protected_writes": 0,
+        "topology_complete": true
+      }
+    },
+    {
+      "scenario": "DK-05/container-direct",
+      "zone": "t001",
+      "attempted": true,
+      "controls_before": true,
+      "controls_after": true,
+      "complete": true,
+      "result": {
+        "forbidden_bytes": 0,
+        "forbidden_packets": 1,
+        "capture_complete": true,
+        "channels": [
+          "ipv4-tcp",
+          "ipv4-udp",
+          "ipv6-tcp",
+          "ipv6-udp",
+          "dns",
+          "mdns",
+          "quic",
+          "icmp"
+        ]
+      }
+    },
+    {
+      "scenario": "DK-07/wildcard-ipv6",
+      "zone": "t001",
+      "attempted": true,
+      "controls_before": true,
+      "controls_after": false,
+      "complete": true,
+      "result": {
+        "forbidden_bytes": 0,
+        "forbidden_packets": 0,
+        "capture_complete": true,
+        "channels": [
+          "ipv4-tcp",
+          "ipv4-udp",
+          "ipv6-tcp",
+          "ipv6-udp",
+          "dns",
+          "mdns",
+          "quic",
+          "icmp"
+        ]
+      }
+    },
+    {
+      "scenario": "DK-10/cold-start",
+      "zone": "t001",
+      "attempted": true,
+      "controls_before": true,
+      "controls_after": true,
+      "complete": true,
+      "result": {
+        "samples_ms": [
+          1,
+          1,
+          1
+        ],
+        "policy_ready": true,
+        "remaining_processes": 0,
+        "remaining_channels": 0
+      }
+    }
+  ]
+}
