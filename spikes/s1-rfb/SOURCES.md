@@ -1,0 +1,104 @@
+# WP1.A3 — primary sources and evidence boundaries
+
+Access date for every source below: **2026-11-03**. This is source research, not a capture of a macOS
+server or a measurement. Exact source commits were resolved through the public GitHub commits API
+and their raw files inspected over HTTPS. Moving branches/search excerpts are not the pinned evidence.
+No downloaded code was executed, copied into Swift, linked, vendored, or installed.
+
+## S1 — published RFB protocol
+
+[RFC 6143, March 2011](https://www.rfc-editor.org/rfc/rfc6143.html), especially §§7.1–7.7 and Appendix A.
+It is an **Informational RFC**, not an Apple extension specification. It defines version negotiation,
+security negotiation, initialization, pixel format, update requests and Raw rectangles.
+In 3.8, None authentication still receives SecurityResult; 3.3 and 3.7 differ. ClientInit's shared flag
+governs coexistence of clients, not selection of a macOS user. Raw rectangles carry scanline pixels.
+
+Decision derived for this experiment: support only exact 3.8 and a bounded pixel-format/encoding subset.
+Reject 3.3/3.7, unknown/Apple banners and extensions rather than inventing compatible framing. The
+constant byte vectors and Swift parser were authored for this package; no RFC code component was copied.
+
+## S2 — Apple user-session semantics
+
+[Apple: Choose how to control and observe in Remote Desktop](https://support.apple.com/da-dk/guide/remote-desktop/apd4f46319e/mac).
+Apple distinguishes the visible user's desktop from the authenticated account's virtual desktop.
+The documented virtual option lets another logged-in user continue working. If nobody is logged in,
+or the authenticated account already owns the visible session, the documented behavior can share that
+screen instead. This describes **Remote Desktop application behavior**, not the packets a custom client
+should send, and not a universal guarantee for Screen Sharing.app, standard-user accounts, or macOS 27.x.
+
+Consequence: “virtual requested” cannot be treated as proof of non-console identity. The required
+positive UID/audit/bootstrap check is independent of RFB names, flags, success status or pixels.
+This source does not prove three simultaneous accelerated sessions or persistence after disconnect.
+
+## S3 — High Performance is a separate constraint
+
+[Apple: Screen sharing type options, macOS 27](https://support.apple.com/en-ie/guide/mac-help/mchl1883115d/27/mac/27)
+documents at most **one High Performance session per Mac**. It also describes Standard and High
+Performance modes. This is not proof that three standard user sessions work, nor proof they cannot work.
+
+[Apple: Share the screen of another Mac](https://support.apple.com/en-gb/guide/mac-help/mh14066/mac)
+describes one/two configurable virtual **displays** for High Performance, including display layout and
+resolution. Do not conflate those virtual monitors with the **authenticated user desktop** in S2.
+The latter is the session-isolation hypothesis in PLAN; neither page is evidence that S1 passed.
+
+## S4 — primary implementation of ARD authentication
+
+Upstream **noVNC v1.6.0**, commit `a8dfd6a3ea3c74244f5ebdaa5a7f1023007a7820`:
+
+- [core/rfb.js](https://github.com/novnc/noVNC/blob/a8dfd6a3ea3c74244f5ebdaa5a7f1023007a7820/core/rfb.js),
+  `_negotiateARDAuth` and `_negotiateARDAuthAsync` (lines 1798–1866 in the inspected raw file).
+- [License](https://github.com/novnc/noVNC/blob/a8dfd6a3ea3c74244f5ebdaa5a7f1023007a7820/LICENSE.txt):
+  core library MPL-2.0; consulted only, no implementation reuse.
+
+This client reads a two-byte DH generator, two-byte key length, then modulus and server public key of
+that length. It derives a DH shared value, hashes it with MD5 and encrypts a 128-byte credential block
+with AES-ECB. The block has two 64-byte fields with UTF-8 data truncated to 63 bytes plus NUL and random
+padding. It sends encrypted bytes and the client public key, then awaits SecurityResult.
+
+That is evidence of **noVNC's implementation**, not an Apple specification, endorsement of this crypto,
+authenticated server identity, or proof of full-session encryption. It does not establish user-session
+selection. A production implementation needs a separate security review and interoperability evidence;
+hand-rolled crypto or silently using legacy VNC/None is not an acceptable substitute here.
+
+Raw file SHA-256: `563a8c8469dfb55d1deee05262a311637d0e6fe8f65ae34c8222ee22e34e8a93`.
+
+## S5 — original-author implementation lead for Apple selection
+
+**peetinc/noVNC-ARD**, commit `d699293635083c9e0c30c8f9480993865653772a`:
+
+- [ard/ard-patch.js](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js):
+  `_initMsg`, `_negotiateServerInit`, `_ardSessionSelect` (selection at lines 776–875).
+- [ard/ard-constants.js](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-constants.js)
+  and [ard/session-select.js](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/session-select.js).
+- [License](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/LICENSE): MPL-2.0;
+  no implementation or cryptography reused.
+
+The original author's code provides a concrete research lead: Apple banner handling, ClientInit `0xC1`,
+extended ServerInit metadata, then SessionInfo / a client choice / SessionResult. Its constants assign
+command 1 to console and 2 to virtual desktop, with pending and granted states. It also contains a type-33
+RSA tunnel path; type 30 is not necessarily the whole Apple authentication surface.
+
+These are **client-side implementation claims**, not a verified server contract. Validation of framing,
+capability bits, allowed commands, encryption, cancel/retry semantics, failure behavior and version
+compatibility remains open. Do not copy this client's automatic choice policy into Sanďbox: an unavailable
+virtual choice must fail, not choose the console. This prototype implements none of these messages.
+The lead narrows future investigation; it does not establish a working or safe Apple client.
+
+Raw SHA-256 values:
+
+| File | SHA-256 |
+|---|---|
+| `ard/ard-patch.js` | `bef0c7b6c88639d555815487e48dcecdcd8362dcee20eb258f70ad397c7164d5` |
+| `ard/ard-constants.js` | `8c107d8939f74867c84d5708a9706c2226654cf0ceb59c5633bf4f87a03f9474` |
+
+## Research outcome
+
+The reviewed Apple pages establish application-level choices and the HP limit. The pinned open-source
+clients establish candidate authentication and selection implementations worth studying. **We did not
+locate an Apple-published byte-level contract for these extensions in the reviewed sources.** This is a
+scoped finding, not a claim that none exists anywhere. There is enough evidence to avoid guessing that
+standard shared=1 or successful auth selects the right user. There is not enough local evidence to
+enable Apple credentials, the proprietary selection path or a live viewer in this package.
+
+Implementation work is consequently restricted to synthetic standard RFB. Follow-up requires the
+separate identity, crypto/transport, capability/failure and laboratory work in [LAB-NEXT.md](LAB-NEXT.md).
