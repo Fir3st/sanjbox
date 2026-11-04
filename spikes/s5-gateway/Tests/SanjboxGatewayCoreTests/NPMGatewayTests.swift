@@ -337,27 +337,31 @@ private final class NPMLateResultClock: @unchecked Sendable {
             if calls == 7 { blocked = true; return true }
             return false
         }
-        if pause { _ = release.wait(timeout: .now() + 2) }
+        if pause { _ = release.wait(timeout: .now() + 10) }
         return npmNow
     }
     func resume() { release.signal() }
 }
 
 @Test func npmDiscardedTimeoutOrCancelledChildCannotOrphanAuditCapacity() async throws {
+    // The barrier must be reached before the operation deadline even on a loaded CI
+    // runner; a 100 ms lifetime expired first there and the barrier was never hit.
+    let lifetime = Duration.seconds(2)
     for cancel in [false, true] {
         let clock = NPMLateResultClock()
         let config = try NPMConfiguration(registryHostname: "registry.example", publicOrigin: "http://127.0.0.1:8765",
-                                          cooldown: 3600, maximumAuditRecords: 1, lifetime: .milliseconds(100))
+                                          cooldown: 3600, maximumAuditRecords: 1, lifetime: lifetime)
         let handler = try gateway(defaultBackend(), config: config, now: { clock.get() })
         let task = Task { try await handler.response(to: request()) }
-        let until = ContinuousClock.now.advanced(by: .seconds(1))
+        let until = ContinuousClock.now.advanced(by: lifetime)
         while !clock.entered && ContinuousClock.now < until { try await Task.sleep(for: .milliseconds(1)) }
         guard clock.entered else {
             task.cancel(); clock.resume(); _ = try? await task.value
             Issue.record("did not reach the late-result clock barrier"); return
         }
         if cancel { task.cancel() }
-        else { try await Task.sleep(for: .milliseconds(150)) }
+        // The operation started before the barrier, so its deadline has passed.
+        else { try await Task.sleep(for: lifetime + .milliseconds(100)) }
         clock.resume()
         if cancel { await #expect(throws: CancellationError.self) { _ = try await task.value } }
         else { #expect(try await task.value.status == 502) }
