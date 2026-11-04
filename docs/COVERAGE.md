@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 10 | 2 | 18 | 0 |
+| F1 | 30 | 10 | 3 | 17 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -298,7 +298,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.A1 | S1 příprava | — | ✅ | `spikes/s1-session`: skripty s dry-runem a úklidem, sonda relace (credentials, displeje, Metal, offscreen render s ověřením, prezentace, RAM, Screen Recording), loopback forwarder místo SSH, WebGL stránka; 6 testů. Části s `--apply` (root) ověří až běh L1 |
 | WP1.A2 | S1 běh (L1) | uživatel + impl. | ⬜ | |
 | WP1.A3 | Průzkum RFB výběru relace | janfiedler / Codex + Astra | 🟨 rozpracováno | Částečně: `spikes/s1-rfb` — primární zdroje k Apple auth/výběru relace, omezený offline Swift 6 RFB 3.8/Raw prototyp a mock testy. Apple auth, výběr relace a živý klient nejsou implementované/ověřené; zůstává uživatelská cesta Screen Sharing.app. Žádná změna bran. |
-| WP1.A4 | S0 příprava | | ⬜ | |
+| WP1.A4 | S0 příprava | janfiedler / Codex + Astra | 🟨 | Částečná samostatná příprava [s0-boundary](../spikes/s0-boundary/README.md): přísná identity/signature brána, vlastní file/XPC/TCP/child fixtures a self-signing metadata; TCC/capture neimplementované, XPC autorizace mock. 36 XCTest (Debug + nezávislý Release), 37 CLI kontrol; [mapa mezer a L2 plán](../spikes/s0-boundary/LAB-PLAN.md). Žádný S0/S8/akceptační verdict |
 | WP1.A5 | S0 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.A6 | S8 příprava | janfiedler / Codex + Astra | 🟨 | [Částečná příprava](../spikes/s8-signing/README.md): Security kontrola vlastních thin fixtures, přesná identita/session, bounded mock policy/fuzzer, 28 testů, šest service/signing plánů. Chybí SMAppService host, platný same-UID attach oracle a skutečný XPC fuzzer (Contracts/Broker neexistují); S8 i SG-01…11 zůstávají Neověřeno |
 | WP1.A7 | S8 běh (L2) | uživatel + impl. | ⬜ | |
