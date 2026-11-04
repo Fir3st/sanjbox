@@ -106,6 +106,8 @@ public enum BoundaryCLI {
             }
             let (status, details) = try perform?(probe) ?? Self.perform(probe, expected: expected)
             return report(status, details, context: context)
+        } catch let failure as XPCObservedFailure {
+            return report(.fixtureFailed, failure.details, context: context)
         } catch BoundaryError.conflict(let error) {
             return report(.cleanupRefused, ["error": error, "action": "preserve changed fixture; manual review, no blind recursive delete"], context: context)
         } catch {

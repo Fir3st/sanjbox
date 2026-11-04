@@ -1,0 +1,27 @@
+{
+  "case": "wrong-peer-session",
+  "clientPID": 36033,
+  "clientExit": 3,
+  "clientReaped": true,
+  "servicePID": 36036,
+  "serviceExitObserved": true,
+  "cancelled": false,
+  "cleanupState": "removed",
+  "fixtureRemoved": true,
+  "primaryError": null,
+  "secondaryErrors": [],
+  "stdout": {
+    "capturedBytes": 2005,
+    "observedBytes": 2005,
+    "truncated": false,
+    "captureAvailable": true
+  },
+  "stderr": {
+    "capturedBytes": 0,
+    "observedBytes": 0,
+    "truncated": false,
+    "captureAvailable": true
+  },
+  "journalPresent": true,
+  "journalTruncated": false
+}

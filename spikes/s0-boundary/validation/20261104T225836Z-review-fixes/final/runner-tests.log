@@ -1,0 +1,17 @@
+test_cleanup_conflict_preserves_raw_before_verification_raises (test_runner_failures.RunnerFailureTests.test_cleanup_conflict_preserves_raw_before_verification_raises) ... ok
+test_drain_error_preserves_existing_prefix_and_primary (test_runner_failures.RunnerFailureTests.test_drain_error_preserves_existing_prefix_and_primary) ... ok
+test_identity_rejection_without_service_preserves_context (test_runner_failures.RunnerFailureTests.test_identity_rejection_without_service_preserves_context) ... ok
+test_malformed_journal_raw_is_saved_before_parser_error_is_reported (test_runner_failures.RunnerFailureTests.test_malformed_journal_raw_is_saved_before_parser_error_is_reported) ... ok
+test_missing_exit_does_not_erase_client_output (test_runner_failures.RunnerFailureTests.test_missing_exit_does_not_erase_client_output) ... ok
+test_one_artifact_error_does_not_prevent_other_artifacts (test_runner_failures.RunnerFailureTests.test_one_artifact_error_does_not_prevent_other_artifacts) ... ok
+test_output_collector_retains_only_bounded_prefix (test_runner_failures.RunnerFailureTests.test_output_collector_retains_only_bounded_prefix) ... ok
+test_output_overflow_cannot_be_reported_as_success (test_runner_failures.RunnerFailureTests.test_output_overflow_cannot_be_reported_as_success) ... ok
+test_oversized_journal_is_saved_as_bounded_prefix (test_runner_failures.RunnerFailureTests.test_oversized_journal_is_saved_as_bounded_prefix) ... ok
+test_reap_error_is_secondary_to_original_observation_error (test_runner_failures.RunnerFailureTests.test_reap_error_is_secondary_to_original_observation_error) ... ok
+test_registration_failure_keeps_primary_and_available_journal (test_runner_failures.RunnerFailureTests.test_registration_failure_keeps_primary_and_available_journal) ... ok
+test_success_runs_verification_only_after_output_is_saved (test_runner_failures.RunnerFailureTests.test_success_runs_verification_only_after_output_is_saved) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.012s
+
+OK

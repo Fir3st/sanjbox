@@ -137,9 +137,61 @@ final class FixtureExitWatch {
     }
 }
 
+/// A witnessed forbidden response is a fixture finding, even when later exit observation fails.
+/// Only literal diagnostics are retained; never put the returned canary/payload in the report.
+struct XPCObservedFailure: Error {
+    let finding: String
+    let serviceExitObserved: Bool?
+    let cleanupIssue: String?
+    init(finding: String, serviceExitObserved: Bool? = nil, cleanupIssue: String? = nil) {
+        self.finding = finding; self.serviceExitObserved = serviceExitObserved; self.cleanupIssue = cleanupIssue
+    }
+    func recordingExit(_ error: Error?) -> Self {
+        Self(finding: finding, serviceExitObserved: error == nil,
+             cleanupIssue: error.map { String(describing: $0) })
+    }
+    var details: [String: String] {
+        var result = ["error": finding, "positiveControl": "passed",
+                      "serviceExitObserved": serviceExitObserved.map(String.init) ?? "unknown"]
+        if let cleanupIssue {
+            result["cleanupError"] = cleanupIssue
+            result["action"] = "preserve fixture for cleanup review; observed failure remains primary"
+        }
+        return result
+    }
+}
+
 enum XPCFixture {
     static let serviceName = "org.sanjbox.a4.fixture-service"
     static let clientName = "org.sanjbox.a4.fixture-client"
+    /// Shared by the real transport and deterministic fault tests; no CLI injection hook.
+    static func checkCanaryRoundTrips(runID: String, request: (Data) throws -> Data) throws {
+        let canary = Data("SANJBOX-A4-\(runID)".utf8)
+        let valid = Data("read-canary:\(runID)".utf8)
+        guard try request(valid) == canary else { throw BoundaryError.invalid("XPC positive control failed") }
+        let denied = [Data("read-canary:\(UUID().uuidString)".utf8), Data("write-canary:\(runID)".utf8),
+                      Data("read-canary:\(runID);uid=0;asid=1".utf8), Data(repeating: 65, count: 4097)]
+        for bytes in denied {
+            guard try request(bytes) == Data("denied".utf8) else {
+                throw XPCObservedFailure(finding: "XPC forbidden operation returned non-denial bytes after positive control")
+            }
+        }
+        guard try request(valid) == canary else { throw BoundaryError.invalid("XPC post-denial positive control failed") }
+    }
+
+    static func observingExit(operation: () throws -> Void, invalidate: () -> Void,
+                              observeExit: () throws -> Void) throws {
+        var primary: Error?
+        do { try operation() } catch { primary = error; invalidate() }
+        var exitIssue: Error?
+        do { try observeExit() } catch { exitIssue = error }
+        if let finding = primary as? XPCObservedFailure {
+            throw finding.recordingExit(exitIssue) // A later cleanup error cannot erase a witnessed violation.
+        }
+        if let exitIssue { throw exitIssue }
+        if let primary { throw primary }
+    }
+
     static func run(expected: BoundaryExpectation) throws -> [String: String] {
         guard let plan = expected.xpc else { throw BoundaryError.invalid("XPC needs explicit runID and sealed client/service code hashes") }
         try plan.validate()
@@ -161,18 +213,17 @@ enum XPCFixture {
                 latch.finish(.failure(.invalid("owned XPC transport/signature rejected or unavailable (\(failure.domain):\(failure.code))")))
             }) as? FixtureExchange else { throw BoundaryError.invalid("owned XPC proxy unavailable") }
             proxy.exchange(bytes) { data in
-                latch.finish(data.count <= 128 ? .success(data) : .failure(.invalid("owned XPC reply size limit")))
+                // Keep at most 129 bytes: an oversized reply still witnesses non-denial on a
+                // forbidden operation, rather than being downgraded to a transport error.
+                latch.finish(.success(Data(data.prefix(129))))
             }
             return try latch.result()
         }
-        let canary = Data("SANJBOX-A4-\(plan.runID)".utf8)
-        let valid = Data("read-canary:\(plan.runID)".utf8)
         // First request has no protected operation. Its reply proves a live, code-authenticated service.
         guard try request(Data("hello".utf8)) == Data("denied".utf8)
         else { throw BoundaryError.invalid("XPC readiness control failed") }
         let watch = try FixtureExitWatch(pid: connection.processIdentifier)
-        var exitWaitAttempted = false
-        do {
+        try observingExit(operation: {
             let peer = XPCPeerCredentials(connection)
             guard peer == XPCPeerCredentials(effectiveUID: expected.effectiveUID, effectiveGID: expected.effectiveGID,
                                             auditSessionID: expected.auditSessionID)
@@ -180,31 +231,19 @@ enum XPCFixture {
             let scenario = Bundle.main.object(forInfoDictionaryKey: "SanjboxFixtureScenario") as? String ?? "normal"
             guard ["normal", "wait"].contains(scenario) else { throw BoundaryError.invalid("unknown fixed fixture scenario") }
             if scenario == "wait" { _ = try request(Data("wait:\(plan.runID)".utf8)) }
-            guard try request(valid) == canary else { throw BoundaryError.invalid("XPC positive control failed") }
-            let denied = [Data("read-canary:\(UUID().uuidString)".utf8), Data("write-canary:\(plan.runID)".utf8),
-                          Data("read-canary:\(plan.runID);uid=0;asid=1".utf8), Data(repeating: 65, count: 4097)]
-            for bytes in denied {
-                guard try request(bytes) == Data("denied".utf8) else { throw BoundaryError.invalid("XPC forbidden operation returned data") }
-            }
-            guard try request(valid) == canary else { throw BoundaryError.invalid("XPC post-denial positive control failed") }
+            try checkCanaryRoundTrips(runID: plan.runID, request: request)
             let finished = XPCReplyLatch()
             guard let proxy = connection.remoteObjectProxyWithErrorHandler({ _ in
                 finished.finish(.failure(.invalid("XPC finish failed")))
             }) as? FixtureExchange else { throw BoundaryError.invalid("XPC finish proxy unavailable") }
             proxy.finish { finished.finish(.success(Data())) }
             _ = try finished.result()
-            exitWaitAttempted = true
-            try watch.wait()
-            return ["transport": "embedded NSXPC service; separate process", "runID": plan.runID,
+        }, invalidate: { connection.invalidate() }, observeExit: { try watch.wait() })
+        return ["transport": "embedded NSXPC service; separate process", "runID": plan.runID,
                     "positiveControls": "before and after four denials", "operationCountExpected": "2",
                     "authorization": "OS per-message exact cdhash plus connection EUID/EGID/ASID",
                     "peerAuditUID": "unsupported by public NSXPC API; no full audit-token authentication claim",
                     "record": "independent fixed sibling Control/server.jsonl; verify with fixture runner",
                     "serviceExitObserved": "true", "globalServices": "not enumerated or contacted"]
-        } catch {
-            connection.invalidate()
-            if !exitWaitAttempted { try watch.wait() } // Fixed watchdog also covers cancelled clients.
-            throw error
-        }
     }
 }

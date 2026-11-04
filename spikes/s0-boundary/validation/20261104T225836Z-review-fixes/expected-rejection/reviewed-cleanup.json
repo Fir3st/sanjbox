@@ -1,0 +1,4 @@
+{
+  "fixtureRemovedAfterReview": true,
+  "reason": "expected self-identity rejection, client reaped, no service activation; original outcome retained unchanged"
+}

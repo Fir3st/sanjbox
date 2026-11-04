@@ -208,5 +208,7 @@ akceptace. Žádný z 155 případů se syntetickými unit testy neuzavírá.
 | NET-10…12 | Pouze pozitivní vlastní IPv4 loopback | S3b wildcard ingress, other-area/host/LAN, port squatting |
 | SG-01, SG-02 | Runtime/no-get-task-allow profil **vlastní** sondy | Profil všech komponent a celý rozsah S8; stabilní identita/TCC není měřena |
 
+XPC nyní zachová pozorovanou zakázanou odpověď jako `fixtureFailed`/kód 1 i při sekundární chybě úklidu. Runner ukládá bounded stdout/stderr, dostupný server journal a stav chyby/úklidu také při neplatném měření; podrobnosti v [XPC-FIXTURE.md](XPC-FIXTURE.md).
+
 Další práci a oracles sedmi sond popisuje [LAB-PLAN.md](LAB-PLAN.md). Tento plán nespouští systémové
 operace a jeho existence není náhradou chybějící implementace ani rezervace L2.

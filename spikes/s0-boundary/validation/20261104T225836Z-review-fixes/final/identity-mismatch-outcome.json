@@ -1,0 +1,27 @@
+{
+  "case": "identity-mismatch",
+  "clientPID": 36197,
+  "clientExit": 3,
+  "clientReaped": true,
+  "servicePID": null,
+  "serviceExitObserved": false,
+  "cancelled": false,
+  "cleanupState": "removed",
+  "fixtureRemoved": true,
+  "primaryError": null,
+  "secondaryErrors": [],
+  "stdout": {
+    "capturedBytes": 2003,
+    "observedBytes": 2003,
+    "truncated": false,
+    "captureAvailable": true
+  },
+  "stderr": {
+    "capturedBytes": 0,
+    "observedBytes": 0,
+    "truncated": false,
+    "captureAvailable": true
+  },
+  "journalPresent": false,
+  "journalTruncated": false
+}

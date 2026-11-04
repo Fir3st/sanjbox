@@ -1,0 +1,128 @@
+{
+  "acceptanceEvidence" : false,
+  "context" : {
+    "audit" : {
+      "auditUID" : 501,
+      "flags" : 8240,
+      "sessionID" : 100002
+    },
+    "effectiveGID" : 20,
+    "effectiveUID" : 501,
+    "groupMembership" : [
+      {
+        "gid" : 12,
+        "isMember" : true
+      },
+      {
+        "gid" : 20,
+        "isMember" : true
+      },
+      {
+        "gid" : 33,
+        "isMember" : true
+      },
+      {
+        "gid" : 61,
+        "isMember" : true
+      },
+      {
+        "gid" : 79,
+        "isMember" : true
+      },
+      {
+        "gid" : 80,
+        "isMember" : true
+      },
+      {
+        "gid" : 81,
+        "isMember" : true
+      },
+      {
+        "gid" : 98,
+        "isMember" : true
+      },
+      {
+        "gid" : 100,
+        "isMember" : true
+      },
+      {
+        "gid" : 204,
+        "isMember" : true
+      },
+      {
+        "gid" : 250,
+        "isMember" : true
+      },
+      {
+        "gid" : 395,
+        "isMember" : true
+      },
+      {
+        "gid" : 398,
+        "isMember" : true
+      },
+      {
+        "gid" : 399,
+        "isMember" : true
+      },
+      {
+        "gid" : 400,
+        "isMember" : true
+      },
+      {
+        "gid" : 701,
+        "isMember" : true
+      }
+    ],
+    "kernelGroups" : [
+      20,
+      12,
+      61,
+      79,
+      80,
+      81,
+      98,
+      701,
+      33,
+      100,
+      204,
+      250,
+      395,
+      398,
+      399,
+      400
+    ],
+    "launchdManager" : {
+      "name" : "Aqua",
+      "uid" : 501
+    },
+    "parentPID" : 35769,
+    "pid" : 35999,
+    "realGID" : 20,
+    "realUID" : 501,
+    "windowSession" : {
+      "auditSessionID" : 100002,
+      "loginDone" : true,
+      "onConsole" : true,
+      "userID" : 501
+    }
+  },
+  "details" : {
+    "authorization" : "OS per-message exact cdhash plus connection EUID/EGID/ASID",
+    "globalServices" : "not enumerated or contacted",
+    "operationCountExpected" : "2",
+    "peerAuditUID" : "unsupported by public NSXPC API; no full audit-token authentication claim",
+    "positiveControls" : "before and after four denials",
+    "record" : "independent fixed sibling Control/server.jsonl; verify with fixture runner",
+    "runID" : "B28C70FC-23C5-4ACC-9DC2-A0516BD47AD8",
+    "serviceExitObserved" : "true",
+    "transport" : "embedded NSXPC service; separate process"
+  },
+  "mismatches" : [
+
+  ],
+  "probe" : "xpc-probe",
+  "schemaVersion" : 1,
+  "scope" : "synthetic-self-fixture",
+  "status" : "fixturePassed"
+}

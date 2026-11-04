@@ -1,0 +1,49 @@
+{
+  "expectation": {
+    "schemaVersion": 1,
+    "scope": "synthetic-self-fixture",
+    "realUID": 501,
+    "effectiveUID": 501,
+    "realGID": 20,
+    "effectiveGID": 20,
+    "kernelGroups": [
+      20,
+      12,
+      61,
+      79,
+      80,
+      81,
+      98,
+      701,
+      33,
+      100,
+      204,
+      250,
+      395,
+      398,
+      399,
+      400
+    ],
+    "forbiddenGroups": [],
+    "auditSessionID": 100002,
+    "auditUID": 501,
+    "launchdManagerName": "Aqua",
+    "launchdManagerUID": 501,
+    "window": {
+      "userID": 501,
+      "auditSessionID": 100002,
+      "onConsole": true,
+      "loginDone": true
+    },
+    "xpc": {
+      "runID": "FD21669B-5721-4BC6-BB46-DED7D23C4591",
+      "clientCodeHash": "5b9bcca706e7e9d400fe0d2ea7f284a09c0c2585",
+      "serviceCodeHash": "ba8d8e5e5d51f16f1fa02e292305dad3493f8295"
+    }
+  },
+  "serviceRunID": "BCC2FEDD-384F-4E8C-8487-60672AFE15B7",
+  "case": "cross-run",
+  "serviceActivationExpected": true,
+  "expectedOperations": 0,
+  "expectedExit": 3
+}

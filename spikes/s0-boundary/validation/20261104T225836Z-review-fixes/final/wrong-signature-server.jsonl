@@ -1,0 +1,5 @@
+{"codeHash":"457edeb8a859ee0da63f8f4589e10c17e44c5b4b","event":"serviceStart","lookup":"bundled service activation; no global lookup oracle","pid":"36024","runID":"DB237A18-A4C2-4AE8-AC55-87ED00E31F31","sequence":"1"}
+{"event":"observerReady","sequence":"2"}
+{"asid":"100002","egid":"20","euid":"501","event":"connectionObserved","pid":"36021","sequence":"3"}
+{"event":"connectionCredentialsAccepted","sequence":"4","signature":"pending-per-message-OS-check"}
+{"event":"connectionInvalidated","sequence":"5"}

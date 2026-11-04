@@ -1,0 +1,9 @@
+{"codeHash":"e1d7ce3beba20f1229b99a238bc9eea3c6caf8d4","event":"serviceStart","lookup":"bundled service activation; no global lookup oracle","pid":"36188","runID":"57C23FC5-7212-40BE-B2E2-1250DFB62A6B","sequence":"1"}
+{"event":"observerReady","sequence":"2"}
+{"asid":"100002","egid":"20","euid":"501","event":"connectionObserved","pid":"36183","sequence":"3"}
+{"event":"connectionCredentialsAccepted","sequence":"4","signature":"pending-per-message-OS-check"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"5","signature":"OS-enforced-exact-cdhash"}
+{"event":"operationDenied","requestBytes":"5","sequence":"6"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"7","signature":"OS-enforced-exact-cdhash"}
+{"event":"replyWithheld","sequence":"8"}
+{"event":"connectionInvalidated","sequence":"9"}

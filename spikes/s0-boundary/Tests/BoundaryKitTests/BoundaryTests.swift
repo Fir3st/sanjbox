@@ -184,6 +184,57 @@ final class BoundaryTests: XCTestCase {
         object["xpc"] = fields.merging(["claimedUID": "501"]) { _, new in new }
         XCTAssertThrowsError(try BoundaryExpectation.parse(json(object)))
     }
+    private func observedXPCFailureReport(exitFails: Bool, response: Data) throws -> BoundaryReport {
+        var requests = 0, invalidations = 0, exitObservations = 0
+        let runID = "6FD11621-FAD4-4E67-A170-51B66D311E71"
+        let report = BoundaryCLI.evaluate(probe: .xpc, arguments: ["--apply", "--expect-json", try json(expectationObject())],
+            capture: { _ in try self.context() }, validateSignature: { true }, perform: { _ in
+                try XPCFixture.observingExit(operation: {
+                    try XPCFixture.checkCanaryRoundTrips(runID: runID) { _ in
+                        requests += 1
+                        return requests == 1 ? Data("SANJBOX-A4-\(runID)".utf8) : response
+                    }
+                }, invalidate: { invalidations += 1 }, observeExit: {
+                    exitObservations += 1
+                    if exitFails { throw BoundaryError.conflict("test exit observer failed") }
+                })
+                XCTFail("observed forbidden response must throw")
+                return (.fixturePassed, [:])
+            })
+        XCTAssertEqual(requests, 2, "stop immediately after the first forbidden response")
+        XCTAssertEqual(invalidations, 1); XCTAssertEqual(exitObservations, 1)
+        XCTAssertEqual(report.status, .fixtureFailed); XCTAssertEqual(report.status.exitCode, 1)
+        XCTAssertFalse(report.acceptanceEvidence)
+        XCTAssertEqual(report.details["error"], "XPC forbidden operation returned non-denial bytes after positive control")
+        return report
+    }
+    func testObservedXPCViolationRemainsFixtureFailedWithHealthyExit() throws {
+        let report = try observedXPCFailureReport(exitFails: false, response: Data("unauthorized-canary".utf8))
+        XCTAssertEqual(report.details["serviceExitObserved"], "true")
+        XCTAssertNil(report.details["cleanupError"])
+    }
+    func testObservedXPCViolationSurvivesSecondaryCleanupFailure() throws {
+        let report = try observedXPCFailureReport(exitFails: true, response: Data("unauthorized-canary".utf8))
+        XCTAssertEqual(report.details["serviceExitObserved"], "false")
+        XCTAssertEqual(report.details["cleanupError"], "test exit observer failed")
+    }
+    func testOversizedForbiddenXPCResponseIsStillAnObservedFailure() throws {
+        _ = try observedXPCFailureReport(exitFails: true, response: Data(repeating: 65, count: 129))
+    }
+    func testMissingXPCPositiveControlDoesNotFabricateObservedViolation() throws {
+        var requests = 0
+        let report = BoundaryCLI.evaluate(probe: .xpc, arguments: ["--apply", "--expect-json", try json(expectationObject())],
+            capture: { _ in try self.context() }, validateSignature: { true }, perform: { _ in
+                try XPCFixture.observingExit(operation: {
+                    try XPCFixture.checkCanaryRoundTrips(runID: "6FD11621-FAD4-4E67-A170-51B66D311E71") { _ in
+                        requests += 1; return Data("wrong-control".utf8)
+                    }
+                }, invalidate: {}, observeExit: {})
+                return (.fixturePassed, [:])
+            })
+        XCTAssertEqual(requests, 1); XCTAssertEqual(report.status, .invalidMeasurement)
+        XCTAssertEqual(report.status.exitCode, 3); XCTAssertFalse(report.acceptanceEvidence)
+    }
     func testActualOwnedLoopbackRoundTrip() throws {
         XCTAssertEqual(try LoopbackFixture.run()["acknowledgedByClient"], "true")
     }

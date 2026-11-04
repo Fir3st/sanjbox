@@ -1,0 +1,27 @@
+{
+  "case": "cancel-client",
+  "clientPID": 36183,
+  "clientExit": -15,
+  "clientReaped": true,
+  "servicePID": 36188,
+  "serviceExitObserved": true,
+  "cancelled": true,
+  "cleanupState": "removed",
+  "fixtureRemoved": true,
+  "primaryError": null,
+  "secondaryErrors": [],
+  "stdout": {
+    "capturedBytes": 0,
+    "observedBytes": 0,
+    "truncated": false,
+    "captureAvailable": true
+  },
+  "stderr": {
+    "capturedBytes": 0,
+    "observedBytes": 0,
+    "truncated": false,
+    "captureAvailable": true
+  },
+  "journalPresent": true,
+  "journalTruncated": false
+}

@@ -79,11 +79,39 @@ službu a pak celou fixture app ad-hoc runtime s prázdnými entitlements, stric
 cdhash/run policy před aktivací. Nedělá capture-and-auto-approve identity wrapper. JSON identity
 musí dodat implementátor podle běžného README; skutečné neshody aktivaci zablokují.
 
-Šest živých případů: dvě pozitivní operace kolem čtyř denials; OS-rejected cdhash; chybný přesný peer
+Šest živých XPC případů: dvě pozitivní operace kolem čtyř denials; OS-rejected cdhash; chybný přesný peer
 ASID policy; cizí run ID; záměrně chybějící odpověď/deadline; zánik vlastního klienta během pending reply.
-Posledních pět očekává **nulu operací**, nikoli jen chybový kód. Wrong-signature i wrong-session
+Posledních pět XPC případů očekává **nulu operací**, nikoli jen chybový kód. Wrong-signature i wrong-session
 navíc vyžadují nulu `messageAuthenticated`. Všechny vyžadují reaped klienta a nezávisle pozorovaný exit
 služby. Timeout/cancellation nejsou výsledkem „izolace prošla“.
+
+Navíc sedmý podepsaný případ záměrně pošle klientovi nesprávné self ASID očekávání. Vyžaduje
+`invalidMeasurement`, skutečný mismatch context, žádný `serviceStart`/journal ani observer marker,
+a reaped klienta. Není to test odmítnutí spojení: služba se vůbec nesmí aktivovat.
+
+## Zachování nálezu a diagnostiky při selhání
+
+Po úspěšném canary control znamená jakákoli non-denial odpověď na zakázaný request **fixtureFailed,
+kód 1**. Pozorovaný nález nezmizí ani pokud následné `NOTE_EXIT` pozorování selže: report ponechá
+primární `error`, doplní `cleanupError`, `serviceExitObserved: false` a pokyn zachovat fixture.
+Nález se nikdy nepřeklasifikuje jako `invalidMeasurement` jen kvůli pozdějšímu úklidu. Chybějící
+pozitivní kontrola nebo skutečná chyba transportu nadále není důkazem porušení. Odpověď se pro tuto
+klasifikaci uchová nejvýše jako 129bajtový prefix (128bajtový limit + sentinel pro nadlimitní odpověď);
+kanárek/payload se do reportu nevypisuje. Vždy zůstává `acceptanceEvidence: false`, nejde o gate verdikt.
+
+Runner průběžně drainuje stdout/stderr vlastního klienta. Při jakémkoli post-spawn selhání nejprve
+ukončí/reaps pouze svého klienta, dokončí bounded drain, uloží dostupné bajty a teprve potom oznámí
+primární chybu. I failed self gate, neúspěšná registrace `NOTE_EXIT`, malformed journal nebo chybějící
+exit zachová `*-client.json`, `*-stderr.txt`, dostupný `*-server.jsonl` a `*-outcome.json`. Outcome
+odděluje `primaryError`, `secondaryErrors`, skutečný client exit/reap, service exit observation a
+`cleanupState`/`fixtureRemoved`. Konfliktní fixture se při selhání verify nemaže. Raw soubory se ukládají
+před JSON/oracle validací; chyba jednoho zápisu nesmí přeskočit pokus uložit ostatní výstupy.
+
+Každý stream má 65 536bajtový limit, journal nejvýše 64 × 2049 bajtů. Nadlimitní obsah je výslovně
+`truncated`, uchová se prefix a běh nemůže projít; nedokončený drain je sekundární chyba. Absentní
+journal je uložen jako prázdný raw soubor s `journalPresent: false`, nikoli jako potvrzená prázdná
+aktivní služba. Nečitelný/konfliktní journal má explicitně neznámý stav a chybu zachycení. Dvanáct
+čistých runner testů ověřuje tyto chybové cesty bez aktivace XPC nebo práce se skutečným PID.
 
 Po kontrole runner odstraní jen nezměněné objekty své přesně inventarizované fixture, ověřené podle
 device/inode/mode/UID/GID/obsahu. Cizí položka/symlink/změna je konflikt. Zachová build/test/raw výstupy
