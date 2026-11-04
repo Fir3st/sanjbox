@@ -9,7 +9,7 @@ public final class Dataset {
     private let device: dev_t
     private let inode: ino_t
     public init(runID: String, role: String) throws {
-        try require(identifier(runID) && ["presentation", "ram", "report", "offscreen"].contains(role), "invalid dataset name")
+        try require(identifier(runID) && ["presentation", "ram", "report", "offscreen", "login-marker", "process-memory"].contains(role), "invalid dataset name")
         let name = "sanjbox-a2-\(runID)-uid\(geteuid())-\(role)"
         path = "/private/tmp/" + name
         let parent = open("/private/tmp", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)

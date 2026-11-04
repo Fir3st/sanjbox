@@ -16,6 +16,7 @@ public enum InstrumentRunner {
         try plan.validate(); try expected.validate()
         // First measurement operation: current credentials and exact session expectation.
         let identity = expected.capture()
+        try ProbeSignature.requireSafe()
         let stamp = try InstrumentClock.stamp()
         let dataset = try Dataset(runID: plan.runID, role: plan.kind.rawValue)
         var record = Recording(source: "measured", plan: plan, expected: expected, initialIdentity: identity, started: stamp, finished: stamp)
@@ -101,6 +102,7 @@ extension InstrumentRunner {
     public static func offscreen(runID: String, expected: IdentityExpectation) throws -> (path: String, valid: Bool) {
         try expected.validate()
         let identity = expected.capture()
+        try ProbeSignature.requireSafe()
         let started = try InstrumentClock.stamp()
         let dataset = try Dataset(runID: runID, role: "offscreen")
         var record = OffscreenRecording(runID: runID, expected: expected, initialIdentity: identity, started: started)

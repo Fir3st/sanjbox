@@ -13,13 +13,16 @@ import S1Instrumentation
         sanjbox-s1-instrument offscreen --run-id ID --expect-json JSON [--apply]
         sanjbox-s1-instrument plan --plan-json JSON
         sanjbox-s1-instrument evaluate --fixture NAME --run-id ID [--apply]
+        sanjbox-s1-instrument login-marker --marker-json JSON --expect-json JSON [--apply]
+        sanjbox-s1-instrument process-memory --memory-json JSON --expect-json JSON [--apply]
+        sanjbox-s1-instrument evaluate-supplement --fixture NAME --run-id ID [--apply]
         Default is dry-run: no measurements, GUI, files, or fixture reads.
         evaluate reads only /private/tmp/sanjbox-a2-fixture-<your-uid>-<NAME>.json.
         plan/record JSON schema and manual same-Mac coordination: INSTRUMENTATION.md.
         """
         guard let command = args.first else { print(usage); return 0 }
-        if command == "--help" { print(usage); return 0 }
-        guard ["record", "plan", "evaluate", "offscreen"].contains(command), args.count <= 10 else { throw InstrumentError("unsupported command or argument count") }
+        if command == "--help" && args.count == 1 { print(usage); return 0 }
+        guard ["record", "plan", "evaluate", "offscreen", "login-marker", "process-memory", "evaluate-supplement"].contains(command), args.count <= 10 else { throw InstrumentError("unsupported command or argument count") }
         var options: [String: String] = [:]
         var apply = false
         var index = 1
@@ -28,13 +31,38 @@ import S1Instrumentation
             if key == "--apply" {
                 guard !apply else { throw InstrumentError("duplicate --apply") }; apply = true; index += 1; continue
             }
-            guard ["--plan-json", "--expect-json", "--fixture", "--run-id"].contains(key), options[key] == nil, index + 1 < args.count else { throw InstrumentError("unknown, missing or duplicate option") }
+            guard ["--plan-json", "--expect-json", "--fixture", "--run-id", "--marker-json", "--memory-json"].contains(key), options[key] == nil, index + 1 < args.count else { throw InstrumentError("unknown, missing or duplicate option") }
             let value = args[index + 1]
             guard value.utf8.count <= 16_384 else { throw InstrumentError("option exceeds 16 KiB") }
             options[key] = value; index += 2
         }
-        let allowed: Set<String> = command == "record" ? ["--plan-json", "--expect-json"] : command == "plan" ? ["--plan-json"] : command == "offscreen" ? ["--run-id", "--expect-json"] : ["--fixture", "--run-id"]
+        let allowed: Set<String> = command == "login-marker" ? ["--marker-json", "--expect-json"] : command == "process-memory" ? ["--memory-json", "--expect-json"] : command == "record" ? ["--plan-json", "--expect-json"] : command == "plan" ? ["--plan-json"] : command == "offscreen" ? ["--run-id", "--expect-json"] : ["--fixture", "--run-id"]
         guard Set(options.keys) == allowed && !(command == "plan" && apply) else { throw InstrumentError("command requires exactly its documented options") }
+        if command == "login-marker" {
+            let request = try StrictJSON.decodeExact(LoginMarkerRequest.self, from: Data(options["--marker-json"]!.utf8))
+            try request.validate()
+            let expected = try decodeExpectation(options["--expect-json"]!)
+            if !apply { print("dry-run: manual login marker only; no login, event observation, or timing acceptance"); return 0 }
+            let result = try InstrumentRunner.loginMarker(request: request, expected: expected)
+            print(result.path); return result.valid ? 0 : 3
+        }
+        if command == "process-memory" {
+            let plan = try StrictJSON.decodeExact(ProcessMemoryPlan.self, from: Data(options["--memory-json"]!.utf8))
+            try plan.validate()
+            let expected = try decodeExpectation(options["--expect-json"]!)
+            if !apply { print("dry-run: registered own recorder fixture only; no PID inventory; \(plan.seconds) seconds, \(plan.fixtureMiB) MiB synthetic allocation"); return 0 }
+            let result = try InstrumentRunner.processMemory(plan: plan, expected: expected)
+            print(result.path); return result.valid ? 0 : 3
+        }
+        if command == "evaluate-supplement" {
+            guard safeID(options["--fixture"]!), safeID(options["--run-id"]!) else { throw InstrumentError("invalid run or fixture ID") }
+            if !apply { print("dry-run: validate supplementary staged own fixture; no input read"); return 0 }
+            let data = try Dataset.readFixture(name: options["--fixture"]!)
+            let report = try SupplementaryAnalyzer.evaluate(StrictJSON.decodeExact(SupplementaryBundle.self, from: data))
+            let dataset = try Dataset(runID: options["--run-id"]!, role: "report")
+            try dataset.write("report.json", report)
+            print(dataset.path); return report.evidenceComplete ? 0 : 3
+        }
         if command == "evaluate" {
             guard safeID(options["--fixture"]!), safeID(options["--run-id"]!) else { throw InstrumentError("invalid run or fixture ID") }
             if !apply { print("dry-run: evaluate staged own fixture \(options["--fixture"]!) into new report dataset \(options["--run-id"]!); no input read"); return 0 }
