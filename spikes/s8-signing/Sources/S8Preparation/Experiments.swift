@@ -24,22 +24,22 @@ public enum ServiceExperiments {
                     cleanup: "unregister same agent(plistName:) as every user who registered; verify no subsequent launch"),
                 ServiceExperiment(identity: identity, service: "LaunchDaemon", bundleLocation: "Contents/Library/LaunchDaemons/org.sanjbox.s8.fixture.daemon.plist",
                     registrationScope: "system service, distinct admin-approved experiment", approvalOracle: "must not bootstrap before admin approval; record register and approve as separate events",
-                    cleanup: "user unregisters same daemon(plistName:); verify absence at next boot and preserve unresolved cleanup as blocked slot"),
+                    cleanup: "BLOCKED in preparation: trusted host-only registration/unregister approval path is not implemented; future user L2 must supply reviewed ownership/cleanup before any registration"),
             ]
         }
     }
 
     /// Pure static layout example, never installed/registered. It has no KeepAlive or MachServices.
     public static func plist(daemon: Bool) -> [String: Any] {
-        ["Label": "org.sanjbox.s8.fixture." + (daemon ? "daemon" : "agent"),
-         "BundleProgram": "Contents/MacOS/S8DisposableHelper", "RunAtLoad": true]
+        (daemon ? FixtureService.daemon : .agent).launchPlist
     }
 
     public static func validate(_ plist: [String: Any], daemon: Bool) -> Bool {
         let expected = Self.plist(daemon: daemon)
         guard Set(plist.keys) == Set(expected.keys),
               plist["Label"] as? String == expected["Label"] as? String,
-              plist["BundleProgram"] as? String == "Contents/MacOS/S8DisposableHelper",
+              plist["BundleProgram"] as? String == expected["BundleProgram"] as? String,
+              plist["ProcessType"] as? String == "Background",
               let run = plist["RunAtLoad"] as? NSNumber,
               CFGetTypeID(run) == CFBooleanGetTypeID(), run.boolValue else { return false }
         return true

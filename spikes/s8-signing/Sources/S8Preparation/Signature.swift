@@ -29,12 +29,12 @@ public enum SignaturePolicy {
     /// This preparation fixture profile permits no entitlements at all.
     public static func issues(validity: Int32, information: Int32, flags: UInt32?,
                               identifier: String?, entitlementState: EntitlementState,
-                              otherEntitlements: Bool?) -> [String] {
+                              otherEntitlements: Bool?, requireAdHoc: Bool = true) -> [String] {
         var issues: [String] = []
         if validity != errSecSuccess { issues.append("signature invalid or unknown") }
         if information != errSecSuccess || flags == nil || identifier == nil { issues.append("incomplete signature metadata") }
         if flags.map({ $0 & SecCodeSignatureFlags.runtime.rawValue != 0 }) != true { issues.append("hardened runtime absent or unknown") }
-        if flags.map({ $0 & SecCodeSignatureFlags.adhoc.rawValue != 0 }) != true { issues.append("only own ad-hoc fixtures admitted") }
+        if requireAdHoc && flags.map({ $0 & SecCodeSignatureFlags.adhoc.rawValue != 0 }) != true { issues.append("only own ad-hoc fixtures admitted") }
         if entitlementState != .absent { issues.append("get-task-allow present or unknown") }
         if otherEntitlements != false { issues.append("unexpected or unknown entitlements") }
         return issues

@@ -3,16 +3,17 @@
 **WP1.A6 zůstává rozpracované. S8 a SG-01…11 zůstávají Neověřeno.** Balíček dodává
 spustitelnou statickou sondu vlastních syntetických artefaktů, čisté policy testy, omezený mock
 fuzzer a plán šesti odlišných uživatelských experimentů. Nedodává produkční broker, XPC transport,
-spustitelný SMAppService host ani platný same-UID attach oracle. Konkrétní mezery jsou níže.
+produkční autorizační cestu daemonu ani platný same-UID attach oracle. Nové [disposable service fixtures](SERVICES.md) dodávají sestavitelný SMAppService host, tři samostatné helper targets a úzké uživatelské UI. Konkrétní mezery jsou níže.
+Historický `SOURCES.sha256` patří výhradně revizi a výsledkům 2026-11-03; nepřepisuje se pro dnešní HEAD. Aktuální service přípravu pinne `SERVICE-SOURCES-20261104.sha256`.
 Autoritativní jsou [PLAN](../../PLAN.md), [GUIDE](../../docs/GUIDE.md) a [LAB](../../docs/LAB.md).
 
 ## Rozsah a oracle
 
 | Případ | Spustitelná příprava | Co stále chybí |
 |---|---|---|
-| SG-01, SG-02 / R2 | `inspect`: Security API, validita všech architektur, runtime flag, explicitní absence obou názvů `get-task-allow`, známý formát entitlements | Agent/helper/sondy v L2; zde pouze čtyři vlastní thin arm64 fixtures |
+| SG-01, SG-02 / R2 | `inspect`: Security API, validita všech architektur, runtime flag, explicitní absence obou názvů `get-task-allow`, známý formát entitlements | Agent/helper/sondy v L2; zde původní čtyři thin arm64 fixtures a čtyři staticky ověřené service targets |
 | SG-03 / R6 | Identifikátor a hash ve statickém reportu | Stabilita identity/TCC přes rebuild; žádné granty ani TCC databáze se nečtou |
-| SG-04 / R2 | `experiments`: Personal Team × tři služby; statický validator tvaru plist v testech | Podepsaný disposable app host, uživatelská registrace, login/reboot a lifecycle oracle |
+| SG-04 / R2 | `experiments`: Personal Team × tři služby; [sestavitelný disposable app](SERVICES.md), typované UI a startup observations | Uživatelský podpis/registrace, bezpečná host-only cesta daemonu, login/reboot a lifecycle oracle |
 | SG-05 / R2 | Tři oddělené podmíněné self-signed scénáře | Žádné certifikáty/identity nebyly čteny ani použity; ad-hoc není self-signed ani Personal Team |
 | SG-06 / R2 | Negativní signing policy testy pouze na hodnotách v paměti | Same-UID attach runner a srovnatelná pozitivní kontrola; viz samostatný postup níže |
 | SG-07 / R2 | Změna jednoho syntetického markeru po podpisu → statická validace musí selhat | Nepřevzetí skutečných TCC grantů, bundle/rebuild scénáře |
@@ -21,8 +22,7 @@ Autoritativní jsou [PLAN](../../PLAN.md), [GUIDE](../../docs/GUIDE.md) a [LAB](
 | SG-11 / R2 | Path-like zprávy se nevejdou do mock schématu; vlastní soubory mají scope/type/hash/ACL kontroly | Helper path resolver, symlink/hardlink races a produkční TOCTOU mechanismus |
 
 Žádná sonda nepřijímá PID, procesní jméno, libovolný podpisový cíl, příkaz, službu ani certifikát.
-Neexistuje volání `register`, `unregister`, `bootstrap`, `task_for_pid`, `ptrace`, TCC request nebo
-zachytávání obrazu/vstupu. `prepare` nikdy nespustí vytvořenou binárku. Automatické testy nepotřebují
+Původní `s8-probe` nevolá `register` ani `unregister`. Nové disposable UI má tyto dvě operace pouze pro LoginItem/LaunchAgent, po explicitní uživatelské akci a mimo ad-hoc profil; v implementátorské validaci se nevolají. Daemon mutace nejsou dostupné. Neexistuje `bootstrap`, `task_for_pid`, `ptrace`, TCC request ani zachytávání obrazu/vstupu. `prepare` nikdy nespustí vytvořenou binárku. Automatické testy nepotřebují
 síť, účet, Keychain, databázi, root, nové uživatele ani změnu nastavení systému.
 
 ## Build a vlastní signing preflight [implementátor]
@@ -150,9 +150,7 @@ Ostatní exity: 0 splněný lokální oracle/diagnostika, 1 odmítnutí statick�
 ## Uživatelské experimenty a skutečné blokátory [uživatel, budoucí L2]
 
 Po S1 a zapsané rezervaci/předregistraci LAB použij pouze disposable app s prázdným profilem.
-Její implementace zatím chybí: kontejnerová aplikace, tři oddělené helper targets, startup marker
-obsahující skutečnou common identitu, UI pro konkrétní `register`/`unregister`, sběr status/error
-a ověřený cleanup. Bez těchto výstupů ani podepisující identity se scénář nespouští.
+Kontejnerová aplikace, tři oddělené helper targets, skutečná common identita ve startup observations a UI pro uživatelské služby jsou nyní v [SERVICES.md](SERVICES.md). Příprava byla pouze sestavena a staticky/ad-hoc ověřena. Daemon autorizační cesta a cleanup přes login/reboot zůstávají blokátorem; bez předem zajištěného úplného úklidu se lifecycle scénář nespouští.
 
 Pro **každou** z šesti kombinací `experiments` uchovej exact bundle ID, build hash, signing metadata,
 OS/build, uživatele/session, stav před registrací, výsledek registrace, startup marker, opětovný
