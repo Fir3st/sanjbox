@@ -104,20 +104,38 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  python-tests:
+    # Tests of the progress website generator (tools/progress.py).
+    name: Python (tools/tests)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          # Same version as the Development progress workflow that builds the website.
+          python-version: '3.11'
+      - name: Run all tests
+        run: python -m unittest discover -s tools/tests -v
+
   required:
     # Stable required status check; keep this in sync with the main ruleset.
     name: CI required
     if: ${{ always() }}
-    needs: [packages, swift-tests]
+    needs: [packages, swift-tests, python-tests]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     env:
       PACKAGES_RESULT: ${{ needs.packages.result }}
       TESTS_RESULT: ${{ needs.swift-tests.result }}
+      PYTHON_RESULT: ${{ needs.python-tests.result }}
     steps:
       - name: Require every build and test job to succeed
         run: |
           set -euo pipefail
           echo "Package discovery: $PACKAGES_RESULT"
           echo "Builds and tests: $TESTS_RESULT"
-          [[ "$PACKAGES_RESULT" == success && "$TESTS_RESULT" == success ]]
+          echo "Python tests: $PYTHON_RESULT"
+          [[ "$PACKAGES_RESULT" == success && "$TESTS_RESULT" == success && "$PYTHON_RESULT" == success ]]

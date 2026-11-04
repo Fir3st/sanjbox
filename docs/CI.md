@@ -14,10 +14,11 @@ Samotný workflow merge neblokuje: správce musí ruleset jednorázově aktivova
 | Discover Swift packages | Najde všechny verzované `Package.swift`; prázdný seznam je chyba |
 | Swift (`balík`, `debug`) | `swift build` všech produktů a `swift test` všech testů balíku |
 | Swift (`balík`, `release`) | Stejné sestavení a testy s optimalizacemi |
-| CI required | Projde pouze při úspěšném nalezení balíků a všech bězích matice |
+| Python (`tools/tests`) | Testy generátoru webu se stavem vývoje (`tools/progress.py`), Python 3.11 jako workflow webu |
+| CI required | Projde pouze při úspěšném nalezení balíků, všech bězích matice a Python testech |
 
-Aktuálně jde o šest běhů: `spikes/common`, `spikes/s1-session` a `spikes/s5-gateway`,
-všechny v debug a release.
+Aktuálně jde o osm běhů Swift: `spikes/common`, `spikes/s1-session`, `spikes/s4-host`
+a `spikes/s5-gateway`, všechny v debug a release, a jeden běh Python testů.
 Samostatný běh `common` je nutný: `swift test` v gateway nespouští testy jeho závislostí.
 Nový verzovaný Swift balík se přidá automaticky a musí obsahovat testy.
 
@@ -61,7 +62,7 @@ na povolení běhu správcem. Žádné systémové změny ani laboratorní sloty
    nevytváří se další kopie. JSON v repozitáři je návrh konfigurace, GitHub ho sám neaplikuje.
 
 4. Ověřit pravidla a zkusit PR s úmyslně padajícím testem: `CI required` musí být červená
-   a merge zablokovaný. Po opravě musí projít všech šest běhů. Další push do PR musí
+   a merge zablokovaný. Po opravě musí projít všechny běhy matice i Python testy. Další push do PR musí
    vyvolat nové kontroly; po změně `main` musí GitHub vyžadovat aktualizaci větve a nový běh.
 
    ```bash
@@ -83,20 +84,26 @@ Aktivace ochrany proto vyžaduje správce; lokální soubory zatím nastavení G
 Na Apple Silicon Macu s macOS 27 a Xcode 27 spusť z kořene repozitáře:
 
 ```bash
-for package in spikes/common spikes/s1-session spikes/s5-gateway; do
+for package in $(git ls-files -- '*Package.swift' | xargs -n1 dirname); do
   for configuration in debug release; do
     swift build --package-path "$package" --configuration "$configuration" || exit
     swift test --package-path "$package" --configuration "$configuration" || exit
   done
 done
+python3 -m unittest discover -s tools/tests
 ```
 
-Ověření návrhu 2026-11-03: všechny tři balíky se lokálně sestavily a jejich testy prošly
+Seznam balíků se bere ze stejného zdroje jako v CI, takže nový balík se ověří i lokálně.
+
+Ověření návrhu 2026-11-03: všechny tři tehdejší balíky se lokálně sestavily a jejich testy prošly
 v debug i release (`common`: 25 testů, `s1-session`: 6 testů, `s5-gateway`: 45 testů v každé konfiguraci).
+Po rebasu 2026-11-04 prošly lokálně v debug i release všechny čtyři balíky (`s4-host`: 17 testů XCTest)
+a 16 Python testů generátoru webu.
 xUnit XML obsahuje odpovídající
 výsledky; Swift Testing používá příponu `-swift-testing.xml`, která se spolu s ostatními logy
 zahrne do artefaktu. Ověřena byla také syntaxe YAML/JSON a shellových kroků, nalezení Swift balíků
-a všech 16 kombinací výsledků vstupních jobů: povinná kontrola přijímá pouze dva úspěchy.
+a všechny kombinace výsledků vstupních jobů (po přidání Python testů 64): povinná kontrola přijímá
+pouze tři úspěchy.
 Samotný běh v GitHub Actions a vynucení ochrany se ověří až po nasazení podle postupu výše.
 
 ## Rozsah důkazu a rozšiřování
