@@ -323,7 +323,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.F1 | S2-A výzkumný prototyp | | ⬜ | TCC grant od uživatele |
 | WP1.F2 | S2-B (L7) | uživatel + impl. | ⬜ | |
 | WP1.G1 | Rešerše Docker runtime | Codex / Astra | ✅ | [Připnutá rešerše runtime](../spikes/s7-docker/research/wp1-g1-runtime/README.md), manifest primárních zdrojů a G2/L8 plán DK-01…10; žádný stock kandidát neprokazuje celý kontrakt. Bez runtime měření; S7/DK Neověřeno, F0.8 budget otevřený, mimo MVP (C-002) |
-| WP1.G2 | S7 příprava | janfiedler / Codex + Astra | 🟨 | [Částečná offline příprava](../spikes/s7-docker/README.md): bounded manifest/planner, 64 scénářů × 3 oblasti, syntetické oracle, registry/toy-frame mocky a vlastní fixture cleanup; 60 native Python tests. Runtime/VM/Engine/bridge a S5 integrace chybí; F0.8 otevřeno, S7/DK-01…10 Neověřeno, Docker mimo MVP. [Validace](../spikes/s7-docker/VALIDATION.md). |
+| WP1.G2 | S7 příprava | janfiedler / Codex + Astra | 🟨 | [Částečná offline příprava](../spikes/s7-docker/README.md): bounded manifest/planner, 64 scénářů × 3 oblasti, syntetické oracle, registry/toy-frame mocky a vlastní fixture cleanup; 63 native Python tests. Runtime/VM/Engine/bridge a S5 integrace chybí; F0.8 otevřeno, S7/DK-01…10 Neověřeno, Docker mimo MVP. [Validace](../spikes/s7-docker/VALIDATION.md). |
 | WP1.G3 | S7 běh (L8) | uživatel + impl. | ⬜ | |
 | WP2.0 | Kontrakty | | ⬜ | čeká na vstup F2 |
 | WP2.1 | Helper | | ⬜ | |

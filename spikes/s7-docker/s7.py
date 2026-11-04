@@ -341,21 +341,26 @@ def oracle(m, supplied):
                 for item in v:
                     nonnegative(item)
         nonnegative(row['result'])
-        result, reason = 'synthetic-match', 'fixture matches fixed oracle'
-        if not all(row[k] for k in ('attempted', 'controls_before', 'controls_after', 'complete')):
-            result, reason = 'insufficient', 'missing attempt, positive control or complete observation'
-        elif INDEX[sid]['oracle'] == 'budget':
+        budget_breach = False
+        if INDEX[sid]['oracle'] == 'budget':
             b, r = m['budget'], row['result']
             samples = r['samples_ms']
             require(all(type(x) is int and 0 <= x <= 3600000 for x in samples), 'invalid durations')
+            if b['kind'] != 'unresolved':
+                limit = b[{'cold-start': 'cold_ms', 'warm-start': 'warm_ms', 'full-stop': 'stop_ms'}[sid.split('/')[1]]]
+                # One supplied breach of the declared maximum is already a contradiction;
+                # missing controls or further samples cannot erase that observation.
+                budget_breach = any(sample > limit for sample in samples)
+        result, reason = 'synthetic-match', 'fixture matches fixed oracle'
+        if budget_breach:
+            result, reason = 'synthetic-mismatch', 'supplied sample exceeds declared maximum budget'
+        elif not all(row[k] for k in ('attempted', 'controls_before', 'controls_after', 'complete')):
+            result, reason = 'insufficient', 'missing attempt, positive control or complete observation'
+        elif INDEX[sid]['oracle'] == 'budget':
             if b['kind'] == 'unresolved':
                 result, reason = 'insufficient', 'F0.8 budget unresolved'
             elif len(samples) != b['samples']:
                 result, reason = 'insufficient', 'wrong predeclared sample count'
-            else:
-                limit = b[{'cold-start': 'cold_ms', 'warm-start': 'warm_ms', 'full-stop': 'stop_ms'}[sid.split('/')[1]]]
-                if max(samples) > limit or not r['policy_ready'] or r['remaining_processes'] or r['remaining_channels']:
-                    result, reason = 'synthetic-mismatch', 'budget or full lifecycle model mismatch'
         elif row['result'] != expected:
             result, reason = 'synthetic-mismatch', 'fixture violates fixed oracle'
         # A supplied positive contradiction must not disappear behind missing controls/budget.

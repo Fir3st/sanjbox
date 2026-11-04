@@ -257,6 +257,36 @@ class OracleTests(unittest.TestCase):
             row = sample_row('DK-10/full-stop', m=m); row['result'][field] = value
             self.assertEqual(self.report([row], m)['rows'][0]['result'], 'synthetic-mismatch')
 
+    def test_budget_breach_survives_incomplete_window(self):
+        m = proposed_budget()
+        for sid, limit in [('DK-10/cold-start', 100), ('DK-10/warm-start', 10), ('DK-10/full-stop', 50)]:
+            for field in ('attempted', 'controls_before', 'controls_after', 'complete'):
+                row = sample_row(sid, m=m)
+                row[field] = False
+                row['result']['samples_ms'] = [1, 1, limit + 1]
+                with self.subTest(scenario=sid, missing=field):
+                    self.assertEqual(self.report([row], m)['rows'][0]['result'], 'synthetic-mismatch')
+
+    def test_budget_breach_survives_missing_samples(self):
+        m = proposed_budget()
+        for sid, limit in [('DK-10/cold-start', 100), ('DK-10/warm-start', 10), ('DK-10/full-stop', 50)]:
+            for complete in (True, False):
+                row = sample_row(sid, m=m)
+                row['complete'] = complete
+                row['result']['samples_ms'] = [limit + 1]
+                with self.subTest(scenario=sid, complete=complete):
+                    self.assertEqual(self.report([row], m)['rows'][0]['result'], 'synthetic-mismatch')
+
+    def test_incomplete_budget_without_breach_stays_insufficient(self):
+        m = proposed_budget()
+        for sid, limit in [('DK-10/cold-start', 100), ('DK-10/warm-start', 10), ('DK-10/full-stop', 50)]:
+            for samples, complete in [([], True), ([limit], True), ([limit], False), ([limit] * 3, False)]:
+                row = sample_row(sid, m=m)
+                row['complete'] = complete
+                row['result']['samples_ms'] = samples
+                with self.subTest(scenario=sid, samples=samples, complete=complete):
+                    self.assertEqual(self.report([row], m)['rows'][0]['result'], 'insufficient')
+
     def test_complete_synthetic_matrix_never_passes_gate(self):
         m = proposed_budget()
         rows = [sample_row(s['id'], zone, m) for s in s7.SCENARIOS for zone in s7.ZONES]

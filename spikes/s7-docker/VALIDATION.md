@@ -15,10 +15,14 @@ git diff --check
 git diff --cached --check
 ```
 
-Finální výsledek: **60 tests, OK**, bez skips. Whitespace kontrola exit 0.
+Finální výsledek: **63 tests, OK**, bez skips. Whitespace kontrola exit 0.
 První vývojový import zachytil chybějící uzavírací závorku v budget lookupu; opraveno před prvním
-substantivním během (53/53). Následující běh rozšířených cleanup testů 58/58; finální 60/60 navíc
-ověřuje, že neúplné evidence neschová dodaný únik a záporný počet se odmítne.
+substantivním během (53/53). Následující běh rozšířených cleanup testů 58/58; původní 60/60 navíc
+ověřil, že neúplné evidence neschová dodaný únik a záporný počet se odmítne. Nezávislá review
+commitu `703d8cb` nalezla, že překročený maximum budget mohl být označen insufficient při
+chybějícím vzorku nebo neúplném okně. Oprava vyhodnotí každý dodaný validní vzorek proti
+deklarovanému maximu před kontrolou úplnosti. Finální 63/63 pokrývá oba případy pro cold/warm/stop,
+všechny missing-control flagy i opačnou kontrolu: neúplné podklady bez překročení zůstávají insufficient.
 
 Součástí testů jsou skutečné CLI přes absolutní cestu na stejný checkout:
 
@@ -62,7 +66,8 @@ vytvořený tímto konkrétním `TemporaryDirectory`; nejde o obecný runtime cl
   neúplná topologie/capture/channel ledger, cizí daemon/gateway/upstream, output hash drift,
   přidaná NIC/share a cizí socket operace. Dodané expectations se nepřijímají.
 - Budget: unresolved, přesná hranice, překročení, špatný počet vzorků, policy není ready, zbylé
-  procesy/kanály; úplná syntetická shoda nic neschvaluje. F0.8 se žádným manifestem nemění.
+  procesy/kanály; známé překročení maxima zůstává mismatch i při chybějících vzorcích/kontrolách,
+  neúplné podklady bez překročení zůstávají insufficient; úplná syntetická shoda nic neschvaluje. F0.8 se žádným manifestem nemění.
 - Registry: vlastní pull vs cizí repository, push, auth realm/redirect, client auth, cross-zone
   request. Model nemá důvěryhodnou skutečnou peer autentizaci ani registry HTTP implementaci.
 - Toy framing: size prefix, truncated/trailing/oversized, duplicate JSON, spoofed peer/generation,
