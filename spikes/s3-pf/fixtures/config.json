@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "run_id": "c1a00001",
+  "zones": [
+    {"uid": 4501, "name": "snjt1"},
+    {"uid": 4502, "name": "snjt2"},
+    {"uid": 4503, "name": "snjt3"}
+  ]
+}

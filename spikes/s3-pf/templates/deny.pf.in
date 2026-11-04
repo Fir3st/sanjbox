@@ -1,0 +1,3 @@
+# C1 diagnostic rule. Expanded separately for each UID, AF, direction and TCP/UDP.
+# No pass, translation, table, global option, state deletion or pf enable.
+block drop @DIRECTION@ quick @FAMILY@ proto @PROTO@ from any to any user @UID@ label "@LABEL@"

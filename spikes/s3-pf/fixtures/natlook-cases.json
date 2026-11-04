@@ -1,0 +1,14 @@
+{
+  "classification":"synthetic specification, not a measured result",
+  "schema":1,
+  "flow":{"zoneUID":4501,"auditSessionID":999998,"policyGeneration":7,"family":"inet","protocol":"tcp","source":"192.0.2.20:41000","originalTarget":"192.0.2.10:18080","translatedTarget":"127.0.0.1:18081"},
+  "cases":[
+    {"id":"known-live-flow","expected":"authenticated gateway obtains exactly originalTarget; oracle confirms its own flow"},
+    {"id":"wrong-direction","expected":"no accidental authorization; establish actual ABI direction in lab"},
+    {"id":"missing-state","expected":"deny; no tuple or raw fallback"},
+    {"id":"stale-generation-6","expected":"deny even if matching state still exists"},
+    {"id":"forged-zone-4502","expected":"deny before privileged query"},
+    {"id":"same-port-new-flow","expected":"old lease does not authorize new socket"},
+    {"id":"inet6-separate-run","expected":"measure separately with 2001:db8::10 and ::1; no inference from IPv4"}
+  ]
+}
