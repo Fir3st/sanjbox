@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 9 | 1 | 20 | 0 |
+| F1 | 30 | 9 | 2 | 19 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -300,7 +300,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.A3 | Průzkum RFB výběru relace | janfiedler / Codex + Astra | 🟨 rozpracováno | Částečně: `spikes/s1-rfb` — primární zdroje k Apple auth/výběru relace, omezený offline Swift 6 RFB 3.8/Raw prototyp a mock testy. Apple auth, výběr relace a živý klient nejsou implementované/ověřené; zůstává uživatelská cesta Screen Sharing.app. Žádná změna bran. |
 | WP1.A4 | S0 příprava | | ⬜ | |
 | WP1.A5 | S0 běh (L2) | uživatel + impl. | ⬜ | |
-| WP1.A6 | S8 příprava | | ⬜ | |
+| WP1.A6 | S8 příprava | janfiedler / Codex + Astra | 🟨 | [Částečná příprava](../spikes/s8-signing/README.md): Security kontrola vlastních thin fixtures, přesná identita/session, bounded mock policy/fuzzer, 28 testů, šest service/signing plánů. Chybí SMAppService host, platný same-UID attach oracle a skutečný XPC fuzzer (Contracts/Broker neexistují); S8 i SG-01…11 zůstávají Neověřeno |
 | WP1.A7 | S8 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.B1 | Audit hosta | janfiedler / Codex + Astra | ✅ | [metadata audit](../spikes/s4-host/README.md); 17 syntetických testů, S4/R2/R7 Neověřeno |
 | WP1.B2 | Zpevnění a uninstall | | ⬜ | |
