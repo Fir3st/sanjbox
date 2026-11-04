@@ -120,17 +120,45 @@ jobs:
       - name: Run all tests
         run: python -m unittest discover -s tools/tests -v
 
+  spike-python-tests:
+    # Spike tooling written for the macOS system Python (e.g. spikes/s3-pf/load.sh).
+    # Tests may use Darwin-only APIs, so they run on the same macOS image as Swift.
+    name: Python (spikes, macOS)
+    runs-on: xcode-27
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run every tracked spike test directory with /usr/bin/python3
+        run: |
+          set -euo pipefail
+          sw_vers -productVersion
+          /usr/bin/python3 --version
+          [[ "$(uname -m)" == arm64 ]]
+          dirs=$(git ls-files -- ':(glob)spikes/**/test*.py' | sed 's|/[^/]*$||' | sort -u)
+          if [[ -z "$dirs" ]]; then
+            echo "No tracked Python tests under spikes/"
+            exit 0
+          fi
+          while IFS= read -r dir; do
+            echo "::group::$dir"
+            /usr/bin/python3 -I -B -m unittest discover -s "$dir" -v
+            echo "::endgroup::"
+          done <<< "$dirs"
+
   required:
     # Stable required status check; keep this in sync with the main ruleset.
     name: CI required
     if: ${{ always() }}
-    needs: [packages, swift-tests, python-tests]
+    needs: [packages, swift-tests, python-tests, spike-python-tests]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     env:
       PACKAGES_RESULT: ${{ needs.packages.result }}
       TESTS_RESULT: ${{ needs.swift-tests.result }}
       PYTHON_RESULT: ${{ needs.python-tests.result }}
+      SPIKE_PYTHON_RESULT: ${{ needs.spike-python-tests.result }}
     steps:
       - name: Require every build and test job to succeed
         run: |
@@ -138,4 +166,6 @@ jobs:
           echo "Package discovery: $PACKAGES_RESULT"
           echo "Builds and tests: $TESTS_RESULT"
           echo "Python tests: $PYTHON_RESULT"
-          [[ "$PACKAGES_RESULT" == success && "$TESTS_RESULT" == success && "$PYTHON_RESULT" == success ]]
+          echo "Spike Python tests: $SPIKE_PYTHON_RESULT"
+          [[ "$PACKAGES_RESULT" == success && "$TESTS_RESULT" == success && "$PYTHON_RESULT" == success \
+            && "$SPIKE_PYTHON_RESULT" == success ]]
