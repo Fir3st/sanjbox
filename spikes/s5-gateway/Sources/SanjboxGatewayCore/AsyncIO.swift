@@ -80,13 +80,27 @@ func boundedOperation<Value: Sendable>(timeout: Duration,
                                       operation: @escaping @Sendable () async throws -> Value) async throws -> Value {
     try Task.checkCancellation()
     guard timeout > .zero else { throw UpstreamFailure.timedOut }
-    return try await withThrowingTaskGroup(of: Value.self) { group in
-        group.addTask { try await operation() }
+    let clock = ContinuousClock()
+    let deadline = clock.now.advanced(by: timeout)
+    let value = try await withThrowingTaskGroup(of: Value.self) { group in
         group.addTask {
-            try await Task.sleep(for: timeout)
+            let value = try await operation()
+            try Task.checkCancellation()
+            // A timer task can be scheduled late (e.g. a synchronous dependency
+            // occupies an executor). Winning the race is not proof of timeliness.
+            guard clock.now < deadline else { throw UpstreamFailure.timedOut }
+            return value
+        }
+        group.addTask {
+            try await clock.sleep(until: deadline)
             throw UpstreamFailure.timedOut
         }
         defer { group.cancelAll() }
         return try await group.next()!
     }
+    // Structured cancellation waits for children, which may finish after the
+    // deadline. Never publish their discarded/late result or swallow cancellation.
+    try Task.checkCancellation()
+    guard clock.now < deadline else { throw UpstreamFailure.timedOut }
+    return value
 }
