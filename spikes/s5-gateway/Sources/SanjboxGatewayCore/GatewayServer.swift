@@ -177,10 +177,16 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
                         let reply = try await router.reply(to: request)
                         switch reply {
                         case .response(let response):
-                            guard response.body.count <= limits.responseBytes else { throw HTTPFailure.tooLarge }
-                            let wire = try response.encoded()
-                            started = true
-                            try await send(wire)
+                            do {
+                                guard response.body.count <= limits.responseBytes else { throw HTTPFailure.tooLarge }
+                                let wire = try response.encoded()
+                                started = true
+                                try await send(wire)
+                                await response.completion?(true)
+                            } catch {
+                                await response.completion?(false)
+                                throw error
+                            }
                         case .events(let produce):
                             started = true
                             try await send(Data("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\nCache-Control: no-store\r\nConnection: close\r\nX-Content-Type-Options: nosniff\r\n\r\n".utf8))

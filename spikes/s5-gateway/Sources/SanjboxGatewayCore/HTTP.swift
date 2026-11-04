@@ -106,11 +106,15 @@ public struct HTTPResponse: Sendable {
     public let status: Int
     public let contentType: String
     public let body: Data
+    /// Local transport accepted the full response, or sending failed. Not a client receipt.
+    let completion: (@Sendable (Bool) async -> Void)?
 
-    public init(status: Int = 200, contentType: String = "application/json", body: Data) {
+    public init(status: Int = 200, contentType: String = "application/json", body: Data,
+                completion: (@Sendable (Bool) async -> Void)? = nil) {
         self.status = status
         self.contentType = contentType
         self.body = body
+        self.completion = completion
     }
 
     public static func error(_ status: Int) -> HTTPResponse {
