@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 12 | 8 | 10 | 0 |
+| F1 | 30 | 12 | 9 | 9 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -305,7 +305,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.B1 | Audit hosta | janfiedler / Codex + Astra | ✅ | [metadata audit](../spikes/s4-host/README.md); 17 syntetických testů, S4/R2/R7 Neověřeno |
 | WP1.B2 | Zpevnění a uninstall | janfiedler / Codex + Astra | 🟨 | [Částečný mode-only hardening/uninstall](../spikes/s4-host/HARDENING.md): dry-run, trvalý before/after deník, konflikty a syntetické testy; ACL hardening, host kompatibilita, poslední TOCTOU mezera a S4/RB-09/10 Neověřeno |
 | WP1.B3 | Manifest a topologie | janfiedler / Codex + Astra | ✅ | [návrhový manifest a validátor](../spikes/s4-state/README.md); 21 syntetických testů, skutečná topologie/kvóty/rollback a S4 Neověřeno |
-| WP1.B4 | Snapshot/rollback prototyp | | ⬜ | |
+| WP1.B4 | Snapshot/rollback prototyp | janfiedler / Codex + Astra | 🟨 | Převzato: fail-closed recovery protokol a syntetický file-backed mock; nativní APFS/lifecycle adaptér a S4 zůstávají Neověřeno |
 | WP1.B5 | S4 běh (L3) | uživatel + impl. | ⬜ | |
 | WP1.C1 | S3 příprava | janfiedler / Codex + Astra | ✅ | [Příprava, mock testy; S3/S3b neověřeno](../spikes/s3-pf/README.md) |
 | WP1.C2 | Ochrana nezávislá na pf | janfiedler / Codex + Astra | ✅ | [Rešerše a návrh](../spikes/s3-pf/research/wp1-c2-pf-independent/README.md): primární zdroje, připnuté OSS/SDK podklady, 12 návrhů L4 experimentů; úplný mechanismus nedoložen, blokátor otevřený. Bez runtime testů; S3/NET/R3 zůstávají Neověřeno |
