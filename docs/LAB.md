@@ -5,6 +5,9 @@ Autoritativní je [PLAN.md](../PLAN.md), přijaté změny jsou v [DECISIONS.md](
 WP0.5 dodává metodiku; zůstává rozpracované do potvrzení minimální konfigurace a cílů uživatelem.
 WP1.A1 je příprava, skutečné ověření S1 je [WP1.A2 / L1](../spikes/s1-session/README.md).
 
+Publikované sanitizované protokoly lze pouze pro čtení zkontrolovat [validátorem důkazů](../tools/lab_evidence/README.md).
+Kontrola struktury, hashů a odkazů nenahrazuje review, platnost měření ani rozhodnutí F0.8.
+
 ## 1. Návrh rozhodnutí F0.8
 
 Všechny nové číselné meze v tomto dokumentu jsou **návrhy**, nikoli již přijatá akceptace.
