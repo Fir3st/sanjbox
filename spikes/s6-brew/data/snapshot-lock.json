@@ -1,0 +1,16 @@
+{
+  "schema": "sanjbox.s6-snapshot.v1",
+  "files": {
+    "analytics-install-90d.json.gz": "a9245e1c14cc4fdf05d5ade8e8bc221725723ce46d3c9a8a98a8a5db1187e48e",
+    "analytics-source.json": "06275f839f61ac029d3561a78aeef0bc8ad609b3f7a3c21c3668adc511e4f70e",
+    "brew-source.json": "f0247b688191b0fe74fd11e9c7c1e91b8403c5c5f4d5571e84d99ed793f547de",
+    "cask-coteditor.json": "b1d318d5491bb303c25f1a8f75f2e50c5cf57cfb0091516c758b52442f9acd07",
+    "cask-itsycal.json": "878937a425de1eb7e1c6eab1846b05c42493d6aeb3a9eddfbf4eb77984a99def",
+    "cask-rectangle.json": "2e2ff0c0746b4c172aa8b45907f0fe22f8b91f2b3987fd80b59fc447d50d32f4",
+    "casks-source.json": "cacd32d837270abdc90751104fc1a53eabfaaba46968b58c14cd1b969e981e67",
+    "formulae-selected.json.gz": "16e90545bf1cf9522a6dad638dc488ccacd1122bedd0723c625695477d2b19b3",
+    "formulae-source.json": "0cd73fc2b8095a6144ef0961adaa2b40d305f9161aacb1678d713af6dba8cad4",
+    "source-contracts.json": "739b74e64ab700ad27f6bcf7caf5dcf5c869aa0a8d47c77165ae096d96504645",
+    "top-200.json": "d23e8299a11ea110c6ae2a1037d1f1c9951d18af0176255460a04f7556fddcf3"
+  }
+}

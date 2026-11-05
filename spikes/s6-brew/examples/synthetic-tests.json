@@ -1,0 +1,78 @@
+[
+  {
+    "name": "ca-certificates",
+    "exit_code": 1
+  },
+  {
+    "name": "ffmpeg",
+    "exit_code": 0
+  },
+  {
+    "name": "libpng",
+    "exit_code": 0
+  },
+  {
+    "name": "libffi",
+    "exit_code": 0
+  },
+  {
+    "name": "pipx",
+    "exit_code": 0
+  },
+  {
+    "name": "gnupg",
+    "exit_code": 0
+  },
+  {
+    "name": "z3",
+    "exit_code": 0
+  },
+  {
+    "name": "certifi",
+    "exit_code": 0
+  },
+  {
+    "name": "libgit2",
+    "exit_code": 0
+  },
+  {
+    "name": "mpg123",
+    "exit_code": 0
+  },
+  {
+    "name": "mole",
+    "exit_code": 0
+  },
+  {
+    "name": "libedit",
+    "exit_code": 0
+  },
+  {
+    "name": "fzf",
+    "exit_code": 0
+  },
+  {
+    "name": "libxcrypt",
+    "exit_code": 0
+  },
+  {
+    "name": "libyaml",
+    "exit_code": 0
+  },
+  {
+    "name": "uvwasi",
+    "exit_code": 0
+  },
+  {
+    "name": "openjdk@21",
+    "exit_code": 0
+  },
+  {
+    "name": "shellcheck",
+    "exit_code": 0
+  },
+  {
+    "name": "aws-c-io",
+    "exit_code": 0
+  }
+]

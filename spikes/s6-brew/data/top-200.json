@@ -1,0 +1,1011 @@
+{
+  "schema": "sanjbox.s6-selection.v1",
+  "kind": "metadata-derived",
+  "window": [
+    "2026-08-05",
+    "2026-11-03"
+  ],
+  "method": "sum unqualified core name option variants; count descending, ASCII name tie-break",
+  "formulae": [
+    {
+      "rank": 1,
+      "name": "ca-certificates",
+      "install_events": 1332939
+    },
+    {
+      "rank": 2,
+      "name": "openssl@3",
+      "install_events": 1090304
+    },
+    {
+      "rank": 3,
+      "name": "gh",
+      "install_events": 750673
+    },
+    {
+      "rank": 4,
+      "name": "xz",
+      "install_events": 719171
+    },
+    {
+      "rank": 5,
+      "name": "node",
+      "install_events": 712084
+    },
+    {
+      "rank": 6,
+      "name": "python@3.14",
+      "install_events": 691250
+    },
+    {
+      "rank": 7,
+      "name": "sqlite",
+      "install_events": 674939
+    },
+    {
+      "rank": 8,
+      "name": "pkgconf",
+      "install_events": 625754
+    },
+    {
+      "rank": 9,
+      "name": "readline",
+      "install_events": 575108
+    },
+    {
+      "rank": 10,
+      "name": "openssl@4",
+      "install_events": 549604
+    },
+    {
+      "rank": 11,
+      "name": "uv",
+      "install_events": 543501
+    },
+    {
+      "rank": 12,
+      "name": "pcre2",
+      "install_events": 511081
+    },
+    {
+      "rank": 13,
+      "name": "cmake",
+      "install_events": 509225
+    },
+    {
+      "rank": 14,
+      "name": "ffmpeg",
+      "install_events": 475009
+    },
+    {
+      "rank": 15,
+      "name": "glib",
+      "install_events": 464393
+    },
+    {
+      "rank": 16,
+      "name": "awscli",
+      "install_events": 463091
+    },
+    {
+      "rank": 17,
+      "name": "zstd",
+      "install_events": 462551
+    },
+    {
+      "rank": 18,
+      "name": "harfbuzz",
+      "install_events": 451959
+    },
+    {
+      "rank": 19,
+      "name": "go",
+      "install_events": 401276
+    },
+    {
+      "rank": 20,
+      "name": "lz4",
+      "install_events": 391013
+    },
+    {
+      "rank": 21,
+      "name": "simdjson",
+      "install_events": 380343
+    },
+    {
+      "rank": 22,
+      "name": "ncurses",
+      "install_events": 349472
+    },
+    {
+      "rank": 23,
+      "name": "fontconfig",
+      "install_events": 340343
+    },
+    {
+      "rank": 24,
+      "name": "libpng",
+      "install_events": 324233
+    },
+    {
+      "rank": 25,
+      "name": "gmp",
+      "install_events": 322860
+    },
+    {
+      "rank": 26,
+      "name": "mpdecimal",
+      "install_events": 322688
+    },
+    {
+      "rank": 27,
+      "name": "libffi",
+      "install_events": 319380
+    },
+    {
+      "rank": 28,
+      "name": "icu4c@78",
+      "install_events": 312883
+    },
+    {
+      "rank": 29,
+      "name": "brotli",
+      "install_events": 307725
+    },
+    {
+      "rank": 30,
+      "name": "libssh2",
+      "install_events": 299750
+    },
+    {
+      "rank": 31,
+      "name": "libunistring",
+      "install_events": 297621
+    },
+    {
+      "rank": 32,
+      "name": "zlib-ng-compat",
+      "install_events": 291472
+    },
+    {
+      "rank": 33,
+      "name": "simdutf",
+      "install_events": 285508
+    },
+    {
+      "rank": 34,
+      "name": "expat",
+      "install_events": 282430
+    },
+    {
+      "rank": 35,
+      "name": "json-c",
+      "install_events": 281589
+    },
+    {
+      "rank": 36,
+      "name": "git",
+      "install_events": 273887
+    },
+    {
+      "rank": 37,
+      "name": "python@3.15",
+      "install_events": 273458
+    },
+    {
+      "rank": 38,
+      "name": "jpeg-turbo",
+      "install_events": 265323
+    },
+    {
+      "rank": 39,
+      "name": "libtiff",
+      "install_events": 263930
+    },
+    {
+      "rank": 40,
+      "name": "libx11",
+      "install_events": 258846
+    },
+    {
+      "rank": 41,
+      "name": "little-cms2",
+      "install_events": 257270
+    },
+    {
+      "rank": 42,
+      "name": "llvm",
+      "install_events": 245223
+    },
+    {
+      "rank": 43,
+      "name": "freetype",
+      "install_events": 242949
+    },
+    {
+      "rank": 44,
+      "name": "abseil",
+      "install_events": 236447
+    },
+    {
+      "rank": 45,
+      "name": "libnghttp2",
+      "install_events": 236377
+    },
+    {
+      "rank": 46,
+      "name": "pipx",
+      "install_events": 231971
+    },
+    {
+      "rank": 47,
+      "name": "xorgproto",
+      "install_events": 230985
+    },
+    {
+      "rank": 48,
+      "name": "cairo",
+      "install_events": 225861
+    },
+    {
+      "rank": 49,
+      "name": "gcc",
+      "install_events": 216542
+    },
+    {
+      "rank": 50,
+      "name": "c-ares",
+      "install_events": 212952
+    },
+    {
+      "rank": 51,
+      "name": "libvmaf",
+      "install_events": 210510
+    },
+    {
+      "rank": 52,
+      "name": "libngtcp2",
+      "install_events": 205013
+    },
+    {
+      "rank": 53,
+      "name": "webp",
+      "install_events": 201980
+    },
+    {
+      "rank": 54,
+      "name": "gnupg",
+      "install_events": 199311
+    },
+    {
+      "rank": 55,
+      "name": "sdl3",
+      "install_events": 198380
+    },
+    {
+      "rank": 56,
+      "name": "coreutils",
+      "install_events": 197630
+    },
+    {
+      "rank": 57,
+      "name": "giflib",
+      "install_events": 196710
+    },
+    {
+      "rank": 58,
+      "name": "python@3.13",
+      "install_events": 192501
+    },
+    {
+      "rank": 59,
+      "name": "libuv",
+      "install_events": 192308
+    },
+    {
+      "rank": 60,
+      "name": "protobuf",
+      "install_events": 190760
+    },
+    {
+      "rank": 61,
+      "name": "llhttp",
+      "install_events": 189793
+    },
+    {
+      "rank": 62,
+      "name": "hdrhistogram_c",
+      "install_events": 189639
+    },
+    {
+      "rank": 63,
+      "name": "z3",
+      "install_events": 189359
+    },
+    {
+      "rank": 64,
+      "name": "gettext",
+      "install_events": 188824
+    },
+    {
+      "rank": 65,
+      "name": "krb5",
+      "install_events": 187280
+    },
+    {
+      "rank": 66,
+      "name": "jq",
+      "install_events": 181699
+    },
+    {
+      "rank": 67,
+      "name": "merve",
+      "install_events": 180639
+    },
+    {
+      "rank": 68,
+      "name": "mise",
+      "install_events": 180570
+    },
+    {
+      "rank": 69,
+      "name": "fmt",
+      "install_events": 180551
+    },
+    {
+      "rank": 70,
+      "name": "bzip2",
+      "install_events": 180083
+    },
+    {
+      "rank": 71,
+      "name": "ninja",
+      "install_events": 177520
+    },
+    {
+      "rank": 72,
+      "name": "aom",
+      "install_events": 176667
+    },
+    {
+      "rank": 73,
+      "name": "libnghttp3",
+      "install_events": 174678
+    },
+    {
+      "rank": 74,
+      "name": "curl",
+      "install_events": 173085
+    },
+    {
+      "rank": 75,
+      "name": "dav1d",
+      "install_events": 172508
+    },
+    {
+      "rank": 76,
+      "name": "x265",
+      "install_events": 172257
+    },
+    {
+      "rank": 77,
+      "name": "openjdk",
+      "install_events": 171845
+    },
+    {
+      "rank": 78,
+      "name": "libxrender",
+      "install_events": 171591
+    },
+    {
+      "rank": 79,
+      "name": "certifi",
+      "install_events": 171338
+    },
+    {
+      "rank": 80,
+      "name": "python@3.12",
+      "install_events": 171327
+    },
+    {
+      "rank": 81,
+      "name": "graphite2",
+      "install_events": 171250
+    },
+    {
+      "rank": 82,
+      "name": "sdl2-compat",
+      "install_events": 171133
+    },
+    {
+      "rank": 83,
+      "name": "libgit2",
+      "install_events": 166372
+    },
+    {
+      "rank": 84,
+      "name": "poppler",
+      "install_events": 165531
+    },
+    {
+      "rank": 85,
+      "name": "imagemagick",
+      "install_events": 165075
+    },
+    {
+      "rank": 86,
+      "name": "ada-url",
+      "install_events": 162785
+    },
+    {
+      "rank": 87,
+      "name": "libtool",
+      "install_events": 162213
+    },
+    {
+      "rank": 88,
+      "name": "mpg123",
+      "install_events": 158564
+    },
+    {
+      "rank": 89,
+      "name": "yt-dlp",
+      "install_events": 155812
+    },
+    {
+      "rank": 90,
+      "name": "libxext",
+      "install_events": 155361
+    },
+    {
+      "rank": 91,
+      "name": "rust",
+      "install_events": 155023
+    },
+    {
+      "rank": 92,
+      "name": "oniguruma",
+      "install_events": 151872
+    },
+    {
+      "rank": 93,
+      "name": "pango",
+      "install_events": 151804
+    },
+    {
+      "rank": 94,
+      "name": "tmux",
+      "install_events": 149522
+    },
+    {
+      "rank": 95,
+      "name": "ollama",
+      "install_events": 149327
+    },
+    {
+      "rank": 96,
+      "name": "ripgrep",
+      "install_events": 149206
+    },
+    {
+      "rank": 97,
+      "name": "p11-kit",
+      "install_events": 148981
+    },
+    {
+      "rank": 98,
+      "name": "libxcb",
+      "install_events": 148649
+    },
+    {
+      "rank": 99,
+      "name": "libpsl",
+      "install_events": 146933
+    },
+    {
+      "rank": 100,
+      "name": "nss",
+      "install_events": 146607
+    },
+    {
+      "rank": 101,
+      "name": "openldap",
+      "install_events": 145022
+    },
+    {
+      "rank": 102,
+      "name": "pyenv",
+      "install_events": 144040
+    },
+    {
+      "rank": 103,
+      "name": "yq",
+      "install_events": 142644
+    },
+    {
+      "rank": 104,
+      "name": "xcbeautify",
+      "install_events": 142409
+    },
+    {
+      "rank": 105,
+      "name": "libvpx",
+      "install_events": 139790
+    },
+    {
+      "rank": 106,
+      "name": "m4",
+      "install_events": 138880
+    },
+    {
+      "rank": 107,
+      "name": "mole",
+      "install_events": 138343
+    },
+    {
+      "rank": 108,
+      "name": "libomp",
+      "install_events": 137774
+    },
+    {
+      "rank": 109,
+      "name": "ruby",
+      "install_events": 136132
+    },
+    {
+      "rank": 110,
+      "name": "util-linux",
+      "install_events": 135184
+    },
+    {
+      "rank": 111,
+      "name": "docker",
+      "install_events": 135170
+    },
+    {
+      "rank": 112,
+      "name": "pnpm",
+      "install_events": 134004
+    },
+    {
+      "rank": 113,
+      "name": "libxdmcp",
+      "install_events": 133768
+    },
+    {
+      "rank": 114,
+      "name": "fribidi",
+      "install_events": 132701
+    },
+    {
+      "rank": 115,
+      "name": "openexr",
+      "install_events": 131813
+    },
+    {
+      "rank": 116,
+      "name": "libedit",
+      "install_events": 131604
+    },
+    {
+      "rank": 117,
+      "name": "lame",
+      "install_events": 130574
+    },
+    {
+      "rank": 118,
+      "name": "libxau",
+      "install_events": 129811
+    },
+    {
+      "rank": 119,
+      "name": "pixman",
+      "install_events": 129129
+    },
+    {
+      "rank": 120,
+      "name": "libgcrypt",
+      "install_events": 128624
+    },
+    {
+      "rank": 121,
+      "name": "aws-c-s3",
+      "install_events": 127094
+    },
+    {
+      "rank": 122,
+      "name": "fzf",
+      "install_events": 125978
+    },
+    {
+      "rank": 123,
+      "name": "libxcrypt",
+      "install_events": 123542
+    },
+    {
+      "rank": 124,
+      "name": "gnutls",
+      "install_events": 122363
+    },
+    {
+      "rank": 125,
+      "name": "libheif",
+      "install_events": 121117
+    },
+    {
+      "rank": 126,
+      "name": "libpq",
+      "install_events": 120714
+    },
+    {
+      "rank": 127,
+      "name": "openjpeg",
+      "install_events": 120207
+    },
+    {
+      "rank": 128,
+      "name": "libevent",
+      "install_events": 120066
+    },
+    {
+      "rank": 129,
+      "name": "aws-c-common",
+      "install_events": 119859
+    },
+    {
+      "rank": 130,
+      "name": "svt-av1",
+      "install_events": 119373
+    },
+    {
+      "rank": 131,
+      "name": "hello",
+      "install_events": 117528
+    },
+    {
+      "rank": 132,
+      "name": "lzo",
+      "install_events": 116539
+    },
+    {
+      "rank": 133,
+      "name": "pandoc",
+      "install_events": 116318
+    },
+    {
+      "rank": 134,
+      "name": "cffi",
+      "install_events": 113389
+    },
+    {
+      "rank": 135,
+      "name": "kubernetes-cli",
+      "install_events": 111306
+    },
+    {
+      "rank": 136,
+      "name": "tesseract",
+      "install_events": 111254
+    },
+    {
+      "rank": 137,
+      "name": "binutils",
+      "install_events": 110826
+    },
+    {
+      "rank": 138,
+      "name": "libyaml",
+      "install_events": 109682
+    },
+    {
+      "rank": 139,
+      "name": "libidn2",
+      "install_events": 109496
+    },
+    {
+      "rank": 140,
+      "name": "isl",
+      "install_events": 109176
+    },
+    {
+      "rank": 141,
+      "name": "libxml2",
+      "install_events": 108131
+    },
+    {
+      "rank": 142,
+      "name": "bash",
+      "install_events": 107916
+    },
+    {
+      "rank": 143,
+      "name": "librsvg",
+      "install_events": 107076
+    },
+    {
+      "rank": 144,
+      "name": "luajit",
+      "install_events": 103219
+    },
+    {
+      "rank": 145,
+      "name": "just",
+      "install_events": 103134
+    },
+    {
+      "rank": 146,
+      "name": "utf8proc",
+      "install_events": 102994
+    },
+    {
+      "rank": 147,
+      "name": "gdk-pixbuf",
+      "install_events": 102914
+    },
+    {
+      "rank": 148,
+      "name": "opus",
+      "install_events": 102689
+    },
+    {
+      "rank": 149,
+      "name": "deno",
+      "install_events": 102437
+    },
+    {
+      "rank": 150,
+      "name": "libgpg-error",
+      "install_events": 102046
+    },
+    {
+      "rank": 151,
+      "name": "dbus",
+      "install_events": 101274
+    },
+    {
+      "rank": 152,
+      "name": "libarchive",
+      "install_events": 100941
+    },
+    {
+      "rank": 153,
+      "name": "neovim",
+      "install_events": 100720
+    },
+    {
+      "rank": 154,
+      "name": "s2n",
+      "install_events": 100389
+    },
+    {
+      "rank": 155,
+      "name": "cloudflared",
+      "install_events": 99994
+    },
+    {
+      "rank": 156,
+      "name": "python@3.11",
+      "install_events": 99751
+    },
+    {
+      "rank": 157,
+      "name": "glab",
+      "install_events": 99037
+    },
+    {
+      "rank": 158,
+      "name": "uvwasi",
+      "install_events": 97521
+    },
+    {
+      "rank": 159,
+      "name": "ccache",
+      "install_events": 96861
+    },
+    {
+      "rank": 160,
+      "name": "libusb",
+      "install_events": 95585
+    },
+    {
+      "rank": 161,
+      "name": "opencode",
+      "install_events": 95549
+    },
+    {
+      "rank": 162,
+      "name": "libcap",
+      "install_events": 95394
+    },
+    {
+      "rank": 163,
+      "name": "nvm",
+      "install_events": 95388
+    },
+    {
+      "rank": 164,
+      "name": "libmpc",
+      "install_events": 94693
+    },
+    {
+      "rank": 165,
+      "name": "helm",
+      "install_events": 94342
+    },
+    {
+      "rank": 166,
+      "name": "nettle",
+      "install_events": 93670
+    },
+    {
+      "rank": 167,
+      "name": "cyrus-sasl",
+      "install_events": 92542
+    },
+    {
+      "rank": 168,
+      "name": "pycparser",
+      "install_events": 92479
+    },
+    {
+      "rank": 169,
+      "name": "icu4c@79",
+      "install_events": 92267
+    },
+    {
+      "rank": 170,
+      "name": "wget",
+      "install_events": 92120
+    },
+    {
+      "rank": 171,
+      "name": "openjdk@21",
+      "install_events": 91657
+    },
+    {
+      "rank": 172,
+      "name": "x264",
+      "install_events": 91611
+    },
+    {
+      "rank": 173,
+      "name": "mpfr",
+      "install_events": 90909
+    },
+    {
+      "rank": 174,
+      "name": "shellcheck",
+      "install_events": 90157
+    },
+    {
+      "rank": 175,
+      "name": "highway",
+      "install_events": 90137
+    },
+    {
+      "rank": 176,
+      "name": "nmap",
+      "install_events": 89706
+    },
+    {
+      "rank": 177,
+      "name": "boost",
+      "install_events": 88754
+    },
+    {
+      "rank": 178,
+      "name": "libksba",
+      "install_events": 88097
+    },
+    {
+      "rank": 179,
+      "name": "libtasn1",
+      "install_events": 87632
+    },
+    {
+      "rank": 180,
+      "name": "nbytes",
+      "install_events": 86019
+    },
+    {
+      "rank": 181,
+      "name": "aws-c-io",
+      "install_events": 85211
+    },
+    {
+      "rank": 182,
+      "name": "tree-sitter",
+      "install_events": 85061
+    },
+    {
+      "rank": 183,
+      "name": "aws-c-http",
+      "install_events": 84367
+    },
+    {
+      "rank": 184,
+      "name": "aws-c-mqtt",
+      "install_events": 83595
+    },
+    {
+      "rank": 185,
+      "name": "cryptography",
+      "install_events": 81664
+    },
+    {
+      "rank": 186,
+      "name": "glibc",
+      "install_events": 81430
+    },
+    {
+      "rank": 187,
+      "name": "llama.cpp",
+      "install_events": 81274
+    },
+    {
+      "rank": 188,
+      "name": "git-lfs",
+      "install_events": 80884
+    },
+    {
+      "rank": 189,
+      "name": "autoconf",
+      "install_events": 80754
+    },
+    {
+      "rank": 190,
+      "name": "jpeg-xl",
+      "install_events": 79976
+    },
+    {
+      "rank": 191,
+      "name": "gpgme",
+      "install_events": 79758
+    },
+    {
+      "rank": 192,
+      "name": "aws-c-cal",
+      "install_events": 79666
+    },
+    {
+      "rank": 193,
+      "name": "graphviz",
+      "install_events": 79292
+    },
+    {
+      "rank": 194,
+      "name": "python-setuptools",
+      "install_events": 79002
+    },
+    {
+      "rank": 195,
+      "name": "openjdk@17",
+      "install_events": 78599
+    },
+    {
+      "rank": 196,
+      "name": "aws-c-auth",
+      "install_events": 78509
+    },
+    {
+      "rank": 197,
+      "name": "xcodegen",
+      "install_events": 77952
+    },
+    {
+      "rank": 198,
+      "name": "lazygit",
+      "install_events": 77373
+    },
+    {
+      "rank": 199,
+      "name": "gobject-introspection",
+      "install_events": 77322
+    },
+    {
+      "rank": 200,
+      "name": "meson",
+      "install_events": 77047
+    }
+  ]
+}

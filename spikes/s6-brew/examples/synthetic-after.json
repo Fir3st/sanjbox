@@ -1,0 +1,68 @@
+{
+  "formulae": [
+    {
+      "name": "ca-certificates",
+      "full_name": "ca-certificates",
+      "tap": "homebrew/core",
+      "installed": [
+        {
+          "version": "2026-10-20",
+          "used_options": [],
+          "poured_from_bottle": true,
+          "built_as_bottle": true
+        }
+      ]
+    },
+    {
+      "name": "openssl@3",
+      "full_name": "openssl@3",
+      "tap": "homebrew/core",
+      "installed": [
+        {
+          "version": "3.5.9",
+          "used_options": [],
+          "poured_from_bottle": false,
+          "built_as_bottle": true
+        }
+      ]
+    },
+    {
+      "name": "gh",
+      "full_name": "gh",
+      "tap": "homebrew/core",
+      "installed": [
+        {
+          "version": "2.103.3",
+          "used_options": [],
+          "poured_from_bottle": true,
+          "built_as_bottle": true
+        }
+      ]
+    },
+    {
+      "name": "xz",
+      "full_name": "xz",
+      "tap": "homebrew/core",
+      "installed": [
+        {
+          "version": "5.8.4",
+          "used_options": [],
+          "built_as_bottle": true
+        }
+      ]
+    },
+    {
+      "name": "node",
+      "full_name": "node",
+      "tap": "homebrew/core",
+      "installed": [
+        {
+          "version": "synthetic-version-drift",
+          "used_options": [],
+          "poured_from_bottle": true,
+          "built_as_bottle": true
+        }
+      ]
+    }
+  ]
+}
