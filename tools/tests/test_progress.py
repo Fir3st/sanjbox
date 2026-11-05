@@ -1,6 +1,5 @@
-"""Regression checks for honest counting, Git history and safe static rendering."""
+"""Regression checks for honest counting, Git history and the safe static status page."""
 
-from copy import deepcopy
 from html.parser import HTMLParser
 import importlib.util
 import json
@@ -9,7 +8,6 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("progress", ROOT / "tools/progress.py")
@@ -55,8 +53,8 @@ class ProgressTests(unittest.TestCase):
         after = progress.collect(changed, self.implementation)
         self.assertEqual(after["summary"]["tests"]["done"], before["summary"]["tests"]["done"] + 1)
         self.assertEqual(after["summary"]["gates"], before["summary"]["gates"])
-        html = progress.render(after, [], "Example/project", "abc123", False)["progress.html"]
-        self.assertIn('href="https://github.com/Example/project/blob/abc123/docs/evidence/S1/run/verdict.md"', html)
+        html = progress.render(after, "Example/project", "abc123", False)["index.html"]
+        self.assertIn("izolace zatím neověřená", html)
 
     def test_unsafe_evidence_and_case_id_are_rejected(self):
         for target in ("javascript:alert", "//example.invalid/proof", "../../outside.md"):
@@ -90,20 +88,43 @@ class ProgressTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0][3], {"ID": "real", "Text": "a | b"})
 
-    def test_html_svg_escaping_and_static_fallback(self):
+    def test_html_escaping_and_complete_status_page(self):
         data = progress.collect(self.coverage, self.implementation)
-        data["packages"][0]["title"] = '<script>alert("x")</script>'
-        pages = progress.render(data, [], "Fir3st/sanjbox", "a" * 40, True)
-        html = pages["progress.html"]
-        self.assertNotIn('<script>alert', html)
+        package = next(p for p in data["packages"] if p["id"] == "WP1.A1")
+        package["title"] = '<script>alert("x")</script>'
+        data["gates"][0]["title"] = '<img src=x onerror=alert(1)>'
+        merged = [{"date": "2026-11-05", "number": 7, "title": '<b>"PR"</b>'}]
+        html = progress.render(data, "Fir3st/sanjbox", "a" * 40, True, merged, "2026-11-05")["index.html"]
+        for raw in ('<script>alert', '<img src=x', '<b>"PR"</b>', "{{"):
+            self.assertNotIn(raw, html)
         self.assertIn('&lt;script&gt;', html)
-        self.assertNotIn("{{", html)
-        self.assertIn("Lokální náhled", html)
-        for record in data["packages"]:
-            self.assertIn(f'id="package-{record["id"]}"', html)
-        for record in data["tests"]:
-            self.assertIn(f'id="test-{record["id"]}"', html)
-        ET.fromstring(progress.overview_svg(data))
+        self.assertIn("lokální náhled", html)
+        self.assertIn("5. 11. 2026", html)
+        self.assertIn('href="https://github.com/Fir3st/sanjbox/pull/7"', html)
+        for gate in progress.GATE_PACKAGES:
+            self.assertIn(f'id="gate-{gate}"', html)
+        segments = sum(len(ids) for ids in progress.GATE_PACKAGES.values())
+        self.assertEqual(html.count(' title="WP1.'), segments)
+
+    def test_banner_follows_gate_verdicts(self):
+        data = progress.collect(self.coverage, self.implementation)
+        gate = next(g for g in data["gates"] if g["id"] == "S1")
+        gate["state"] = "passed"
+        data["summary"]["gates"]["done"] = 1
+        html = progress.render(data, "Example/project", "abc123", False)["index.html"]
+        self.assertIn('class="banner active"', html)
+        self.assertIn("Prošlo 1 z 10", html)
+        gate["state"] = "failed"
+        data["summary"]["gates"]["done"] = 0
+        html = progress.render(data, "Example/project", "abc123", False)["index.html"]
+        self.assertIn('class="banner failed"', html)
+        self.assertIn("Neprošlo 1 z 10", html)
+
+    def test_gate_mapping_must_match_coverage(self):
+        data = progress.collect(self.coverage, self.implementation)
+        data["packages"] = [p for p in data["packages"] if p["id"] != "WP1.A5"]
+        with self.assertRaisesRegex(ValueError, "GATE_PACKAGES"):
+            progress.render(data, "Example/project", "abc123", False)
 
 
 class HistoryTests(unittest.TestCase):
@@ -164,15 +185,12 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(stored["summary"], data["summary"])
         self.assertEqual(len(json.loads((out / "history.json").read_text())["days"]), 1)
         home = (out / "index.html").read_text()
-        self.assertNotEqual(home, (out / "progress.html").read_text())
-        self.assertIn('id="about"', home)
-        self.assertIn('id="approach"', home)
-        self.assertIn('id="status"', home)
-        self.assertNotIn('class="filter-section"', home)
-        self.assertIn('href="progress.html"', home)
-        self.assertIn('href="history.html"', home)
+        self.assertIn('id="gates-title"', home)
+        self.assertIn("Aktualizováno 1. 11. 2026", home)
+        # Links shared before the single-page site keep working.
+        for name, target in progress.REDIRECTS.items():
+            self.assertIn(f'url={target}"', (out / name).read_text())
         self.assertTrue((out / ".nojekyll").is_file())
-        ET.parse(out / "progress.svg")
 
         class Links(HTMLParser):
             def __init__(self):
@@ -187,7 +205,7 @@ class HistoryTests(unittest.TestCase):
                     if name in attrs:
                         self.targets.append(attrs[name])
 
-        for name in ("index.html", "progress.html", "history.html"):
+        for name in ("index.html", *progress.REDIRECTS):
             parser = Links()
             parser.feed((out / name).read_text())
             for url in parser.targets:
@@ -203,13 +221,21 @@ class HistoryTests(unittest.TestCase):
                         destination.feed((out / path).read_text())
                         self.assertIn(fragment, destination.ids)
 
-    def test_chart_uses_elapsed_days_and_handles_single_point(self):
-        data = progress.collect(self.coverage, (ROOT / "docs/IMPLEMENTATION.md").read_text())
-        records = [{"date": date, "summary": deepcopy(data["summary"])} for date in ("2026-10-01", "2026-10-02", "2026-10-11")]
-        svg = progress.chart(records, "packages", "Progress")
-        self.assertIn('cx="107.60"', svg)  # One day of a ten-day span, not half the width.
-        ET.fromstring(svg)
-        ET.fromstring(progress.chart(records[:1], "packages", "One point"))
+    def test_changes_list_only_pull_requests_merged_into_first_parent_history(self):
+        self.commit("2026-11-01T12:00:00Z", self.coverage)
+        self.run_git("checkout", "-b", "feature")
+        self.commit("2026-11-02T12:00:00Z", self.coverage)
+        self.run_git("checkout", "-b", "nested")
+        self.commit("2026-11-02T13:00:00Z", self.coverage)
+        self.run_git("checkout", "feature")
+        # A merge inside the PR branch is not a change of main.
+        self.run_git("merge", "--no-ff", "nested", "-m", "Merge pull request #6 from owner/nested")
+        self.run_git("checkout", "main")
+        env = dict(os.environ, GIT_COMMITTER_DATE="2026-11-03T12:00:00Z")
+        self.run_git("merge", "--no-ff", "feature", "-m", "Merge pull request #7 from owner/feature",
+                     "-m", "WP9.1: synthetic change", env=env)
+        self.assertEqual(progress.changes(self.root, "HEAD"),
+                         [{"date": "2026-11-03", "number": 7, "title": "WP9.1: synthetic change"}])
 
 
 if __name__ == "__main__":

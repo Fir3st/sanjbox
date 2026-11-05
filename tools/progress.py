@@ -220,144 +220,123 @@ def link(url, label, css=""):
     return f'<a href="{escape(url, quote=True)}" class="{css}">{escape(str(label))}</a>'
 
 
-def badge(state):
-    return f'<span class="status {state}"><span aria-hidden="true">●</span> {LABELS[state]}</span>'
+# Preparation and laboratory packages behind each F1 gate (docs/IMPLEMENTATION.md, streams A–G).
+GATE_PACKAGES = {
+    "S0": ("WP1.A4", "WP1.A5"), "S1": ("WP1.A1", "WP1.A2", "WP1.A3"), "S2": ("WP1.F1", "WP1.F2"),
+    "S3": ("WP1.C1", "WP1.C2", "WP1.C4"), "S3b": ("WP1.C3", "WP1.C4"),
+    "S4": ("WP1.B1", "WP1.B2", "WP1.B3", "WP1.B4", "WP1.B5"),
+    "S5": ("WP1.D1", "WP1.D2", "WP1.D3", "WP1.D4", "WP1.D5", "WP1.D6", "WP1.D7"),
+    "S6": ("WP1.E1", "WP1.E2"), "S7": ("WP1.G1", "WP1.G2", "WP1.G3"), "S8": ("WP1.A6", "WP1.A7"),
+}
 
 
-def table(headers, rows, caption):
-    return (f'<div class="table-wrap"><table><caption class="sr-only">{escape(caption)}</caption><thead><tr>'
-            + "".join(f'<th scope="col">{escape(h)}</th>' for h in headers)
-            + '</tr></thead><tbody>' + "".join(rows) + '</tbody></table></div>')
+def czech_date(day):
+    value = datetime.fromisoformat(day)
+    return f"{value.day}. {value.month}. {value.year}"
 
 
-def chart(records, key, title):
-    width, height, left, top, bottom = 700, 230, 44, 20, 190
-    maximum = max([r["summary"][key]["total"] for r in records] + [1])
-    parts = [f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="{escape(title)}" class="chart">']
-    for fraction in (0, .5, 1):
-        y = bottom - fraction * (bottom - top)
-        parts.append(f'<path d="M{left} {y}H680" class="gridline"/><text x="8" y="{y + 4}">{maximum * fraction:g}</text>')
-    for field, css in (("total", "total-line"), ("done", "done-line")):
-        points = []
-        dates = [datetime.fromisoformat(r["date"]).toordinal() for r in records]
-        span = max(dates) - min(dates) if dates else 0
-        for index, record in enumerate(records):
-            x = left + (dates[index] - min(dates)) * 636 / span if span else 362
-            value = record["summary"][key][field]
-            y = bottom - value / maximum * (bottom - top)
-            points.append(f"{x:.2f},{y:.2f}")
-            label = f"{record['date']}: {value} ({'celkem' if field == 'total' else 'hotovo / prošlo'})"
-            parts.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="4" class="{css}"><title>{escape(label)}</title></circle>')
-        if points:
-            parts.append(f'<polyline points="{" ".join(points)}" class="{css}"/>')
-    if records:
-        parts.append(f'<text x="44" y="220">{records[0]["date"]}</text>')
-        if len(records) > 1:
-            parts.append(f'<text x="680" y="220" text-anchor="end">{records[-1]["date"]}</text>')
-    parts.append('</svg>')
-    return "".join(parts)
+def changes(root, ref, limit=12):
+    """Most recent pull requests merged into the first-parent history, newest first."""
+    log = git(root, "log", "--first-parent", "--merges", f"-{limit}", "--format=%cs%x1f%s%x1f%b%x1e", ref)
+    entries = []
+    for record in filter(None, (r.strip() for r in log.split("\x1e"))):
+        day, subject, body = (record.split("\x1f") + [""])[:3]
+        number = re.match(r"Merge pull request #(\d+) ", subject)
+        if number:
+            title = next((line.strip() for line in body.splitlines() if line.strip()), subject)
+            entries.append({"date": day, "number": int(number[1]), "title": title})
+    return entries
 
 
-def overview_svg(data):
-    """A portable, self-contained progress map suitable for README embedding."""
-    colors = {"done": "#7de2b8", "active": "#eac078", "blocked": "#ed8989", "todo": "#263c36"}
-    parts = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 250" role="img" aria-labelledby="title desc">',
-             '<title id="title">Sanďbox — stav vývoje</title>',
-             '<desc id="desc">Každé políčko je jeden pracovní balík. Hotový balík není důkaz izolace.</desc>',
-             '<rect width="1000" height="250" rx="12" fill="#111b18"/>',
-             '<g font-family="system-ui,sans-serif" fill="#e6eee9">',
-             '<text x="24" y="34" font-size="20">Sanďbox · stav vývoje</text>']
-    for index, (phase, title) in enumerate(PHASES.items()):
-        x = 24 + index * 195
-        summary = data["summary"]["phases"][phase]
-        parts.append(f'<text x="{x}" y="70" font-size="13">{phase} · {summary["done"]}/{summary["total"]} hotovo</text>')
-        for i, p in enumerate(p for p in data["packages"] if p["phase"] == phase):
-            parts.append(f'<rect x="{x + i % 6 * 28}" y="{84 + i // 6 * 20}" width="23" height="15" rx="2" fill="{colors[p["state"]]}"><title>{escape(p["id"] + ": " + p["title"] + " — " + LABELS[p["state"]])}</title></rect>')
-    packages, gates, tests = (data["summary"][k] for k in ("packages", "gates", "tests"))
-    parts.append(f'<text x="24" y="215" font-size="14">Balíky {packages["done"]}/{packages["total"]} · Brány F1 {gates["done"]}/{gates["total"]} · Ověřené případy {tests["done"]}/{tests["total"]}</text>')
-    parts.append('<text x="24" y="237" font-size="11" fill="#a5b8ae">Zelená: hotovo · Žlutá: rozpracováno · Šedá: nezahájeno · Červená: blokováno. Balíky mají různou pracnost.</text></g></svg>')
-    return "".join(parts)
+def gate_order(gate):
+    number, suffix = re.fullmatch(r"S(\d+)(b?)", gate["id"]).groups()
+    return int(number), suffix
 
 
-def render(data, records, repository, sha, dirty):
-    def source(record, path="docs/COVERAGE.md", label=None):
-        return link(source_url(repository, sha, path, record["line"]), label or record["id"], "mono")
+def render(data, repository, sha, dirty, merged=(), updated=""):
+    """The single status page: overall state, gates as components, phases and recent changes."""
+    def source(record):
+        return escape(source_url(repository, sha, "docs/COVERAGE.md", record["line"]), quote=True)
 
     summary = data["summary"]
-    cards = ""
-    for key, title, note in (("packages", "Hotové balíky", "dokončené části implementace"),
-                             ("gates", "Brány F1", "s uzavřeným ověřením"),
-                             ("tests", "Ověřené případy", "doložené laboratorním důkazem"),
-                             ("requirements", "Požadavky", "splněné podle kontraktu")):
-        item = summary[key]
-        cards += f'<article class="metric"><p>{title}</p><div><strong>{item["done"]:02}</strong><span>/ {item["total"]}</span></div><progress value="{item["done"]}" max="{item["total"]}">{item["percent"]}%</progress><small>{note}</small></article>'
-    maps = ""
+    packages = {p["id"]: p for p in data["packages"]}
+    gates = sorted((g for g in data["gates"] if re.fullmatch(r"S\d+b?", g["id"])), key=gate_order)
+    if {g["id"] for g in gates} != set(GATE_PACKAGES) or not set().union(*GATE_PACKAGES.values()) <= packages.keys():
+        raise ValueError("GATE_PACKAGES neodpovídá branám a balíkům v COVERAGE.md")
+
+    passed, total = summary["gates"]["done"], summary["gates"]["total"]
+    failed = sum(g["state"] == "failed" for g in gates)
+    if passed == total:
+        banner = ("done", "Všechny ověřovací brány prošly", "Izolace je doložená protokoly v rozsahu bran S0–S8.")
+    elif failed:
+        banner = ("failed", f"Neprošlo {failed} z {total} ověřovacích bran",
+                  "Izolace v rozsahu neprošlých bran neplatí. Nepoužívej se skutečnými projekty, účty ani tajemstvími.")
+    elif passed:
+        banner = ("active", f"Prošlo {passed} z {total} ověřovacích bran",
+                  "Izolace platí jen v rozsahu prošlých bran.")
+    else:
+        banner = ("active", "Ve vývoji, izolace zatím neověřená",
+                  f"Žádná z {total} ověřovacích bran zatím neprošla. Nepoužívej se skutečnými projekty, účty ani tajemstvími.")
+
+    rows = ""
+    for g in gates:
+        title = plain(g["title"])
+        scope = re.search(r"\s*\((mimo MVP)[^)]*\)", title)
+        tag = f'<span class="tag">{scope[1]}</span>' if scope else ""
+        title = title.replace(scope[0], "") if scope else title
+        work = [packages[i] for i in GATE_PACKAGES[g["id"]]]
+        segments = ""
+        for p in work:
+            label = escape(f'{p["id"]} {plain(p["title"])}: {LABELS[p["state"]].lower()}', quote=True)
+            segments += f'<a class="{p["state"]}" href="{source(p)}" title="{label}" aria-label="{label}"></a>'
+        done = sum(p["state"] == "done" for p in work)
+        active = sum(p["state"] == "active" for p in work)
+        rows += (f'<li id="gate-{g["id"]}"><div class="row"><span class="id">{g["id"]}</span>'
+                 f'<a class="name" href="{source(g)}">{escape(title)}</a>{tag}'
+                 f'<span class="state {g["state"]}"><span class="dot" aria-hidden="true"></span>{LABELS[g["state"]]}</span></div>'
+                 f'<div class="bar">{segments}</div>'
+                 f'<div class="meta">Příprava {done}/{len(work)} hotovo{f" · {active} rozpracováno" if active else ""}</div></li>')
+
+    started = [phase for phase in PHASES if any(p["phase"] == phase and p["state"] != "todo" for p in data["packages"])]
+    current = started[-1] if started else next(iter(PHASES))
     phases = ""
     for phase, title in PHASES.items():
-        items = [p for p in data["packages"] if p["phase"] == phase]
         count = summary["phases"][phase]
-        tiles = "".join(f'<a class="tile {p["state"]}" href="#package-{p["id"]}" aria-label="{escape(p["id"] + ": " + plain(p["title"]) + " — " + LABELS[p["state"]])}" title="{escape(p["id"] + ": " + plain(p["title"]) + " — " + LABELS[p["state"]])}">{escape(p["id"].replace("WP", ""))}</a>' for p in items)
-        maps += f'<div class="map-group"><div class="map-label"><b>{phase}</b><span>{count["done"]}/{count["total"]}</span></div><div class="tiles">{tiles}</div></div>'
-        phases += f'<article class="phase"><span class="mono">{phase}</span><h3>{title}</h3><p>{count["done"]} z {count["total"]} balíků</p><progress value="{count["done"]}" max="{count["total"]}">{count["percent"]}%</progress></article>'
-    test_maps = ""
-    for prefix in dict.fromkeys(t["id"].split("-")[0] for t in data["tests"]):
-        items = [t for t in data["tests"] if t["id"].startswith(prefix + "-")]
-        tiles = "".join(f'<a class="test-tile {t["state"]}" href="#test-{t["id"]}" aria-label="{t["id"]}: {LABELS[t["state"]]}" title="{escape(t["id"] + ": " + plain(t["title"]))}"></a>' for t in items)
-        test_maps += f'<div class="test-group"><span class="mono">{prefix}</span><div>{tiles}</div><span>{sum(t["state"] == "passed" for t in items)}/{len(items)}</span></div>'
-    package_rows = []
-    for p in data["packages"]:
-        package_rows.append(f'<tr id="package-{p["id"]}" data-phase="{p["phase"]}" data-state="{p["state"]}"><td>{source(p)}<small>{p["phase"]}</small></td><td><strong>{escape(plain(p["title"]))}</strong><details><summary>Výstup a návaznosti</summary><p>{escape(plain(p["deliverable"]))}</p><p>Závislosti: {escape(plain(p["dependencies"]))}</p></details><small>{escape(plain(p["note"]))}</small></td><td>{badge(p["state"])}</td><td>{escape(plain(p["owner"])) or "—"}</td></tr>')
-    gate_rows = [f'<tr><td>{source(g)}</td><td>{escape(plain(g["title"]))}</td><td>{escape(plain(g["dependencies"]))}</td><td>{badge(g["state"])}</td><td>{evidence_links(g["evidence"], repository, sha) or source(g, label="Záznam ↗")}</td></tr>' for g in data["gates"]]
-    requirement_rows = [f'<tr><td>{source(r)}</td><td>{escape(plain(r["title"]))}<small>{escape(plain(r["note"]))}</small></td><td>{escape(r["dependencies"])}</td><td>{badge(r["state"])}</td></tr>' for r in data["requirements"]]
-    test_rows = [f'<tr id="test-{t["id"]}" data-state="{t["state"]}"><td>{source(t)}</td><td>{escape(plain(t["title"]))}</td><td>{escape(t["gates"])}</td><td>{badge(t["state"])}</td><td>{evidence_links(t["evidence"], repository, sha) or source(t, label="Záznam ↗")}</td></tr>' for t in data["tests"]]
-    blockers = "".join(f'<article class="blocker"><span class="mono">{b["id"]}</span><div><h3>{escape(plain(b["title"]))}</h3><p>{escape(b["requirements"])} · Řeší: {escape(plain(b["resolves"]))}</p></div>{badge(b["state"])}{source(b, label="Zdroj ↗")}</article>' for b in data["blockers"])
-    scope = link(source_url(repository, sha, "docs/DECISIONS.md"), "Rozsah MVP a rozhodnutí ↗")
-    overview = f'''<section class="hero"><div><p class="eyebrow">DEVELOPMENT STATUS</p><h1>Od návrhu<br>k ověřené izolaci<span>.</span></h1><p class="intro">Nativní oblasti pro AI agenty na macOS.<br>Průběžný stav implementace, ověřování a otevřených překážek.</p></div><aside class="project-state"><span class="status active">● Vývoj a ověřování</span><p>Žádná izolace zatím není prokázaná.</p><small>MVP: CLI a jedno okno s plochou oblasti.<br>Coherence a Docker následují ve F3 a F4.</small>{scope}</aside></section>
-<div class="metrics">{cards}</div>
-<section id="map" class="section"><div class="section-heading"><div><p class="eyebrow">01 / MAPA PROGRESU</p><h2>Co už existuje. Co ještě zbývá.</h2></div>{link('progress.svg', 'Stáhnout SVG ↗', 'subtle')}</div><div class="map-panels"><article class="panel"><div class="panel-heading"><h3>Implementace</h3><span>{summary['packages']['percent']:g}% balíků</span></div><div class="package-map">{maps}</div><div class="legend"><span class="done">● Hotovo</span><span class="active">● Rozpracováno</span><span class="todo">● Nezahájeno</span><span class="blocked">● Blokováno</span></div><p class="fine">Jedno políčko = jeden balík. Balíky mají různou pracnost; podíl nevyjadřuje procento hotového produktu.</p></article><article class="panel"><div class="panel-heading"><h3>Ověřování</h3><span>{summary['tests']['done']} / {summary['tests']['total']} prošlo</span></div>{test_maps}<div class="legend"><span class="passed">● Prošlo</span><span class="unverified">● Neověřeno</span><span class="failed">● Neprošlo</span><span class="unclear">● Nejasné</span></div><p class="fine">Jedno políčko = jeden akceptační případ. Kliknutím přejdete na jeho záznam.</p></article></div></section>
-<section id="roadmap" class="section"><div class="section-heading"><div><p class="eyebrow">02 / ROADMAPA</p><h2>Pět fází, jasné návaznosti.</h2></div>{link(source_url(repository, sha, 'docs/IMPLEMENTATION.md'), 'Plán implementace ↗', 'subtle')}</div><div class="phases">{phases}</div></section>
-<section id="packages" class="section filter-section"><div class="section-heading"><div><p class="eyebrow">03 / IMPLEMENTACE</p><h2>Pracovní balíky</h2></div><span class="filter-count" aria-live="polite">{len(package_rows)} balíků</span></div><div class="filters" hidden><label>Hledat<input type="search" placeholder="ID, název nebo vlastník…"></label><label>Fáze<select data-filter="phase"><option value="">Všechny fáze</option>{''.join(f'<option>{p}</option>' for p in PHASES)}</select></label><label>Stav<select data-filter="state"><option value="">Všechny stavy</option>{''.join(f'<option value="{s}">{LABELS[s]}</option>' for s in WORK_STATES.values())}</select></label></div>{table(['Balík', 'Název a výstup', 'Stav', 'Vlastník'], package_rows, 'Pracovní balíky')}<p class="empty" hidden>Žádný balík neodpovídá filtrům.</p></section>
-<section id="gates" class="section"><div class="section-heading"><div><p class="eyebrow">04 / DŮKAZY</p><h2>Brány a požadavky</h2></div><span class="subtle">Hotový balík ≠ prošlá brána</span></div>{table(['Brána', 'Rozsah', 'Závisí na', 'Verdikt', 'Důkaz / záznam'], gate_rows, 'Ověřovací brány')}<details class="requirements"><summary>Požadavky R1–R8 a jejich rozhodující brány</summary>{table(['ID', 'Požadavek', 'Brány', 'Stav'], requirement_rows, 'Požadavky produktu')}</details></section>
-<section id="blockers" class="section"><div class="section-heading"><div><p class="eyebrow">05 / OTEVŘENÉ OTÁZKY</p><h2>Blokátory</h2></div><span class="subtle">{summary['blockers']['states'].get('open', 0)} otevřených</span></div><div class="blockers">{blockers}</div></section>
-<section id="tests" class="section filter-section"><div class="section-heading"><div><p class="eyebrow">06 / AKCEPTACE</p><h2>Testové případy</h2></div><span class="filter-count" aria-live="polite">{len(test_rows)} případů</span></div><div class="filters" hidden><label>Hledat<input type="search" placeholder="ID nebo popis případu…"></label><label>Verdikt<select data-filter="state"><option value="">Všechny verdikty</option>{''.join(f'<option value="{s}">{LABELS[s]}</option>' for s in STATES.values())}</select></label></div>{table(['ID', 'Případ', 'Brána', 'Verdikt', 'Důkaz / záznam'], test_rows, 'Akceptační případy')}<p class="empty" hidden>Žádný případ neodpovídá filtrům.</p></section>'''
-    history_rows = []
-    for r in reversed(records):
-        cells = [escape(r["date"]), link(f'https://github.com/{repository}/commit/{r["commit"]}', r["commit"][:7], 'mono')]
-        for key in ("packages", "gates", "tests", "requirements"):
-            item = r["summary"][key]
-            cells.append(f'{item["done"]} / {item["total"]}')
-        history_rows.append('<tr>' + ''.join(f'<td>{cell}</td>' for cell in cells) + '</tr>')
-    charts = ''.join(f'<article class="panel"><div class="panel-heading"><h2>{title}</h2></div>{chart(records, key, title)}<div class="legend"><span class="done">━ Hotovo / prošlo</span><span>┄ Celkem v evidenci</span></div></article>' for key, title in (("packages", "Pracovní balíky"), ("tests", "Akceptační případy")))
-    history_body = f'''<section class="history-hero"><p class="eyebrow">PROGRESS HISTORY</p><h1>Postup v čase<span>.</span></h1><p class="intro">Hotové balíky a ověřené případy vůči celému evidovanému rozsahu.</p></section><div class="map-panels">{charts}</div><p class="fine">Jeden bod za den UTC: poslední commit dne na first-parent historii zvoleného refu. Počítáno stejnými pravidly jako aktuální přehled. Nové balíky a případy mohou zvětšit celkový rozsah. Dny bez commitů nepřidávají bod. Lokální necommitované změny do historie nevstupují.</p><section class="section"><div class="section-heading"><h2>Denní záznamy</h2>{link('history.json', 'Surová data JSON ↗', 'subtle')}</div>{table(['Den (UTC)', 'Commit', 'Balíky hotovo', 'Brány F1 prošlo', 'Případy prošlo', 'Požadavky splněno'], history_rows, 'Historie progresu')}</section>'''
-    completed = ''.join(
-        f'<li><span class="mono">{escape(p["id"])}</span><span>{escape(plain(p["title"]))}</span>'
-        f'{link("progress.html#package-" + p["id"], "Podrobnosti ↗")}</li>'
-        for p in data['packages'] if p['state'] == 'done')
-    home_values = {
-        'cards': cards, 'phases': phases, 'completed': completed,
-        'repository': f'https://github.com/{repository}',
-        'plan': source_url(repository, sha, 'PLAN.md'),
-        'guide': source_url(repository, sha, 'docs/GUIDE.md'),
-        'decisions': source_url(repository, sha, 'docs/DECISIONS.md'),
-        'blockers': str(summary['blockers']['states'].get('open', 0)),
+        css = ' class="current" aria-current="step"' if phase == current else ""
+        phases += (f'<li{css}><span class="id">{phase}</span><span class="name">{escape(title)}</span>'
+                   f'<span class="count"><b>{count["done"]}</b> / {count["total"]}</span>'
+                   f'<span class="track"><span style="width:{count["percent"]:g}%"></span></span></li>')
+
+    days = {}
+    for entry in merged:
+        url = f"https://github.com/{repository}/pull/{entry['number']}"
+        days.setdefault(entry["date"], []).append(f'<li><span>#{entry["number"]}</span>{link(url, entry["title"])}</li>')
+    timeline = "".join(f'<div class="day"><h3>{czech_date(day)}</h3><ul>{"".join(items)}</ul></div>'
+                       for day, items in days.items()) or '<div class="day"><h3>Zatím žádné sloučené PR</h3></div>'
+
+    snapshot = ("lokální náhled s necommitovanými změnami" if dirty else
+                f'commit {link(f"https://github.com/{repository}/commit/{sha}", sha[:7])}')
+    values = {
+        "repository": escape(f"https://github.com/{repository}", quote=True),
+        "plan": escape(source_url(repository, sha, "PLAN.md"), quote=True),
+        "coverage": escape(source_url(repository, sha, "docs/COVERAGE.md"), quote=True),
+        "method": escape(source_url(repository, sha, "docs/PROGRESS.md"), quote=True),
+        "banner_state": banner[0], "banner_title": escape(banner[1]), "banner_text": escape(banner[2]),
+        "updated": escape(czech_date(updated)) if updated else "", "snapshot": snapshot,
+        "gates": rows, "phases": phases, "changes": timeline,
     }
-    home = re.sub(r'\{\{(\w+)\}\}', lambda m: home_values[m[1]],
-                  (ASSETS / 'home.html').read_text(encoding='utf-8'))
     template = (ASSETS / "page.html").read_text(encoding="utf-8")
-    pages = {}
-    for name, title, body in (("index.html", "Nativní oblasti pro AI agenty na macOS", home),
-                             ("progress.html", "Stav vývoje", overview),
-                             ("history.html", "Historie vývoje", history_body)):
-        values = {"title": title, "body": body, "repository": f"https://github.com/{repository}",
-                  "description": "Sanďbox zkoumá nativní izolované oblasti pro AI agenty na macOS. Cíle projektu, navržená architektura a aktuální stav vývoje." if name == 'index.html' else 'Sanďbox: stav implementace, ověřovací brány a historie vývoje.',
-                  "coverage": source_url(repository, sha, "docs/COVERAGE.md"),
-                  "method": source_url(repository, sha, "docs/PROGRESS.md"), "sha": sha[:7],
-                  "snapshot": "Lokální náhled · necommitované změny" if dirty else "Commit " + sha[:7],
-                  "home_current": 'aria-current="page"' if name == "index.html" else "",
-                  "overview_current": 'aria-current="page"' if name == "progress.html" else "",
-                  "history_current": 'aria-current="page"' if name == "history.html" else ""}
-        pages[name] = re.sub(r"\{\{(\w+)\}\}", lambda m: values[m[1]] if m[1] in ("body", "home_current", "overview_current", "history_current") else escape(values[m[1]], quote=True), template)
-    return pages
+    return {"index.html": re.sub(r"\{\{(\w+)\}\}", lambda m: values[m[1]], template)}
+
+
+# Former subpages stay reachable for links shared before the single-page status site.
+REDIRECTS = {"progress.html": "index.html", "history.html": "index.html"}
+
+
+def redirect(target):
+    return (f'<!doctype html>\n<meta charset="utf-8">\n<meta http-equiv="refresh" content="0; url={target}">\n'
+            f'<link rel="canonical" href="{target}">\n<title>Sanďbox · stav vývoje</title>\n'
+            f'<p><a href="{target}">Stav vývoje je na úvodní stránce.</a></p>\n')
 
 
 def build(root, out, repository, ref="HEAD"):
@@ -372,13 +351,14 @@ def build(root, out, repository, ref="HEAD"):
     records = history(root, sha)
     data.update(schema_version=1, commit=head, working_tree=dirty, repository=repository,
                 history_ref=sha, counting_rules="docs/PROGRESS.md")
-    pages = render(data, records, repository, head, dirty)
+    pages = render(data, repository, head, dirty, changes(root, sha),
+                   git(root, "log", "-1", "--format=%cs", head))
+    pages.update({name: redirect(target) for name, target in REDIRECTS.items()})
     out.mkdir(parents=True, exist_ok=True)
     for name, html in pages.items():
         (out / name).write_text(html, encoding="utf-8")
     for name, payload in (("progress.json", data), ("history.json", {"schema_version": 1, "ref": sha, "days": records})):
         (out / name).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (out / "progress.svg").write_text(overview_svg(data), encoding="utf-8")
     for name in ("style.css", "app.js"):
         shutil.copyfile(ASSETS / name, out / name)
     (out / ".nojekyll").touch()
