@@ -7,5 +7,5 @@ let package = Package(
     targets: [
         .target(name: "IngressKit", dependencies: [.product(name: "SanjboxProbeKit", package: "common")]),
         .executableTarget(name: "sanjbox-ingress", dependencies: ["IngressKit"]),
-        .testTarget(name: "IngressKitTests", dependencies: ["IngressKit"])
+        .testTarget(name: "IngressKitTests", dependencies: ["IngressKit"], resources: [.copy("Fixtures")])
     ])

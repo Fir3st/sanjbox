@@ -1,0 +1,91 @@
+{
+  "bindings": [
+    {
+      "canary": "SANJBOX-CANARY-c3-0123456789abcdef0123456789abcdef",
+      "capture": {
+        "captureID": "77777777-7777-4777-8777-777777777777",
+        "sourceID": "packet"
+      },
+      "counterpart": {
+        "flowID": 1,
+        "sourceID": "receiver"
+      },
+      "endpointID": "endpoint-1",
+      "flowID": "22222222-2222-4222-8222-222222222222",
+      "scenarioID": "NET-12.ipv4.loopback.zoneToHost",
+      "sender": {
+        "line": 53,
+        "sourceID": "sender"
+      },
+      "senderIdentity": {
+        "line": 1,
+        "sourceID": "sender"
+      },
+      "stage": "test"
+    }
+  ],
+  "endpoints": [
+    {
+      "bind": {
+        "host": "127.0.0.1",
+        "port": 18080
+      },
+      "id": "endpoint-1",
+      "local": {
+        "host": "127.0.0.1",
+        "port": 18080
+      },
+      "remote": {
+        "host": "127.0.0.1",
+        "port": 49152
+      },
+      "scenarioID": "NET-12.ipv4.loopback.zoneToHost",
+      "transport": "tcp"
+    }
+  ],
+  "matrixJSON": "{\"schemaVersion\":1,\"runID\":\"11111111-1111-4111-8111-111111111111\",\"roles\":{\"host\":{\"realUID\":501,\"effectiveUID\":501,\"realGID\":501,\"effectiveGID\":501,\"kernelGroups\":[501],\"requiredGroups\":[501],\"forbiddenGroups\":[20,80],\"auditSessionID\":100,\"auditUID\":501,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":501,\"windowUID\":501,\"windowAuditSessionID\":100,\"onConsole\":false,\"loginDone\":true},\"zone\":{\"realUID\":4501,\"effectiveUID\":4501,\"realGID\":4501,\"effectiveGID\":4501,\"kernelGroups\":[4501],\"requiredGroups\":[4501],\"forbiddenGroups\":[20,80],\"auditSessionID\":200,\"auditUID\":4501,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":4501,\"windowUID\":4501,\"windowAuditSessionID\":200,\"onConsole\":false,\"loginDone\":true},\"otherZone\":{\"realUID\":4502,\"effectiveUID\":4502,\"realGID\":4502,\"effectiveGID\":4502,\"kernelGroups\":[4502],\"requiredGroups\":[4502],\"forbiddenGroups\":[20,80],\"auditSessionID\":300,\"auditUID\":4502,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":4502,\"windowUID\":4502,\"windowAuditSessionID\":300,\"onConsole\":false,\"loginDone\":true}},\"cells\":[{\"scenarioID\":\"NET-12.ipv4.loopback.zoneToHost\",\"origin\":\"mock\",\"portBasis\":\"fixedHostReservation\",\"participants\":[{\"actor\":\"initiator\",\"instanceID\":\"33333333-3333-4333-8333-333333333333\",\"pid\":100,\"machine\":\"target\",\"expected\":{\"realUID\":4501,\"effectiveUID\":4501,\"realGID\":4501,\"effectiveGID\":4501,\"kernelGroups\":[4501],\"requiredGroups\":[4501],\"forbiddenGroups\":[20,80],\"auditSessionID\":200,\"auditUID\":4501,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":4501,\"windowUID\":4501,\"windowAuditSessionID\":200,\"onConsole\":false,\"loginDone\":true},\"observed\":{\"realUID\":4501,\"effectiveUID\":4501,\"realGID\":4501,\"effectiveGID\":4501,\"kernelGroups\":[4501],\"requiredGroups\":[4501],\"forbiddenGroups\":[20,80],\"auditSessionID\":200,\"auditUID\":4501,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":4501,\"windowUID\":4501,\"windowAuditSessionID\":200,\"onConsole\":false,\"loginDone\":true},\"signature\":{\"valid\":true,\"hardenedRuntime\":true,\"getTaskAllowAbsent\":true,\"metadataComplete\":true}},{\"actor\":\"listener\",\"instanceID\":\"44444444-4444-4444-8444-444444444444\",\"pid\":101,\"machine\":\"target\",\"expected\":{\"realUID\":501,\"effectiveUID\":501,\"realGID\":501,\"effectiveGID\":501,\"kernelGroups\":[501],\"requiredGroups\":[501],\"forbiddenGroups\":[20,80],\"auditSessionID\":100,\"auditUID\":501,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":501,\"windowUID\":501,\"windowAuditSessionID\":100,\"onConsole\":false,\"loginDone\":true},\"observed\":{\"realUID\":501,\"effectiveUID\":501,\"realGID\":501,\"effectiveGID\":501,\"kernelGroups\":[501],\"requiredGroups\":[501],\"forbiddenGroups\":[20,80],\"auditSessionID\":100,\"auditUID\":501,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":501,\"windowUID\":501,\"windowAuditSessionID\":100,\"onConsole\":false,\"loginDone\":true},\"signature\":{\"valid\":true,\"hardenedRuntime\":true,\"getTaskAllowAbsent\":true,\"metadataComplete\":true}},{\"actor\":\"oracle\",\"instanceID\":\"55555555-5555-4555-8555-555555555555\",\"pid\":102,\"machine\":\"target\",\"expected\":{\"realUID\":501,\"effectiveUID\":501,\"realGID\":501,\"effectiveGID\":501,\"kernelGroups\":[501],\"requiredGroups\":[501],\"forbiddenGroups\":[20,80],\"auditSessionID\":100,\"auditUID\":501,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":501,\"windowUID\":501,\"windowAuditSessionID\":100,\"onConsole\":false,\"loginDone\":true},\"observed\":{\"realUID\":501,\"effectiveUID\":501,\"realGID\":501,\"effectiveGID\":501,\"kernelGroups\":[501],\"requiredGroups\":[501],\"forbiddenGroups\":[20,80],\"auditSessionID\":100,\"auditUID\":501,\"auditFlags\":0,\"managerName\":\"Aqua\",\"managerUID\":501,\"windowUID\":501,\"windowAuditSessionID\":100,\"onConsole\":false,\"loginDone\":true},\"signature\":{\"valid\":true,\"hardenedRuntime\":true,\"getTaskAllowAbsent\":true,\"metadataComplete\":true}}],\"window\":{\"testStartMs\":1000,\"testEndMs\":2000,\"drainEndMs\":4000,\"retryUpperBoundMs\":100,\"roundTripUpperBoundMs\":10,\"captureDrops\":0,\"captureGapsMs\":0,\"clockUncertaintyMs\":2},\"events\":[{\"timeMs\":0,\"stage\":\"before\",\"actor\":\"oracle\",\"instanceID\":\"55555555-5555-4555-8555-555555555555\",\"kind\":\"captureStarted\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"66666666-6666-4666-8666-000000000000\",\"value\":0},{\"timeMs\":10,\"stage\":\"before\",\"actor\":\"listener\",\"instanceID\":\"44444444-4444-4444-8444-444444444444\",\"kind\":\"listenerStarted\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"66666666-6666-4666-8666-000000000001\",\"value\":0},{\"timeMs\":1200,\"stage\":\"test\",\"actor\":\"initiator\",\"instanceID\":\"33333333-3333-4333-8333-333333333333\",\"kind\":\"attempt\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"22222222-2222-4222-8222-222222222222\",\"value\":0},{\"timeMs\":1201,\"stage\":\"test\",\"actor\":\"oracle\",\"instanceID\":\"55555555-5555-4555-8555-555555555555\",\"kind\":\"packetContact\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"22222222-2222-4222-8222-222222222222\",\"value\":0},{\"timeMs\":1202,\"stage\":\"test\",\"actor\":\"initiator\",\"instanceID\":\"33333333-3333-4333-8333-333333333333\",\"kind\":\"connected\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"22222222-2222-4222-8222-222222222222\",\"value\":0},{\"timeMs\":1203,\"stage\":\"test\",\"actor\":\"listener\",\"instanceID\":\"44444444-4444-4444-8444-444444444444\",\"kind\":\"accepted\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"22222222-2222-4222-8222-222222222222\",\"value\":0},{\"timeMs\":1210,\"stage\":\"test\",\"actor\":\"listener\",\"instanceID\":\"44444444-4444-4444-8444-444444444444\",\"kind\":\"payload\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"22222222-2222-4222-8222-222222222222\",\"value\":51},{\"timeMs\":1210,\"stage\":\"test\",\"actor\":\"listener\",\"instanceID\":\"44444444-4444-4444-8444-444444444444\",\"kind\":\"closed\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"22222222-2222-4222-8222-222222222222\",\"value\":0},{\"timeMs\":5000,\"stage\":\"after\",\"actor\":\"listener\",\"instanceID\":\"44444444-4444-4444-8444-444444444444\",\"kind\":\"listenerStopped\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"66666666-6666-4666-8666-000000000008\",\"value\":0},{\"timeMs\":5010,\"stage\":\"after\",\"actor\":\"oracle\",\"instanceID\":\"55555555-5555-4555-8555-555555555555\",\"kind\":\"captureStopped\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"flowID\":\"66666666-6666-4666-8666-000000000009\",\"value\":0}]}]}",
+  "runID": "11111111-1111-4111-8111-111111111111",
+  "runStartUTC": "2026-11-04T12:00:00.000Z",
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "clock": {
+        "calibrationID": "fixture-calibration",
+        "discontinuities": 0,
+        "id": "sender-clock",
+        "offsetMs": 0,
+        "uncertaintyMs": 2
+      },
+      "format": "c1RunRecordStream",
+      "id": "sender",
+      "origin": "fixture",
+      "text": "{\n  \"context\" : {\n    \"audit\" : {\n      \"auditUID\" : 4501,\n      \"flags\" : 0,\n      \"sessionID\" : 200\n    },\n    \"effectiveGID\" : 4501,\n    \"effectiveUID\" : 4501,\n    \"groupMembership\" : [\n      {\n        \"gid\" : 20,\n        \"isMember\" : false\n      },\n      {\n        \"gid\" : 80,\n        \"isMember\" : false\n      },\n      {\n        \"gid\" : 4501,\n        \"isMember\" : true\n      }\n    ],\n    \"kernelGroups\" : [\n      4501\n    ],\n    \"launchdManager\" : {\n      \"name\" : \"Aqua\",\n      \"uid\" : 4501\n    },\n    \"parentPID\" : 99,\n    \"pid\" : 100,\n    \"realGID\" : 4501,\n    \"realUID\" : 4501,\n    \"windowSession\" : {\n      \"auditSessionID\" : 200,\n      \"loginDone\" : true,\n      \"onConsole\" : false,\n      \"userID\" : 4501\n    }\n  },\n  \"details\" : {\n    \"actualAuditSessionID\" : \"200\",\n    \"expectedAuditSessionID\" : \"200\"\n  },\n  \"mismatches\" : [\n\n  ],\n  \"outcome\" : \"passed\",\n  \"probe\" : \"sanjbox-s3-probe.identity\",\n  \"timestamp\" : \"2026-11-04T12:00:01.100Z\"\n}\n{\n  \"caseID\" : \"NET-12\",\n  \"context\" : {\n    \"audit\" : {\n      \"auditUID\" : 4501,\n      \"flags\" : 0,\n      \"sessionID\" : 200\n    },\n    \"effectiveGID\" : 4501,\n    \"effectiveUID\" : 4501,\n    \"groupMembership\" : [\n      {\n        \"gid\" : 20,\n        \"isMember\" : false\n      },\n      {\n        \"gid\" : 80,\n        \"isMember\" : false\n      },\n      {\n        \"gid\" : 4501,\n        \"isMember\" : true\n      }\n    ],\n    \"kernelGroups\" : [\n      4501\n    ],\n    \"launchdManager\" : {\n      \"name\" : \"Aqua\",\n      \"uid\" : 4501\n    },\n    \"parentPID\" : 99,\n    \"pid\" : 100,\n    \"realGID\" : 4501,\n    \"realUID\" : 4501,\n    \"windowSession\" : {\n      \"auditSessionID\" : 200,\n      \"loginDone\" : true,\n      \"onConsole\" : false,\n      \"userID\" : 4501\n    }\n  },\n  \"details\" : {\n    \"localKernelAcceptedBytes\" : \"51\",\n    \"verdict\" : \"external oracle required\"\n  },\n  \"mismatches\" : [\n\n  ],\n  \"outcome\" : \"unclear\",\n  \"probe\" : \"sanjbox-s3-probe.send\",\n  \"timestamp\" : \"2026-11-04T12:00:01.210Z\"\n}\n"
+    },
+    {
+      "clock": {
+        "calibrationID": "fixture-calibration",
+        "discontinuities": 0,
+        "id": "receiver-clock",
+        "offsetMs": 0,
+        "uncertaintyMs": 2
+      },
+      "format": "commonCounterpartJSONL",
+      "id": "receiver",
+      "origin": "fixture",
+      "text": "{\"kind\":\"started\",\"listeners\":[{\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":18080},\"transport\":\"tcp\"}],\"timestamp\":\"2026-11-04T12:00:00.009Z\"}\n{\"flowID\":1,\"kind\":\"accepted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":18080},\"remote\":{\"host\":\"127.0.0.1\",\"port\":49152},\"timestamp\":\"2026-11-04T12:00:01.202Z\",\"transport\":\"tcp\"}\n{\"bytes\":51,\"endReason\":\"peerClosed\",\"findings\":[{\"encoding\":\"raw\",\"token\":\"SANJBOX-CANARY-c3-0123456789abcdef0123456789abcdef\"},{\"encoding\":\"raw\",\"token\":\"SANJBOX-CANARY-\"}],\"flowID\":1,\"kind\":\"closed\",\"local\":{\"host\":\"127.0.0.1\",\"port\":18080},\"rawFile\":\"1-tcp-18080.bin\",\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":49152},\"timestamp\":\"2026-11-04T12:00:01.210Z\",\"transport\":\"tcp\"}\n{\"kind\":\"stopped\",\"timestamp\":\"2026-11-04T12:00:05.000Z\"}\n"
+    },
+    {
+      "clock": {
+        "calibrationID": "fixture-calibration",
+        "discontinuities": 0,
+        "id": "packet-clock",
+        "offsetMs": 0,
+        "uncertaintyMs": 2
+      },
+      "format": "packetImportV1JSONL",
+      "id": "packet",
+      "origin": "fixture",
+      "text": "{\"timestamp\":\"2026-11-04T12:00:00.000Z\",\"kind\":\"captureStarted\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"scenarioID\":\"NET-12.ipv4.loopback.zoneToHost\",\"captureID\":\"77777777-7777-4777-8777-777777777777\",\"clockID\":\"packet-clock\",\"interface\":\"lo0\",\"oracleInstanceID\":\"55555555-5555-4555-8555-555555555555\",\"family\":\"ipv4\"}\n{\"timestamp\":\"2026-11-04T12:00:01.201Z\",\"kind\":\"packetContact\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"scenarioID\":\"NET-12.ipv4.loopback.zoneToHost\",\"captureID\":\"77777777-7777-4777-8777-777777777777\",\"clockID\":\"packet-clock\",\"interface\":\"lo0\",\"oracleInstanceID\":\"55555555-5555-4555-8555-555555555555\",\"family\":\"ipv4\",\"flowID\":\"22222222-2222-4222-8222-222222222222\",\"transport\":\"tcp\",\"local\":{\"host\":\"127.0.0.1\",\"port\":18080},\"remote\":{\"host\":\"127.0.0.1\",\"port\":49152}}\n{\"timestamp\":\"2026-11-04T12:00:05.010Z\",\"kind\":\"captureStopped\",\"runID\":\"11111111-1111-4111-8111-111111111111\",\"scenarioID\":\"NET-12.ipv4.loopback.zoneToHost\",\"captureID\":\"77777777-7777-4777-8777-777777777777\",\"clockID\":\"packet-clock\",\"interface\":\"lo0\",\"oracleInstanceID\":\"55555555-5555-4555-8555-555555555555\",\"family\":\"ipv4\",\"droppedPackets\":0,\"gapsMs\":0}\n"
+    }
+  ]
+}

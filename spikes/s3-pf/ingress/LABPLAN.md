@@ -2,7 +2,8 @@
 
 Tento dokument nic nerezervuje v LAB, nepovoluje wildcard/LAN aktivitu a nemění PLAN ani jeho kontrakt.
 C3 partial dodává matice, bounded vlastní transport fixture a konzervativní offline classifier.
-C1 integrace, S0/S1 předpoklady a skutečný S3b/L4 běh jsou stále otevřené. Historické tvrzení o
+Dílčí offline propojení existujících C1/common wire výstupů dodává [ADAPTER.md](ADAPTER.md);
+chybějící producer nonce/tuple/identity/capture vazby, S0/S1 předpoklady a skutečný S3b/L4 běh zůstávají otevřené. Historické tvrzení o
 pf `user` se zde neopakuje jako absolutní vlastnost kernelu; chování konkrétního mechanismu musí být
 ověřeno pro konkrétní macOS a transport. Žádný filtr se tímto balíkem neinstaluje ani nečte.
 
@@ -51,7 +52,8 @@ allowlist, kontrolu identity a podpisu ještě před socketem, konečnou dobu/bu
 úklid. Volba `smoke --apply` jej nesmí aktivovat. Aktivovat jej nyní přes libovolný host/port či shell
 příkaz není součást tohoto balíku.
 
-**[implementátor, budoucí C1 integrace]** Připojí existující C1 sender a common counterpart, bez jejich
+**[implementátor, dokončení C1 integrace]** Offline `link` již parsuje skutečné výstupy obou producerů
+a zveřejní explicitní mezery. Doplní jejich chybějící run/flow/tuple/identity metadata a nezávislý oracle, bez jejich
 kopírování či nahrazování. Upraví výhradně samostatně reviewovaný adapter, který nezávisle sváže raw
 started/accepted/closed/stopped, endpoint family/bind/local+remote tuple, capture ID/interface,
 sequence/time/run/flow nonce a očekávané peer identity. Common `CounterpartReport` vidí accept/bytes,
