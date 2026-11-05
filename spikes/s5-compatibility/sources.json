@@ -1,0 +1,497 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "npm",
+      "kind": "official_documentation",
+      "url": "https://docs.npmjs.com/cli/v11/using-npm/config/",
+      "title": "npm configuration",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "CLI v11 documentation; observed client separately pinned",
+      "locator": "registry, cafile, strict-ssl, userconfig, globalconfig"
+    },
+    {
+      "id": "pnpm",
+      "kind": "official_documentation",
+      "url": "https://pnpm.io/settings",
+      "title": "pnpm settings",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling documentation reviewed on 2026-11-04; references v12.7.0; no runtime pin",
+      "locator": "registry settings and configuration locations"
+    },
+    {
+      "id": "pnpm-tls",
+      "kind": "official_documentation",
+      "url": "https://pnpm.io/npmrc",
+      "title": "pnpm authentication settings",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling documentation; no runtime pin",
+      "locator": "cafile, registry-scoped cafile, strictSsl"
+    },
+    {
+      "id": "yarn",
+      "kind": "official_documentation",
+      "url": "https://yarnpkg.com/configuration/yarnrc",
+      "title": "Yarn settings",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "modern Yarn .yarnrc.yml (v2+); Classic excluded; no runtime pin",
+      "locator": "npmRegistryServer, unsafeHttpWhitelist, httpsCaFilePath, enableStrictSsl"
+    },
+    {
+      "id": "bun",
+      "kind": "official_documentation",
+      "url": "https://bun.com/docs/pm/scopes-registries",
+      "title": "Bun scopes and registries",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "documentation displaying Bun v1.4.4; no runtime executed",
+      "locator": "install.registry, install.scopes, npmrc"
+    },
+    {
+      "id": "bun-tls",
+      "kind": "official_documentation",
+      "url": "https://bun.com/docs/pm/cli/install",
+      "title": "Bun install options",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "documentation displaying Bun v1.4.4; no runtime executed",
+      "locator": "Network & Registry Settings: registry, ca, cafile"
+    },
+    {
+      "id": "pip",
+      "kind": "official_documentation",
+      "url": "https://pip.pypa.io/en/stable/topics/https-certificates/",
+      "title": "pip HTTPS certificates",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "documentation v26.3; D5 fixture used pip 26.2.2",
+      "locator": "Using a specific certificate store"
+    },
+    {
+      "id": "pypi-spec",
+      "kind": "official_documentation",
+      "url": "https://packaging.python.org/en/latest/specifications/simple-repository-api/",
+      "title": "PyPA Simple repository API",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "API 1.1 through 1.4 reviewed",
+      "locator": "JSON serialization; per-file upload-time, size, hashes; version history"
+    },
+    {
+      "id": "uv",
+      "kind": "official_documentation",
+      "url": "https://docs.astral.sh/uv/concepts/indexes/",
+      "title": "uv package indexes",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling docs dated 2026-10-14; no runtime pin",
+      "locator": "Defining an index; default=true; authentication; exclude-newer"
+    },
+    {
+      "id": "uv-tls",
+      "kind": "official_documentation",
+      "url": "https://docs.astral.sh/uv/concepts/authentication/certificates/",
+      "title": "uv TLS certificates",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling documentation; no runtime pin",
+      "locator": "Custom certificates; SSL_CERT_FILE; insecure hosts"
+    },
+    {
+      "id": "brew",
+      "kind": "official_documentation",
+      "url": "https://docs.brew.sh/Manpage",
+      "title": "Homebrew manual",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling documentation; no brew runtime executed",
+      "locator": "HOMEBREW_API_DOMAIN, HOMEBREW_BOTTLE_DOMAIN, fallback behavior"
+    },
+    {
+      "id": "git",
+      "kind": "official_documentation",
+      "url": "https://git-scm.com/docs/gitprotocol-http",
+      "title": "Git smart HTTP protocol",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "protocol v0 subset; D5 client separately pinned",
+      "locator": "Discovering References; upload-pack; receive-pack"
+    },
+    {
+      "id": "git-config",
+      "kind": "official_documentation",
+      "url": "https://git-scm.com/docs/git-config",
+      "title": "Git configuration",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling manual; D5 client separately pinned",
+      "locator": "protocol.version, http.sslCAInfo, http.followRedirects, http.postBuffer"
+    },
+    {
+      "id": "cargo",
+      "kind": "official_documentation",
+      "url": "https://doc.rust-lang.org/cargo/reference/config.html",
+      "title": "Cargo configuration",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling Cargo Book; no runtime pin",
+      "locator": "source replacement, registries, http.cainfo, net.git-fetch-with-cli"
+    },
+    {
+      "id": "go",
+      "kind": "official_documentation",
+      "url": "https://go.dev/ref/mod",
+      "title": "Go Modules Reference",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "module proxy protocol; no runtime pin",
+      "locator": "GOPROXY protocol; fallback; checksum database; direct VCS"
+    },
+    {
+      "id": "gradle",
+      "kind": "official_documentation",
+      "url": "https://docs.gradle.org/current/userguide/declaring_repositories.html",
+      "title": "Gradle repository declarations",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "documentation 9.8.2; no runtime executed",
+      "locator": "Repository types and declarations"
+    },
+    {
+      "id": "gradle-http",
+      "kind": "official_documentation",
+      "url": "https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.repositories.UrlArtifactRepository.html",
+      "title": "Gradle URL repository options",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "documentation 9.8.2; no runtime executed",
+      "locator": "url and per-repository allowInsecureProtocol"
+    },
+    {
+      "id": "maven",
+      "kind": "official_documentation",
+      "url": "https://maven.apache.org/guides/mini/guide-mirror-settings.html",
+      "title": "Maven mirror settings",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling Maven 3/4 guide; no runtime pin",
+      "locator": "mirrorOf; single repository; external:http exception"
+    },
+    {
+      "id": "maven-tls",
+      "kind": "official_documentation",
+      "url": "https://maven.apache.org/guides/mini/guide-repository-ssl.html",
+      "title": "Maven authenticated HTTPS",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling guide; no runtime pin",
+      "locator": "javax.net.ssl.trustStore; client trust versus client identity"
+    },
+    {
+      "id": "nuget",
+      "kind": "official_documentation",
+      "url": "https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file",
+      "title": "NuGet configuration",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "attributes documented for 6.8+, 6.11+ and 6.12+; no runtime pin",
+      "locator": "packageSources, clear, protocolVersion, auditSources, credentials"
+    },
+    {
+      "id": "conda",
+      "kind": "official_documentation",
+      "url": "https://docs.conda.io/projects/conda/en/stable/configuration.html",
+      "title": "Conda configuration",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "documentation 26.9.4; no runtime executed",
+      "locator": "channels, channel_alias, ssl_verify, remote timeouts"
+    },
+    {
+      "id": "rubygems",
+      "kind": "official_documentation",
+      "url": "https://guides.rubygems.org/command-reference/",
+      "title": "RubyGems command reference",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling guide; gem CLI only; no runtime pin",
+      "locator": "gem sources, gem fetch, source options"
+    },
+    {
+      "id": "rubygems-tls",
+      "kind": "official_documentation",
+      "url": "https://guides.rubygems.org/configuration/",
+      "title": "RubyGems configuration",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling guide; no runtime pin",
+      "locator": "sources and SSL configuration"
+    },
+    {
+      "id": "anthropic-py",
+      "kind": "official_documentation",
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Anthropic Python SDK",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling docs using HTTPX2; no SDK version executed",
+      "locator": "API key usage; streaming; configuring the HTTP client; base_url"
+    },
+    {
+      "id": "anthropic-ts",
+      "kind": "official_documentation",
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/typescript",
+      "title": "Anthropic TypeScript SDK",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling docs; Node runtime scope; no SDK version executed",
+      "locator": "API key usage; streaming; fetch and fetchOptions"
+    },
+    {
+      "id": "anthropic-ts-source",
+      "kind": "official_documentation",
+      "url": "https://raw.githubusercontent.com/anthropics/anthropic-sdk-typescript/main/src/client.ts",
+      "title": "Anthropic TypeScript client source",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "moving main reviewed on 2026-11-04; not an immutable pin or runtime test",
+      "locator": "ClientOptions/baseURL; constructor; credential/header construction"
+    },
+    {
+      "id": "openai-py",
+      "kind": "official_documentation",
+      "url": "https://developers.openai.com/api/reference/python",
+      "title": "OpenAI Python SDK",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling docs using HTTPX2; no SDK version executed",
+      "locator": "base_url; custom HTTP client; SSLContext; streaming"
+    },
+    {
+      "id": "openai-ts",
+      "kind": "official_documentation",
+      "url": "https://developers.openai.com/api/reference/typescript",
+      "title": "OpenAI TypeScript SDK",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling docs; Node runtime scope; no SDK version executed",
+      "locator": "baseURL; fetch/fetchOptions; retries; streaming"
+    },
+    {
+      "id": "httpx-tls",
+      "kind": "official_documentation",
+      "url": "https://pydantic.dev/docs/httpx2/advanced/ssl/",
+      "title": "HTTPX2 SSL",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "transport documented by current Python SDK pages; no runtime executed",
+      "locator": "SSLContext via verify; SSL_CERT_FILE; hostname verification"
+    },
+    {
+      "id": "node-tls",
+      "kind": "official_documentation",
+      "url": "https://nodejs.org/api/cli.html#node_extra_ca_certsfile",
+      "title": "Node additional CA certificates",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "documentation v26.13.0; no runtime executed by D6",
+      "locator": "NODE_EXTRA_CA_CERTS; process-start loading; explicit ca overrides"
+    },
+    {
+      "id": "opencode",
+      "kind": "official_documentation",
+      "url": "https://opencode.ai/docs/providers/",
+      "title": "OpenCode providers",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling docs updated 2026-11-04; no runtime pin",
+      "locator": "baseURL; OpenAI-compatible Chat Completions versus Responses providers"
+    },
+    {
+      "id": "opencode-tls",
+      "kind": "official_documentation",
+      "url": "https://opencode.ai/docs/network/",
+      "title": "OpenCode network",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling docs updated 2026-11-02; no runtime pin",
+      "locator": "Custom certificates; NODE_EXTRA_CA_CERTS"
+    },
+    {
+      "id": "claude",
+      "kind": "official_documentation",
+      "url": "https://code.claude.com/docs/en/llm-gateway-connect",
+      "title": "Claude Code gateway connection",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling local CLI docs; no runtime pin; Desktop/cloud excluded",
+      "locator": "ANTHROPIC_BASE_URL; ANTHROPIC_AUTH_TOKEN; API-key header alternatives"
+    },
+    {
+      "id": "claude-protocol",
+      "kind": "official_documentation",
+      "url": "https://code.claude.com/docs/en/llm-gateway-protocol",
+      "title": "Claude Code gateway protocol",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling docs including version-specific beta fallback; no runtime pin",
+      "locator": "system/tools/thinking; extra headers; retry response semantics"
+    },
+    {
+      "id": "claude-tls",
+      "kind": "official_documentation",
+      "url": "https://code.claude.com/docs/en/network-config",
+      "title": "Claude Code network configuration",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "local CLI scope; Desktop/cloud precedence differs; no runtime pin",
+      "locator": "NODE_EXTRA_CA_CERTS and per-surface environment behavior"
+    },
+    {
+      "id": "codex",
+      "kind": "official_documentation",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-reference",
+      "title": "Codex configuration reference",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling Codex CLI docs; no runtime pin",
+      "locator": "model_providers base_url, wire_api=responses, auth, supports_websockets, retry/idle"
+    },
+    {
+      "id": "codex-http",
+      "kind": "official_documentation",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-advanced",
+      "title": "Codex advanced configuration",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling CLI docs; no runtime pin",
+      "locator": "Custom model providers; explicit HTTP localhost example"
+    },
+    {
+      "id": "codex-tls",
+      "kind": "official_documentation",
+      "url": "https://learn.chatgpt.com/docs/config-file/environment-variables",
+      "title": "Codex environment variables",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "rolling CLI docs; no runtime pin",
+      "locator": "CODEX_CA_CERTIFICATE precedence over SSL_CERT_FILE"
+    },
+    {
+      "id": "websocket",
+      "kind": "official_documentation",
+      "url": "https://www.rfc-editor.org/rfc/rfc6455.html",
+      "title": "WebSocket protocol",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "RFC 6455, December 2011",
+      "locator": "opening handshake, Upgrade, frames, ws/wss"
+    },
+    {
+      "id": "sse",
+      "kind": "official_documentation",
+      "url": "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "title": "Server-sent events",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "WHATWG living standard reviewed 2026-11-04",
+      "locator": "UTF-8 event stream; EventSource reconnect and Last-Event-ID"
+    },
+    {
+      "id": "plan",
+      "kind": "repository_document",
+      "url": "https://github.com/Fir3st/sanjbox/blob/afae1ca7dfe78f03d5006c42b6b01093772eba0c/PLAN.md",
+      "title": "S5 acceptance contract",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "locator": "S5; R3/R8; acceptance contract",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "path": "PLAN.md"
+    },
+    {
+      "id": "decisions",
+      "kind": "repository_document",
+      "url": "https://github.com/Fir3st/sanjbox/blob/afae1ca7dfe78f03d5006c42b6b01093772eba0c/docs/DECISIONS.md",
+      "title": "External identity decisions",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "locator": "F0.7; F0.8",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "path": "docs/DECISIONS.md"
+    },
+    {
+      "id": "d1",
+      "kind": "repository_document",
+      "url": "https://github.com/Fir3st/sanjbox/blob/afae1ca7dfe78f03d5006c42b6b01093772eba0c/spikes/s5-gateway/README.md",
+      "title": "D1 transport and router contract",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "locator": "entire file",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "path": "spikes/s5-gateway/README.md"
+    },
+    {
+      "id": "d2",
+      "kind": "repository_document",
+      "url": "https://github.com/Fir3st/sanjbox/blob/afae1ca7dfe78f03d5006c42b6b01093772eba0c/spikes/s5-gateway/NPM.md",
+      "title": "D2 npm subset and reported validation",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "locator": "entire file",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "path": "spikes/s5-gateway/NPM.md"
+    },
+    {
+      "id": "d3",
+      "kind": "repository_document",
+      "url": "https://github.com/Fir3st/sanjbox/blob/afae1ca7dfe78f03d5006c42b6b01093772eba0c/spikes/s5-gateway/MODEL-API.md",
+      "title": "D3 model subset and reported validation",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "locator": "entire file",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "path": "spikes/s5-gateway/MODEL-API.md"
+    },
+    {
+      "id": "d5",
+      "kind": "repository_document",
+      "url": "https://github.com/Fir3st/sanjbox/blob/9ddb62e2efde534d7057a1ce01aa9bd942156ee8/spikes/s5-gateway/TYPED-REGISTRIES.md",
+      "title": "Provisional D5 subset and remaining gaps",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "locator": "entire file",
+      "revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "path": "spikes/s5-gateway/TYPED-REGISTRIES.md"
+    },
+    {
+      "id": "d5-validation",
+      "kind": "repository_document",
+      "url": "https://github.com/Fir3st/sanjbox/blob/9ddb62e2efde534d7057a1ce01aa9bd942156ee8/spikes/s5-gateway/VALIDATION-D5.md",
+      "title": "Provisional D5 validation report",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "locator": "entire file",
+      "revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "path": "spikes/s5-gateway/VALIDATION-D5.md"
+    },
+    {
+      "id": "d5-deadline",
+      "kind": "repository_source",
+      "url": "https://github.com/Fir3st/sanjbox/blob/9ddb62e2efde534d7057a1ce01aa9bd942156ee8/spikes/s5-gateway/Sources/SanjboxGatewayCore/AsyncIO.swift",
+      "title": "Provisional absolute deadline checks",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "locator": "boundedOperation; introduced in ca4e50d",
+      "revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "path": "spikes/s5-gateway/Sources/SanjboxGatewayCore/AsyncIO.swift"
+    },
+    {
+      "id": "npm-fixture",
+      "kind": "local_client_fixture",
+      "url": "https://github.com/Fir3st/sanjbox/blob/afae1ca7dfe78f03d5006c42b6b01093772eba0c/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/NPMGatewayTests.swift",
+      "title": "Inherited npm local-client fixture",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "locator": "real npm pack fixture; report in d2",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "path": "spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/NPMGatewayTests.swift"
+    },
+    {
+      "id": "sse-fixture",
+      "kind": "local_transport_fixture",
+      "url": "https://github.com/Fir3st/sanjbox/blob/afae1ca7dfe78f03d5006c42b6b01093772eba0c/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/ModelAPITLSTests.swift",
+      "title": "Inherited HTTP/SSE local-transport fixture",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "locator": "modelHTTPSUsesZoneCAAndRejectsWrongRootNameUntrustedAndPlainHTTP; report in d3",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "path": "spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/ModelAPITLSTests.swift"
+    },
+    {
+      "id": "pip-fixture",
+      "kind": "local_client_fixture",
+      "url": "https://github.com/Fir3st/sanjbox/blob/9ddb62e2efde534d7057a1ce01aa9bd942156ee8/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift",
+      "title": "Provisional pip local-client fixture",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "locator": "pypiPipDownloadsOnlySyntheticWheelThroughRealLoopbackGateway; report in d5-validation",
+      "revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "path": "spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift"
+    },
+    {
+      "id": "git-fixture",
+      "kind": "local_client_fixture",
+      "url": "https://github.com/Fir3st/sanjbox/blob/9ddb62e2efde534d7057a1ce01aa9bd942156ee8/spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift",
+      "title": "Provisional Git local-client fixture",
+      "reviewed_on": "2026-11-04",
+      "version_scope": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "locator": "gitCLICloneAndPushOnlyGeneratedProjectThroughRealLoopbackGateway; report in d5-validation",
+      "revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "path": "spikes/s5-gateway/Tests/SanjboxGatewayCoreTests/D5ClientTests.swift"
+    }
+  ]
+}

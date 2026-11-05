@@ -1,0 +1,2673 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-11-04",
+  "baseline_revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+  "proposed_d5_revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+  "gate_status": "unverified",
+  "live_integration_status": "unverified",
+  "policies": {
+    "typed": {
+      "text": "Only registered mounts and validated operations. No catch-all, CONNECT, alternate provider/account or protocol fallback; a documented client endpoint setting does not implement its protocol.",
+      "refs": [
+        "d1",
+        "d2",
+        "d3",
+        "plan"
+      ]
+    },
+    "passthrough": {
+      "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+      "refs": [
+        "d1",
+        "d5",
+        "plan"
+      ]
+    },
+    "identity": {
+      "text": "F0.7 identity types, scopes and revocation remain unresolved. Real accounts, private registries, publish and live API credentials are unsupported. Per-zone CA authenticates the server, not client UID/session; S3/S3b/S8/D7 evidence is still required.",
+      "refs": [
+        "decisions",
+        "d3",
+        "d5"
+      ]
+    },
+    "trust": {
+      "text": "Only public per-zone CA material may enter a client. Preserve certificate and hostname validation with a client-scoped trust configuration; no verify=false, strict-ssl=false, global trust install or insecure-host exception. HTTP examples are loopback fixture surfaces, never a claim of zone authentication.",
+      "refs": [
+        "d3",
+        "d1",
+        "plan"
+      ]
+    },
+    "cache": {
+      "text": "Download audit is not installation proof. Existing client caches, local imports, lockfiles/direct URLs and build-script fetches can evade this library without the independent network boundary. Never report complete install control or cooldown from a registry setting.",
+      "refs": [
+        "d2",
+        "d5",
+        "plan"
+      ]
+    },
+    "d1-limits": {
+      "text": "HTTP/1.1 only, one request/connection; no HEAD, HTTP/2, WebSocket, upgrade, compression, chunked requests or half-close. Default 16 KiB headers, 1 MiB request, 4 MiB response, 32 listener connections; 10 s request, 120 s session. Upstream caps: 8 operations, 5 s DNS, 10 s connect, 15 s I/O, 120 s operation, 32 MiB SSE, 64 KiB event. Cancellation must cooperate; no hard kill guarantee.",
+      "refs": [
+        "d1"
+      ]
+    },
+    "npm-limits": {
+      "text": "4 MiB packument/tarball; 10,000 versions; 4 operations; 90 s deadline; 3 redirects; 32-entry/16 MiB byte cache; 1,024 audit records. Strong SRI, known publish time and fresh authorization before every issuance. Baseline deadline race is corrected only by provisional ca4e50d, so bounded means configured/cooperative, not a baseline hard deadline guarantee.",
+      "refs": [
+        "d2",
+        "d5-deadline"
+      ]
+    },
+    "model-limits": {
+      "text": "Synthetic key only. Four-field text Messages request; no system/tools/thinking/media or non-streaming. Default 32 KiB request, 1,024 max_tokens, 256 KiB output, 4,096 events, 2 operations, 60 s cooperative lifetime, 10 attempts/60 s and 1,024 audit records. Budget is finite local units, not money; HTTP 200 before lazy debit failure is not completion.",
+      "refs": [
+        "d3"
+      ]
+    },
+    "d5-limits": {
+      "text": "Proposed only: default 4 MiB metadata/artifact, 10,000 PyPI files, 4 operations, 90 s lifetime, 1,024 PyPI audit records; Git request at most 1 MiB. No redirects or cache. Absolute monotonic deadline rejects late values but awaits noncooperative children; no hard runtime-kill guarantee.",
+      "refs": [
+        "d5",
+        "d5-deadline"
+      ]
+    }
+  },
+  "profiles": [
+    {
+      "id": "npm",
+      "tool": "npm",
+      "protocol": "npm-registry-http1",
+      "version": {
+        "text": "Observed npm 11.20.0 / Node 26.12.1 in inherited D2 fixture; npm v11 docs. No other version or install workflow validated.",
+        "refs": [
+          "d2",
+          "npm"
+        ]
+      },
+      "operations": {
+        "text": "Candidate D2 GET full packument and rewritten .tgz requests under /npm, including scoped names and pinned eligible versions. Only npm has an inherited client observation; a shared registry protocol does not prove another client.",
+        "refs": [
+          "d2"
+        ]
+      },
+      "exclusions": {
+        "text": "No install/ci claim, lifecycle scripts, aliases, git/file/URL dependencies, bundled dependencies, publish/search/audit/ping, HEAD, package/version endpoint or private registry auth. Client cache and imported archives are outside network cooldown.",
+        "refs": [
+          "d2"
+        ]
+      },
+      "http": {
+        "text": "D2 fixture: registry=http://127.0.0.1:<port>/npm/; empty user/global config, isolated cache, pinned fixture and ignore-scripts. This is not a live install command.",
+        "refs": [
+          "d2",
+          "npm"
+        ]
+      },
+      "https": {
+        "text": "npm cafile with strict-ssl enabled is documented. D2 publicOrigin only accepts HTTP loopback, so HTTPS tarball rewriting is unsupported even though D1 can terminate TLS.",
+        "refs": [
+          "npm",
+          "d2",
+          "d1"
+        ]
+      },
+      "credentials": {
+        "text": "No client Authorization, proxy auth, cookies or API-key headers. Public read-only fixture only; private registry/publish/real scopes unsupported.",
+        "refs": [
+          "d1",
+          "d2",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "npm-limits",
+        "cache"
+      ],
+      "collision": {
+        "text": "registry.npmjs.org read versus publish/auth on the same host: only typed GET subset; alternate endpoints, lockfile hosts and CDN destinations never gain passthrough authorization.",
+        "refs": [
+          "d2",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "pnpm",
+      "tool": "pnpm",
+      "protocol": "npm-registry-http1",
+      "version": {
+        "text": "Rolling settings docs reviewed 2026-11-04 (including v12.7.0); exact executable version untested.",
+        "refs": [
+          "pnpm"
+        ]
+      },
+      "operations": {
+        "text": "Candidate D2 GET full packument and rewritten .tgz requests under /npm, including scoped names and pinned eligible versions. Only npm has an inherited client observation; a shared registry protocol does not prove another client.",
+        "refs": [
+          "d2"
+        ]
+      },
+      "exclusions": {
+        "text": "No install/ci claim, lifecycle scripts, aliases, git/file/URL dependencies, bundled dependencies, publish/search/audit/ping, HEAD, package/version endpoint or private registry auth. Client cache and imported archives are outside network cooldown.",
+        "refs": [
+          "d2"
+        ]
+      },
+      "http": {
+        "text": "registry setting and scoped registry overrides must all target /npm; no pnpm request was run.",
+        "refs": [
+          "pnpm",
+          "d2"
+        ]
+      },
+      "https": {
+        "text": "Documented cafile or registry-scoped cafile with strictSsl retained. D2 still rewrites only HTTP publicOrigin, so an end-to-end HTTPS registry is unsupported.",
+        "refs": [
+          "pnpm-tls",
+          "d2"
+        ]
+      },
+      "credentials": {
+        "text": "No client Authorization, proxy auth, cookies or API-key headers. Public read-only fixture only; private registry/publish/real scopes unsupported.",
+        "refs": [
+          "d1",
+          "d2",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "npm-limits",
+        "cache"
+      ],
+      "collision": {
+        "text": "registry.npmjs.org read versus publish/auth on the same host: only typed GET subset; alternate endpoints, lockfile hosts and CDN destinations never gain passthrough authorization.",
+        "refs": [
+          "d2",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "yarn",
+      "tool": "Yarn",
+      "protocol": "npm-registry-http1",
+      "version": {
+        "text": "Modern Yarn .yarnrc.yml (v2+); Classic excluded; exact executable version untested.",
+        "refs": [
+          "yarn"
+        ]
+      },
+      "operations": {
+        "text": "Candidate D2 GET full packument and rewritten .tgz requests under /npm, including scoped names and pinned eligible versions. Only npm has an inherited client observation; a shared registry protocol does not prove another client.",
+        "refs": [
+          "d2"
+        ]
+      },
+      "exclusions": {
+        "text": "No install/ci claim, lifecycle scripts, aliases, git/file/URL dependencies, bundled dependencies, publish/search/audit/ping, HEAD, package/version endpoint or private registry auth. Client cache and imported archives are outside network cooldown.",
+        "refs": [
+          "d2"
+        ]
+      },
+      "http": {
+        "text": "npmRegistryServer can target /npm; plaintext requires an exact loopback unsafeHttpWhitelist entry. This exception is not enabled by D6.",
+        "refs": [
+          "yarn",
+          "d2"
+        ]
+      },
+      "https": {
+        "text": "httpsCaFilePath with enableStrictSsl retained. D2 still rewrites only HTTP publicOrigin, so an end-to-end HTTPS registry is unsupported.",
+        "refs": [
+          "yarn",
+          "d2"
+        ]
+      },
+      "credentials": {
+        "text": "No client Authorization, proxy auth, cookies or API-key headers. Public read-only fixture only; private registry/publish/real scopes unsupported.",
+        "refs": [
+          "d1",
+          "d2",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "npm-limits",
+        "cache"
+      ],
+      "collision": {
+        "text": "registry.npmjs.org read versus publish/auth on the same host: only typed GET subset; alternate endpoints, lockfile hosts and CDN destinations never gain passthrough authorization.",
+        "refs": [
+          "d2",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "bun",
+      "tool": "Bun",
+      "protocol": "npm-registry-http1",
+      "version": {
+        "text": "Docs display v1.4.4; no executable version tested.",
+        "refs": [
+          "bun"
+        ]
+      },
+      "operations": {
+        "text": "Candidate D2 GET full packument and rewritten .tgz requests under /npm, including scoped names and pinned eligible versions. Only npm has an inherited client observation; a shared registry protocol does not prove another client.",
+        "refs": [
+          "d2"
+        ]
+      },
+      "exclusions": {
+        "text": "No install/ci claim, lifecycle scripts, aliases, git/file/URL dependencies, bundled dependencies, publish/search/audit/ping, HEAD, package/version endpoint or private registry auth. Client cache and imported archives are outside network cooldown.",
+        "refs": [
+          "d2"
+        ]
+      },
+      "http": {
+        "text": "install.registry in bunfig.toml or --registry selects /npm; plain HTTP acceptance and actual request shapes remain untested.",
+        "refs": [
+          "bun",
+          "d2"
+        ]
+      },
+      "https": {
+        "text": "Documented --cafile; no custom-CA handshake measured. D2 still rewrites only HTTP publicOrigin, so an end-to-end HTTPS registry is unsupported.",
+        "refs": [
+          "bun-tls",
+          "d2"
+        ]
+      },
+      "credentials": {
+        "text": "No client Authorization, proxy auth, cookies or API-key headers. Public read-only fixture only; private registry/publish/real scopes unsupported.",
+        "refs": [
+          "d1",
+          "d2",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "npm-limits",
+        "cache"
+      ],
+      "collision": {
+        "text": "registry.npmjs.org read versus publish/auth on the same host: only typed GET subset; alternate endpoints, lockfile hosts and CDN destinations never gain passthrough authorization.",
+        "refs": [
+          "d2",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "pip",
+      "tool": "pip",
+      "protocol": "pypi-simple-json-http1",
+      "version": {
+        "text": "Proposed D5 observed Python 3.15 / pip 26.2.2; current docs v26.3. HTML-only pip 21.2.4 explicitly unsupported by D5.",
+        "refs": [
+          "d5",
+          "d5-validation",
+          "pip"
+        ]
+      },
+      "operations": {
+        "text": "Absent in baseline. Proposed D5 GET /pypi/simple/<normalized-project>/ JSON 1.1 and /pypi/files/<project>/<wheel-or-tar.gz>. Per-file upload-time, SHA-256/size, filename identity and metadata before/after bytes; all redirects denied.",
+        "refs": [
+          "d5",
+          "pypi-spec"
+        ]
+      },
+      "exclusions": {
+        "text": "No HTML-only clients, root listing, .zip, epoch versions, metadata sidecars, ranges, HEAD, signed/relative artifact URLs, publish/private auth or install/build-hook proof. Missing age fails closed; local cache is outside control.",
+        "refs": [
+          "d5",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "Proposed fixture uses --index-url http://127.0.0.1:<port>/pypi/simple/, download --no-deps --only-binary=:all: --no-cache-dir; generated metadata-only wheel, no install.",
+        "refs": [
+          "d5",
+          "pip-fixture"
+        ]
+      },
+      "https": {
+        "text": "pip --cert / PIP_CERT selects a CA bundle. D5 publicOrigin accepts HTTP loopback only; HTTPS rewritten artifact support has not been implemented.",
+        "refs": [
+          "pip",
+          "d5"
+        ]
+      },
+      "credentials": {
+        "text": "No private index/keyring/auth support; D5 rejects client credentials. Exact scopes and revocation remain unverified.",
+        "refs": [
+          "d5",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "d5-limits",
+        "cache"
+      ],
+      "collision": {
+        "text": "PyPI index, file CDN, alternate indexes, direct URLs and VCS dependencies have distinct operations. No whole-host exception, extra-index fallback or sidecar URL may bypass artifact policy.",
+        "refs": [
+          "d5",
+          "uv",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "uv",
+      "tool": "uv",
+      "protocol": "pypi-simple-json-http1",
+      "version": {
+        "text": "Rolling uv docs; no executable version run. Compatibility with D5 JSON-only/no-sidecar subset is untested.",
+        "refs": [
+          "uv",
+          "d5"
+        ]
+      },
+      "operations": {
+        "text": "Absent in baseline. Proposed D5 GET /pypi/simple/<normalized-project>/ JSON 1.1 and /pypi/files/<project>/<wheel-or-tar.gz>. Per-file upload-time, SHA-256/size, filename identity and metadata before/after bytes; all redirects denied.",
+        "refs": [
+          "d5",
+          "pypi-spec"
+        ]
+      },
+      "exclusions": {
+        "text": "No HTML-only clients, root listing, .zip, epoch versions, metadata sidecars, ranges, HEAD, signed/relative artifact URLs, publish/private auth or install/build-hook proof. Missing age fails closed; local cache is outside control.",
+        "refs": [
+          "d5",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "default-index or an index marked default=true replaces implicit PyPI; additional indexes remain separate. Candidate /pypi/simple/ configuration is untested; client-side exclude-newer is not gateway enforcement.",
+        "refs": [
+          "uv",
+          "d5"
+        ]
+      },
+      "https": {
+        "text": "SSL_CERT_FILE selects a PEM CA bundle; do not use allow-insecure-host. D5 HTTP-only publicOrigin still blocks an end-to-end HTTPS artifact claim.",
+        "refs": [
+          "uv-tls",
+          "d5"
+        ]
+      },
+      "credentials": {
+        "text": "Index credentials/providers unsupported in D5; no stored auth consulted.",
+        "refs": [
+          "uv",
+          "d5",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "d5-limits",
+        "cache"
+      ],
+      "collision": {
+        "text": "PyPI index, file CDN, alternate indexes, direct URLs and VCS dependencies have distinct operations. No whole-host exception, extra-index fallback or sidecar URL may bypass artifact policy.",
+        "refs": [
+          "d5",
+          "uv",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "brew",
+      "tool": "Homebrew",
+      "protocol": "brew-json-oci-http",
+      "version": {
+        "text": "Rolling Homebrew manual; no brew executable tested; D5 deny handler only.",
+        "refs": [
+          "brew",
+          "d5"
+        ]
+      },
+      "operations": {
+        "text": "No baseline handler. Proposed /brew/api/formula/<name>.json diagnoses missing trusted bottle publication time and returns 403. Bottles/manifests/catalog/JWS/cask/tap/source-build issuance stays denied.",
+        "refs": [
+          "d5"
+        ]
+      },
+      "exclusions": {
+        "text": "No Homebrew installation or artifact-cooldown support. Digest identity does not establish bottle publication time; unknown extension timestamps do not authorize downloads.",
+        "refs": [
+          "d5",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "HOMEBREW_API_DOMAIN and HOMEBREW_BOTTLE_DOMAIN select mirrors; documented fallback can contact public domains. Local HTTP mappings describe the deny surface only.",
+        "refs": [
+          "brew",
+          "d5"
+        ]
+      },
+      "https": {
+        "text": "No approved HTTPS Homebrew integration or per-zone CA recipe tested; transport trust cannot repair missing artifact-time evidence. Never disable verification to enable a bottle.",
+        "refs": [
+          "d5",
+          "plan"
+        ]
+      },
+      "credentials": {
+        "text": "No GHCR bearer token/auth flow, taps credentials or account scopes supported.",
+        "refs": [
+          "d5",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "d5-limits",
+        "cache"
+      ],
+      "collision": {
+        "text": "formulae.brew.sh API, ghcr.io auth/manifests/blobs and Git tap traffic cannot receive whole-host exceptions. Mirror fallback is not a network boundary.",
+        "refs": [
+          "brew",
+          "d5",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "git-http",
+      "tool": "Git",
+      "protocol": "git-smart-http-v0",
+      "version": {
+        "text": "Proposed fixture observed Git 2.54.0 (Apple Git-157), protocol.version=0, generated repository only.",
+        "refs": [
+          "d5-validation",
+          "git-fixture"
+        ]
+      },
+      "operations": {
+        "text": "Absent baseline. Proposed fixed /git/project.git: upload-pack GET discovery/POST; receive-pack only trusted allowPush=true. Fixed upstream hostname/repository; no client-selected repo.",
+        "refs": [
+          "d5",
+          "git"
+        ]
+      },
+      "exclusions": {
+        "text": "No v1/v2, SSH, LFS, submodule repositories, dumb HTTP, redirects, chunked/gzip request, real authentication or arbitrary remote. Opaque bounded packs are validated by trusted Git server, not interpreted by gateway.",
+        "refs": [
+          "d5"
+        ]
+      },
+      "http": {
+        "text": "Fixture remote http://127.0.0.1:<port>/git/project.git, protocol.version=0, no credential helper/proxy/hooks/signing, http.followRedirects=false. Only small buffered generated clone/push observed.",
+        "refs": [
+          "git-fixture",
+          "d5"
+        ]
+      },
+      "https": {
+        "text": "http.sslCAInfo / GIT_SSL_CAINFO is documented; D1 TLS listener can wrap Git but Git-to-gateway HTTPS and CA configuration have not been tested.",
+        "refs": [
+          "git-config",
+          "d1",
+          "d5"
+        ]
+      },
+      "credentials": {
+        "text": "No upstream credentials or account scopes implemented. Push permission is per trusted project configuration; does not prove real-host permission or revocation.",
+        "refs": [
+          "d5",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "d5-limits"
+      ],
+      "collision": {
+        "text": "Same Git hosting hostname can expose other repositories, REST/GraphQL, releases and LFS. Only exact smart-HTTP project path; no passthrough after denied repo or authentication.",
+        "refs": [
+          "d5",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "git-ssh",
+      "tool": "Git",
+      "protocol": "ssh-deploy-key",
+      "version": {
+        "text": "Protocol alternative from PLAN; no SSH client/version/config tested.",
+        "refs": [
+          "plan"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported: per-repo deploy-key alternative is not implemented or authorized by D5.",
+        "refs": [
+          "d5",
+          "decisions"
+        ]
+      },
+      "exclusions": {
+        "text": "No SSH listener, tunnel, deploy key provisioning, key storage, revocation or host-key enrollment.",
+        "refs": [
+          "d1",
+          "d5"
+        ]
+      },
+      "http": {
+        "text": "Not HTTP; registry/base URL settings do not enable SSH.",
+        "refs": [
+          "d5"
+        ]
+      },
+      "https": {
+        "text": "Not TLS; no supported host-key trust configuration.",
+        "refs": [
+          "d5",
+          "decisions"
+        ]
+      },
+      "credentials": {
+        "text": "A future per-repo credential requires explicit F0.7 scope/revocation evidence; no real key may be inferred from smart-HTTP fixture success.",
+        "refs": [
+          "decisions",
+          "d5"
+        ]
+      },
+      "limits": [
+        "identity"
+      ],
+      "collision": {
+        "text": "SSH, smart HTTP and hosting APIs must not create alternative routes to a non-project repository.",
+        "refs": [
+          "plan",
+          "d5"
+        ]
+      }
+    },
+    {
+      "id": "cargo",
+      "tool": "Cargo",
+      "protocol": "cargo-sparse-or-git-index",
+      "version": {
+        "text": "Cargo Book rolling documentation; no executable version tested.",
+        "refs": [
+          "cargo"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported in baseline and D5. source replacement and registry URLs exist; sparse/Git index and crate downloads need their own handler.",
+        "refs": [
+          "cargo",
+          "d1",
+          "d5"
+        ]
+      },
+      "exclusions": {
+        "text": "No client tests, installs, credential integration, artifact cooldown or live-service support. Local caches/imports and code executed by build/install tooling are outside this matrix.",
+        "refs": [
+          "cargo",
+          "d1",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "Documented registry URL configuration is not an implemented local gateway endpoint.",
+        "refs": [
+          "cargo",
+          "d1"
+        ]
+      },
+      "https": {
+        "text": "http.cainfo / CARGO_HTTP_CAINFO provides a CA bundle; no TLS or Cargo fixture run.",
+        "refs": [
+          "cargo",
+          "plan"
+        ]
+      },
+      "credentials": {
+        "text": "No credential flow or approved scopes/revocation. Native client credential options do not authorize their use in an area.",
+        "refs": [
+          "decisions",
+          "cargo"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity",
+        "cache"
+      ],
+      "collision": {
+        "text": "Git dependencies, alternate registries, crate download URL and build scripts remain separate paths. No passthrough fallback.",
+        "refs": [
+          "cargo",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "go",
+      "tool": "Go",
+      "protocol": "goproxy-sumdb-http",
+      "version": {
+        "text": "Rolling Go module protocol reference; no executable version tested.",
+        "refs": [
+          "go"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported in baseline and D5. GOPROXY serves list/info/mod/zip; checksum database and direct VCS are additional protocols.",
+        "refs": [
+          "go",
+          "d1",
+          "d5"
+        ]
+      },
+      "exclusions": {
+        "text": "No client tests, installs, credential integration, artifact cooldown or live-service support. Local caches/imports and code executed by build/install tooling are outside this matrix.",
+        "refs": [
+          "go",
+          "d1",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "GOPROXY can select an HTTP proxy; comma/pipe fallback and direct are not permitted bypasses. No handler exists.",
+        "refs": [
+          "go",
+          "d1"
+        ]
+      },
+      "https": {
+        "text": "No Go-to-gateway CA recipe validated on macOS; retain platform certificate verification. GOINSECURE is not a remedy.",
+        "refs": [
+          "go",
+          "plan"
+        ]
+      },
+      "credentials": {
+        "text": "No credential flow or approved scopes/revocation. Native client credential options do not authorize their use in an area.",
+        "refs": [
+          "decisions",
+          "go"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity",
+        "cache"
+      ],
+      "collision": {
+        "text": "Proxy, sumdb, direct VCS and private-module exceptions must be covered independently. No passthrough fallback.",
+        "refs": [
+          "go",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "gradle",
+      "tool": "Gradle",
+      "protocol": "maven-ivy-http",
+      "version": {
+        "text": "Docs 9.8.2; no executable version tested.",
+        "refs": [
+          "gradle"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported in baseline and D5. Maven/Ivy repository metadata and artifacts require an independent typed implementation.",
+        "refs": [
+          "gradle",
+          "d1",
+          "d5"
+        ]
+      },
+      "exclusions": {
+        "text": "No client tests, installs, credential integration, artifact cooldown or live-service support. Local caches/imports and code executed by build/install tooling are outside this matrix.",
+        "refs": [
+          "gradle",
+          "d1",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "Repository url exists; HTTP needs per-repository allowInsecureProtocol. D6 does not enable it.",
+        "refs": [
+          "gradle",
+          "gradle-http",
+          "d1"
+        ]
+      },
+      "https": {
+        "text": "No Gradle-to-gateway JVM trust configuration tested; require explicit verified trust before any future integration.",
+        "refs": [
+          "gradle-http",
+          "plan"
+        ]
+      },
+      "credentials": {
+        "text": "No credential flow or approved scopes/revocation. Native client credential options do not authorize their use in an area.",
+        "refs": [
+          "decisions",
+          "gradle"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity",
+        "cache"
+      ],
+      "collision": {
+        "text": "Plugin repositories, wrappers, Maven/Ivy metadata and dependency downloads are separate paths. No passthrough fallback.",
+        "refs": [
+          "gradle",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "maven",
+      "tool": "Maven",
+      "protocol": "maven-repository-http",
+      "version": {
+        "text": "Rolling Maven 3/4 guide; no executable version tested.",
+        "refs": [
+          "maven"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported in baseline and D5. Repository metadata, POMs and artifacts are outside the npm/PyPI handlers.",
+        "refs": [
+          "maven",
+          "d1",
+          "d5"
+        ]
+      },
+      "exclusions": {
+        "text": "No client tests, installs, credential integration, artifact cooldown or live-service support. Local caches/imports and code executed by build/install tooling are outside this matrix.",
+        "refs": [
+          "maven",
+          "d1",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "A mirror url and mirrorOf select repositories; configuration alone provides no typed endpoint.",
+        "refs": [
+          "maven",
+          "maven-tls",
+          "d1"
+        ]
+      },
+      "https": {
+        "text": "Documented javax.net.ssl.trustStore selects an explicit JVM trust store; no store was created and no handshake tested.",
+        "refs": [
+          "maven-tls",
+          "plan"
+        ]
+      },
+      "credentials": {
+        "text": "No credential flow or approved scopes/revocation. Native client credential options do not authorize their use in an area.",
+        "refs": [
+          "decisions",
+          "maven"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity",
+        "cache"
+      ],
+      "collision": {
+        "text": "Mirrors, plugin repositories, wrappers and deployment endpoints cannot receive whole-host exceptions. No passthrough fallback.",
+        "refs": [
+          "maven",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "nuget",
+      "tool": "NuGet",
+      "protocol": "nuget-v3-http",
+      "version": {
+        "text": "nuget.config docs include 6.8+/6.11+/6.12+ options; no executable version tested.",
+        "refs": [
+          "nuget"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported in baseline and D5. V3 service index and package resources need their own typed adapter.",
+        "refs": [
+          "nuget",
+          "d1",
+          "d5"
+        ]
+      },
+      "exclusions": {
+        "text": "No client tests, installs, credential integration, artifact cooldown or live-service support. Local caches/imports and code executed by build/install tooling are outside this matrix.",
+        "refs": [
+          "nuget",
+          "d1",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "packageSources with clear and protocolVersion=3 defines a source; no gateway endpoint exists. Do not enable an insecure-source exception.",
+        "refs": [
+          "nuget",
+          "d1"
+        ]
+      },
+      "https": {
+        "text": "No supported per-zone CA recipe tested. disableTLSCertificateValidation must remain disabled.",
+        "refs": [
+          "nuget",
+          "plan"
+        ]
+      },
+      "credentials": {
+        "text": "No credential flow or approved scopes/revocation. Native client credential options do not authorize their use in an area.",
+        "refs": [
+          "decisions",
+          "nuget"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity",
+        "cache"
+      ],
+      "collision": {
+        "text": "Service-index URLs, content/auth/audit resources and packageSourceCredentials require separate policy. No passthrough fallback.",
+        "refs": [
+          "nuget",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "conda",
+      "tool": "Conda",
+      "protocol": "conda-channel-http",
+      "version": {
+        "text": "Docs 26.9.4; no executable version tested.",
+        "refs": [
+          "conda"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported in baseline and D5. Channel repodata and artifacts need independent identity/age/hash enforcement.",
+        "refs": [
+          "conda",
+          "d1",
+          "d5"
+        ]
+      },
+      "exclusions": {
+        "text": "No client tests, installs, credential integration, artifact cooldown or live-service support. Local caches/imports and code executed by build/install tooling are outside this matrix.",
+        "refs": [
+          "conda",
+          "d1",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "channels and channel_alias configure sources; no typed channel exists here.",
+        "refs": [
+          "conda",
+          "d1"
+        ]
+      },
+      "https": {
+        "text": "ssl_verify may name a CA bundle; keep verification enabled. No TLS/Conda fixture run.",
+        "refs": [
+          "conda",
+          "plan"
+        ]
+      },
+      "credentials": {
+        "text": "No credential flow or approved scopes/revocation. Native client credential options do not authorize their use in an area.",
+        "refs": [
+          "decisions",
+          "conda"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity",
+        "cache"
+      ],
+      "collision": {
+        "text": "Channel aliases, explicit artifact URLs, defaults and pip invoked from Conda are separate paths. No passthrough fallback.",
+        "refs": [
+          "conda",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "rubygems",
+      "tool": "RubyGems",
+      "protocol": "rubygems-index-http",
+      "version": {
+        "text": "Rolling gem CLI guides; no executable version tested; Bundler not assessed.",
+        "refs": [
+          "rubygems"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported in baseline and D5. Gem source/index and .gem downloads require a dedicated adapter.",
+        "refs": [
+          "rubygems",
+          "d1",
+          "d5"
+        ]
+      },
+      "exclusions": {
+        "text": "No client tests, installs, credential integration, artifact cooldown or live-service support. Local caches/imports and code executed by build/install tooling are outside this matrix.",
+        "refs": [
+          "rubygems",
+          "d1",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "gem source options select a repository; no supported local gateway source exists.",
+        "refs": [
+          "rubygems",
+          "rubygems-tls",
+          "d1"
+        ]
+      },
+      "https": {
+        "text": "RubyGems :ssl_ca_cert selects a CA file/directory; retain verification. No per-zone CA or Ruby runtime test performed.",
+        "refs": [
+          "rubygems-tls",
+          "plan"
+        ]
+      },
+      "credentials": {
+        "text": "No credential flow or approved scopes/revocation. Native client credential options do not authorize their use in an area.",
+        "refs": [
+          "decisions",
+          "rubygems"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity",
+        "cache"
+      ],
+      "collision": {
+        "text": "Index, gem bytes, push API, additional sources and extensions are distinct operations. No passthrough fallback.",
+        "refs": [
+          "rubygems",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "anthropic-python",
+      "tool": "Anthropic SDK (python)",
+      "protocol": "anthropic-messages-sse",
+      "version": {
+        "text": "Rolling official python SDK docs reviewed 2026-11-04; no installed SDK version or SDK request tested.",
+        "refs": [
+          "anthropic-py"
+        ]
+      },
+      "operations": {
+        "text": "D3 raw HTTP text-SSE subset exists, but stock API-key SDK usage is incompatible: credentials and SDK/provider headers are rejected. A future adapting client needs separate fixture evidence.",
+        "refs": [
+          "anthropic-py",
+          "d3"
+        ]
+      },
+      "exclusions": {
+        "text": "No normal SDK compatibility, system/tools/thinking/media, non-streaming, beta API or live credentials. No transparent stripping of authentication as a compatibility fix.",
+        "refs": [
+          "anthropic-py",
+          "d3"
+        ]
+      },
+      "http": {
+        "text": "base_url / ANTHROPIC_BASE_URL can select loopback HTTP; candidate mount /model (SDK appends /v1/messages). No SDK HTTP test.",
+        "refs": [
+          "anthropic-py",
+          "d3"
+        ]
+      },
+      "https": {
+        "text": "Candidate custom http_client uses an SSLContext with the public zone CA through verify; keep hostname checks and disable redirects. Documentation only, no SDK handshake.",
+        "refs": [
+          "anthropic-py",
+          "httpx-tls",
+          "d3"
+        ]
+      },
+      "credentials": {
+        "text": "Documented API-key mode sends authentication; D1/D3 reject client credentials including placeholders. F0.7 has no approved real identity/scopes/revocation. No SDK or credential chain executed.",
+        "refs": [
+          "anthropic-py",
+          "d1",
+          "d3",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "model-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "Same-provider inference, OAuth, files/admin and alternative-account endpoints must remain distinct. A base URL override or custom transport grants no passthrough privilege.",
+        "refs": [
+          "plan",
+          "d3",
+          "anthropic-py"
+        ]
+      }
+    },
+    {
+      "id": "anthropic-typescript",
+      "tool": "Anthropic SDK (typescript)",
+      "protocol": "anthropic-messages-sse",
+      "version": {
+        "text": "Rolling official typescript SDK docs reviewed 2026-11-04; no installed SDK version or SDK request tested.",
+        "refs": [
+          "anthropic-ts"
+        ]
+      },
+      "operations": {
+        "text": "D3 raw HTTP text-SSE subset exists, but stock API-key SDK usage is incompatible: credentials and SDK/provider headers are rejected. A future adapting client needs separate fixture evidence.",
+        "refs": [
+          "anthropic-ts",
+          "d3"
+        ]
+      },
+      "exclusions": {
+        "text": "No normal SDK compatibility, system/tools/thinking/media, non-streaming, beta API or live credentials. No transparent stripping of authentication as a compatibility fix.",
+        "refs": [
+          "anthropic-ts",
+          "d3"
+        ]
+      },
+      "http": {
+        "text": "baseURL / ANTHROPIC_BASE_URL is a source-documented endpoint override; candidate mount /model. HTTP acceptance and complete request headers untested.",
+        "refs": [
+          "anthropic-ts",
+          "anthropic-ts-source",
+          "d3"
+        ]
+      },
+      "https": {
+        "text": "Node-only candidate: NODE_EXTRA_CA_CERTS at process startup plus HTTPS baseURL and certificate verification; custom fetch/fetchOptions may need runtime-specific CA configuration. No SDK handshake, Bun/Deno/browser claim.",
+        "refs": [
+          "anthropic-ts",
+          "node-tls",
+          "d3"
+        ]
+      },
+      "credentials": {
+        "text": "Documented API-key mode sends authentication; D1/D3 reject client credentials including placeholders. F0.7 has no approved real identity/scopes/revocation. No SDK or credential chain executed.",
+        "refs": [
+          "anthropic-ts",
+          "d1",
+          "d3",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "model-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "Same-provider inference, OAuth, files/admin and alternative-account endpoints must remain distinct. A base URL override or custom transport grants no passthrough privilege.",
+        "refs": [
+          "plan",
+          "d3",
+          "anthropic-ts"
+        ]
+      }
+    },
+    {
+      "id": "openai-python",
+      "tool": "OpenAI SDK (python)",
+      "protocol": "openai-responses-chat-sse",
+      "version": {
+        "text": "Rolling official python SDK docs reviewed 2026-11-04; no installed SDK version or SDK request tested.",
+        "refs": [
+          "openai-py"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported: baseline and D5 implement no OpenAI Responses or Chat Completions adapter; Anthropic text-SSE is a different schema.",
+        "refs": [
+          "openai-py",
+          "d3"
+        ]
+      },
+      "exclusions": {
+        "text": "Responses, Chat Completions, files, tools, Realtime/WebSocket, OAuth and all live API operations unsupported.",
+        "refs": [
+          "openai-py",
+          "d3"
+        ]
+      },
+      "http": {
+        "text": "base_url / OPENAI_BASE_URL documents HTTP custom endpoints; no compatible gateway mount exists.",
+        "refs": [
+          "openai-py",
+          "d3"
+        ]
+      },
+      "https": {
+        "text": "Candidate custom http_client uses an SSLContext with the public zone CA through verify; keep hostname checks and disable redirects. Documentation only, no SDK handshake.",
+        "refs": [
+          "openai-py",
+          "httpx-tls",
+          "d3"
+        ]
+      },
+      "credentials": {
+        "text": "Documented API-key mode sends authentication; D1/D3 reject client credentials including placeholders. F0.7 has no approved real identity/scopes/revocation. No SDK or credential chain executed.",
+        "refs": [
+          "openai-py",
+          "d1",
+          "d3",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "model-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "Same-provider inference, OAuth, files/admin and alternative-account endpoints must remain distinct. A base URL override or custom transport grants no passthrough privilege.",
+        "refs": [
+          "plan",
+          "d3",
+          "openai-py"
+        ]
+      }
+    },
+    {
+      "id": "openai-typescript",
+      "tool": "OpenAI SDK (typescript)",
+      "protocol": "openai-responses-chat-sse",
+      "version": {
+        "text": "Rolling official typescript SDK docs reviewed 2026-11-04; no installed SDK version or SDK request tested.",
+        "refs": [
+          "openai-ts"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported: baseline and D5 implement no OpenAI Responses or Chat Completions adapter; Anthropic text-SSE is a different schema.",
+        "refs": [
+          "openai-ts",
+          "d3"
+        ]
+      },
+      "exclusions": {
+        "text": "Responses, Chat Completions, files, tools, Realtime/WebSocket, OAuth and all live API operations unsupported.",
+        "refs": [
+          "openai-ts",
+          "d3"
+        ]
+      },
+      "http": {
+        "text": "baseURL selects a custom endpoint; no compatible gateway mount exists. Plain HTTP behavior untested for a pinned SDK.",
+        "refs": [
+          "openai-ts",
+          "d3"
+        ]
+      },
+      "https": {
+        "text": "Node-only candidate: NODE_EXTRA_CA_CERTS at process startup plus HTTPS baseURL and certificate verification; custom fetch/fetchOptions may need runtime-specific CA configuration. No SDK handshake, Bun/Deno/browser claim.",
+        "refs": [
+          "openai-ts",
+          "node-tls",
+          "d3"
+        ]
+      },
+      "credentials": {
+        "text": "Documented API-key mode sends authentication; D1/D3 reject client credentials including placeholders. F0.7 has no approved real identity/scopes/revocation. No SDK or credential chain executed.",
+        "refs": [
+          "openai-ts",
+          "d1",
+          "d3",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "model-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "Same-provider inference, OAuth, files/admin and alternative-account endpoints must remain distinct. A base URL override or custom transport grants no passthrough privilege.",
+        "refs": [
+          "plan",
+          "d3",
+          "openai-ts"
+        ]
+      }
+    },
+    {
+      "id": "opencode",
+      "tool": "OpenCode",
+      "protocol": "agent-provider-http-sse",
+      "version": {
+        "text": "Rolling docs dated 2026-11-04; no executable version tested.",
+        "refs": [
+          "opencode"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported full agent: Anthropic route is text-only without tools/system; OpenAI-compatible Chat Completions and Responses routes have no handler.",
+        "refs": [
+          "opencode",
+          "d3"
+        ]
+      },
+      "exclusions": {
+        "text": "No agent/tool loop, provider login, models discovery, plugin, MCP, telemetry or auxiliary network compatibility claimed.",
+        "refs": [
+          "opencode",
+          "d3",
+          "plan"
+        ]
+      },
+      "http": {
+        "text": "provider.<id>.options.baseURL chooses HTTP/HTTPS endpoint; OpenAI-compatible versus Responses provider package differs. No executable was run.",
+        "refs": [
+          "opencode"
+        ]
+      },
+      "https": {
+        "text": "Documented NODE_EXTRA_CA_CERTS provides additional CA trust. No OpenCode-to-D3 handshake or trust isolation measured.",
+        "refs": [
+          "opencode-tls",
+          "d3"
+        ]
+      },
+      "credentials": {
+        "text": "Provider keys or login do not satisfy F0.7; credential-bearing requests fail typed auth policy. No auth files inspected.",
+        "refs": [
+          "opencode",
+          "decisions",
+          "d1"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "model-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "Provider APIs, OAuth, model discovery and auxiliary requests cannot fall back to opaque same-host access.",
+        "refs": [
+          "opencode",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "claude-code",
+      "tool": "Claude Code",
+      "protocol": "agent-messages-sse",
+      "version": {
+        "text": "Rolling local CLI gateway docs; no executable version tested; Desktop/cloud behavior excluded.",
+        "refs": [
+          "claude",
+          "claude-protocol"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported full agent: gateway contract includes headers, system/tools/thinking and response semantics beyond D3; no CLI invocation performed.",
+        "refs": [
+          "claude-protocol",
+          "d3"
+        ]
+      },
+      "exclusions": {
+        "text": "No beta fallback, count-token/auxiliary API, agent tools, OAuth subscription login or real API-key integration.",
+        "refs": [
+          "claude-protocol",
+          "d3",
+          "decisions"
+        ]
+      },
+      "http": {
+        "text": "ANTHROPIC_BASE_URL configures gateway origin. Official connection recipe uses HTTPS; plain HTTP acceptance not established by this review for a pinned CLI.",
+        "refs": [
+          "claude"
+        ]
+      },
+      "https": {
+        "text": "Local CLI NODE_EXTRA_CA_CERTS selects extra CA material; Desktop/cloud settings have different precedence. No CLI TLS test.",
+        "refs": [
+          "claude-tls"
+        ]
+      },
+      "credentials": {
+        "text": "ANTHROPIC_AUTH_TOKEN bearer mode or x-api-key mode conflicts with D3 client-auth denial. OAuth identity/scopes/revocation remain unapproved.",
+        "refs": [
+          "claude",
+          "d3",
+          "decisions"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "model-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "Messages, account login, token counting and beta/auxiliary endpoints on shared provider hosts receive no passthrough exception.",
+        "refs": [
+          "claude-protocol",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "codex",
+      "tool": "Codex",
+      "protocol": "agent-responses-sse-websocket",
+      "version": {
+        "text": "Rolling official CLI configuration docs; no executable version tested.",
+        "refs": [
+          "codex"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported: custom provider wire_api is Responses; no Responses handler exists. WebSocket upgrade also unsupported by D1.",
+        "refs": [
+          "codex",
+          "d1",
+          "d3"
+        ]
+      },
+      "exclusions": {
+        "text": "No API/ChatGPT login, Responses tools/compaction, WebSocket, model catalog or auxiliary-service compatibility.",
+        "refs": [
+          "codex",
+          "d1",
+          "decisions"
+        ]
+      },
+      "http": {
+        "text": "model_providers.<id>.base_url supports documented local HTTP examples; wire_api=responses still requires an unimplemented adapter.",
+        "refs": [
+          "codex",
+          "codex-http",
+          "d3"
+        ]
+      },
+      "https": {
+        "text": "CODEX_CA_CERTIFICATE names a PEM bundle, with SSL_CERT_FILE fallback. This is a documented configuration surface only; no Codex TLS request run.",
+        "refs": [
+          "codex-tls"
+        ]
+      },
+      "credentials": {
+        "text": "Provider env_key/auth/header and ChatGPT login modes do not authorize broad credentials inside the area. Scopes/revocation are unresolved and client auth is denied.",
+        "refs": [
+          "codex",
+          "decisions",
+          "d1"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "Responses SSE/WebSocket, OAuth, model catalog and other same-host operations must not bypass typed policy through an alternate wire API.",
+        "refs": [
+          "codex",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "websocket",
+      "tool": "WebSocket",
+      "protocol": "rfc6455-ws-wss",
+      "version": {
+        "text": "RFC 6455 protocol; no WebSocket client implementation/version tested.",
+        "refs": [
+          "websocket"
+        ]
+      },
+      "operations": {
+        "text": "Unsupported: D1 rejects Upgrade and does not tunnel frames, CONNECT or HTTP/2 extended CONNECT.",
+        "refs": [
+          "d1",
+          "websocket"
+        ]
+      },
+      "exclusions": {
+        "text": "No ws/wss, bidirectional frame forwarding or provider Realtime adapter.",
+        "refs": [
+          "d1",
+          "d3"
+        ]
+      },
+      "http": {
+        "text": "ws uses HTTP Upgrade; no eligible local endpoint.",
+        "refs": [
+          "websocket",
+          "d1"
+        ]
+      },
+      "https": {
+        "text": "wss adds TLS but still needs an unsupported upgrade/frame path. No client CA recipe or handshake tested.",
+        "refs": [
+          "websocket",
+          "d1"
+        ]
+      },
+      "credentials": {
+        "text": "WebSocket credentials and subprotocol auth have no approved mapping.",
+        "refs": [
+          "decisions",
+          "d1"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "A provider advertising WebSocket support does not authorize alternate access to the same typed destination.",
+        "refs": [
+          "codex",
+          "plan"
+        ]
+      }
+    },
+    {
+      "id": "sse",
+      "tool": "SSE transport",
+      "protocol": "http1-sse",
+      "version": {
+        "text": "D1/D3 Swift 6.4 local transport tests reported; WHATWG format reviewed 2026-11-04. No browser EventSource or SDK claim.",
+        "refs": [
+          "d1",
+          "d3",
+          "sse"
+        ]
+      },
+      "operations": {
+        "text": "Inherited local D1 HTTP/1.1 chunked event delivery and D3 reconstructed text-only Messages stream; provider completion marker required. Generic parser is not an arbitrary upstream route.",
+        "refs": [
+          "d1",
+          "d3"
+        ]
+      },
+      "exclusions": {
+        "text": "No automatic reconnect/retry or EventSource Last-Event-ID resume, browser CORS integration, half-close, HTTP/2, compressed stream or arbitrary provider schema.",
+        "refs": [
+          "d1",
+          "d3",
+          "sse"
+        ]
+      },
+      "http": {
+        "text": "D1 loopback HTTP fixtures implement SSE; D3 is POST /model/v1/messages, not browser EventSource GET.",
+        "refs": [
+          "d1",
+          "d3",
+          "sse"
+        ]
+      },
+      "https": {
+        "text": "D3 local HTTPS test uses public zone CA anchors, rejects unknown/wrong CA and wrong name, and never installs trust globally. This is a raw transport test only.",
+        "refs": [
+          "d3",
+          "sse-fixture"
+        ]
+      },
+      "credentials": {
+        "text": "D3 accepts no caller auth; trusted synthetic key only. HTTP 200 without message_stop is incomplete, not a successful paid generation.",
+        "refs": [
+          "d3"
+        ]
+      },
+      "limits": [
+        "d1-limits",
+        "model-limits",
+        "identity"
+      ],
+      "collision": {
+        "text": "SSE format support creates no catch-all model/API route and no opaque streaming passthrough.",
+        "refs": [
+          "d1",
+          "d3",
+          "plan"
+        ]
+      }
+    }
+  ],
+  "observations": [
+    {
+      "id": "npm-fixture",
+      "profile": "npm",
+      "layer": "baseline",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "client_version": "npm 11.20.0 / Node 26.12.1",
+      "result": "passed_local_fixture",
+      "provenance": "inherited_report_not_rerun_by_D6",
+      "refs": [
+        "npm-fixture",
+        "d2"
+      ]
+    },
+    {
+      "id": "sse-fixture",
+      "profile": "sse",
+      "layer": "baseline",
+      "revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+      "client_version": "Swift 6.4 raw HTTP client; no SDK",
+      "result": "passed_local_fixture",
+      "provenance": "inherited_report_not_rerun_by_D6",
+      "refs": [
+        "sse-fixture",
+        "d3"
+      ]
+    },
+    {
+      "id": "pip-fixture",
+      "profile": "pip",
+      "layer": "proposed_d5",
+      "revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "client_version": "Python 3.15 / pip 26.2.2",
+      "result": "passed_local_fixture",
+      "provenance": "inherited_report_not_rerun_by_D6",
+      "refs": [
+        "pip-fixture",
+        "d5-validation"
+      ]
+    },
+    {
+      "id": "git-fixture",
+      "profile": "git-http",
+      "layer": "proposed_d5",
+      "revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+      "client_version": "Git 2.54.0 (Apple Git-157)",
+      "result": "passed_local_fixture",
+      "provenance": "inherited_report_not_rerun_by_D6",
+      "refs": [
+        "git-fixture",
+        "d5-validation"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "id": "npm/typed",
+      "profile": "npm",
+      "tool": "npm",
+      "protocol": "npm-registry-http1",
+      "policy": "typed",
+      "baseline": {
+        "status": "fixture_only",
+        "basis": {
+          "text": "Inherited local fixture observation only; scripted upstream and no area/live-service acceptance.",
+          "refs": [
+            "d2",
+            "npm-fixture"
+          ]
+        },
+        "observations": [
+          "npm-fixture"
+        ]
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "npm/passthrough",
+      "profile": "npm",
+      "tool": "npm",
+      "protocol": "npm-registry-http1",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "pnpm/typed",
+      "profile": "pnpm",
+      "tool": "pnpm",
+      "protocol": "npm-registry-http1",
+      "policy": "typed",
+      "baseline": {
+        "status": "untested",
+        "basis": {
+          "text": "D2 wire subset is present, but this client and its exact version/request shape have not been run.",
+          "refs": [
+            "d2",
+            "pnpm"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "pnpm/passthrough",
+      "profile": "pnpm",
+      "tool": "pnpm",
+      "protocol": "npm-registry-http1",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "yarn/typed",
+      "profile": "yarn",
+      "tool": "Yarn",
+      "protocol": "npm-registry-http1",
+      "policy": "typed",
+      "baseline": {
+        "status": "untested",
+        "basis": {
+          "text": "D2 wire subset is present, but this client and its exact version/request shape have not been run.",
+          "refs": [
+            "d2",
+            "yarn"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "yarn/passthrough",
+      "profile": "yarn",
+      "tool": "Yarn",
+      "protocol": "npm-registry-http1",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "bun/typed",
+      "profile": "bun",
+      "tool": "Bun",
+      "protocol": "npm-registry-http1",
+      "policy": "typed",
+      "baseline": {
+        "status": "untested",
+        "basis": {
+          "text": "D2 wire subset is present, but this client and its exact version/request shape have not been run.",
+          "refs": [
+            "d2",
+            "bun"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "bun/passthrough",
+      "profile": "bun",
+      "tool": "Bun",
+      "protocol": "npm-registry-http1",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "pip/typed",
+      "profile": "pip",
+      "tool": "pip",
+      "protocol": "pypi-simple-json-http1",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "d5"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": {
+        "status": "fixture_only",
+        "basis": {
+          "text": "Provisional D5 only: inherited local client fixture; upstream scripted, real account and HTTPS-client path untested.",
+          "refs": [
+            "d5",
+            "d5-validation",
+            "pip-fixture"
+          ]
+        },
+        "observations": [
+          "pip-fixture"
+        ]
+      }
+    },
+    {
+      "id": "pip/passthrough",
+      "profile": "pip",
+      "tool": "pip",
+      "protocol": "pypi-simple-json-http1",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "uv/typed",
+      "profile": "uv",
+      "tool": "uv",
+      "protocol": "pypi-simple-json-http1",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "d5"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": {
+        "status": "untested",
+        "basis": {
+          "text": "Provisional D5 only: JSON-only client behavior untested.",
+          "refs": [
+            "d5",
+            "d5-validation"
+          ]
+        },
+        "observations": []
+      }
+    },
+    {
+      "id": "uv/passthrough",
+      "profile": "uv",
+      "tool": "uv",
+      "protocol": "pypi-simple-json-http1",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "brew/typed",
+      "profile": "brew",
+      "tool": "Homebrew",
+      "protocol": "brew-json-oci-http",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "d5"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Provisional D5 only: explicit deny; Homebrew artifact age remains unsatisfied.",
+          "refs": [
+            "d5",
+            "d5-validation"
+          ]
+        },
+        "observations": []
+      }
+    },
+    {
+      "id": "brew/passthrough",
+      "profile": "brew",
+      "tool": "Homebrew",
+      "protocol": "brew-json-oci-http",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "git-http/typed",
+      "profile": "git-http",
+      "tool": "Git",
+      "protocol": "git-smart-http-v0",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "d5"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": {
+        "status": "fixture_only",
+        "basis": {
+          "text": "Provisional D5 only: inherited local client fixture; upstream scripted, real account and HTTPS-client path untested.",
+          "refs": [
+            "d5",
+            "d5-validation",
+            "git-fixture"
+          ]
+        },
+        "observations": [
+          "git-fixture"
+        ]
+      }
+    },
+    {
+      "id": "git-http/passthrough",
+      "profile": "git-http",
+      "tool": "Git",
+      "protocol": "git-smart-http-v0",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "git-ssh/typed",
+      "profile": "git-ssh",
+      "tool": "Git",
+      "protocol": "ssh-deploy-key",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "d5"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "git-ssh/passthrough",
+      "profile": "git-ssh",
+      "tool": "Git",
+      "protocol": "ssh-deploy-key",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "cargo/typed",
+      "profile": "cargo",
+      "tool": "Cargo",
+      "protocol": "cargo-sparse-or-git-index",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "cargo/passthrough",
+      "profile": "cargo",
+      "tool": "Cargo",
+      "protocol": "cargo-sparse-or-git-index",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "go/typed",
+      "profile": "go",
+      "tool": "Go",
+      "protocol": "goproxy-sumdb-http",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "go/passthrough",
+      "profile": "go",
+      "tool": "Go",
+      "protocol": "goproxy-sumdb-http",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "gradle/typed",
+      "profile": "gradle",
+      "tool": "Gradle",
+      "protocol": "maven-ivy-http",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "gradle/passthrough",
+      "profile": "gradle",
+      "tool": "Gradle",
+      "protocol": "maven-ivy-http",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "maven/typed",
+      "profile": "maven",
+      "tool": "Maven",
+      "protocol": "maven-repository-http",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "maven/passthrough",
+      "profile": "maven",
+      "tool": "Maven",
+      "protocol": "maven-repository-http",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "nuget/typed",
+      "profile": "nuget",
+      "tool": "NuGet",
+      "protocol": "nuget-v3-http",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "nuget/passthrough",
+      "profile": "nuget",
+      "tool": "NuGet",
+      "protocol": "nuget-v3-http",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "conda/typed",
+      "profile": "conda",
+      "tool": "Conda",
+      "protocol": "conda-channel-http",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "conda/passthrough",
+      "profile": "conda",
+      "tool": "Conda",
+      "protocol": "conda-channel-http",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "rubygems/typed",
+      "profile": "rubygems",
+      "tool": "RubyGems",
+      "protocol": "rubygems-index-http",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "rubygems/passthrough",
+      "profile": "rubygems",
+      "tool": "RubyGems",
+      "protocol": "rubygems-index-http",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "anthropic-python/typed",
+      "profile": "anthropic-python",
+      "tool": "Anthropic SDK (python)",
+      "protocol": "anthropic-messages-sse",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "anthropic-python/passthrough",
+      "profile": "anthropic-python",
+      "tool": "Anthropic SDK (python)",
+      "protocol": "anthropic-messages-sse",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "anthropic-typescript/typed",
+      "profile": "anthropic-typescript",
+      "tool": "Anthropic SDK (typescript)",
+      "protocol": "anthropic-messages-sse",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "anthropic-typescript/passthrough",
+      "profile": "anthropic-typescript",
+      "tool": "Anthropic SDK (typescript)",
+      "protocol": "anthropic-messages-sse",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "openai-python/typed",
+      "profile": "openai-python",
+      "tool": "OpenAI SDK (python)",
+      "protocol": "openai-responses-chat-sse",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "openai-python/passthrough",
+      "profile": "openai-python",
+      "tool": "OpenAI SDK (python)",
+      "protocol": "openai-responses-chat-sse",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "openai-typescript/typed",
+      "profile": "openai-typescript",
+      "tool": "OpenAI SDK (typescript)",
+      "protocol": "openai-responses-chat-sse",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "openai-typescript/passthrough",
+      "profile": "openai-typescript",
+      "tool": "OpenAI SDK (typescript)",
+      "protocol": "openai-responses-chat-sse",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "opencode/typed",
+      "profile": "opencode",
+      "tool": "OpenCode",
+      "protocol": "agent-provider-http-sse",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "opencode/passthrough",
+      "profile": "opencode",
+      "tool": "OpenCode",
+      "protocol": "agent-provider-http-sse",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "claude-code/typed",
+      "profile": "claude-code",
+      "tool": "Claude Code",
+      "protocol": "agent-messages-sse",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "claude-code/passthrough",
+      "profile": "claude-code",
+      "tool": "Claude Code",
+      "protocol": "agent-messages-sse",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "codex/typed",
+      "profile": "codex",
+      "tool": "Codex",
+      "protocol": "agent-responses-sse-websocket",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "codex/passthrough",
+      "profile": "codex",
+      "tool": "Codex",
+      "protocol": "agent-responses-sse-websocket",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "websocket/typed",
+      "profile": "websocket",
+      "tool": "WebSocket",
+      "protocol": "rfc6455-ws-wss",
+      "policy": "typed",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Required gateway protocol or stock client behavior is absent/incompatible; documentation is not positive compatibility evidence.",
+          "refs": [
+            "d1",
+            "d3",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "websocket/passthrough",
+      "profile": "websocket",
+      "tool": "WebSocket",
+      "protocol": "rfc6455-ws-wss",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "sse/typed",
+      "profile": "sse",
+      "tool": "SSE transport",
+      "protocol": "http1-sse",
+      "policy": "typed",
+      "baseline": {
+        "status": "fixture_only",
+        "basis": {
+          "text": "Inherited local fixture observation only; scripted upstream and no area/live-service acceptance.",
+          "refs": [
+            "d3",
+            "sse-fixture"
+          ]
+        },
+        "observations": [
+          "sse-fixture"
+        ]
+      },
+      "proposed_d5": null
+    },
+    {
+      "id": "sse/passthrough",
+      "profile": "sse",
+      "tool": "SSE transport",
+      "protocol": "http1-sse",
+      "policy": "passthrough",
+      "baseline": {
+        "status": "unsupported",
+        "basis": {
+          "text": "Unsupported in baseline and proposed D5. No opaque TLS, CONNECT, transparent proxy or unrestricted destination exists. Same-host OAuth/API or Git endpoint collisions must stay denied, including after a typed rejection.",
+          "refs": [
+            "d1",
+            "d5",
+            "plan"
+          ]
+        },
+        "observations": []
+      },
+      "proposed_d5": null
+    }
+  ]
+}
