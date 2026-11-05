@@ -3,32 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="{{description}}">
+  <meta name="description" content="Stav vývoje Sanďboxu: izolace AI agentů na macOS bez virtuálního stroje.">
   <meta name="color-scheme" content="dark light">
-  <title>Sanďbox · {{title}}</title>
+  <title>Sanďbox Status</title>
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Přejít na obsah</a>
   <header>
-    <div class="header-inner">
-      <a class="brand" href="index.html"><span class="brand-icon" aria-hidden="true">s.</span> Sanďbox</a>
-      <nav aria-label="Hlavní navigace">
-        <a href="index.html" {{home_current}}>O projektu</a>
-        <a href="progress.html" {{overview_current}}>Stav vývoje</a>
-        <a href="history.html" {{history_current}}>Historie</a>
-        <a href="{{coverage}}">Dokumentace ↗</a>
-        <a href="{{repository}}">GitHub ↗</a>
-      </nav>
-      <button class="theme-toggle" type="button" aria-label="Přepnout barevný režim" hidden>◐</button>
-    </div>
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span>Sanďbox <span>Status</span></a>
+    <nav aria-label="Odkazy">
+      <a href="{{repository}}">GitHub</a>
+      <button class="theme" type="button" aria-label="Přepnout světlý a tmavý režim" hidden></button>
+    </nav>
   </header>
   <main id="main">
-    <div class="snapshot"><span><span class="live-dot" aria-hidden="true"></span> {{snapshot}}</span><a href="progress.json">Data JSON ↗</a></div>
-    {{body}}
-    <section class="method"><h2>Jak číst tato čísla</h2><p>Stav vychází z řádků COVERAGE.md a definic v IMPLEMENTATION.md. Počet hotových balíků sleduje implementaci; prošlé případy a brány sledují důkazy. Unit testy ani mocky samy neuzavírají laboratorní bránu. Procenta balíků nejsou odhad zbývající práce.</p><a href="{{method}}">Metodika a aktualizace ↗</a><noscript><p>JavaScript je vypnutý. Všechny přehledy, grafy a odkazy fungují; hledání a přepnutí tématu vyžadují JavaScript.</p></noscript></section>
+    <p class="about">Izolace AI agentů na macOS bez virtuálního stroje. Každá oblast má vlastního uživatele, relaci, soubory a síť přes bránu. <a href="{{plan}}">Architektura</a></p>
+
+    <section class="banner {{banner_state}}" aria-label="Celkový stav">
+      <span class="dot" aria-hidden="true"></span>
+      <div>
+        <h1>{{banner_title}}</h1>
+        <p>{{banner_text}}</p>
+      </div>
+    </section>
+    <p class="updated">Aktualizováno {{updated}} · {{snapshot}}</p>
+
+    <section aria-labelledby="gates-title">
+      <div class="section-head"><h2 id="gates-title">Ověřovací brány</h2><span class="key"><i class="done"></i>hotovo<i class="active"></i>rozpracováno<i class="todo"></i>nezahájeno</span></div>
+      <ul class="components">{{gates}}</ul>
+    </section>
+
+    <section aria-labelledby="phases-title">
+      <div class="section-head"><h2 id="phases-title">Fáze</h2></div>
+      <ol class="phases">{{phases}}</ol>
+    </section>
+
+    <section aria-labelledby="changes-title">
+      <div class="section-head"><h2 id="changes-title">Poslední změny</h2><a class="key" href="{{repository}}/pulls?q=is%3Apr+is%3Amerged">Všechny PR</a></div>
+      <div class="changes">{{changes}}</div>
+    </section>
   </main>
-  <footer><a class="brand" href="index.html">Sanďbox<span class="brand-note"> / nativně, odděleně, ověřitelně.</span></a><a href="{{repository}}/commit/{{sha}}">Zdrojový commit {{sha}} ↗</a></footer>
+  <footer>
+    <a href="{{coverage}}">docs/COVERAGE.md</a>
+    <a href="progress.json">progress.json</a>
+    <a href="history.json">history.json</a>
+    <a href="{{method}}">Metodika</a>
+  </footer>
 </body>
 </html>

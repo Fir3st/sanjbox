@@ -7,14 +7,8 @@ hosta a síť jde jen přes řízenou bránu.
 **Stav:** návrh k ověření. Žádná izolace zatím není prokázaná. Nic z tohoto repozitáře nepoužívej
 se skutečnými projekty, účty nebo tajemstvími, dokud příslušné brány v COVERAGE.md neprojdou.
 
-**[Web projektu](https://fir3st.github.io/sanjbox/)** ·
-[Stav vývoje](https://fir3st.github.io/sanjbox/progress.html) ·
-[Historie](https://fir3st.github.io/sanjbox/history.html)
-
-Úvodní GitHub Pages stránka představuje cíle, navrženou architekturu a aktuální stav Sanďboxu.
-Podrobný progres se aktualizuje automaticky z dokumentace a historie Gitu.
-Web bude dostupný po sloučení PR a jednorázové aktivaci Pages správcem;
-[postup publikování](docs/PROGRESS.md#github-actions-a-pages).
+**[Status](https://fir3st.github.io/sanjbox/)**: stav ověřovacích bran, fáze a poslední změny,
+generované automaticky z [COVERAGE.md](docs/COVERAGE.md) ([jak](docs/PROGRESS.md)).
 
 | Dokument | Obsah |
 |---|---|

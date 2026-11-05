@@ -40,7 +40,7 @@ jobs:
           for key in ('packages', 'gates', 'tests', 'requirements'):
               item = data['summary'][key]
               print(f"- {key}: {item['done']}/{item['total']} ({item['percent']}%)")
-          print('\nProject homepage: index.html; development status: progress.html; history: history.html.')
+          print('\nStatus page: index.html (progress.html and history.html redirect to it).')
           print('The main branch deploys this website to GitHub Pages. The progress-preview artifact is for PR review only.')
           print('Completed packages do not prove isolation.')
           PY
