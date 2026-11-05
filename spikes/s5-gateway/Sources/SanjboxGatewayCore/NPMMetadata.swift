@@ -142,7 +142,7 @@ struct NPMPackument {
 
 /// Foundation accepts duplicate JSON object keys; reject ambiguity before using
 /// it. Bounds apply also to unknown metadata that will be omitted on output.
-private struct StrictJSONScan {
+struct StrictJSONScan {
     let bytes: [UInt8]
     var index = 0
     var nodes = 0

@@ -1,0 +1,58 @@
+Building for production...
+[Pre-planning 1 / 154]
+[Planning deferred tasks]
+[1 / 4]
+[2 / 5] SanjboxGatewayCore
+[3 / 6] SanjboxGatewayCore
+[15 / 27] sanjbox-gateway-product
+[18 / 29] sanjbox-gateway-product
+[20 / 29] sanjbox-gateway-product
+[20 / 29] SanjboxGatewayCoreTests-product
+[24 / 28] SanjboxGatewayCoreTests-product
+[26 / 28] SanjboxGatewayCoreTests-product
+[27 / 27] sanjbox-gateway-product
+Build complete! (23,40 secs)
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test gitReadOnlyWrongMethodContentTypeBodyAndSizeFailBeforeNetwork() started.
+◇ Test pypiFinalDNSRebindingClockRollbackAndAuditCapacityDeny() started.
+◇ Test pypiRejectsAmbiguousMetadataAndUnsupportedStatusVersions() started.
+◇ Test pypiDoesNotAcceptUnknownIdentityWeakHashesBooleanSizesOrYankedFiles() started.
+◇ Test pypiEveryRedirectAndNonJSONMetadataFailClosed() started.
+◇ Test boundedOperationRejectsSynchronousLateValueRegardlessOfTimerScheduling() started.
+◇ Test boundedOperationChecksCancelledParentEvenWhenChildIgnoresCancellation() started.
+◇ Test npmDiscardedTimeoutOrCancelledChildCannotOrphanAuditCapacity() started.
+◇ Test pypiFiltersPerFileUploadTimesAndReconstructsJSON() started.
+◇ Test pypiTimeBoundaryMissingFutureImpossibleAndSubmillisecondPrecision() started.
+◇ Test homebrewDiagnosticAndAllBottleCatalogCaskPathsStayClosed() started.
+◇ Test homebrewMalformedMissingOrRedirectedMetadataCannotEnableDownload() started.
+◇ Test pypiLimitsCancellationDeadlineAndConcurrencyReleaseCapacity() started.
+◇ Test homebrewKnownDigestNeverSubstitutesForArtifactPublicationTime() started.
+◇ Test pypiHashAndSizeMismatchOrChangedFinalMetadataNeverReleaseBytes() started.
+◇ Test pypiDirectFileRequiresFreshMetadataBeforeAndAfterEveryDownload() started.
+◇ Test gitOtherRepositoryTraversalEncodingQueryAndProtocolV2NeverDial() started.
+◇ Test pypiRejectsClientAuthorityCredentialsAlternatePathsAndRangesBeforeNetwork() started.
+◇ Test gitOnlyExactProjectServicesReachFixedUpstreamWithoutClientHeaders() started.
+◇ Test gitRedirectAuthDumbHTTPAndOversizedResponseNeverEscape() started.
+✔ Test gitReadOnlyWrongMethodContentTypeBodyAndSizeFailBeforeNetwork() passed after 0.007 seconds.
+✔ Test homebrewKnownDigestNeverSubstitutesForArtifactPublicationTime() passed after 0.007 seconds.
+✔ Test gitOtherRepositoryTraversalEncodingQueryAndProtocolV2NeverDial() passed after 0.007 seconds.
+✔ Test pypiRejectsClientAuthorityCredentialsAlternatePathsAndRangesBeforeNetwork() passed after 0.008 seconds.
+✔ Test homebrewDiagnosticAndAllBottleCatalogCaskPathsStayClosed() passed after 0.009 seconds.
+✔ Test boundedOperationChecksCancelledParentEvenWhenChildIgnoresCancellation() passed after 0.010 seconds.
+✔ Test homebrewMalformedMissingOrRedirectedMetadataCannotEnableDownload() passed after 0.011 seconds.
+✔ Test gitOnlyExactProjectServicesReachFixedUpstreamWithoutClientHeaders() passed after 0.011 seconds.
+✔ Test pypiRejectsAmbiguousMetadataAndUnsupportedStatusVersions() passed after 0.013 seconds.
+✔ Test pypiFiltersPerFileUploadTimesAndReconstructsJSON() passed after 0.016 seconds.
+✔ Test gitRedirectAuthDumbHTTPAndOversizedResponseNeverEscape() passed after 0.016 seconds.
+✔ Test pypiDirectFileRequiresFreshMetadataBeforeAndAfterEveryDownload() passed after 0.018 seconds.
+✔ Test pypiHashAndSizeMismatchOrChangedFinalMetadataNeverReleaseBytes() passed after 0.019 seconds.
+✔ Test pypiTimeBoundaryMissingFutureImpossibleAndSubmillisecondPrecision() passed after 0.020 seconds.
+✔ Test pypiFinalDNSRebindingClockRollbackAndAuditCapacityDeny() passed after 0.021 seconds.
+✔ Test pypiEveryRedirectAndNonJSONMetadataFailClosed() passed after 0.025 seconds.
+✔ Test pypiDoesNotAcceptUnknownIdentityWeakHashesBooleanSizesOrYankedFiles() passed after 0.026 seconds.
+✔ Test pypiLimitsCancellationDeadlineAndConcurrencyReleaseCapacity() passed after 0.031 seconds.
+✔ Test boundedOperationRejectsSynchronousLateValueRegardlessOfTimerScheduling() passed after 0.032 seconds.
+✔ Test npmDiscardedTimeoutOrCancelledChildCannotOrphanAuditCapacity() passed after 2.256 seconds.
+✔ Test run with 20 tests in 0 suites passed after 2.257 seconds.

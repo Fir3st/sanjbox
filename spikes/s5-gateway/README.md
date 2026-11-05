@@ -189,3 +189,10 @@ Použité kontrakty: [HTTP/1.1 framing, RFC 9112](https://www.rfc-editor.org/rfc
 [SSE formát](https://html.spec.whatwg.org/multipage/server-sent-events.html),
 [Network TLS options](https://developer.apple.com/documentation/network/nwprotocoltls/options),
 [import testovací identity pouze do paměti](https://developer.apple.com/documentation/security/ksecimporttomemoryonly).
+
+## WP1.D5 — PyPI, Homebrew a Git
+
+[TYPED-REGISTRIES.md](TYPED-REGISTRIES.md) popisuje JSON PyPI s per-file cooldownem,
+explicitní odmítnutí Homebrew bez autoritativního bottle publish-time a Git smart HTTP v0
+pro přesné projektové repo. Balík je částečný; live/F0.7, D7 a S5/S6 zůstávají Neověřeno.
+[Validace D5](VALIDATION-D5.md) rozlišuje unit/mock a skutečné lokální pip/Git klienty.

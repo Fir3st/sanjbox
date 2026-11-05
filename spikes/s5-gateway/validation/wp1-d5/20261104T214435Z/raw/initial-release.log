@@ -1,0 +1,50 @@
+Building for production...
+[Pre-planning 1 / 154]
+[Planning deferred tasks]
+[37 / 69]
+[39 / 71] SanjboxProbeKit
+[51 / 113]
+[53 / 113]
+[59 / 113]
+[61 / 113]
+[65 / 113]
+[67 / 113]
+[71 / 113]
+[75 / 113]
+[78 / 113]
+[79 / 113]
+[83 / 113] SanjboxProbeKit
+[89 / 113] SanjboxGatewayCore
+[100 / 115] sanjbox-gateway-product
+[104 / 119]
+[106 / 119] sanjbox-gateway-product
+[108 / 119] sanjbox-gateway-product
+[109 / 119] sanjbox-gateway-product
+[110 / 119] SanjboxGatewayCoreTests-product
+[115 / 119] SanjboxGatewayCoreTests-product
+[117 / 119] SanjboxGatewayCoreTests-product
+Build complete! (25,28 secs)
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test pypiFiltersPerFileUploadTimesAndReconstructsJSON() started.
+◇ Test pypiLimitsCancellationDeadlineAndConcurrencyReleaseCapacity() started.
+◇ Test pypiHashAndSizeMismatchOrChangedFinalMetadataNeverReleaseBytes() started.
+◇ Test pypiRejectsAmbiguousMetadataAndUnsupportedStatusVersions() started.
+◇ Test pypiEveryRedirectAndNonJSONMetadataFailClosed() started.
+◇ Test pypiDoesNotAcceptUnknownIdentityWeakHashesBooleanSizesOrYankedFiles() started.
+◇ Test pypiDirectFileRequiresFreshMetadataBeforeAndAfterEveryDownload() started.
+◇ Test pypiRejectsClientAuthorityCredentialsAlternatePathsAndRangesBeforeNetwork() started.
+◇ Test pypiFinalDNSRebindingClockRollbackAndAuditCapacityDeny() started.
+◇ Test pypiTimeBoundaryMissingFutureImpossibleAndSubmillisecondPrecision() started.
+✔ Test pypiRejectsClientAuthorityCredentialsAlternatePathsAndRangesBeforeNetwork() passed after 0.008 seconds.
+✔ Test pypiRejectsAmbiguousMetadataAndUnsupportedStatusVersions() passed after 0.010 seconds.
+✔ Test pypiFiltersPerFileUploadTimesAndReconstructsJSON() passed after 0.016 seconds.
+✔ Test pypiDirectFileRequiresFreshMetadataBeforeAndAfterEveryDownload() passed after 0.017 seconds.
+✔ Test pypiTimeBoundaryMissingFutureImpossibleAndSubmillisecondPrecision() passed after 0.018 seconds.
+✔ Test pypiHashAndSizeMismatchOrChangedFinalMetadataNeverReleaseBytes() passed after 0.018 seconds.
+✔ Test pypiFinalDNSRebindingClockRollbackAndAuditCapacityDeny() passed after 0.019 seconds.
+✔ Test pypiEveryRedirectAndNonJSONMetadataFailClosed() passed after 0.024 seconds.
+✔ Test pypiDoesNotAcceptUnknownIdentityWeakHashesBooleanSizesOrYankedFiles() passed after 0.024 seconds.
+✔ Test pypiLimitsCancellationDeadlineAndConcurrencyReleaseCapacity() passed after 0.034 seconds.
+✔ Test run with 10 tests in 0 suites passed after 0.034 seconds.

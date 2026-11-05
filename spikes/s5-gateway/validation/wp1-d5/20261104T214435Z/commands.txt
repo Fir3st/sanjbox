@@ -1,0 +1,15 @@
+All commands executed from the dedicated D5 worktree. No package install command ran.
+The first client compile failed on a Swift positional-argument overload; fixed and rerun.
+Earlier PyPI-only/policy-only runs are development checks, not final source evidence.
+
+Final command (same private scratch directory as the intermediate runs):
+CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-d5-3coxyxk2/module-cache swift test --package-path spikes/s5-gateway -c release --scratch-path /private/tmp/sanjbox-d5-3coxyxk2/build --cache-path /private/tmp/sanjbox-d5-3coxyxk2/cache --disable-sandbox
+
+Executed local clients inside tests:
+/usr/bin/git -c core.hooksPath=/dev/null -c credential.helper= -c protocol.version=0 -c http.followRedirects=false -c http.proxy= -c commit.gpgsign=false -c tag.gpgsign=false clone --template= http://127.0.0.1:<ephemeral>/git/project.git clone
+/usr/bin/git <same isolated options> -C clone push origin HEAD:refs/heads/canary
+/usr/bin/git <same isolated options> -C clone push http://127.0.0.1:<ephemeral>/git/other.git HEAD:refs/heads/forbidden  # expected failure before fixture backend
+/opt/homebrew/bin/python3 -I -m pip download --no-deps --only-binary=:all: --no-cache-dir --disable-pip-version-check --no-input --retries 0 --timeout 5 --index-url http://127.0.0.1:<ephemeral>/pypi/simple/ --dest download fixture==1.0.0
+
+All fixture repos, wheels, profiles and process I/O were generated inside private temporary directories and cleaned by tests.
+Upstream transport for D5 is mocked; client-facing loopback GatewayServer and installed clients are real.

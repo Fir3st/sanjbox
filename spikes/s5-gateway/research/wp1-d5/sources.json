@@ -1,0 +1,72 @@
+[
+  {
+    "repository": "pypa/packaging.python.org",
+    "requested_ref": "main",
+    "commit": "9d2c254c997d8355f4855fea715cca8000e64b30",
+    "path": "source/specifications/simple-repository-api.rst",
+    "url": "https://raw.githubusercontent.com/pypa/packaging.python.org/9d2c254c997d8355f4855fea715cca8000e64b30/source/specifications/simple-repository-api.rst",
+    "sha256": "c870a0471e8efbd9201fdd86b24eedf68d88b3380720ddc840c068d32499ae0a",
+    "bytes": 43000,
+    "retrieved_at": "2026-11-04T21:38:27.138413+00:00"
+  },
+  {
+    "repository": "Homebrew/brew",
+    "requested_ref": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "commit": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "path": "Library/Homebrew/env_config.rb",
+    "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/Library/Homebrew/env_config.rb",
+    "sha256": "daea8cd973fcbfe6b9b135a63c3940bd275a4b7ed3e197d3825e82f1fe181c5b",
+    "bytes": 53570,
+    "retrieved_at": "2026-11-04T21:38:27.454780+00:00"
+  },
+  {
+    "repository": "Homebrew/brew",
+    "requested_ref": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "commit": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+    "path": "Library/Homebrew/formula.rb",
+    "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/Library/Homebrew/formula.rb",
+    "sha256": "9ae87f453225163996acab9a8b0248ca7846543afdca084974fa0d3f9a192c87",
+    "bytes": 182343,
+    "retrieved_at": "2026-11-04T21:38:27.845693+00:00"
+  },
+  {
+    "repository": "git/git",
+    "requested_ref": "v2.54.0",
+    "commit": "94f057755b7941b321fd11fec1b2e3ca5313a4e0",
+    "path": "Documentation/gitprotocol-http.adoc",
+    "url": "https://raw.githubusercontent.com/git/git/94f057755b7941b321fd11fec1b2e3ca5313a4e0/Documentation/gitprotocol-http.adoc",
+    "sha256": "7eef045c485eb363e2841f93874384895d5c240d8ad4cd240851db6c1a995708",
+    "bytes": 18078,
+    "retrieved_at": "2026-11-04T21:38:28.569479+00:00"
+  },
+  {
+    "repository": "git/git",
+    "requested_ref": "v2.54.0",
+    "commit": "94f057755b7941b321fd11fec1b2e3ca5313a4e0",
+    "path": "Documentation/git-http-backend.adoc",
+    "url": "https://raw.githubusercontent.com/git/git/94f057755b7941b321fd11fec1b2e3ca5313a4e0/Documentation/git-http-backend.adoc",
+    "sha256": "98e81ef5bf20faee6f54a8ee2992901964e735de68087500763404c79437b7a6",
+    "bytes": 11633,
+    "retrieved_at": "2026-11-04T21:38:29.000725+00:00"
+  },
+  {
+    "repository": "pypa/packaging.python.org",
+    "requested_ref": "9d2c254c997d8355f4855fea715cca8000e64b30",
+    "commit": "9d2c254c997d8355f4855fea715cca8000e64b30",
+    "path": "source/specifications/binary-distribution-format.rst",
+    "url": "https://raw.githubusercontent.com/pypa/packaging.python.org/9d2c254c997d8355f4855fea715cca8000e64b30/source/specifications/binary-distribution-format.rst",
+    "sha256": "6fe8e2dbf1b164d99defbd92309de1e01022a4155ac786b4aee2daf675fcf5b5",
+    "bytes": 17715,
+    "retrieved_at": "2026-11-04T21:40:28.837296+00:00"
+  },
+  {
+    "repository": "pypa/packaging.python.org",
+    "requested_ref": "9d2c254c997d8355f4855fea715cca8000e64b30",
+    "commit": "9d2c254c997d8355f4855fea715cca8000e64b30",
+    "path": "source/specifications/source-distribution-format.rst",
+    "url": "https://raw.githubusercontent.com/pypa/packaging.python.org/9d2c254c997d8355f4855fea715cca8000e64b30/source/specifications/source-distribution-format.rst",
+    "sha256": "6e420a5c8c5dff933ae0954888d3d47d8067a531bd5cd944ca893b3a8b4eddb6",
+    "bytes": 6825,
+    "retrieved_at": "2026-11-04T21:40:29.119636+00:00"
+  }
+]
