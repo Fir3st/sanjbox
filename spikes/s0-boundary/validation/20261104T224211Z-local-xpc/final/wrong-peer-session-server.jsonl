@@ -1,0 +1,4 @@
+{"codeHash":"bbc0138063524b0d4838a5a2d025eb9377a695c2","event":"serviceStart","lookup":"bundled service activation; no global lookup oracle","pid":"27286","runID":"0BEF889D-A309-403F-91F2-6F107CF706A3","sequence":"1"}
+{"event":"observerReady","sequence":"2"}
+{"asid":"100002","egid":"20","euid":"501","event":"connectionObserved","pid":"27283","sequence":"3"}
+{"event":"connectionCredentialsDenied","sequence":"4"}

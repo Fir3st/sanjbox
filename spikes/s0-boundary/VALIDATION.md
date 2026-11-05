@@ -155,3 +155,143 @@ runtime na vlastní ad-hoc kopii. Stav vlastních A4 fixture adresářů byl př
 prázdný. Starší root Release/28-case smoke výše zůstaly oddělené a nepřepsané. Do `docs/evidence`
 nebyl přidán laboratorní důkaz. Fresh review uzavřelo nalezené P2; zbývající lab mezery v README
 jsou záměrně zachované, WP1.A4 je stále partial a S0/S8 zůstávají Neověřeno.
+
+## XPC follow-up — implementátor, 2026-11-04 (samostatná větev)
+
+Základ `main` je `afae1ca7dfe78f03d5006c42b6b01093772eba0c`, claim commit
+`511ac5e`; větev `codex/wp1.a4-xpc-fixtures`. Žádné závislosti na otevřených PR nebo nové balíčky.
+Stejný arm64 stroj, macOS 27.2 `26B123`, Swift 6.4 `swiftlang-6.4.0.34.1` / clang
+`2100.3.34.1`. Tento oddíl nepřepisuje předchozí vývojové výsledky ani žádné `docs/evidence`.
+
+Finální native Release XCTest skončily **2026-11-04 23:42:11 CET: 42 testů, 0 failures, 0 skips**
+(23 BoundaryTests, 12 FixtureTests, 7 XPCFixtureTests). Dvě staré XPC mock/in-process testy byly
+nahrazeny skutečným podepsaným cross-process runnerem; přibyly přísné XPC preregistration/policy,
+claim/run/operation rejection, terminal cancellation, deadline a queued-late-reply regrese.
+Původní XCTest/CLI počty výše platí pro jejich zaznamenané starší zdroje.
+
+Přesný vrchní příkaz (self metadata bylo předem samostatně zkontrolováno, není schválená oblast):
+
+```bash
+python3 spikes/s0-boundary/validate-xpc.py --apply --expect-json '{"schemaVersion":1,"scope":"synthetic-self-fixture","realUID":501,"effectiveUID":501,"realGID":20,"effectiveGID":20,"kernelGroups":[20,12,61,79,80,81,98,701,33,100,204,250,395,398,399,400],"forbiddenGroups":[],"auditSessionID":100002,"auditUID":501,"launchdManagerName":"Aqua","launchdManagerUID":501,"window":{"userID":501,"auditSessionID":100002,"onConsole":true,"loginDone":true}}'
+```
+
+Runner použil `/private/tmp/sanjbox-a4-xpc-validation-7llvvsdo` a uvnitř přesně:
+
+```text
+/usr/bin/swift test --build-system native --configuration release \
+  --package-path <repo>/spikes/s0-boundary \
+  --scratch-path <root>/build --cache-path <root>/cache --disable-sandbox \
+  -Xswiftc -module-cache-path -Xswiftc <root>/modules
+```
+
+`CLANG_MODULE_CACHE_PATH=<root>/clang`, `SWIFTPM_MODULECACHE_OVERRIDE=<root>/modules`.
+Poslední build předcházel každému ad-hoc runtime seal (empty entitlements), strict verify a živému běhu.
+Žádný Debug nebo get-task-allow executable se jako aktivní sonda nepoužil. Jediné build upozornění
+byla deprecation native SwiftPM backendu. Python `-O` se výslovně odmítá ještě před přípravou fixture.
+
+**Skutečná živá matice: 6/6 očekávaných výsledků, 0 skips.**
+
+| Případ | Skutečné zjištění serveru | Klient / úklid |
+|---|---|---|
+| positive-denials-positive | 2 canary operace; `hello` + 4 zakázané requesty odmítnuty | kód 0, NOTE_EXIT, reap, bundle odstraněný |
+| wrong-signature | OS nepustil žádnou metodu po přesné cdhash podmínce; 0 authenticated messages, 0 operací | kód 3, NOTE_EXIT, reap, bundle odstraněný |
+| wrong-peer-session | Skutečný connection ASID neshodný s přesnou sealed policy; connection odmítnuta, 0 authenticated messages/operací | kód 3, NOTE_EXIT, reap, bundle odstraněný |
+| cross-run | Podepsaný správný peer, cizí run ID; 0 operací | kód 3, NOTE_EXIT, reap, bundle odstraněný |
+| deadline | Autorizovaná fixed wait fixture bez odpovědi; absolutní 2s deadline, 0 operací | kód 3, watchdog exit pozorován, reap, bundle odstraněný |
+| cancel-client | Vlastní Popen klient ukončen TERM až po server `replyWithheld`; 0 operací | exit -15, služba ukončená launchd, NOTE_EXIT, reap, bundle odstraněný |
+
+`wrong-peer-session` je **neshodná politika stejné živé session**, nikoli reálné cross-session měření.
+`wrong-signature` používá přesnou neodpovídající code-hash requirement; žádná binárka s oslabeným
+runtime/get-task-allow nevzniká. Neznámý plný peer audit token/auditUID zůstává unsupported. Všechna
+JSON hlášení mají `acceptanceEvidence: false`; chybové kódy jsou invalid measurement, samy nedokazují izolaci.
+
+Po finálním běhu se Swift runtime nezměnil. Python receipt dostal kontrolu file flags a guard proti
+`-O`: ověřen dry-run, očekávané odmítnutí `python3 -O`, a dodatečný podepsaný positive/denial live případ
+v `/private/tmp/sanjbox-a4-xpc-final-receipt-tmdvafcl` (2 operace, všechny cleanup oracles passed).
+[Neměnné server records/preregistrace, test log, výsledky a manifest](validation/20261104T224211Z-local-xpc/README.md)
+obsahují hlavní i tento dodatečný běh. Příjemce nezávisle zapisuje journal; nevěří výsledku klienta.
+
+### Zachované vývojové neúspěchy a mezivýsledky
+
+- První kompilace opravila skutečné SDK názvy ASID/Security flagů a `Never` návrat service entry pointu.
+  Žádný živý service při compile failure neběžel.
+- První tři bundle pokusy dostaly klientské NSCocoaErrorDomain 4097. Třetí doplněný vlastní diagnostic
+  doložil `serviceIdentityRejected` pro ASID/auditUID/window: `JoinExistingSession` má dle macOS man
+  výchozí false. Nebyl to denial oracle hranice. Čtvrtý pokus s explicitním true skutečně provedl
+  2 operace a 4 denials, ale nebyl finálním plně sealed app měřením.
+- Scratch `9yoio6kl`: **41/41 Release**; runner skončil před živým testem na codesign kvůli ještě
+  nekompletnímu nested service bundle. Oprava pořadí: seal služby, seal celé app, poté exact hash policy
+  v soukromém sibling Control. Klient nyní validuje také celý nested app seal.
+- Scratch `k0uf19y7`: **41/41 Release**, pozitivní live case prošel. U wrong-signature skutečný
+  NOTE_EXIT přišel bez self `serviceExit`: launchd při zániku klienta může službu ukončit dříve než
+  watchdog. Původní oracle vyžadující poslední textový záznam byl příliš silný; nešlo o únik operace.
+- Scratch `72_5m8q_`: **41/41 Release**, pozitivní i signature case prošly. Wrong-session služba skončila
+  dřív než externí watch registrace (ESRCH); neplatný cleanup observer, nikoli pass. Opraveno bounded
+  readiness handoff před activate listeneru, žádný race se neřeší holým PID kill/podpisovou kontrolou.
+- Scratch `5hcng33p`: **41/41 Release + 6/6 live**, bez skips. Následně zpevněna atomická publikace
+  readiness markeru a přidán malformed preregistration XCTest. Finální nový běh výše má 42/42 + 6/6.
+
+Staré raw lokální soubory zůstaly zachované při odstranění vlastních build/cache a spotřebovaných
+fixture kopií; nikdy se nepřeklasifikují jako finální pass. Všech šest finálních živých service exits
+bylo nezávisle pozorováno, klienti reaped a fixture objekty po kontrole odstraněné. Žádný globální
+service scan, TCC/capture/Keychain/database přístup, systémová registrace, privilegovaný krok ani změna
+jiného balíku neproběhla. Zůstává to vývojová příprava, ne gate evidence.
+
+## Nezávislé review HEAD 0c084afe — opravy klasifikace a diagnostiky (2026-11-04)
+
+Fresh Astra review přesného `0c084afe24fab03b537106b17a2255883116f969` našlo dvě platné P2:
+(1) non-denial odpověď na zakázaný XPC request po fungující pozitivní kontrole končila jako
+invalid measurement a následná exit-observer chyba mohla původní nález přepsat;
+(2) runner při chybě před `communicate` neuložil skutečné stdout/stderr/context ani dostupný raw journal.
+Staré `validation/20261104T224211Z-local-xpc` a všechny předchozí výsledky zůstaly beze změny.
+
+Oprava (1) přidává úzký `XPCObservedFailure`: CLI vždy vrací `fixtureFailed`/exit **1**, zachová
+primární nález a samostatný `cleanupError`/`serviceExitObserved`. Není to gate verdikt a
+`acceptanceEvidence` zůstává false. Nadlimitní přijatá odpověď se uchová jen jako bounded prefix pro
+rozpoznání non-denial; nepromění se v nejasnou transportní chybu. Čtyři nové Swift regrese používají
+injektovanou syntetickou protistranu: fungující canary control → neoprávněná odpověď, zdravý i selhávající
+exit observer, oversized odpověď a chybějící pozitivní control. Kontrolují CLI status/exit, okamžité
+zastavení dalších operací a zachování sekundární chyby. Nejde o nově povolenou wire/CLI fault operaci.
+
+Oprava (2) průběžně drainuje oba pipes, v povinné finalizaci reaps vlastní child a před hlášením chyby
+uloží bounded stdout/stderr, dostupný journal a outcome s primary/secondary chybami a skutečným
+exit/reap/cleanup stavem. Dvanáct deterministických Python testů ověřilo self-gate/no-service případ,
+failed NOTE_EXIT registraci, malformed/oversized journal, chybějící exit, cleanup conflict, sekundární
+reap/drain chyby, limity streamů, nezávislost zápisu jednotlivých raw souborů i zdravou cestu. Používají
+výhradně fake child/capture a nové syntetické soubory, žádný skutečný PID nebo XPC.
+
+### Nový kompletní běh
+
+Root `/private/tmp/sanjbox-a4-xpc-validation-jltgeiar`; stejný výše uvedený explicitní self expectation
+(UID 501, ASID 100002, Aqua, stejné groups/window), stejný top-level příkaz `python3 .../validate-xpc.py
+--apply --expect-json '<JSON výše>'`. Systém macOS 27.2 `26B123`, arm64, Swift 6.4. Žádná externí
+závislost. Native Release test/build/cache příkazy jsou stejné jako v předchozím oddílu s tímto novým
+rootem. Každý živý bundle je po buildu znovu runtime podepsaný, empty entitlements a strict verify.
+
+- **46 Release XCTest, 0 failures, 0 skips**, konec 2026-11-04 23:58:36 CET (27 BoundaryTests +
+  12 FixtureTests + 7 XPCFixtureTests). Původních 42 testů zůstalo funkčních, 4 nové výše.
+- **12 Python runner testů, 0 failures/skips**, přesný příkaz:
+  `python3 -m unittest discover -s spikes/s0-boundary/Tests/RunnerTests -v`.
+- **Původní 6/6 signed cross-process XPC případů prošlo**: 2 skutečné operace pouze v pozitivním
+  případě, nula operací v signature/session/cross-run/deadline/cancellation případech. Všech 6 service
+  exits skutečně pozorováno, všichni klienti reaped, všechny fixture bundles odstraněny.
+- **1 nový signed identity-mismatch případ prošel jako negativní control**: klient dostal ASID 100003,
+  zachovaný report obsahuje skutečné ASID 100002 a přesnou neshodu, kód 3, žádná aktivovaná služba,
+  journal ani marker; klient reaped a neaktivovaná fixture po kontrole odstraněná.
+
+### Přesná reprodukce původní ztráty diagnostiky
+
+V odděleném `/private/tmp/sanjbox-a4-xpc-rejection-repro-u21kbspf` byl normální pozitivní runner case
+spuštěn se záměrně nesprávným očekávaným ASID 100003. Stejné finální Release binárky byly znovu
+podepsány. **Očekávaný RunnerFailure nastal**, ale před ním už existovaly client JSON se skutečnou
+identitou a mismatch, stderr, prázdný raw journal s `journalPresent: false` a outcome: primární
+`client exited before service activation`, exit 3, `clientReaped: true`, `cleanupState: retained`.
+Fixture byla v okamžiku chyby prokazatelně zachovaná. Po samostatné kontrole této očekávané self-gate
+chyby (žádná aktivace služby) byla vlastní nezměněná fixture odstraněna; záznam tohoto následného
+úklidu je samostatný a původní failure outcome se nepřepsal. Reprodukce není pass XPC hranice.
+
+[Nové neměnné raw/outcome/preregistration/test logy, source hashe a manifest](validation/20261104T225836Z-review-fixes/README.md)
+zachovávají hlavní běh i tuto očekávanou chybu. Starý manifest byl znovu ověřen beze změn. V tomto
+opravném běhu nenastal další build/test fail; žádný test nebyl skipnutý. Vlastní build/cache byly po
+zaznamenání validace odstraněny, lokální raw zůstaly. S0/S8 a WP1.A4 coverage stav se nemění: partial,
+bez full peer auditUID/token, bez cross-session důkazu, bez systémových/privilegovaných změn.

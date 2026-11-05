@@ -5,6 +5,7 @@ let package = Package(
     name: "SanjboxBoundaryPreparation",
     platforms: [.macOS(.v15)],
     products: [
+        .executable(name: "xpc-fixture-service", targets: ["xpc-fixture-service"]),
         .executable(name: "xpc-probe", targets: ["xpc-probe"]),
         .executable(name: "tcc-probe", targets: ["tcc-probe"]),
         .executable(name: "capture-probe", targets: ["capture-probe"]),
@@ -17,6 +18,7 @@ let package = Package(
     targets: [
         .target(name: "BoundaryKit", dependencies: [.product(name: "SanjboxProbeKit", package: "common")]),
         .executableTarget(name: "xpc-probe", dependencies: ["BoundaryKit"]),
+        .executableTarget(name: "xpc-fixture-service", dependencies: ["BoundaryKit"]),
         .executableTarget(name: "tcc-probe", dependencies: ["BoundaryKit"]),
         .executableTarget(name: "capture-probe", dependencies: ["BoundaryKit"]),
         .executableTarget(name: "host-read-probe", dependencies: ["BoundaryKit"]),

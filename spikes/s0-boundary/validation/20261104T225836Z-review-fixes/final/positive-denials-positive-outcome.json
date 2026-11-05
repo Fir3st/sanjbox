@@ -1,0 +1,27 @@
+{
+  "case": "positive-denials-positive",
+  "clientPID": 35999,
+  "clientExit": 0,
+  "clientReaped": true,
+  "servicePID": 36009,
+  "serviceExitObserved": true,
+  "cancelled": false,
+  "cleanupState": "removed",
+  "fixtureRemoved": true,
+  "primaryError": null,
+  "secondaryErrors": [],
+  "stdout": {
+    "capturedBytes": 2478,
+    "observedBytes": 2478,
+    "truncated": false,
+    "captureAvailable": true
+  },
+  "stderr": {
+    "capturedBytes": 0,
+    "observedBytes": 0,
+    "truncated": false,
+    "captureAvailable": true
+  },
+  "journalPresent": true,
+  "journalTruncated": false
+}

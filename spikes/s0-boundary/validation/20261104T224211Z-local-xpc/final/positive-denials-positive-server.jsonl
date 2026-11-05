@@ -1,0 +1,21 @@
+{"codeHash":"9398832fb31e0ea853733c7e3f4a8278f3d87c57","event":"serviceStart","lookup":"bundled service activation; no global lookup oracle","pid":"27260","runID":"D67F7747-75B0-4DEE-A72C-37A13C5627CD","sequence":"1"}
+{"event":"observerReady","sequence":"2"}
+{"asid":"100002","egid":"20","euid":"501","event":"connectionObserved","pid":"27252","sequence":"3"}
+{"event":"connectionCredentialsAccepted","sequence":"4","signature":"pending-per-message-OS-check"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"5","signature":"OS-enforced-exact-cdhash"}
+{"event":"operationDenied","requestBytes":"5","sequence":"6"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"7","signature":"OS-enforced-exact-cdhash"}
+{"event":"operation","operation":"read-canary","runID":"D67F7747-75B0-4DEE-A72C-37A13C5627CD","sequence":"8"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"9","signature":"OS-enforced-exact-cdhash"}
+{"event":"operationDenied","requestBytes":"48","sequence":"10"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"11","signature":"OS-enforced-exact-cdhash"}
+{"event":"operationDenied","requestBytes":"49","sequence":"12"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"13","signature":"OS-enforced-exact-cdhash"}
+{"event":"operationDenied","requestBytes":"61","sequence":"14"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"15","signature":"OS-enforced-exact-cdhash"}
+{"event":"operationDenied","requestBytes":"4097","sequence":"16"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"17","signature":"OS-enforced-exact-cdhash"}
+{"event":"operation","operation":"read-canary","runID":"D67F7747-75B0-4DEE-A72C-37A13C5627CD","sequence":"18"}
+{"event":"messageAuthenticated","peerAuditUID":"unavailable","sequence":"19","signature":"OS-enforced-exact-cdhash"}
+{"event":"finish","sequence":"20"}
+{"event":"serviceExit","reason":"authenticated-finish","sequence":"21"}
