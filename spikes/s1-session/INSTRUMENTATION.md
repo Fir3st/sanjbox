@@ -198,3 +198,11 @@ Kódy: 0 dokončený příkaz/úplný instrumentační report (není pass cíle)
 invalidMeasurement nebo neúplný report. Runbook LAB nadále vyžaduje publikovat raw/error/stderr, nezávislé
 review a neměnnou historii. Chybějící instrumentace login času, atribuce footprintu a externích aplikací
 zůstává otevřená; nebyly změněny statusy žádných testů nebo bran.
+
+## Navazující instrumentace 2026-11-04
+
+[SUPPLEMENTARY.md](SUPPLEMENTARY.md) přidává monotónní ruční login markery, bezpečně omezený živý
+collector **vlastního recorder procesu** a offline intake externě dodaných syntetických workloadů.
+U všech živých příkazů je navíc in-process kontrola hardened runtime a absence `get-task-allow`.
+Automatické login/ready události, kalibrace, úplná atribuce UID/WindowServer/klientů a skutečné aplikace
+zůstávají otevřené. Tato příprava není L1 ani změna F0.8; historie výše zůstává zachovaná.
