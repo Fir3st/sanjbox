@@ -34,3 +34,20 @@ splnění F0.5. Mock `.approvedFixture` je pouze vstup oracle, nikdy závěr z p
 Ani shoda bundle identifieru, UID nebo session jednotlivě nenahrazuje budoucí autentizaci brokeru.
 Nejsou dostupné Contracts, Broker ani SessionAgent, a tedy zatím nelze připravit skutečný transportní
 fuzzer proti definitivnímu schématu. Tyto mezery ponechávají A6 částečné a A7/L2 neprovedené.
+
+## Doplnění service fixtures, 2026-11-04
+
+Apple web stránky `SMAppService`/`register()` byly znovu otevřeny; automatický Markdown fetch
+neposkytl tělo, takže přesná implementační kontrola používá lokální Apple SDK
+`ServiceManagement.framework/Headers/SMAppService.h` (SDK přes `xcrun --show-sdk-path`).
+Header rozlišuje `loginItem(identifier:)`, `agent(plistName:)`, `daemon(plistName:)`, relativní
+`BundleProgram`, samostatné admin approval daemonu a stav `notRegistered/enabled/requiresApproval/notFound`.
+Popis unregister výslovně nevydává návrat API za potvrzení zániku procesu. Pro daemon boot doporučuje
+containing app dostupnou před loginem (`/Applications`). Nic z toho není lokální lifecycle měření.
+
+Návrhové důsledky v [SERVICES.md](SERVICES.md): tři vlastní executable targets a dva samostatné plisty,
+žádný obecný dispatch; žádná daemon mutace bez host-only approval konstrukce. Uživatelské UI omezuje
+unregister na vlastní právě proběhlou registraci v téže session; běžný service status není vlastní
+registration generation. Receipt po restartu není trust ani oprávnění k novému unregister.
+Sealed run ID je korelace evidence, nikdy autorizace. Statické codesign kontroly nelze zaměnit za
+TCC stabilitu, identitu živého XPC peeru nebo same-UID attach oracle.

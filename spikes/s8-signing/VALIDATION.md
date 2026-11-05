@@ -91,3 +91,89 @@ skupinu z manifestu; nezaměňuje ji s effective GID procesu, které se nadále 
 Review doplnilo explicitní null pro non-GUI expectation a ochranu před později nastavenými file
 flags, plus pokračování úklidu po vlastním partial unlink a po posledním unlink před rmdir.
 Tyto případy mají regresní testy; nejde o obecnou crash-atomicity či hostile TOCTOU garanci.
+
+# WP1.A6 service-fixture follow-up — vývojová validace, 2026-11-04
+
+Samostatné pokračování od `main` `afae1ca7dfe78f03d5006c42b6b01093772eba0c`, větev
+`codex/wp1.a6-service-fixtures`, první claim commit `b3c1328`. **Původní výše uvedená historie,
+SOURCES.sha256 a docs/evidence nejsou přepsány.** Starý seznam hashů je historický snapshot
+2026-11-03, nikoli kontrola aktuálního HEAD. Dnešní zdrojový snapshot pinne
+[SERVICE-SOURCES-20261104.sha256](SERVICE-SOURCES-20261104.sha256), SHA-256 seznamu
+`72510ae7349115076b99a7499d6874a6c3f5e977289c76fff9849abebc83892b` (17 souborů: package, Swift a tools/tests).
+
+Prostředí: arm64, macOS 27.2 `26B123`, Apple Swift 6.4 `swiftlang-6.4.0.34.1`, clang `2100.3.34.1`.
+Native Release; jediná závislost lokální common. Stejné source bytes použity pro finální test a app build;
+builder ukládá vlastní `source-manifest.json` včetně lokální common závislosti a odmítne změnu zdrojů
+během buildu. Žádný kód common ani Contracts se nemění. Před následným user L2 znovu sestavit a připnout
+nové run ID / binární hashe; ad-hoc byte hashe se mezi různými buildy mohou lišit.
+
+## Testy a skutečně sestavený artefakt
+
+```sh
+env CLANG_MODULE_CACHE_PATH=OWN_SCRATCH/clang \
+  SWIFTPM_MODULECACHE_OVERRIDE=OWN_SCRATCH/modules \
+  swift test --configuration release --build-system native \
+  --package-path spikes/s8-signing --scratch-path OWN_SCRATCH/build \
+  --cache-path OWN_SCRATCH/cache --disable-sandbox
+PYTHONDONTWRITEBYTECODE=1 python3 spikes/s8-signing/tools/test_service_fixtures.py
+python3 spikes/s8-signing/tools/service-fixtures.py prepare
+python3 spikes/s8-signing/tools/service-fixtures.py prepare --apply
+```
+
+- **42 Swift Testing testů, 0 failures, 0 skips** (původních 28 + 14 nových). Kontroluje oddělení
+  targets/labelů, daemon/ad-hoc mutation refusal, identity/session mismatch, unknown/previous-session
+  unregister, vlastní úspěšnou register→unregister policy cestu, drift statusu, pending/failed/unpaired
+  completion a injektovaný počítač mutací bez ServiceManagement. Marker round-trip obsahuje common
+  context a nikdy sám nevyhlásí lifecycle cause/pass. Pozitivní file writer test vytvořil dvě vlastní
+  unikátní private fixtures; negativy odmítly root/cizí UID/chybějící či chybnou audit session a změněné
+  run ID před zápisem. Tyto synthetic record testy nejsou spuštěním helperu ani služby.
+- **15 Python unittest, 0 failures, 0 skips**: dry/apply/repeat cleanup, změna obsahu/módu/inode,
+  symlink/hardlink, immutable flag, extra file, invalid prefix/UUID, duplicate manifest keys,
+  unlink interního cache symlinku bez následování a event run/session/hash/inode refusal.
+- **5/5 signed host CLI kontrol**: bez argumentů a `plan` exit 0; `register daemon --apply`,
+  `ui --apply yes`, `status --expect /private/tmp/unscoped.json` exit 2 ještě před service API.
+  Neotevřelo se UI, nečetl se service status a žádný helper neběžel.
+- Všechny čtyři executable targets se skutečně zkompilovaly a byly vloženy do úplného app bundle.
+  `verify` opakovaně prošel: thin arm64 Mach-O, přesné oddělené plisty/BundleProgram, shodné sealed run ID,
+  `codesign --verify --strict --all-architectures`, flags `0x10002 (adhoc,runtime)` a prázdné entitlements
+  pro app, nested LoginItem, agent a daemon. Žádný `get-task-allow`.
+- Nezávislý koordinátor nad stejným artefaktem znovu ověřil všechny čtyři podpisy/flags/entitlements
+  a přesné agent/daemon plist key sets, labels a BundleProgram. Ani tento krok nespustil kód/službu/SM API.
+
+Finální vlastní run ID: `A5154F1B-8F56-48F7-A36A-678C21D00D2F`.
+
+| Executable | SHA-256 finálního ad-hoc artefaktu |
+|---|---|
+| S8ServiceHost | `c02ce46e3855900f9d4a76099cfa0eb926a9f596eb430b71604e27d4b3bfed70` |
+| S8LoginItem | `b169cc7e8334cfc6160b2d866438d5e00424a43d95a46fa2be34043f912d6ae5` |
+| S8LaunchAgent | `9fefff9579f653d07e64a1ad685d5d1146ae54b1b5c7e64fc650a5ccb183b751` |
+| S8LaunchDaemon | `77c5e8bd6c8126823e4d7d9a5f06a3ecd4ce78725602ce4696ee3e96c62de30a` |
+
+## Vývojové neúspěchy, úklid a limity
+
+První compile odhalil kolizi názvu tlačítka `preview` s metodou, opraveno explicitním `self.preview()`.
+Přidaná enclosing-bundle kontrola pak odhalila odlišné Swift názvy Security flags v SDK; použity
+lokální SDK konstanty stejně jako původní S8 validator. Tyto neúspěšné buildy nebyly experimenty
+brány. Native backend stále vypisuje deprecation warning; raný sandbox build rovněž uvedl
+nedostupnost user-level SwiftPM cache (používal vlastní izolované cesty). Není to warning-free build.
+Jedna dodatečná verify invokace použila omylem repo-relative script path z podadresáře a nic nespustila;
+opakovaná správná verify i cleanup dry-run prošly.
+
+Vlastní scratch/cache `/private/tmp/s8-a6-service-dev-98A72F31` a všechny mezilehlé
+`/private/tmp/sanjbox-s8-services-{749F2E81…,7F3EB47D…,3B57FDBC…}` byly odstraněny po ověření vlastní
+inventury. Finální build cache se odstranily až po úplné kontrole původního manifestu; zachované app
+bytes byly znovu porovnány s původní inventurou, manifest pro zbylé vlastní artefakty znovu zapsán a
+všechny čtyři podpisy/hashe opět ověřeny. Finální app (3,4 MiB) a malé lokální review logy byly po
+nezávislém review rovněž odstraněny přes manifest cleanup. Testovací event roots byly odstraněny
+jejich vlastními testy. Žádné sdílené cache ani cizí run roots nebyly mazány; žádná služba nebyla
+registrovaná, takže systémový unregister se neprováděl. Cleanup dry/apply/repeat se ověřil na vlastních
+syntetických artefaktech, nikoli na instalované aplikaci nebo registrované službě.
+
+**Neprovedeno:** registration/unregister, bootstrap, LoginItems/daemon běh, UI interakce, reboot/login,
+admin approval, instalace, sudo, osobní signing identity, certifikáty/Keychain, TCC/grant/capture,
+attach a XPC transport/broker. Hardened runtime/signature static pass není důkaz ochrany TCC.
+Daemon autorizační cesta je záměrně neimplementovaná; současné UI umí cleanup jen vlastní úspěšné
+registrace ve stejné živé session. Napříč restartem UI/login/reboot není ownership oracle a tyto L2
+scénáře se nesmějí zahájit bez doplnění přezkoumaného úklidu. Same-status cizí změna není detekovatelná;
+serial LAB slot je předpoklad, nikoli enforcement. **A6 zůstává partial, A7/L2 neprovedené, S8/SG-01…11
+Neověřeno; F1 aggregate se nemění.** Úplný postup a další omezení: [SERVICES.md](SERVICES.md).
