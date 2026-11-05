@@ -329,15 +329,25 @@ private final class NPMLateResultClock: @unchecked Sendable {
     private let lock = NSLock()
     private var calls = 0
     private var blocked = false
+    private var cancelledWhilePaused = false
     private let release = DispatchSemaphore(value: 0)
     var entered: Bool { lock.withLock { blocked } }
+    /// The paused child saw its task cancelled: the deadline or the caller has won.
+    var childCancelled: Bool { lock.withLock { cancelledWhilePaused } }
     func get() -> Date {
         let pause = lock.withLock {
             calls += 1
             if calls == 7 { blocked = true; return true }
             return false
         }
-        if pause { _ = release.wait(timeout: .now() + 10) }
+        if pause {
+            // Poll instead of one blocking wait, so the test can observe when the
+            // operation deadline or the caller has cancelled this child task.
+            let limit = DispatchTime.now() + 10
+            while release.wait(timeout: .now() + .milliseconds(5)) == .timedOut, DispatchTime.now() < limit {
+                if Task.isCancelled { lock.withLock { cancelledWhilePaused = true } }
+            }
+        }
         return npmNow
     }
     func resume() { release.signal() }
@@ -360,8 +370,12 @@ private final class NPMLateResultClock: @unchecked Sendable {
             Issue.record("did not reach the late-result clock barrier"); return
         }
         if cancel { task.cancel() }
-        // The operation started before the barrier, so its deadline has passed.
-        else { try await Task.sleep(for: lifetime + .milliseconds(100)) }
+        // Release only after the deadline or the caller has really cancelled the
+        // child. A fixed sleep is not enough: on a loaded runner the timeout task
+        // may not have run yet, and the "late" result would then win as a 200.
+        let cancelledBy = ContinuousClock.now.advanced(by: lifetime + .seconds(5))
+        while !clock.childCancelled && ContinuousClock.now < cancelledBy { try await Task.sleep(for: .milliseconds(5)) }
+        #expect(clock.childCancelled)
         clock.resume()
         if cancel { await #expect(throws: CancellationError.self) { _ = try await task.value } }
         else { #expect(try await task.value.status == 502) }

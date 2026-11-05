@@ -120,8 +120,14 @@ private func readToEnd(_ connection: NWConnection) async throws -> Data {
     defer { server.stop() }
     let (connection, deadline) = client(port: port)
     defer { deadline.cancel(); connection.cancel() }
-    try await send(Data("GET / HTTP/1.1\r\n".utf8), on: connection)
-    #expect(try await readToEnd(connection).isEmpty)
+    // Under load the 150 ms timeout can close the socket before our bytes arrive;
+    // the peer then sees a reset instead of a FIN. Both mean closed without a response.
+    var reply = Data()
+    do {
+        try await send(Data("GET / HTTP/1.1\r\n".utf8), on: connection)
+        reply = try await readToEnd(connection)
+    } catch NWError.posix(.ECONNRESET) {}
+    #expect(reply.isEmpty)
     server.stop()
     #expect(server.port == nil)
     // Lifecycle supports restarting without retaining the old listener.
