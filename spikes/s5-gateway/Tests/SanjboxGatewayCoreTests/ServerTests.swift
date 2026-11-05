@@ -139,21 +139,25 @@ private func readToEnd(_ connection: NWConnection) async throws -> Data {
 func activeSSEIsCancelledByStopOrLifetime(useLifetime: Bool) async throws {
     let (notice, continuation) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
     let deadlineNotice = Task {
-        do { try await Task.sleep(for: .seconds(5)) } catch { return }
+        do { try await Task.sleep(for: .seconds(10)) } catch { return }
         continuation.finish()
     }
     defer { deadlineNotice.cancel(); continuation.finish() }
     let router = try TypedRouter(routes: [TypedRoute(mount: "/events", methods: ["GET"]) { _ in
         .events { emit in
-            try await emit(SSEEvent(data: "started"))
-            do { try await Task.sleep(for: .seconds(30)) }
-            catch {
+            // Cancellation can also land while the first event is being sent.
+            do {
+                try await emit(SSEEvent(data: "started"))
+                try await Task.sleep(for: .seconds(30))
+            } catch {
                 continuation.yield(())
                 throw error
             }
         }
     }])
-    let limits = GatewayLimits(lifetime: useLifetime ? .milliseconds(300) : .seconds(30))
+    // The lifetime runs from accept; it must outlast delivery of the first event
+    // on a loaded runner (300 ms did not), while staying well under the notice.
+    let limits = GatewayLimits(lifetime: useLifetime ? .seconds(2) : .seconds(30))
     let server = GatewayServer(router: router, limits: limits)
     let port = try await server.start()
     defer { server.stop() }
