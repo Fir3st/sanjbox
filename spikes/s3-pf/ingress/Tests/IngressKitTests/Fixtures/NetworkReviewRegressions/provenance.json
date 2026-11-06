@@ -1,0 +1,25 @@
+{
+  "files": {
+    "contact-limit-false-success": {
+      "kind": "synthetic independent-review mutation; exact supplied bytes",
+      "originalPath": "/private/tmp/sanjbox-c3-fresh-review-1304b02ca4/focused/contact-limit-false-success.input.json",
+      "sha256": "04794826dc9b1e752b0daf3af433ad7f02654bde031700249e20acc3df564298"
+    },
+    "positive-at-contact-limit": {
+      "kind": "synthetic independent-review mutation; exact supplied bytes",
+      "originalPath": "/private/tmp/sanjbox-c3-fresh-review-1304b02ca4/focused/positive-at-contact-limit.input.json",
+      "sha256": "807340eb361c08da02bcd32614294f9c4a374f7e23b4e2aa20d6a791898d6c73"
+    },
+    "sequence-overflow": {
+      "kind": "synthetic independent-review mutation; exact supplied bytes",
+      "originalPath": "/private/tmp/sanjbox-c3-fresh-review-1304b02ca4/focused/sequence-overflow.input.json",
+      "sha256": "f44375939bb8955747ac55e3aad7c3b762daf798e18ef0745a8626d5f9186051"
+    },
+    "tcp-4096-false-complete": {
+      "kind": "synthetic independent-review mutation; exact supplied bytes",
+      "originalPath": "/private/tmp/sanjbox-c3-fresh-review-1304b02ca4/focused/tcp-4096-false-complete.input.json",
+      "sha256": "78f311cf4dfc78b81acdfa427dc6db0ed3d17acd66c3427af5e6cd78ecaa681f"
+    }
+  },
+  "reviewedSource": "926e106f24f1366af103544b546ad10db58efdf0"
+}

@@ -279,7 +279,8 @@ private func checkNetworkReceiver(_ source: ImportSource, rows: [WireRecord<Netw
     if let start = starts.first, let local = start.local {
         if local.host != registration.endpoint.host || (registration.endpoint.port != 0 && local.port != registration.endpoint.port) { problems.append("actual receiver bound tuple differs from registered endpoint") }
     }
-    if let stop = stops.first, stop.contactID != contacts.count || contacts.count > registration.maximumContacts ||
+    // The producer stops at equality and forcibly marks contactLimit/incomplete.
+    if let stop = stops.first, stop.contactID != contacts.count || contacts.count >= registration.maximumContacts ||
         stop.operationFinished != true || stop.reason != "windowElapsed" { problems.append("receiver stopped count/limit/error/incomplete operation") }
     let groups = Dictionary(grouping: events.filter { ["accepted", "closed", "datagramContact", "datagram"].contains($0.kind) }, by: { $0.contactID ?? 0 })
     if contacts.map(\.contactID) != (1...max(1, contacts.count)).prefix(contacts.count).map({ Optional($0) }) { problems.append("receiver contact IDs duplicate/gapped/out-of-order") }
@@ -288,7 +289,9 @@ private func checkNetworkReceiver(_ source: ImportSource, rows: [WireRecord<Netw
         let pair = groups[id]!, contact = pair.first!, terminal = pair.last!
         let opener = registration.transport == .tcp ? "accepted" : "datagramContact"
         let ending = registration.transport == .tcp ? "closed" : "datagram"
-        if pair.count != 2 || contact.kind != opener || terminal.kind != ending || terminal.sequence != contact.sequence + 1 ||
+        // A malformed decoded sequence remains a finding; never add to an unbounded Int.
+        let adjacent = (1..<256).contains(contact.sequence) && terminal.sequence == contact.sequence + 1
+        if pair.count != 2 || contact.kind != opener || terminal.kind != ending || !adjacent ||
             contact.sequence <= (starts.first?.sequence ?? Int.max) || terminal.sequence >= (stops.first?.sequence ?? Int.max) {
             problems.append("contact \(id): missing/duplicate/reordered ending; received count unknown without terminal")
         }
@@ -299,6 +302,11 @@ private func checkNetworkReceiver(_ source: ImportSource, rows: [WireRecord<Netw
         }
         guard terminal.kind == ending else { continue }
         if registration.transport == .udp && (contact.bytes != terminal.bytes || contact.rawTruncated != terminal.rawTruncated) { problems.append("contact \(id): UDP contact/terminal count or truncation mismatch") }
+        // TCP exits the read loop immediately at 4096, before a possible EOF read.
+        // An untruncated UDP datagram of exactly 4096 is a different, valid boundary.
+        if registration.transport == .tcp && terminal.bytes == 4096 {
+            problems.append("contact \(id): TCP raw limit reached; complete EOF claim cannot establish completeness")
+        }
         if terminal.rawTruncated != false || terminal.operationFinished != true || terminal.reason != (registration.transport == .tcp ? "peerEOF" : "datagramReceived") { problems.append("contact \(id): partial/truncated/incomplete raw preserved") }
         guard let raw = networkRaw(source, name: "received-\(id).bin") else { problems.append("contact \(id): exact raw bytes missing; hash is not bytes"); continue }
         if terminal.bytes != raw.count || terminal.rawSHA256 != provenanceDigest(raw) { problems.append("contact \(id): received raw count/hash mismatch") }

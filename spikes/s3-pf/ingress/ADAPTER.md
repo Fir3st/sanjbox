@@ -272,3 +272,13 @@ přegeneruje pouze dva vlastní fixture soubory. Druhý provádí devět replays
 negativní vstupy pouze přes stdin; `--output NOVY_ADRESAR` uloží přesné vstupy/stdout/stderr
 bez přepsání existujícího adresáře. Unit negativní mutace i matrix/clock overlays jsou
 výslovně `fixture`/mock a nemění původní evidence. Žádný příkaz nepouští síťovou sondu.
+
+### Hraniční podmínky receiveru a neplatné sekvence
+
+Consumer vyhodnocuje dosažení `maximumContacts` jako neúplnost i při podstrčeném
+`windowElapsed`/`operationFinished: true`: skutečný producer ukončí smyčku již při rovnosti
+s limitem. TCP při dosažení 4096 B okamžitě končí s raw limitem před dalším čtením EOF;
+takový kontakt proto zůstává incomplete bez ohledu na deklarované completion flags.
+TCP 4095 B s EOF a UDP přesně 4096 B bez truncation tento limit nepřekračují.
+Nevěrohodná sekvence včetně `Int.min`/`Int.max` se zachová jako chybný záznam; validátor
+kontroluje rozsah před aritmetikou, aby neplatný log nesrazil CLI a neztratil findings.

@@ -292,3 +292,76 @@ func syntheticMatrixMustReconcileEveryNetworkObservation(_ mutation: String) thr
     #expect(report.findings.isEmpty && !report.packetAbsenceProven && report.externalReviewRequired)
     #expect(report.matrix.cells.allSatisfy { $0.classification == "notMeasured" })
 }
+
+private func independentReviewFixture(_ name: String) throws -> AdapterInput {
+    let url = try #require(Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures/NetworkReviewRegressions"))
+    return try AdapterInput.decode(Data(contentsOf: url))
+}
+
+@Test(arguments: ["contact-limit-false-success", "positive-at-contact-limit", "tcp-4096-false-complete", "sequence-overflow"])
+func exactIndependentReviewCounterexamplesRetainIncompleteFindings(_ name: String) throws {
+    let report = try networkReport(independentReviewFixture(name))
+    let source = try #require(report.sources.first { $0.id == "receiver" })
+    #expect(report.findings.count == (name == "contact-limit-false-success" ? 4 : 2))
+    #expect(report.findings.allSatisfy { $0.hasInvalidOrIncompleteSource })
+    #expect(!source.problems.isEmpty)
+    if name == "tcp-4096-false-complete" {
+        #expect(source.problems.contains { $0.contains("TCP raw limit reached") })
+        #expect(report.findings.contains { $0.bytes == 4096 })
+    } else if name == "sequence-overflow" {
+        #expect(source.recordProblems)
+        #expect(source.network?.records.contains { $0.record.sequence == Int.max } == true)
+    } else { #expect(source.problems.contains { $0.contains("stopped count/limit") }) }
+}
+
+@Test(arguments: [Int.min, Int.min + 1, Int.max - 1, Int.max])
+func syntheticSequenceExtremesCannotTrapOrDiscardContacts(_ sequence: Int) throws {
+    var input = try networkFixture()
+    try mutateNetwork(&input) { rows in rows[2]["sequence"] = sequence }
+    let report = try networkReport(input)
+    #expect(report.findings.count == 2)
+    #expect(report.findings.allSatisfy { $0.hasInvalidOrIncompleteSource })
+    #expect(report.sources.first { $0.id == "receiver" }?.recordProblems == true)
+}
+
+@Test(arguments: ["below-contact-limit", "tcp-4095", "udp-4096", "tcp-4096-truncated"])
+func syntheticReceiverBoundariesMatchProducerSemantics(_ boundary: String) throws {
+    var input = try boundary == "below-contact-limit" ? independentReviewFixture("contact-limit-false-success") : networkFixture(boundary == "udp-4096" ? "udp-v4" : "tcp-v4")
+    input.sources.removeAll { $0.id != "receiver" }; input.bindings = []; input.endpoints = []
+    input.sources[0].origin = .fixture
+    if boundary == "below-contact-limit" {
+        let index = try #require(input.sources[0].artifacts?.firstIndex { $0.name == "probe.json" })
+        let original = try #require(input.sources[0].artifacts?[index].data)
+        var probe = try #require(JSONSerialization.jsonObject(with: original) as? [String: Any])
+        probe["maximumContacts"] = 3 // Two observed contacts remain below the configured maximum.
+        let bytes = try JSONSerialization.data(withJSONObject: probe, options: [.sortedKeys])
+        input.sources[0].artifacts?[index] = .init(name: "probe.json", count: bytes.count, sha256: provenanceDigest(bytes), base64: bytes.base64EncodedString())
+        try mutateNetwork(&input) { rows in
+            rows[0]["registration"] = probe; rows[0]["registrationSHA256"] = provenanceDigest(bytes)
+        }
+    } else {
+        let count = boundary == "tcp-4095" ? 4095 : 4096
+        let bytes = Data(repeating: 65, count: count)
+        let index = try #require(input.sources[0].artifacts?.firstIndex { $0.name == "received-1.bin" })
+        input.sources[0].artifacts?[index] = .init(name: "received-1.bin", count: count, sha256: provenanceDigest(bytes), base64: bytes.base64EncodedString())
+        try mutateNetwork(&input) { rows in
+            rows[3]["bytes"] = count; rows[3]["rawSHA256"] = provenanceDigest(bytes)
+            rows[3].removeValue(forKey: "payloadClaims"); rows[3]["matchesRegisteredPayload"] = false
+            if boundary == "udp-4096" { rows[2]["bytes"] = count }
+            if boundary == "tcp-4096-truncated" {
+                rows[3]["rawTruncated"] = true; rows[3]["reason"] = "rawLimit"; rows[3]["operationFinished"] = false
+                rows[4]["operationFinished"] = false
+            }
+        }
+    }
+    let report = try networkReport(input)
+    #expect(report.findings.count == (boundary == "below-contact-limit" ? 4 : 2))
+    if boundary == "tcp-4096-truncated" {
+        #expect(!report.sources[0].problems.isEmpty)
+        #expect(report.findings.allSatisfy { $0.hasInvalidOrIncompleteSource })
+    } else {
+        #expect(report.sources[0].problems.isEmpty && !report.sources[0].recordProblems)
+        #expect(report.findings.allSatisfy { !$0.hasInvalidOrIncompleteSource })
+    }
+    #expect(!report.packetAbsenceProven && report.externalReviewRequired)
+}
