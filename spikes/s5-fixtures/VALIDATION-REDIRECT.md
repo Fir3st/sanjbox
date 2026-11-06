@@ -15,6 +15,8 @@ Adaptér, přesné hraniční kontroly a audit `prepared` proti původnímu loop
 Testy používají skutečné `NPMGateway` a `UpstreamClient` se stávajícími testovými seamy.
 Zdroj `s5-gateway` ani `common` se nemění; produkční API/SSRF/TLS politika nejsou rozšířeny.
 
+Přenosná [sanitizovaná kopie příkazů](publication/redirect-20261106/commands.sanitized.txt) nahrazuje pouze checkout prefix na prvním řádku za `<REPO_ROOT>`; [mapa publikace](publication/redirect-20261106/publication.json) a [manifest odvozeniny](publication/redirect-20261106/manifest.sha256.json) uvádějí přesné hashe. Původních 16 souborů uzavřeného záznamu i jeho manifest zůstávají beze změny. Nejde o nový běh ani změnu výsledků.
+
 ## Samostatný neměnný záznam
 
 Autor: janfiedler / Codex + Astra, implementační worker D4. Stroj `LAB-janfiedler-01 / r1`:

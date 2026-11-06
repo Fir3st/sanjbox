@@ -1,0 +1,15 @@
+{
+  "kind": "separate portable diagnostic derivative; no new run",
+  "originalCommandsSHA256": "176fe5e13a3ba67dca4ce9a3618e8ea70ed4090cf5a0a75a30faa9819970b0b8",
+  "originalEvidenceUnchanged": true,
+  "originalManifestSHA256": "fa9f52f813b1468a76f97acf2fe75638dd2de006d9ce12d7fd4bdfa6cd994bd7",
+  "originalRun": "20261106T114745Z-janfiedler-LAB-janfiedler-01-r1-4d98e62b",
+  "publishedCommandsSHA256": "7cd976c78a5954b25ec5969b00e431b246295f7ebc171b7ddab0b8685d2a5b2c",
+  "rule": {
+    "occurrences": 1,
+    "originalPrefixSHA256": "8ed340b51768758ad6e629bac0c25ddece178c9bc147167ec360220028fc0d43",
+    "replacement": "<REPO_ROOT>"
+  },
+  "runtimeSource": "649f45325b4d91700a9928549a331c0c3d548333",
+  "schemaVersion": 1
+}
