@@ -7,31 +7,30 @@ import Testing
 
 /// Created afresh with the system LibreSSL, imported into process memory only.
 /// No test identity is committed, installed as a trust root or stored in Keychain.
-private struct SyntheticTLSMaterial {
+/// Unchecked: both references are immutable Security objects, safe to share.
+private struct SyntheticTLSMaterial: @unchecked Sendable {
     let identity: SecIdentity
     let certificate: SecCertificate
-    init() throws {
+    init() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("sanjbox-synthetic-tls-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false,
                                                 attributes: [.posixPermissions: 0o700])
         defer { try? FileManager.default.removeItem(at: directory) }
-        func openssl(_ arguments: [String]) throws {
+        func openssl(_ arguments: [String]) async throws {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/openssl")
             process.currentDirectoryURL = directory
             process.arguments = arguments
             process.standardOutput = FileHandle.nullDevice
             process.standardError = FileHandle.nullDevice
-            try process.run()
-            process.waitUntilExit()
-            guard process.terminationStatus == 0 else { throw UpstreamFailure.tlsFailed }
+            guard try await runUntilExit(process) == 0 else { throw UpstreamFailure.tlsFailed }
         }
-        try openssl(["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", "ephemeral.pem", "-out", "leaf.pem",
+        try await openssl(["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", "ephemeral.pem", "-out", "leaf.pem",
                      "-days", "2", "-subj", "/CN=api.example", "-addext", "subjectAltName=DNS:api.example",
                      "-addext", "basicConstraints=critical,CA:FALSE", "-addext", "extendedKeyUsage=serverAuth"])
-        try openssl(["pkcs12", "-export", "-inkey", "ephemeral.pem", "-in", "leaf.pem", "-out", "identity.p12",
+        try await openssl(["pkcs12", "-export", "-inkey", "ephemeral.pem", "-in", "leaf.pem", "-out", "identity.p12",
                      "-passout", "pass:synthetic-fixture"])
-        try openssl(["x509", "-in", "leaf.pem", "-outform", "der", "-out", "leaf.der"])
+        try await openssl(["x509", "-in", "leaf.pem", "-outform", "der", "-out", "leaf.der"])
         let archive = try Data(contentsOf: directory.appendingPathComponent("identity.p12"))
         let options: [CFString: Any] = [kSecImportExportPassphrase: "synthetic-fixture", kSecImportToMemoryOnly: true]
         var items: CFArray?
@@ -145,10 +144,10 @@ private struct NoHostAddresses: HostAddressProvider {
 
 @Suite(.serialized, .timeLimit(.minutes(1))) @MainActor
 struct TLSTransportTests {
-    private static let material = Result { try SyntheticTLSMaterial() }
+    private static let material = Task { try await SyntheticTLSMaterial() }
 
     @Test func numericDialPreservesSNIHostAndVerifiesSyntheticIdentity() async throws {
-        let material = try Self.material.get()
+        let material = try await Self.material.value
         let server = try SyntheticTLSServer(material: material) { connection in
             try await tlsSend(Data("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello".utf8), connection: connection)
         }
@@ -170,7 +169,7 @@ struct TLSTransportTests {
     }
 
     @Test func untrustedCertificateAndWrongHostnameFailBeforeHTTPRequest() async throws {
-        let material = try Self.material.get()
+        let material = try await Self.material.value
         let server = try SyntheticTLSServer(material: material) { _ in Issue.record("unverified TLS reached HTTP handler") }
         let port = try await server.start()
         defer { server.stop() }
@@ -185,7 +184,7 @@ struct TLSTransportTests {
     }
 
     @Test func realTLSStreamsBeforeUpstreamCompletion() async throws {
-        let material = try Self.material.get()
+        let material = try await Self.material.value
         let (release, resume) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
         defer { resume.finish() }
         let server = try SyntheticTLSServer(material: material) { connection in
@@ -206,7 +205,7 @@ struct TLSTransportTests {
     }
 
     @Test func realTLSDisconnectAndIdleDeadlineNeverReturnPartialSuccess() async throws {
-        let material = try Self.material.get()
+        let material = try await Self.material.value
         for disconnect in [true, false] {
             let server = try SyntheticTLSServer(material: material) { connection in
                 try await tlsSend(Data("HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nno".utf8), connection: connection)
@@ -225,7 +224,7 @@ struct TLSTransportTests {
     }
 
     @Test func cancelledTLSReadReturnsPromptlyAndClosesSocket() async throws {
-        let material = try Self.material.get()
+        let material = try await Self.material.value
         let (ready, notice) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
         defer { notice.finish() }
         let server = try SyntheticTLSServer(material: material) { _ in
@@ -243,7 +242,7 @@ struct TLSTransportTests {
         await #expect(throws: CancellationError.self) { _ = try await task.value }
     }
     @Test func wholeTLSStreamLifetimeIsBoundedDespiteHeartbeats() async throws {
-        let material = try Self.material.get()
+        let material = try await Self.material.value
         let server = try SyntheticTLSServer(material: material) { connection in
             try await tlsSend(Data("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\n".utf8), connection: connection)
             for _ in 0..<100 {
@@ -264,7 +263,7 @@ struct TLSTransportTests {
     }
 
     @Test func typedHandlerRelaysRealTLSUpstreamAsLocalSSE() async throws {
-        let material = try Self.material.get()
+        let material = try await Self.material.value
         let upstreamServer = try SyntheticTLSServer(material: material) { connection in
             try await tlsSend(Data("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\nd\r\ndata: first\n\n\r\n0\r\n\r\n".utf8), connection: connection)
         }
