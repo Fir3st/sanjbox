@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 12 | 9 | 9 | 0 |
+| F1 | 30 | 11 | 10 | 9 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -307,7 +307,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.B3 | Manifest a topologie | janfiedler / Codex + Astra | ✅ | [návrhový manifest a validátor](../spikes/s4-state/README.md); 21 syntetických testů, skutečná topologie/kvóty/rollback a S4 Neověřeno |
 | WP1.B4 | Snapshot/rollback prototyp | janfiedler / Codex + Astra | 🟨 rozpracováno | Částečně: [recovery protokol a file-backed mock](../spikes/s4-state/RECOVERY.md), durable deník, deny-start, 31 subprocess crash bodů; [42 Release testů včetně flush-error recovery](../spikes/s4-state/VALIDATION-B4.md). Nová [APFS feasibility studie](../spikes/s4-state/research/wp1-b4-apfs/README.md): 13 připnutých primárních zdrojů, receipt mapa a podmíněné uživatelské piloty; asr replication kandidát, bez diskových mutací. Native APFS, snapshot oprávnění a whole-UID admission/crash/reboot adaptér chybí; S4/RB-02…08 Neověřeno |
 | WP1.B5 | S4 běh (L3) | uživatel + impl. | ⬜ | |
-| WP1.C1 | S3 příprava | janfiedler / Codex + Astra | ✅ | [Příprava, mock testy; S3/S3b neověřeno](../spikes/s3-pf/README.md) |
+| WP1.C1 | S3 příprava | janfiedler / Codex + Astra | 🟨 rozpracováno | [Příprava, mock testy; S3/S3b neověřeno](../spikes/s3-pf/README.md). Navazující samostatná producer provenance sonda C1/common: explicitní předregistrace, nové verzované raw a bounded řízené měření; bez změny verdiktů. |
 | WP1.C2 | Ochrana nezávislá na pf | janfiedler / Codex + Astra | ✅ | [Rešerše a návrh](../spikes/s3-pf/research/wp1-c2-pf-independent/README.md): primární zdroje, připnuté OSS/SDK podklady, 12 návrhů L4 experimentů; úplný mechanismus nedoložen, blokátor otevřený. Bez runtime testů; S3/NET/R3 zůstávají Neověřeno |
 | WP1.C3 | S3b příprava | janfiedler / Codex + Astra | 🟨 | [Dílčí offline C1/common raw adapter](../spikes/s3-pf/ingress/ADAPTER.md): skutečný C1 object stream/common JSONL, exact dostupné tuple/canary/context/time vazby, explicitní producer mezery, oddělený packet import a zachované zero-byte findings. [Ověření](../spikes/s3-pf/ingress/VALIDATION.md): po review 50/50 release testů a 25/25 offline CLI kontrol (obousměrné one-to-one reconciliation); předchozí 44/44 + 17/17 a historických 21/21 fixtures a 24/24 nezávislých CLI zachováno. Bounded vlastní loopback smoke/matice 28 scénářů zůstává. C3 partial: producer nonce/identity/capture, bind policy a skutečný L4 zbývají; S3b/NET-10…12 Neověřeno. |
 | WP1.C4 | S3/S3b běh (L4) | uživatel + impl. | ⬜ | |
