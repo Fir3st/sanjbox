@@ -80,10 +80,10 @@ private func tlsSend(_ data: Data, connection: NWConnection) async throws {
         }
         let listener = self.listener
         let began = Diag.now()
-        defer { Diag.log("synthetic listener start returned after \(Int((Diag.now() - began) * 1000))ms") }
+        defer { Diag.trace("synthetic listener start returned after \(Int((Diag.now() - began) * 1000))ms") }
         return try await boundedIO(timeout: .seconds(3), cancel: { listener.cancel() }) { [queue, listener] result in
             listener.stateUpdateHandler = { [weak listener] state in
-                Diag.log("synthetic listener state=\(state) +\(Int((Diag.now() - began) * 1000))ms port=\(listener?.port?.rawValue ?? 0)")
+                Diag.trace("synthetic listener state=\(state) +\(Int((Diag.now() - began) * 1000))ms port=\(listener?.port?.rawValue ?? 0)")
                 switch state {
                 case .ready: result.finish(.success(listener?.port?.rawValue ?? 0))
                 case .failed, .cancelled: result.finish(.failure(UpstreamFailure.connectionFailed))
@@ -102,8 +102,8 @@ private func tlsSend(_ data: Data, connection: NWConnection) async throws {
     }
 
     private func accept(_ connection: NWConnection) {
-        Diag.log("synthetic accept \(connection.endpoint)")
-        connection.stateUpdateHandler = { state in Diag.log("synthetic conn state=\(state)") }
+        Diag.trace("synthetic accept \(connection.endpoint)")
+        connection.stateUpdateHandler = { state in Diag.trace("synthetic conn state=\(state)") }
         connections.append(connection)
         connection.start(queue: queue)
         tasks.append(Task { [weak self, serve] in
@@ -271,12 +271,15 @@ struct TLSTransportTests {
         let material = try await Self.material.value
         let probe = MainLagProbe(), began = Diag.now()
         var phase = "begin"
-        defer { Diag.log("relay began=\(String(format: "%.3f", began)) elapsed=\(Int((Diag.now() - began) * 1000))ms phase=\(phase) \(probe.stop())") }
+        defer {
+            Diag.log("relay began=\(String(format: "%.3f", began)) elapsed=\(Int((Diag.now() - began) * 1000))ms phase=\(phase) \(probe.stop())")
+            if phase != "done" { for line in DiagTrace.shared.dump(since: began - 1) { print("DIAG TRACE " + line) } }
+        }
         let upstreamServer = try SyntheticTLSServer(material: material) { connection in
             try await tlsSend(Data("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\nd\r\ndata: first\n\n\r\n0\r\n\r\n".utf8), connection: connection)
         }
         phase = "upstream-start"
-        defer { Diag.log("relay upstream requests=\(upstreamServer.requests.count) names=\(upstreamServer.serverNames)") }
+        defer { Diag.trace("relay upstream requests=\(upstreamServer.requests.count) names=\(upstreamServer.serverNames)") }
         let upstreamPort = try await upstreamServer.start()
         phase = "gateway-start"
         defer { upstreamServer.stop() }
@@ -292,7 +295,7 @@ struct TLSTransportTests {
         defer { gateway.stop() }
         phase = "client-connect"
         let connection = NWConnection(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
-        connection.stateUpdateHandler = { state in Diag.log("relay client state=\(state)") }
+        connection.stateUpdateHandler = { state in Diag.trace("relay client state=\(state)") }
         connection.start(queue: DispatchQueue(label: "sanjbox.gateway.relay-test"))
         defer { connection.cancel() }
         phase = "send"

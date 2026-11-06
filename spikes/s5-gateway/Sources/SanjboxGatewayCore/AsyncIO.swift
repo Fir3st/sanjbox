@@ -105,7 +105,18 @@ func boundedOperation<Value: Sendable>(timeout: Duration,
     return value
 }
 
-/// Temporary stress-branch instrumentation; never merged.
-func diag(_ message: String) {
-    print(String(format: "DIAG %.3f ", ProcessInfo.processInfo.systemUptime) + message)
+/// Temporary stress-branch instrumentation; never merged. Buffered in memory so
+/// tracing does not perturb timing; tests dump it only after a failure.
+public final class DiagTrace: @unchecked Sendable {
+    public static let shared = DiagTrace()
+    private let lock = NSLock()
+    private var events: [(Double, String)] = []
+    public func add(_ message: String) {
+        let now = ProcessInfo.processInfo.systemUptime
+        lock.withLock { events.append((now, message)); if events.count > 20_000 { events.removeFirst(10_000) } }
+    }
+    public func dump(since: Double) -> [String] {
+        lock.withLock { events.filter { $0.0 >= since }.map { String(format: "%.3f ", $0.0) + $0.1 } }
+    }
 }
+func diag(_ message: String) { DiagTrace.shared.add(message) }
