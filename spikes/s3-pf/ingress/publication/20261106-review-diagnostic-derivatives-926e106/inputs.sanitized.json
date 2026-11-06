@@ -1,0 +1,64 @@
+{
+  "baseRevision": "dd058d3f4e758ed7fdef7dc64eba1c9a34a66967",
+  "commands": [
+    {
+      "argv": [
+        "swift",
+        "test",
+        "--package-path",
+        "spikes/s3-pf/ingress",
+        "-c",
+        "release",
+        "--jobs",
+        "2",
+        "--build-system",
+        "native",
+        "--disable-sandbox",
+        "--scratch-path",
+        "/private/tmp/sanjbox-c3-adapter-own/build",
+        "--cache-path",
+        "/private/tmp/sanjbox-c3-adapter-own/cache"
+      ],
+      "name": "release-tests"
+    },
+    {
+      "argv": [
+        "python3",
+        "spikes/s3-pf/ingress/tools/network-producer-vectors.py"
+      ],
+      "name": "exact-vectors"
+    },
+    {
+      "argv": [
+        "python3",
+        "spikes/s3-pf/ingress/tools/check-network-adapter-cli.py",
+        "/private/tmp/sanjbox-c3-adapter-own/build/release/sanjbox-ingress",
+        "--output",
+        "<SANJBOX_WORKTREE>/spikes/s3-pf/ingress/validation/20261106T115551Z-network-adapter-926e106-59b01dd1/network-cli"
+      ],
+      "name": "network-cli"
+    },
+    {
+      "argv": [
+        "python3",
+        "spikes/s3-pf/ingress/tools/check-offline-cli.py",
+        "/private/tmp/sanjbox-c3-adapter-own/build/release/sanjbox-ingress"
+      ],
+      "name": "legacy-cli"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "name": "diff-check"
+    }
+  ],
+  "kind": "offline consumer instrument validation; not S3b/L4/gate",
+  "oracle": "60 Swift Testing functions; 9 authentic cases/61 exact hashes; 30 network CLI and25 legacy CLI; all return0; new raw contact retention and strict rejects; no isolation pass",
+  "preparedUTC": "2026-11-06T11:55:51.245455+00:00",
+  "producerRevision": "ba339392df85f0798ba66b9f4842735558467646",
+  "scope": "Owned build/cache and offline stdin only. No sockets/probes/identity capture/process discovery/pf/capture/signing/TCC/system settings/users/secret access. Concurrent workers use separate caches; timing is not performance evidence.",
+  "sourceRevision": "926e106f24f1366af103544b546ad10db58efdf0"
+}

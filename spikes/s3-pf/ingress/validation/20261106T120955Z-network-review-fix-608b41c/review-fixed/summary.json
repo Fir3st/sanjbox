@@ -1,0 +1,43 @@
+[
+  {
+    "findings": 4,
+    "inputSHA256": "04794826dc9b1e752b0daf3af433ad7f02654bde031700249e20acc3df564298",
+    "name": "contact-limit-false-success",
+    "returncode": 0,
+    "sourceProblems": [
+      "receiver stopped count/limit/error/incomplete operation"
+    ],
+    "stdoutSHA256": "8b0ad8ec529e0ffa1c8c3b0d7e0b463ac297269cf97b33e223548b341bdf64d2"
+  },
+  {
+    "findings": 2,
+    "inputSHA256": "807340eb361c08da02bcd32614294f9c4a374f7e23b4e2aa20d6a791898d6c73",
+    "name": "positive-at-contact-limit",
+    "returncode": 0,
+    "sourceProblems": [
+      "receiver stopped count/limit/error/incomplete operation"
+    ],
+    "stdoutSHA256": "9a6642471e44cfc562afcca8f5e059a3b6f626a829294e30a36815f29eb03dc6"
+  },
+  {
+    "findings": 2,
+    "inputSHA256": "78f311cf4dfc78b81acdfa427dc6db0ed3d17acd66c3427af5e6cd78ecaa681f",
+    "name": "tcp-4096-false-complete",
+    "returncode": 0,
+    "sourceProblems": [
+      "contact 1: TCP raw limit reached; complete EOF claim cannot establish completeness"
+    ],
+    "stdoutSHA256": "17bc3b71ca53b65394c0b84af98a5a6a750c60157566f6c59e6a81045ad85900"
+  },
+  {
+    "findings": 2,
+    "inputSHA256": "f44375939bb8955747ac55e3aad7c3b762daf798e18ef0745a8626d5f9186051",
+    "name": "sequence-overflow",
+    "returncode": 0,
+    "sourceProblems": [
+      "contact 1: missing/duplicate/reordered ending; received count unknown without terminal",
+      "network sequence gap/duplicate/reorder; incomplete journal"
+    ],
+    "stdoutSHA256": "af79b3729560004ab1f2731f8161c2053dc410359ebd6bbe9a71e9426a712f72"
+  }
+]

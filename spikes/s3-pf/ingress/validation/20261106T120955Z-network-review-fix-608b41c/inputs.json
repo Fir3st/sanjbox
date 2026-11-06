@@ -1,0 +1,9 @@
+{
+  "expected": "63 Swift Testing functions; 30 new and25 legacy CLI;4 exact review counterexamples retain findings with incomplete sources; positive TCP4095/UDP4096/below-contact-limit controls; no gate or live network",
+  "kind": "offline consumer boundary review fix validation",
+  "preparedUTC": "2026-11-06T12:07:34.200203+00:00",
+  "priorMeasuredSource": "926e106f24f1366af103544b546ad10db58efdf0",
+  "priorValidationUnmodifiedPrivateCopy": "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/original-926e106-validation",
+  "scratch": "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85",
+  "sourceRevision": "608b41cc308ffa6d6fb530f24bc3a899537e0411"
+}

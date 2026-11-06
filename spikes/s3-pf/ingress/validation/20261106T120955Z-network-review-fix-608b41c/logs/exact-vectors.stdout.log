@@ -1,0 +1,3 @@
+network-producer-vectors.json: 116560 bytes SHA256 38cc888fef644b622f086d75b32c63b461c895e2031cda9739956de512a7c280
+network-producer-provenance.json: 13272 bytes SHA256 ce8aa06e6ba5be2177d094e0921b9aaa662ec285b800c4224f321ab8477a120f
+PASS: 9 historical cases, 61 exact files verified; no sockets

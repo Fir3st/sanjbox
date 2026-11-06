@@ -1,0 +1,11 @@
+{
+  "architecture": "arm64",
+  "buildJobs": 2,
+  "kind": "offline consumer validation; no live gate",
+  "macOS": "27.2",
+  "macOSBuild": "26B123",
+  "machineAlias": "host-arm64-20261106",
+  "sourceRevision": "926e106f24f1366af103544b546ad10db58efdf0",
+  "swift": "Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.2.0",
+  "xcode": "Xcode 27.2\nBuild version 27B52"
+}

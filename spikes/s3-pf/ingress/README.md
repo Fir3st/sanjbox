@@ -159,3 +159,5 @@ descriptor-relative preflight není atomická compare-and-unlink operace proti �
 publikované gate důkazy se v tomto balíku nevytvářejí a nikdy se nepřepisují.
 
 Návrh skutečné hranice a uživatelského L4: [LABPLAN.md](LABPLAN.md). Stav ověření: [VALIDATION.md](VALIDATION.md).
+
+Nový offline consumer má samostatný [validační index](NETWORK-ADAPTER-VALIDATION.md) s připnutým source commitem, přesnými raw/log hashi a zachovanými neúspěšnými vývojovými pokusy.

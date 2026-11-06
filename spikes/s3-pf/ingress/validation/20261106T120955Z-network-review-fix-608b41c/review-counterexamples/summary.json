@@ -1,0 +1,57 @@
+[
+  {
+    "name": "contact-limit-false-success",
+    "returncode": 0,
+    "sourceProblems": [],
+    "recordProblems": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      []
+    ],
+    "findings": 4,
+    "findingIncomplete": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "name": "positive-at-contact-limit",
+    "returncode": 0,
+    "sourceProblems": [],
+    "recordProblems": [
+      [],
+      [],
+      [],
+      [],
+      []
+    ],
+    "findings": 2,
+    "findingIncomplete": [
+      false,
+      false
+    ]
+  },
+  {
+    "name": "tcp-4096-false-complete",
+    "returncode": 0,
+    "sourceProblems": [],
+    "recordProblems": [
+      [],
+      [],
+      [],
+      [],
+      []
+    ],
+    "findings": 2,
+    "findingIncomplete": [
+      false,
+      false
+    ]
+  }
+]

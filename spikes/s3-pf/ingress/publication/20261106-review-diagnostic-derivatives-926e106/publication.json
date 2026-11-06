@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "originalRelativeFile": "inputs.json",
+      "originalSHA256": "49766a8270236c469a35e4bea645ea63bf9f93659755fe2a08abc30baa7ac6c4",
+      "publishedFile": "inputs.sanitized.json",
+      "publishedSHA256": "f5393c1c92bd37e7e4ed98469428b911290685bff00e2c2f3e8fa3f5dd7169b5",
+      "replacementCount": 1
+    },
+    {
+      "originalRelativeFile": "development/development-tests.log",
+      "originalSHA256": "9159fe614dddbaf275cca6bef635bd5f5907c6101c818ab3f9edcb993d46a727",
+      "publishedFile": "development-tests.sanitized.log",
+      "publishedSHA256": "1f0f2e44be46c75ded96203071cd050b5f3ee243e808243f72d1c3873e55f420",
+      "replacementCount": 9
+    }
+  ],
+  "kind": "separate diagnostic publication derivatives; original sealed record unchanged",
+  "measuredSourceRevision": "926e106f24f1366af103544b546ad10db58efdf0",
+  "originalManifestSHA256": "9d0cc24ef31fc7d247ef83b8fa6ff581547c9d145ce1553d18346fb988da142b",
+  "originalRecord": "../../validation/20261106T115551Z-network-adapter-926e106-59b01dd1",
+  "privateExactRecord": "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/original-926e106-validation",
+  "replacementMap": [
+    {
+      "description": "absolute C3 worktree prefix in exact private diagnostic originals; no replacement in producer bytes",
+      "originalPrefixSHA256": "fc78b4541e3385880b13c2553ef85439784520c5f6c872c79a511ef1a4739a60",
+      "replacementUTF8": "<SANJBOX_WORKTREE>"
+    }
+  ]
+}

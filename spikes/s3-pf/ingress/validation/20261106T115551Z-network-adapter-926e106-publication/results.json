@@ -1,0 +1,25 @@
+{
+  "commands": [
+    {
+      "exitCode": 0,
+      "name": "release-tests"
+    },
+    {
+      "exitCode": 0,
+      "name": "exact-vectors"
+    },
+    {
+      "exitCode": 0,
+      "name": "network-cli"
+    },
+    {
+      "exitCode": 0,
+      "name": "legacy-cli"
+    },
+    {
+      "exitCode": 0,
+      "name": "diff-check"
+    }
+  ],
+  "sourceRevision": "926e106f24f1366af103544b546ad10db58efdf0"
+}

@@ -1,0 +1,777 @@
+{
+  "externalReviewRequired" : true,
+  "findings" : [
+    {
+      "claimedBindings" : [
+
+      ],
+      "disposition" : "retained raw observation claim; attribution and forbidden-operation decision require external review",
+      "hasInvalidOrIncompleteSource" : true,
+      "kind" : "accepted",
+      "line" : 3,
+      "networkContactID" : 1,
+      "networkFlowID" : "77A3CA6B-9279-41A2-A8BC-A86423ABAA08",
+      "origin" : "importedMeasured",
+      "payloadDisposition" : "contact before terminal\/raw validation; absent ending is unknown, not zero",
+      "sourceID" : "receiver"
+    }
+  ],
+  "gate" : "S3b unverified; no gate or COVERAGE status is changed",
+  "inputSHA256" : "33e233177abeb7414d25ac40377dfb861ddab65819332e404a245b960eb25554",
+  "links" : [
+
+  ],
+  "matrix" : {
+    "cells" : [
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-10.ipv4.loopback.hostToZone",
+          "route" : "hostToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-10.ipv4.loopback.lanToZone",
+          "route" : "lanToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-10.ipv4.loopback.otherZoneToZone",
+          "route" : "otherZoneToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-11",
+          "executableHere" : false,
+          "expected" : "reservedHostPortCannotBeAcquired",
+          "family" : "ipv4",
+          "id" : "NET-11.ipv4.loopback.squatHostPort",
+          "route" : "squatHostPort",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "authenticatedRoundtrip",
+          "family" : "ipv4",
+          "id" : "NET-12.ipv4.loopback.sameZone",
+          "route" : "sameZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-12.ipv4.loopback.zoneToHost",
+          "route" : "zoneToHost",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-12.ipv4.loopback.zoneToOtherZone",
+          "route" : "zoneToOtherZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-10.ipv4.wildcard.hostToZone",
+          "route" : "hostToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-10.ipv4.wildcard.lanToZone",
+          "route" : "lanToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-10.ipv4.wildcard.otherZoneToZone",
+          "route" : "otherZoneToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-11",
+          "executableHere" : false,
+          "expected" : "reservedHostPortCannotBeAcquired",
+          "family" : "ipv4",
+          "id" : "NET-11.ipv4.wildcard.squatHostPort",
+          "route" : "squatHostPort",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "authenticatedRoundtrip",
+          "family" : "ipv4",
+          "id" : "NET-12.ipv4.wildcard.sameZone",
+          "route" : "sameZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-12.ipv4.wildcard.zoneToHost",
+          "route" : "zoneToHost",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv4",
+          "id" : "NET-12.ipv4.wildcard.zoneToOtherZone",
+          "route" : "zoneToOtherZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-10.ipv6.loopback.hostToZone",
+          "route" : "hostToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-10.ipv6.loopback.lanToZone",
+          "route" : "lanToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-10.ipv6.loopback.otherZoneToZone",
+          "route" : "otherZoneToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-11",
+          "executableHere" : false,
+          "expected" : "reservedHostPortCannotBeAcquired",
+          "family" : "ipv6",
+          "id" : "NET-11.ipv6.loopback.squatHostPort",
+          "route" : "squatHostPort",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "authenticatedRoundtrip",
+          "family" : "ipv6",
+          "id" : "NET-12.ipv6.loopback.sameZone",
+          "route" : "sameZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-12.ipv6.loopback.zoneToHost",
+          "route" : "zoneToHost",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "loopback",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-12.ipv6.loopback.zoneToOtherZone",
+          "route" : "zoneToOtherZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-10.ipv6.wildcard.hostToZone",
+          "route" : "hostToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-10.ipv6.wildcard.lanToZone",
+          "route" : "lanToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-10",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-10.ipv6.wildcard.otherZoneToZone",
+          "route" : "otherZoneToZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-11",
+          "executableHere" : false,
+          "expected" : "reservedHostPortCannotBeAcquired",
+          "family" : "ipv6",
+          "id" : "NET-11.ipv6.wildcard.squatHostPort",
+          "route" : "squatHostPort",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "authenticatedRoundtrip",
+          "family" : "ipv6",
+          "id" : "NET-12.ipv6.wildcard.sameZone",
+          "route" : "sameZone",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-12.ipv6.wildcard.zoneToHost",
+          "route" : "zoneToHost",
+          "status" : "planned"
+        }
+      },
+      {
+        "classification" : "notMeasured",
+        "forbiddenContactsObserved" : 0,
+        "origin" : "planned",
+        "payloadBytesObserved" : 0,
+        "problems" : [
+          "missing cell evidence"
+        ],
+        "scenario" : {
+          "bind" : "wildcard",
+          "caseID" : "NET-12",
+          "executableHere" : false,
+          "expected" : "zeroForbiddenContacts",
+          "family" : "ipv6",
+          "id" : "NET-12.ipv6.wildcard.zoneToOtherZone",
+          "route" : "zoneToOtherZone",
+          "status" : "planned"
+        }
+      }
+    ],
+    "gate" : "S3b unverified",
+    "provenanceWarning" : "Input records are claims, not cryptographic attestation. Independent review must authenticate raw evidence, identities, clocks, capture topology and policy mechanism. No result here is a gate pass.",
+    "schemaVersion" : 1,
+    "scope" : "WP1.C3 independent preparation; no gate adjudication"
+  },
+  "matrixProblems" : [
+    "missing matrix evidence"
+  ],
+  "packetAbsenceProven" : false,
+  "provenanceWarning" : "Sources, bindings, matrix identities\/signing flags and imported capture metadata are unauthenticated claims. Computed hashes only fingerprint supplied bytes. A common accept\/bytes log cannot prove zero packets. Findings survive invalid or missing sibling evidence.",
+  "runID" : "5E78C81C-7EB1-4C54-BF20-5D59FBCD806A",
+  "runStartUTC" : "2026-11-06T08:11:35.855Z",
+  "schemaVersion" : 1,
+  "sources" : [
+    {
+      "counterpart" : [
+
+      ],
+      "format" : "sanjboxNetworkProvenanceV1",
+      "id" : "receiver",
+      "network" : {
+        "artifacts" : [
+          {
+            "declaredCount" : 835,
+            "declaredSHA256" : "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df",
+            "name" : "expect.json",
+            "verified" : true
+          },
+          {
+            "declaredCount" : 478,
+            "declaredSHA256" : "21c9317ea1ff3571f10faa1b54c694b42da0553c8973404db9367883d5f73d97",
+            "name" : "probe.json",
+            "verified" : true
+          },
+          {
+            "declaredCount" : 35,
+            "declaredSHA256" : "194684377b97e63e19a4ea280a7f1ac50e3d08c72de20f09b591e1d0e55aa896",
+            "name" : "received-1.bin",
+            "verified" : true
+          }
+        ],
+        "checks" : [
+          "exact supplied expectation\/registration hashes and recorded own identity\/signature match"
+        ],
+        "records" : [
+          {
+            "endLine" : 1,
+            "line" : 1,
+            "problems" : [
+
+            ],
+            "record" : {
+              "expectationSHA256" : "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df",
+              "family" : "ipv4",
+              "flowID" : "77A3CA6B-9279-41A2-A8BC-A86423ABAA08",
+              "format" : "sanjboxNetworkProvenanceV1",
+              "identity" : {
+                "auditFlags" : 8240,
+                "auditSessionID" : 100002,
+                "auditUID" : 501,
+                "effectiveGID" : 20,
+                "effectiveUID" : 501,
+                "forbiddenGroups" : [
+
+                ],
+                "kernelGroups" : [
+                  12,
+                  20,
+                  33,
+                  61,
+                  79,
+                  80,
+                  81,
+                  98,
+                  100,
+                  204,
+                  250,
+                  395,
+                  398,
+                  399,
+                  400,
+                  701
+                ],
+                "loginDone" : true,
+                "managerName" : "Aqua",
+                "managerUID" : 501,
+                "onConsole" : true,
+                "realGID" : 20,
+                "realUID" : 501,
+                "requiredGroups" : [
+
+                ],
+                "windowAuditSessionID" : 100002,
+                "windowUID" : 501
+              },
+              "instanceID" : "23F41E2C-FB2A-44EA-90C6-6E02F8B1A7FF",
+              "kind" : "registered",
+              "parentPID" : 23796,
+              "pid" : 23910,
+              "registration" : {
+                "controlledTarget" : true,
+                "durationMilliseconds" : 1500,
+                "endpoint" : {
+                  "host" : "127.0.0.1",
+                  "port" : 0
+                },
+                "flow" : {
+                  "challenge" : "65c065b535541e5be70a7956d08ad6d2733b99362d7c8edaa66b6a6fa97bac7d",
+                  "flowID" : "77A3CA6B-9279-41A2-A8BC-A86423ABAA08",
+                  "preparedAtUTC" : "2026-11-06T08:11:26.331Z",
+                  "runID" : "5E78C81C-7EB1-4C54-BF20-5D59FBCD806A"
+                },
+                "maximumContacts" : 16,
+                "schemaVersion" : 1,
+                "scope" : "hostDiagnostic",
+                "transport" : "tcp"
+              },
+              "registrationSHA256" : "21c9317ea1ff3571f10faa1b54c694b42da0553c8973404db9367883d5f73d97",
+              "role" : "receiver",
+              "runID" : "5E78C81C-7EB1-4C54-BF20-5D59FBCD806A",
+              "schemaVersion" : 1,
+              "scope" : "hostDiagnostic",
+              "sequence" : 1,
+              "signature" : {
+                "codeHash" : "e0221a7c136df13bfded97237876d03483a5c7b0",
+                "getTaskAllowAbsent" : true,
+                "hardenedRuntime" : true,
+                "valid" : true
+              },
+              "timestamp" : {
+                "monotonicNanoseconds" : 232882680981500,
+                "utc" : "2026-11-06T08:11:35.855Z"
+              },
+              "transport" : "tcp"
+            }
+          },
+          {
+            "endLine" : 2,
+            "line" : 2,
+            "problems" : [
+
+            ],
+            "record" : {
+              "family" : "ipv4",
+              "flowID" : "77A3CA6B-9279-41A2-A8BC-A86423ABAA08",
+              "format" : "sanjboxNetworkProvenanceV1",
+              "instanceID" : "23F41E2C-FB2A-44EA-90C6-6E02F8B1A7FF",
+              "kind" : "receiverStarted",
+              "local" : {
+                "host" : "127.0.0.1",
+                "port" : 53432
+              },
+              "parentPID" : 23796,
+              "pid" : 23910,
+              "role" : "receiver",
+              "runID" : "5E78C81C-7EB1-4C54-BF20-5D59FBCD806A",
+              "schemaVersion" : 1,
+              "scope" : "hostDiagnostic",
+              "sequence" : 2,
+              "timestamp" : {
+                "monotonicNanoseconds" : 232882682135208,
+                "utc" : "2026-11-06T08:11:35.856Z"
+              },
+              "transport" : "tcp"
+            }
+          },
+          {
+            "endLine" : 3,
+            "line" : 3,
+            "problems" : [
+
+            ],
+            "record" : {
+              "contactID" : 1,
+              "family" : "ipv4",
+              "flowID" : "77A3CA6B-9279-41A2-A8BC-A86423ABAA08",
+              "format" : "sanjboxNetworkProvenanceV1",
+              "instanceID" : "23F41E2C-FB2A-44EA-90C6-6E02F8B1A7FF",
+              "kind" : "accepted",
+              "local" : {
+                "host" : "127.0.0.1",
+                "port" : 53432
+              },
+              "parentPID" : 23796,
+              "pid" : 23910,
+              "remote" : {
+                "host" : "127.0.0.1",
+                "port" : 53433
+              },
+              "role" : "receiver",
+              "runID" : "5E78C81C-7EB1-4C54-BF20-5D59FBCD806A",
+              "schemaVersion" : 1,
+              "scope" : "hostDiagnostic",
+              "sequence" : 3,
+              "timestamp" : {
+                "monotonicNanoseconds" : 232882683317583,
+                "utc" : "2026-11-06T08:11:35.858Z"
+              },
+              "transport" : "tcp"
+            }
+          }
+        ],
+        "warning" : "Recorded own identity\/signature and preregistration are supplied claims, not authenticated peer credentials. Monotonic values are ordered only inside this producer instance. Raw bytes are application data, not packet capture."
+      },
+      "origin" : "importedMeasured",
+      "packets" : [
+
+      ],
+      "problems" : [
+        "contact 1: missing\/duplicate\/reordered ending; received count unknown without terminal",
+        "receiver missing\/duplicate\/out-of-order listener lifecycle"
+      ],
+      "sender" : [
+
+      ],
+      "sha256" : "9f144a124469904caa0e94918157f9970903fa51df165a972515898ed21bf655"
+    }
+  ]
+}
