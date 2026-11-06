@@ -156,19 +156,35 @@ private final class D5Clock: @unchecked Sendable {
 
 @Test func pypiLimitsCancellationDeadlineAndConcurrencyReleaseCapacity() async throws {
     let data = try d5Index()
-    let backend = D5Backend(delay: .milliseconds(100)) { _, request, _ in D5Wire(body: request.target.hasPrefix("/simple/") ? data : d5Bytes) }
-    let config = try PyPIConfiguration(registryHostname: "index.example", artifactHostnames: ["files.example"], publicOrigin: "http://127.0.0.1:8765", cooldown: 3600,
-        limits: RegistryLimits(operations: 1, auditRecords: 1, lifetime: .milliseconds(20)))
-    let handler = try d5PyPI(backend, configuration: config)
-    let first = Task { try await handler.response(to: d5Request(d5FileTarget)) }
-    while backend.calls.isEmpty { await Task.yield() }
-    #expect(try await handler.response(to: d5Request(d5FileTarget)).status == 503)
-    #expect(try await first.value.status == 502)
-    #expect(await handler.downloadRecords().isEmpty)
-    let cancelled = Task { try await handler.response(to: d5Request(d5FileTarget)) }
+    let respond: @Sendable (String, HTTPRequest, Int) throws -> D5Wire = { _, request, _ in
+        D5Wire(body: request.target.hasPrefix("/simple/") ? data : d5Bytes)
+    }
+    func limited(_ backend: D5Backend, lifetime: Duration) throws -> PyPIGateway {
+        try d5PyPI(backend, configuration: PyPIConfiguration(registryHostname: "index.example", artifactHostnames: ["files.example"],
+            publicOrigin: "http://127.0.0.1:8765", cooldown: 3600, limits: RegistryLimits(operations: 1, auditRecords: 1, lifetime: lifetime)))
+    }
+    // The only operation slot is held by a request parked in the backend. Its
+    // lifetime is long so it always reaches the backend; the wait is bounded.
+    let parked = D5Backend(delay: .seconds(60), respond)
+    let busy = try limited(parked, lifetime: .seconds(90))
+    let first = Task { try await busy.response(to: d5Request(d5FileTarget)) }
+    let reached = ContinuousClock.now.advanced(by: .seconds(10))
+    while parked.calls.isEmpty, ContinuousClock.now < reached { try await Task.sleep(for: .milliseconds(1)) }
+    #expect(parked.calls.count == 1)
+    #expect(try await busy.response(to: d5Request(d5FileTarget)).status == 503)
+    first.cancel()
+    do { _ = try await first.value; Issue.record("Cancellation was swallowed") } catch is CancellationError {} catch { Issue.record("Wrong cancellation error") }
+    #expect(try await busy.response(to: d5Request("/pypi/unknown")).status == 400) // 503 if the slot leaked
+    #expect(await busy.downloadRecords().isEmpty)
+    // The lifetime bounds the whole operation whether or not it reached the backend.
+    let deadline = try limited(D5Backend(delay: .milliseconds(100), respond), lifetime: .milliseconds(20))
+    #expect(try await deadline.response(to: d5Request(d5FileTarget)).status == 502)
+    #expect(try await deadline.response(to: d5Request("/pypi/unknown")).status == 400)
+    #expect(await deadline.downloadRecords().isEmpty)
+    let cancelled = Task { try await deadline.response(to: d5Request(d5FileTarget)) }
     cancelled.cancel()
     do { _ = try await cancelled.value; Issue.record("Cancellation was swallowed") } catch is CancellationError {} catch { Issue.record("Wrong cancellation error") }
-    #expect(await handler.downloadRecords().isEmpty)
+    #expect(await deadline.downloadRecords().isEmpty)
     let small = try PyPIConfiguration(registryHostname: "index.example", artifactHostnames: ["files.example"], publicOrigin: "http://127.0.0.1:8765", cooldown: 3600,
         limits: RegistryLimits(metadataBytes: 10))
     #expect(try await d5PyPI(d5DefaultBackend(), configuration: small).response(to: d5Request(d5FileTarget)).status == 413)
