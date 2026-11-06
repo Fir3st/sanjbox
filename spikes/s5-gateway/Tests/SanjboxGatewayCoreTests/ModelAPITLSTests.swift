@@ -10,26 +10,25 @@ import Testing
 @MainActor private struct ModelTLSMaterial {
     let configuration: GatewayTLSConfiguration
     let root: SecCertificate
-    init() throws {
+    init() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("sanjbox-model-ca-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
         defer { try? FileManager.default.removeItem(at: directory) }
-        func openssl(_ args: [String]) throws {
+        func openssl(_ args: [String]) async throws {
             let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/openssl")
             process.currentDirectoryURL = directory; process.arguments = args
             process.environment = ["PATH": "/usr/bin:/bin"]
             process.standardOutput = FileHandle.nullDevice; process.standardError = FileHandle.nullDevice
-            try process.run(); process.waitUntilExit()
-            guard process.terminationStatus == 0 else { throw ModelAPIFailure.configuration }
+            guard try await runUntilExit(process) == 0 else { throw ModelAPIFailure.configuration }
         }
-        try openssl(["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", "ca-key.pem", "-out", "ca.pem", "-days", "1",
+        try await openssl(["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", "ca-key.pem", "-out", "ca.pem", "-days", "1",
                      "-subj", "/CN=synthetic-zone-ca", "-addext", "basicConstraints=critical,CA:TRUE", "-addext", "keyUsage=critical,keyCertSign,cRLSign"])
-        try openssl(["req", "-new", "-newkey", "rsa:2048", "-nodes", "-keyout", "leaf-key.pem", "-out", "leaf.csr", "-subj", "/CN=127.0.0.1"])
+        try await openssl(["req", "-new", "-newkey", "rsa:2048", "-nodes", "-keyout", "leaf-key.pem", "-out", "leaf.csr", "-subj", "/CN=127.0.0.1"])
         let extensions = "basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\nsubjectAltName=IP:127.0.0.1\n"
         try Data(extensions.utf8).write(to: directory.appendingPathComponent("leaf.ext"))
-        try openssl(["x509", "-req", "-in", "leaf.csr", "-CA", "ca.pem", "-CAkey", "ca-key.pem", "-set_serial", "1", "-days", "1", "-extfile", "leaf.ext", "-out", "leaf.pem"])
-        try openssl(["pkcs12", "-export", "-inkey", "leaf-key.pem", "-in", "leaf.pem", "-certfile", "ca.pem", "-out", "identity.p12", "-passout", "pass:synthetic-fixture"])
-        try openssl(["x509", "-in", "ca.pem", "-outform", "der", "-out", "ca.der"])
+        try await openssl(["x509", "-req", "-in", "leaf.csr", "-CA", "ca.pem", "-CAkey", "ca-key.pem", "-set_serial", "1", "-days", "1", "-extfile", "leaf.ext", "-out", "leaf.pem"])
+        try await openssl(["pkcs12", "-export", "-inkey", "leaf-key.pem", "-in", "leaf.pem", "-certfile", "ca.pem", "-out", "identity.p12", "-passout", "pass:synthetic-fixture"])
+        try await openssl(["x509", "-in", "ca.pem", "-outform", "der", "-out", "ca.der"])
         configuration = try GatewayTLSConfiguration(pkcs12: Data(contentsOf: directory.appendingPathComponent("identity.p12")), passphrase: "synthetic-fixture")
         guard let root = SecCertificateCreateWithData(nil, try Data(contentsOf: directory.appendingPathComponent("ca.der")) as CFData) else { throw ModelAPIFailure.configuration }
         self.root = root
@@ -71,7 +70,7 @@ private final class ModelWaitingConnection: UpstreamConnection, @unchecked Senda
 
 @Suite(.serialized, .timeLimit(.minutes(1))) @MainActor struct ModelAPITLSTests {
     @Test func modelHTTPSUsesZoneCAAndRejectsWrongRootNameUntrustedAndPlainHTTP() async throws {
-        let material = try ModelTLSMaterial(), other = try ModelTLSMaterial()
+        let material = try await ModelTLSMaterial(), other = try await ModelTLSMaterial()
         let upstream = ScriptedConnection(try modelWire(modelFixture()))
         let handler = try modelGateway(upstream)
         let server = GatewayServer(router: try TypedRouter(routes: [handler.route()]), tls: material.configuration)
@@ -115,7 +114,7 @@ private final class ModelWaitingConnection: UpstreamConnection, @unchecked Senda
     }
 
     @Test func modelHTTPSPeerDisconnectCancelsWaitingUpstreamAndKeepsDebit() async throws {
-        let material = try ModelTLSMaterial(), upstream = try ModelWaitingConnection()
+        let material = try await ModelTLSMaterial(), upstream = try ModelWaitingConnection()
         let handler = try modelGateway(upstream)
         let server = GatewayServer(router: try TypedRouter(routes: [handler.route()]), tls: material.configuration)
         let port = try await server.start(); defer { server.stop() }
