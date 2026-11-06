@@ -33,7 +33,8 @@ jobs:
         run: |
           set +e -uo pipefail
           mkdir -p "$CI_LOG_DIR"
-          for i in $(seq 1 25); do
+          sysctl net.inet.ip.portrange net.inet.tcp.msl net.inet.ip.portrange.randomized 2>&1 || true
+          for i in $(seq 1 40); do
             start=$SECONDS
             .github/scripts/run-with-watchdog.sh 150 "$CI_LOG_DIR/run-$i" \
               swift test --package-path spikes/s5-gateway -c ${{ matrix.configuration }} --skip-build -Xswiftc -enable-testing \
@@ -46,7 +47,7 @@ jobs:
               hangs=$((${hangs:-0} + 1))
             fi
             if [[ $status -ne 0 ]]; then grep -E '✘|error' "$CI_LOG_DIR/run-$i.log" | head -20; fi
-            if [[ $status -ne 0 ]]; then pattern='^DIAG'; else pattern='^DIAG [0-9.]+ (relay began|monitor)'; fi
+            if [[ $status -ne 0 ]]; then pattern='^DIAG'; else pattern='^DIAG ([0-9.]+ (relay began|slow connect)|NETSTAT)'; fi
             grep -E "$pattern" "$CI_LOG_DIR/run-$i.log" | sed "s/^/run $i /"
             if [[ $status -ne 124 ]]; then rm -rf "$CI_LOG_DIR/run-$i" "$CI_LOG_DIR/run-$i.log"; fi
           done

@@ -23,6 +23,7 @@ private func receive(on connection: NWConnection) async throws -> (Data, Bool) {
 /// Uses a real TCP socket, not URLSession (no ambient proxies, cookies or credentials).
 private func client(port: UInt16) -> (NWConnection, Task<Void, Never>) {
     let connection = NWConnection(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
+    watchConnect(connection, "server-test")
     connection.start(queue: DispatchQueue(label: "sanjbox.gateway.test-client"))
     let deadline = Task {
         do { try await Task.sleep(for: .seconds(5)) } catch { return }

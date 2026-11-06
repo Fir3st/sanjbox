@@ -16,6 +16,27 @@ enum Diag {
     }
 }
 
+import Network
+
+/// Logs loopback clients that need more than 200 ms to become ready, with the
+/// socket table rows for their ports while any colliding entries still exist.
+func watchConnect(_ connection: NWConnection, _ label: String) {
+    let started = Diag.now()
+    connection.stateUpdateHandler = { state in
+        guard case .ready = state else { return }
+        let elapsed = Diag.now() - started
+        guard elapsed > 0.2 else { return }
+        var local = "?", remote = "?"
+        if case .hostPort(_, let port)? = connection.currentPath?.localEndpoint { local = "\(port.rawValue)" }
+        if case .hostPort(_, let port)? = connection.currentPath?.remoteEndpoint { remote = "\(port.rawValue)" }
+        Diag.log("slow connect \(label) \(Int(elapsed * 1000))ms local=\(local) remote=\(remote)")
+        let netstat = Process()
+        netstat.executableURL = URL(fileURLWithPath: "/bin/sh")
+        netstat.arguments = ["-c", "netstat -anv -p tcp | grep -E '127\\.0\\.0\\.1\\.(\(local)|\(remote)) ' | sed 's/^/DIAG NETSTAT \(label) /'"]
+        try? netstat.run()
+    }
+}
+
 /// Measures main-queue (main actor) round-trip latency from a plain thread.
 final class MainLagProbe: @unchecked Sendable {
     private let lock = NSLock()

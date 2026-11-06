@@ -295,7 +295,7 @@ struct TLSTransportTests {
         defer { gateway.stop() }
         phase = "client-connect"
         let connection = NWConnection(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
-        if diagMode == "full" { connection.stateUpdateHandler = { state in Diag.trace("relay client state=\(state)") } }
+        watchConnect(connection, "relay")
         connection.start(queue: DispatchQueue(label: "sanjbox.gateway.relay-test"))
         defer { connection.cancel() }
         defer {
