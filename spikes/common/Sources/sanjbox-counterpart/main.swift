@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import SanjboxNetworkProvenance
 import SanjboxCounterpart
 import SanjboxProbeKit
 
@@ -18,6 +19,9 @@ let usage = """
     """
 
 let rawArguments = Array(CommandLine.arguments.dropFirst())
+if ProvenanceCLI.handles(rawArguments) {
+    exit(ProvenanceCLI.run(rawArguments, receiver: true, operation: ProvenanceReceiver.run))
+}
 guard let command = rawArguments.first else { exitWithError(usage) }
 
 let arguments: ProbeArguments
