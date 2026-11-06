@@ -1,0 +1,56 @@
+name: Stress s5-gateway combined fixes (temporary)
+
+on:
+  push:
+    branches: ['stress/**']
+
+permissions:
+  contents: read
+
+jobs:
+  stress:
+    name: s5-gateway ${{ matrix.configuration }} shard ${{ matrix.shard }}
+    runs-on: xcode-27
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [debug, release]
+        shard: [1, 2, 3, 4, 5]
+    env:
+      CI_LOG_DIR: ${{ github.workspace }}/ci-results
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build tests once
+        run: |
+          set -euo pipefail
+          swift build --package-path spikes/s5-gateway -c ${{ matrix.configuration }} --build-tests -Xswiftc -enable-testing
+      - name: Repeat the full test suite under the watchdog
+        run: |
+          set +e -uo pipefail
+          mkdir -p "$CI_LOG_DIR"
+          for i in $(seq 1 25); do
+            start=$SECONDS
+            .github/scripts/run-with-watchdog.sh 150 "$CI_LOG_DIR/run-$i" \
+              swift test --package-path spikes/s5-gateway -c ${{ matrix.configuration }} --skip-build -Xswiftc -enable-testing \
+              > "$CI_LOG_DIR/run-$i.log" 2>&1
+            status=$?
+            echo "run $i: exit $status in $((SECONDS - start))s"
+            if [[ $status -eq 124 ]]; then
+              grep -E 'started|passed|failed' "$CI_LOG_DIR/run-$i.log" | tail -20
+              cat "$CI_LOG_DIR/run-$i/hung-processes.txt"
+              hangs=$((${hangs:-0} + 1))
+            fi
+            if [[ $status -ne 0 ]]; then grep -E '✘|error' "$CI_LOG_DIR/run-$i.log" | head -20; fi
+            if [[ $status -ne 124 ]]; then rm -rf "$CI_LOG_DIR/run-$i" "$CI_LOG_DIR/run-$i.log"; fi
+          done
+          echo "hangs: ${hangs:-0}"
+          [[ ${hangs:-0} -eq 0 ]]
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() }}
+        with:
+          name: hang-${{ matrix.configuration }}-${{ matrix.shard }}
+          path: ${{ env.CI_LOG_DIR }}/
+          retention-days: 7
