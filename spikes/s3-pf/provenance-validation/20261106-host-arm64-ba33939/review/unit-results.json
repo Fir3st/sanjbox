@@ -1,0 +1,98 @@
+[
+  {
+    "suite": "common",
+    "exit": 1,
+    "seconds": 30.77,
+    "command": [
+      "swift",
+      "test",
+      "--package-path",
+      "<WORKTREE>/spikes/common",
+      "-c",
+      "release",
+      "--build-system",
+      "native",
+      "--disable-sandbox",
+      "--scratch-path",
+      "/private/tmp/sanjbox-network-review-astra-vji294lx/common/build",
+      "--cache-path",
+      "/private/tmp/sanjbox-network-review-astra-vji294lx/common/cache"
+    ],
+    "summary": [
+      "2026-11-06 09:13:16.364 xcodebuild[24658:5575673]  DVTFilePathFSEvents: Failed to start fs event stream.",
+      "2026-11-06 09:13:16.661 xcodebuild[24658:5575669] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.",
+      "2026-11-06 09:13:17.353 xcodebuild[24668:5575731]  DVTFilePathFSEvents: Failed to start fs event stream.",
+      "2026-11-06 09:13:17.525 xcodebuild[24668:5575717] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.",
+      "\t Executed 7 tests, with 0 failures (0 unexpected) in 0.014 (0.015) seconds",
+      "\t Executed 7 tests, with 0 failures (0 unexpected) in 0.014 (0.015) seconds",
+      "\t Executed 7 tests, with 0 failures (0 unexpected) in 0.014 (0.017) seconds",
+      "\u2718 Test contactWithoutBytesStillCounts() recorded an issue at CounterpartTests.swift:152:2: Caught error: bind tcp :: port 0 failed: Operation not permitted",
+      "\u2718 Test recordsTCPAndUDPFlowsWithCanaries() recorded an issue at CounterpartTests.swift:104:2: Caught error: bind tcp :: port 0 failed: Operation not permitted",
+      "\u2718 Test quietRunIsCompleteAndEmpty() recorded an issue at CounterpartTests.swift:166:2: Caught error: bind tcp :: port 0 failed: Operation not permitted",
+      "\u2718 Test stopClosesAndCountsOpenConnections() recorded an issue at CounterpartTests.swift:134:2: Caught error: bind tcp :: port 0 failed: Operation not permitted",
+      "\u2718 Test contactWithoutBytesStillCounts() failed after 0.010 seconds with 1 issue.",
+      "\u2718 Test quietRunIsCompleteAndEmpty() failed after 0.010 seconds with 1 issue.",
+      "\u2718 Test recordsTCPAndUDPFlowsWithCanaries() failed after 0.010 seconds with 1 issue.",
+      "\u2718 Test stopClosesAndCountsOpenConnections() failed after 0.010 seconds with 1 issue.",
+      "\u2718 Test captureReportsTheCallingProcess() recorded an issue at ProbeContextTests.swift:15:5: Expectation failed: context.groupMembership[0].isMember != nil",
+      "\u2718 Test captureReportsTheCallingProcess() failed after 0.021 seconds with 1 issue.",
+      "\u2718 Test run with 25 tests in 0 suites failed after 0.022 seconds with 5 issues."
+    ]
+  },
+  {
+    "suite": "c1",
+    "exit": 0,
+    "seconds": 34.39,
+    "command": [
+      "swift",
+      "test",
+      "--package-path",
+      "<WORKTREE>/spikes/s3-pf",
+      "-c",
+      "release",
+      "--build-system",
+      "native",
+      "--disable-sandbox",
+      "--scratch-path",
+      "/private/tmp/sanjbox-network-review-astra-vji294lx/c1/build",
+      "--cache-path",
+      "/private/tmp/sanjbox-network-review-astra-vji294lx/c1/cache"
+    ],
+    "summary": [
+      "2026-11-06 09:13:16.364 xcodebuild[24659:5575671]  DVTFilePathFSEvents: Failed to start fs event stream.",
+      "2026-11-06 09:13:16.661 xcodebuild[24659:5575668] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.",
+      "2026-11-06 09:13:17.353 xcodebuild[24670:5575733]  DVTFilePathFSEvents: Failed to start fs event stream.",
+      "2026-11-06 09:13:17.525 xcodebuild[24670:5575719] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.",
+      "\t Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds",
+      "\t Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds",
+      "\t Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.003) seconds"
+    ]
+  },
+  {
+    "suite": "c3",
+    "exit": 0,
+    "seconds": 38.46,
+    "command": [
+      "swift",
+      "test",
+      "--package-path",
+      "<WORKTREE>/spikes/s3-pf/ingress",
+      "-c",
+      "release",
+      "--build-system",
+      "native",
+      "--disable-sandbox",
+      "--scratch-path",
+      "/private/tmp/sanjbox-network-review-astra-vji294lx/c3/build",
+      "--cache-path",
+      "/private/tmp/sanjbox-network-review-astra-vji294lx/c3/cache"
+    ],
+    "summary": [
+      "2026-11-06 09:13:16.364 xcodebuild[24660:5575672]  DVTFilePathFSEvents: Failed to start fs event stream.",
+      "2026-11-06 09:13:16.661 xcodebuild[24660:5575667] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.",
+      "2026-11-06 09:13:17.353 xcodebuild[24669:5575732]  DVTFilePathFSEvents: Failed to start fs event stream.",
+      "2026-11-06 09:13:17.525 xcodebuild[24669:5575718] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 \"Input/output error\". Using NSCachesDirectory instead.",
+      "\t Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.002) seconds"
+    ]
+  }
+]

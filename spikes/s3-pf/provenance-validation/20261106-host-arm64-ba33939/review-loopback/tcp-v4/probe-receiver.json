@@ -1,0 +1,18 @@
+{
+  "controlledTarget": true,
+  "durationMilliseconds": 1500,
+  "endpoint": {
+    "host": "127.0.0.1",
+    "port": 0
+  },
+  "flow": {
+    "challenge": "9fa029f48b1875281c743a1e9366538a6c58a24fd2fdb227f2f09296dd255241",
+    "flowID": "73184949-57DB-4E8C-A9E2-CA0E71B78D7B",
+    "preparedAtUTC": "2026-11-06T08:14:35.439Z",
+    "runID": "A6D225AB-D9C9-4A07-8B81-05325A5CA506"
+  },
+  "maximumContacts": 16,
+  "schemaVersion": 1,
+  "scope": "hostDiagnostic",
+  "transport": "tcp"
+}

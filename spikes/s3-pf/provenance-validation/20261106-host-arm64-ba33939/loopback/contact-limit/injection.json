@@ -1,0 +1,12 @@
+{
+  "actor": "pythonFixture",
+  "local": [
+    "127.0.0.1",
+    55534
+  ],
+  "payloadCount": 3,
+  "remote": [
+    "127.0.0.1",
+    63529
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "spikes/common/Sources/SanjboxNetworkProvenance/Receiver.swift": "57d5c764effef6a711d5503e8707a0f4dec2f78e549309d2bd68e8d976dc899a",
+  "spikes/common/Sources/SanjboxNetworkProvenance/Identity.swift": "8e1753868c0c0e55eec5f52c89f05701b476cbed38d80bcece5ef0d35556a5db",
+  "spikes/common/Sources/SanjboxNetworkProvenance/StrictJSON.swift": "3b5fc688c61847d6bcfaf65d047191fcebe5ed352a40bba82d795171854960c1",
+  "spikes/common/Sources/SanjboxNetworkProvenance/InputFile.swift": "93a83d8acd64d4324994f02517c125d492fa2db9112062d5ae6a9122bd732a8d",
+  "spikes/common/Sources/SanjboxNetworkProvenance/NetworkIO.swift": "1ec053424d81f307d601f79703227efdc832256e2faf5d4bbfe27983846086ce",
+  "spikes/common/Sources/SanjboxNetworkProvenance/Registration.swift": "26758cd513fb99d04a31c7e388629afd7f602e182ba8faa171cda38940efef6f",
+  "spikes/common/Sources/SanjboxNetworkProvenance/Journal.swift": "db15201973c21b73992aaadb1c885bd3e8cf3752e6b47077426c4eeaa7199654",
+  "spikes/common/Sources/SanjboxNetworkProvenance/CLI.swift": "ef2cbeee5046628b3751e336678387e094acfc66c5cdc2d36a29a672a7dc9c7b",
+  "spikes/s3-pf/Sources/C1ProbeKit/ProvenanceSender.swift": "9c787e578514186c513c4d5d1a57528fb5547ec292016c9fd980df46276568b1",
+  "spikes/s3-pf/tools/check-network-provenance.py": "f9373b807838d787ab9507cdab626c376a5232661504c45fa97d7c371ef3f7e7"
+}

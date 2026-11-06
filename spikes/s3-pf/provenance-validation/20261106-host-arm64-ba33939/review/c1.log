@@ -1,0 +1,58 @@
+2026-11-06 09:13:16.364 xcodebuild[24659:5575671]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-11-06 09:13:16.661 xcodebuild[24659:5575668] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+2026-11-06 09:13:17.353 xcodebuild[24670:5575733]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-11-06 09:13:17.525 xcodebuild[24670:5575719] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+warning: <USER_HOME>/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.
+warning: <USER_HOME>/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.
+Building for production...
+[0/12] Write sources
+[4/12] /private/tmp/sanjbox-network-review-astra-vji294lx/c1/build/arm64-apple-macosx/release/SanjboxS3PreparationPackageTests.derived/runner.swift
+[6/12] Write sources
+[7/12] Write swift-version--58304C5D6DBC2206.txt
+[9/13] Compiling SanjboxProbeKit Canary.swift
+[10/14] Compiling SanjboxNetworkProvenance CLI.swift
+[11/15] Compiling C1ProbeKit InputFile.swift
+[12/17] Compiling sanjbox_s3_probe main.swift
+[12/17] Write Objects.LinkFileList
+[13/17] Linking sanjbox-s3-probe
+[15/17] Compiling C1ProbeKitTests ProbeTests.swift
+[16/18] Compiling SanjboxS3PreparationPackageTests runner.swift
+[16/18] Write Objects.LinkFileList
+[17/18] Linking SanjboxS3PreparationPackageTests
+Build complete! (26.87s)
+warning: '--build-system native' has been deprecated and will be removed in a future release; please report an issue at https://github.com/swiftlang/swift-package-manager/issues if you are unable to adopt the default build system.
+Test Suite 'All tests' started at 2026-11-06 09:13:49.769.
+Test Suite 'SanjboxS3PreparationPackageTests.xctest' started at 2026-11-06 09:13:49.770.
+Test Suite 'ProvenanceSenderTests' started at 2026-11-06 09:13:49.770.
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testDatagramPartialIsIncompleteWithoutRetry]' started.
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testDatagramPartialIsIncompleteWithoutRetry]' passed (0.001 seconds).
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testPartialTCPFailurePreservesAcceptedBytes]' started.
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testPartialTCPFailurePreservesAcceptedBytes]' passed (0.000 seconds).
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testProgressFailureCannotEraseKernelAcceptance]' started.
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testProgressFailureCannotEraseKernelAcceptance]' passed (0.000 seconds).
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testRetriesRemainUnderAbsoluteWaitDeadline]' started.
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testRetriesRemainUnderAbsoluteWaitDeadline]' passed (0.000 seconds).
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testSplitWritesCoverExactFrame]' started.
+Test Case '-[C1ProbeKitTests.ProvenanceSenderTests testSplitWritesCoverExactFrame]' passed (0.000 seconds).
+Test Suite 'ProvenanceSenderTests' passed at 2026-11-06 09:13:49.772.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'SanjboxS3PreparationPackageTests.xctest' passed at 2026-11-06 09:13:49.772.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'All tests' passed at 2026-11-06 09:13:49.772.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.003) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test rejectWeakExpectationAndUnboundedInput() started.
+◇ Test ownSchemaFilesRefuseSymlinksFIFOHardlinksAndSecretPaths() started.
+◇ Test mockValidIdentityAllowsOnlyInjectedTransport() started.
+◇ Test wrongSameUIDAuditSessionCannotReadProbeInput() started.
+◇ Test mockIdentityMismatchNeverReachesTransport() started.
+◇ Test embeddedNULFamilyConfusionRejectedBeforeMockSend() started.
+✔ Test wrongSameUIDAuditSessionCannotReadProbeInput() passed after 0.001 seconds.
+✔ Test mockValidIdentityAllowsOnlyInjectedTransport() passed after 0.001 seconds.
+✔ Test rejectWeakExpectationAndUnboundedInput() passed after 0.001 seconds.
+✔ Test embeddedNULFamilyConfusionRejectedBeforeMockSend() passed after 0.001 seconds.
+✔ Test mockIdentityMismatchNeverReachesTransport() passed after 0.001 seconds.
+✔ Test ownSchemaFilesRefuseSymlinksFIFOHardlinksAndSecretPaths() passed after 0.002 seconds.
+✔ Test run with 6 tests in 0 suites passed after 0.002 seconds.

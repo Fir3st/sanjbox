@@ -1,0 +1,15 @@
+{
+  "afterKiB": 2188,
+  "beforeKiB": 547580,
+  "processes": "Runner own child handles reaped; sockets closed. No personal process enumeration.",
+  "removedOwnedBuildDirectories": [
+    "/private/tmp/sanjbox-network-build-l4rXZ9/common",
+    "/private/tmp/sanjbox-network-build-l4rXZ9/c1",
+    "/private/tmp/sanjbox-network-build-l4rXZ9/c3",
+    "/private/tmp/sanjbox-network-build-l4rXZ9/modules",
+    "/private/tmp/sanjbox-network-build-l4rXZ9/cache",
+    "/private/tmp/sanjbox-network-build-l4rXZ9/tmp"
+  ],
+  "retained": "Own signed binaries and logs under build root; both validation roots and all producer evidence preserved. Reviewer build/cache is owned by the independent reviewer and was not touched.",
+  "timestampUTC": "2026-11-06T08:22:05.677606+00:00"
+}

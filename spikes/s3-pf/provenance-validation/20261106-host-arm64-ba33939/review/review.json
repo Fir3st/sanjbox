@@ -1,0 +1,57 @@
+{
+  "reviewer": "independent Astra",
+  "sourceHead": "ba339392df85f0798ba66b9f4842735558467646",
+  "base": "2a15fc2608a04b3cf06ba676810ffe69edae3982",
+  "sourceHashesUnchanged": true,
+  "findingsP0P1P2": [],
+  "validation": {
+    "commonRelease": {
+      "new": 7,
+      "legacy": 25,
+      "passed": 32
+    },
+    "c1Release": {
+      "new": 5,
+      "legacy": 6,
+      "passed": 11
+    },
+    "c3Release": {
+      "passed": 50
+    },
+    "signedActualHarness": {
+      "passed": 11,
+      "root": "/private/tmp/sanjbox-network-validation-3c634a9d-7fa7-40cb-bc15-c7fc5ea95d38"
+    },
+    "additionalIndependent": {
+      "checks": [
+        "receiver-identity-before-target",
+        "receiver-signature-before-target",
+        "strict-escaped-duplicate",
+        "strict-unknown",
+        "strict-null-required",
+        "input-symlink-rejected",
+        "all-harness-manifest-files-exact",
+        "independent-raw-sequence-process-timing-claims",
+        "c3-rejects-new-wire-as-sanjboxNetworkProvenanceV1",
+        "c3-rejects-new-wire-as-commonCounterpartJSONL",
+        "c3-rejects-new-wire-as-c1RunRecordStream"
+      ],
+      "limitations": "hostDiagnostic only, no isolation/capture/L4 claim",
+      "passed": true,
+      "rawReferencesChecked": 21
+    }
+  },
+  "preservedFailure": {
+    "log": "common.log",
+    "cause": "Sandbox denied four legacy loopback bind tests and self-membership query; authorized unsandboxed full rerun passed. Initial failure remains recorded."
+  },
+  "scope": [
+    "Additive versioned C1/common producer only",
+    "Own signed hostDiagnostic synthetic 127.0.0.1 and ::1 ephemeral test flows",
+    "No actual testArea session, peer authentication, packet/capture completeness, pf or isolation/L4 proof",
+    "C3 new adapter remains follow-up; new wire rejects under legacy decoders",
+    "No privileged settings, inventory, secret files, service registration or external network exercised"
+  ],
+  "documentationStatus": "Final docs/evidence commit not yet reviewed",
+  "artifacts": "Source hashes, all unit logs including failed sandbox attempt, signing logs, actual harness stdout/stderr and extra control transcripts retained."
+}

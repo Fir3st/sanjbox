@@ -151,3 +151,7 @@ Sada dodržuje GUIDE §3: nástroje pracují jen se syntetickými kanárky a met
 procesu. Nic nečtou z chráněných kořenů kromě souborů, které samy vytvořily, a nepotřebují root.
 Protistrana ukládá vše, co na její porty přijde. Spouštěj ji jen na portech a hostech vyhrazených pro test
 a před commitem do `docs/evidence` zkontroluj, že `raw/` obsahuje jen testovací data.
+
+## Opt-in network provenance
+
+Nový oddělený `provenance` režim counterpartu: [C1/common formát, preflight a bounded receiver](../s3-pf/NETWORK-PROVENANCE.md). Legacy `listen/report` a jejich wire zůstávají beze změny.

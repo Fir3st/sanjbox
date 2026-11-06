@@ -1,0 +1,18 @@
+{
+  "architecture": "arm64",
+  "binarySHA256": {
+    "sanjbox-counterpart": "bd01583c03131ce1df22cd87062d7fdb06fa9e27fc98672cfac37945a0c1366c",
+    "sanjbox-s3-probe": "5cbaeefff225cbf1a503d940e93d5a5faa8f8b2c98dbc20ea1e9b7abb7757f3c"
+  },
+  "developerAlias": "janfiedler-Codex-Astra",
+  "kind": "hostDiagnosticNotLabGate",
+  "macOS": "27.2",
+  "macOSBuild": "26B123",
+  "machineAlias": "host-arm64-20261106",
+  "measurementScope": "Own process metadata and synthetic owned exact loopback only; not a registered L4/S1 area run.",
+  "preparedUTC": "2026-11-06T08:11:26Z",
+  "sourceRevision": "ba339392df85f0798ba66b9f4842735558467646",
+  "swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)",
+  "xcode": "27.2",
+  "xcodeBuild": "27B52"
+}

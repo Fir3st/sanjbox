@@ -1,0 +1,123 @@
+2026-11-06 09:13:16.364 xcodebuild[24658:5575673]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-11-06 09:13:16.661 xcodebuild[24658:5575669] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+2026-11-06 09:13:17.353 xcodebuild[24668:5575731]  DVTFilePathFSEvents: Failed to start fs event stream.
+2026-11-06 09:13:17.525 xcodebuild[24668:5575717] [MT] DVTDeveloperPaths: Failed to get length of DARWIN_USER_CACHE_DIR from confstr(3), error = Error Domain=NSPOSIXErrorDomain Code=5 "Input/output error". Using NSCachesDirectory instead.
+warning: <USER_HOME>/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.
+warning: <USER_HOME>/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.
+Building for production...
+[0/20] /private/tmp/sanjbox-network-review-astra-vji294lx/common/build/arm64-apple-macosx/release/SanjboxProbeKitPackageTests.derived/runner.swift
+[0/20] Write sources
+[11/20] Write swift-version--58304C5D6DBC2206.txt
+[13/21] Compiling SanjboxProbeKit Canary.swift
+[14/26] Compiling sanjbox_whoami main.swift
+[14/26] Write Objects.LinkFileList
+[16/26] Compiling sanjbox_canary main.swift
+[16/26] Write Objects.LinkFileList
+[17/26] Linking sanjbox-whoami
+[18/26] Linking sanjbox-canary
+[20/26] Compiling SanjboxCounterpart Counterpart.swift
+[21/27] Compiling SanjboxNetworkProvenance CLI.swift
+[22/29] Compiling sanjbox_counterpart main.swift
+[22/29] Write Objects.LinkFileList
+[24/29] Compiling SanjboxCounterpartTests CounterpartTests.swift
+[25/29] Compiling SanjboxProbeKitTests CanaryTests.swift
+[25/29] Linking sanjbox-counterpart
+[27/29] Compiling SanjboxNetworkProvenanceTests ProvenanceTests.swift
+[28/30] Compiling SanjboxProbeKitPackageTests runner.swift
+[28/30] Write Objects.LinkFileList
+[29/30] Linking SanjboxProbeKitPackageTests
+Build complete! (22.39s)
+Test Suite 'All tests' started at 2026-11-06 09:13:46.058.
+Test Suite 'SanjboxProbeKitPackageTests.xctest' started at 2026-11-06 09:13:46.060.
+Test Suite 'ProvenanceTests' started at 2026-11-06 09:13:46.060.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testExactEndpointsAndUnsupportedFamilies]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testExactEndpointsAndUnsupportedFamilies]' passed (0.003 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testExpiredFutureAndInvalidChallengeRejected]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testExpiredFutureAndInvalidChallengeRejected]' passed (0.005 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testPreparedFrameBindsRunFlowAndFreshChallenge]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testPreparedFrameBindsRunFlowAndFreshChallenge]' passed (0.001 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testRegistrationBoundsAndFreshness]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testRegistrationBoundsAndFreshness]' passed (0.003 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testSignaturePolicyRejectsEvenFalseTaskAllowAndIncompleteMetadata]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testSignaturePolicyRejectsEvenFalseTaskAllowAndIncompleteMetadata]' passed (0.000 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testStrictJSONRejectsUnknownEscapedDuplicateAndDepth]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testStrictJSONRejectsUnknownEscapedDuplicateAndDepth]' passed (0.000 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testTestAreaRetainsStrictC1IdentityPolicy]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testTestAreaRetainsStrictC1IdentityPolicy]' passed (0.001 seconds).
+Test Suite 'ProvenanceTests' passed at 2026-11-06 09:13:46.075.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.014 (0.015) seconds
+Test Suite 'SanjboxProbeKitPackageTests.xctest' passed at 2026-11-06 09:13:46.075.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.014 (0.015) seconds
+Test Suite 'All tests' passed at 2026-11-06 09:13:46.075.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.014 (0.017) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test contactWithoutBytesStillCounts() started.
+◇ Test existingLogOrRawCapturesAreNeverReused() started.
+◇ Test dnsQuestionJoinsLabelsAndRejectsOtherData() started.
+◇ Test recordsTCPAndUDPFlowsWithCanaries() started.
+◇ Test unverifiableFactsAreMismatchesNotPasses() started.
+◇ Test forbiddenGroupMembershipIsAMismatch() started.
+◇ Test captureReportsTheCallingProcess() started.
+◇ Test hostConsoleContextIsRejectedOnEveryIdentityField() started.
+◇ Test invalidLabelsAreRejected(label:) started.
+◇ Test matchingContextIsValid() started.
+◇ Test quietRunIsCompleteAndEmpty() started.
+◇ Test argumentsSeparateFlagsFromPositionals() started.
+◇ Test recordRoundTripsAsJSONLines() started.
+◇ Test tokenHasPrefixLabelAndRandomSuffix() started.
+◇ Test streamScannerFindsTokensSplitAcrossChunks() started.
+◇ Test groupsOfInterestCoverRequiredAndForbidden() started.
+◇ Test scannerFindsRawAndHexInAnyCase() started.
+◇ Test writtenCanaryRoundTripsThroughRegistryAndIsRemoved() started.
+◇ Test onlySetFieldsAreChecked() started.
+◇ Test creationRefusesExistingFileAndSymlink() started.
+◇ Test incompleteLogsAreReported() started.
+◇ Test cleanupRefusesChangedContentAndSymlinks() started.
+◇ Test stopClosesAndCountsOpenConnections() started.
+◇ Test anyCanaryMatchingReportsUnregisteredTokens() started.
+◇ Test expectationWithoutEffectiveUIDDoesNotDecode() started.
+◇ Test case passing 1 argument label → "" to invalidLabelsAreRejected(label:) started.
+◇ Test case passing 1 argument label → "-home" to invalidLabelsAreRejected(label:) started.
+◇ Test case passing 1 warning: '--build-system native' has been deprecated and will be removed in a future release; please report an issue at https://github.com/swiftlang/swift-package-manager/issues if you are unable to adopt the default build system.
+argument label → "Home" to invalidLabelsAreRejected(label:) started.
+✘ Test contactWithoutBytesStillCounts() recorded an issue at CounterpartTests.swift:152:2: Caught error: bind tcp :: port 0 failed: Operation not permitted
+✘ Test recordsTCPAndUDPFlowsWithCanaries() recorded an issue at CounterpartTests.swift:104:2: Caught error: bind tcp :: port 0 failed: Operation not permitted
+✘ Test quietRunIsCompleteAndEmpty() recorded an issue at CounterpartTests.swift:166:2: Caught error: bind tcp :: port 0 failed: Operation not permitted
+◇ Test case passing 1 argument label → "home/.." to invalidLabelsAreRejected(label:) started.
+◇ Test case passing 1 argument label → "a b" to invalidLabelsAreRejected(label:) started.
+◇ Test case passing 1 argument label → "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" to invalidLabelsAreRejected(label:) started.
+✘ Test stopClosesAndCountsOpenConnections() recorded an issue at CounterpartTests.swift:134:2: Caught error: bind tcp :: port 0 failed: Operation not permitted
+✔ Test dnsQuestionJoinsLabelsAndRejectsOtherData() passed after 0.010 seconds.
+✔ Test forbiddenGroupMembershipIsAMismatch() passed after 0.010 seconds.
+✔ Test matchingContextIsValid() passed after 0.010 seconds.
+✔ Test hostConsoleContextIsRejectedOnEveryIdentityField() passed after 0.010 seconds.
+✔ Test unverifiableFactsAreMismatchesNotPasses() passed after 0.010 seconds.
+✔ Test invalidLabelsAreRejected(label:) with 6 test cases passed after 0.010 seconds.
+✔ Test argumentsSeparateFlagsFromPositionals() passed after 0.010 seconds.
+✔ Test tokenHasPrefixLabelAndRandomSuffix() passed after 0.010 seconds.
+✔ Test scannerFindsRawAndHexInAnyCase() passed after 0.010 seconds.
+✔ Test groupsOfInterestCoverRequiredAndForbidden() passed after 0.010 seconds.
+✔ Test streamScannerFindsTokensSplitAcrossChunks() passed after 0.010 seconds.
+✔ Test onlySetFieldsAreChecked() passed after 0.010 seconds.
+✘ Test contactWithoutBytesStillCounts() failed after 0.010 seconds with 1 issue.
+✘ Test quietRunIsCompleteAndEmpty() failed after 0.010 seconds with 1 issue.
+✔ Test incompleteLogsAreReported() passed after 0.010 seconds.
+✘ Test recordsTCPAndUDPFlowsWithCanaries() failed after 0.010 seconds with 1 issue.
+✔ Test anyCanaryMatchingReportsUnregisteredTokens() passed after 0.010 seconds.
+✘ Test stopClosesAndCountsOpenConnections() failed after 0.010 seconds with 1 issue.
+✔ Test expectationWithoutEffectiveUIDDoesNotDecode() passed after 0.011 seconds.
+✔ Test cleanupRefusesChangedContentAndSymlinks() passed after 0.015 seconds.
+✔ Test creationRefusesExistingFileAndSymlink() passed after 0.016 seconds.
+✔ Test writtenCanaryRoundTripsThroughRegistryAndIsRemoved() passed after 0.016 seconds.
+✔ Test existingLogOrRawCapturesAreNeverReused() passed after 0.018 seconds.
+✘ Test captureReportsTheCallingProcess() recorded an issue at ProbeContextTests.swift:15:5: Expectation failed: context.groupMembership[0].isMember != nil
+↳ context.groupMembership[0].isMember != nil → false
+↳   context.groupMembership[0].isMember → nil
+✘ Test captureReportsTheCallingProcess() failed after 0.021 seconds with 1 issue.
+↳ /// Smoke test against the real system: runs as the developer in their own session.
+✔ Test recordRoundTripsAsJSONLines() passed after 0.022 seconds.
+✘ Test run with 25 tests in 0 suites failed after 0.022 seconds with 5 issues.
+Note: Some test targets reported failures:
+  - SanjboxProbeKitPackageTests (Swift Testing)

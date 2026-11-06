@@ -1,0 +1,73 @@
+{
+  "cleanup": "All owned subprocesses reaped and sockets closed; immutable raw directories retained. No capture completeness or isolation verdict.",
+  "results": [
+    {
+      "check": "identity-before-target",
+      "passed": true
+    },
+    {
+      "check": "signature-before-target",
+      "passed": true
+    },
+    {
+      "check": "tcp-v4",
+      "passed": true,
+      "runID": "A6D225AB-D9C9-4A07-8B81-05325A5CA506"
+    },
+    {
+      "check": "udp-v4",
+      "passed": true,
+      "runID": "D10FF105-AE1A-4B4F-8AFE-C474D725A9D0"
+    },
+    {
+      "check": "tcp-v6",
+      "passed": true,
+      "runID": "10DF7E18-A6CF-41D9-8EDE-0C0156941EAB"
+    },
+    {
+      "check": "udp-v6",
+      "passed": true,
+      "runID": "B4565927-6025-41B2-BBF7-CDF559CB683B"
+    },
+    {
+      "check": "udp-adversarial",
+      "passed": true,
+      "runID": "A34DC730-68E3-4E69-8153-BC7D1793FEC2"
+    },
+    {
+      "check": "tcp-adversarial",
+      "passed": true,
+      "runID": "9B4A4376-BFBA-4B1F-827B-5B799371848F"
+    },
+    {
+      "check": "contact-limit",
+      "passed": true,
+      "runID": "ACCCBAFA-C714-493C-89CB-025D85A4451D"
+    },
+    {
+      "check": "interrupted-prefix",
+      "passed": true,
+      "runID": "48B89E0C-49D5-443D-8B5A-DC148248ACF2"
+    },
+    {
+      "check": "refused-connect",
+      "passed": true,
+      "runID": "461BD987-247D-49C9-8FB4-3FC0A14E32E2"
+    }
+  ],
+  "retainedProducerOutputs": [
+    "/private/tmp/sanjbox-network-a6d225ab-d9c9-4a07-8b81-05325a5ca506-73184949-57db-4e8c-a9e2-ca0e71b78d7b-sender",
+    "/private/tmp/sanjbox-network-a6d225ab-d9c9-4a07-8b81-05325a5ca506-73184949-57db-4e8c-a9e2-ca0e71b78d7b-receiver",
+    "/private/tmp/sanjbox-network-d10ff105-ae1a-4b4f-8afe-c474d725a9d0-613ec8bd-adf8-4e41-bd35-387e928b797d-sender",
+    "/private/tmp/sanjbox-network-d10ff105-ae1a-4b4f-8afe-c474d725a9d0-613ec8bd-adf8-4e41-bd35-387e928b797d-receiver",
+    "/private/tmp/sanjbox-network-10df7e18-a6cf-41d9-8ede-0c0156941eab-2054e46f-af8b-4465-adf2-27afc39907c1-sender",
+    "/private/tmp/sanjbox-network-10df7e18-a6cf-41d9-8ede-0c0156941eab-2054e46f-af8b-4465-adf2-27afc39907c1-receiver",
+    "/private/tmp/sanjbox-network-b4565927-6025-41b2-bbf7-cdf559cb683b-36bf6597-b355-43a2-aa55-d69db1269fed-sender",
+    "/private/tmp/sanjbox-network-b4565927-6025-41b2-bbf7-cdf559cb683b-36bf6597-b355-43a2-aa55-d69db1269fed-receiver",
+    "/private/tmp/sanjbox-network-a34dc730-68e3-4e69-8153-bc7d1793fec2-5d11f266-8a4b-427e-b2dd-78141136a8a8-receiver",
+    "/private/tmp/sanjbox-network-9b4a4376-bfba-4b1f-827b-5b799371848f-417f7f7a-bf8f-4702-b6d9-abca018f7eb7-receiver",
+    "/private/tmp/sanjbox-network-acccbafa-c714-493c-89cb-025d85a4451d-71b40d02-ab11-4418-8a72-4b4d4c976103-receiver",
+    "/private/tmp/sanjbox-network-48b89e0c-49d5-443d-8b5a-dc148248acf2-706b1974-bc1d-4523-aa2b-25314fab4c71-receiver",
+    "/private/tmp/sanjbox-network-461bd987-247d-49c9-8fb4-3fc0a14e32e2-7c00d094-0354-4e68-9dbc-bba99e0c26ab-sender"
+  ]
+}
