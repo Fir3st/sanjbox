@@ -2,6 +2,9 @@
 
 **A2/L1 je stále partial, S1 a GUI-01…13 Neověřeno.** Tento doplněk nemění LAB-v1 ani F0.8.
 Původní [presentation/system RAM recorder](INSTRUMENTATION.md) a jeho schema v1 zůstávají samostatné.
+Nový samostatný [registr procesních řad (2026-11-06)](PROCESS-SERIES.md) rozšiřuje sběr na explicitně
+předregistrované testovací same-UID instance; má pozitivní nativní own-child validaci. Níže popsaný
+`process-memory` zůstává kompatibilní self-only cestou a historické výsledky se nepřepisují.
 Nové zprávy výslovně odlišují skutečný marker, vlastní recorder a externě dodaná syntetická tvrzení.
 
 | Mezera | Implementováno | Zbývá |
@@ -12,7 +15,7 @@ Nové zprávy výslovně odlišují skutečný marker, vlastní recorder a exter
 
 Žádný příkaz nevytváří uživatele/relaci, neprovádí login ani nespouští reálné aplikace. Žádná inventura
 PID, cesty/jména procesů, argumenty nebo environment; žádné TCC/capture, Klíčenka, credential store,
-databáze, sudo, systémová instalace nebo změna nastavení. Nový živý paměťový collector má záměrně
+databáze, sudo, systémová instalace nebo změna nastavení. Zde popsaný `process-memory` má záměrně
 jediný cíl `getpid()`. Nelze mu předat jiný PID ani „shared WindowServer“ roli.
 
 ## Společná pravidla
@@ -93,7 +96,7 @@ neplatné/neúplné. Reportované `timingEvidenceComplete` popisuje pouze dodan�
 PID, UID, BSD čas vzniku (s/µs) a pevná role `owned-recorder-fixture`. Teprve potom se vytvoří a dotkne
 syntetická alokace a měří vlastní proces. Footprint **zahrnuje collector a jeho knihovny**, není to čistá
 velikost syntetické alokace ani reálné aplikace. Záměrně není jiný PID argument, čtení přes task port ani
-mapování celého UID. Registry pro privilegované externí procesy by byl jiný, dosud chybějící mechanismus.
+mapování celého UID. Samostatný same-UID registr viz [PROCESS-SERIES.md](PROCESS-SERIES.md); privilegované/cross-UID cíle stále chybí.
 
 Každý skutečný vzorek ověří PID/UID/start před i po `proc_pid_rusage`; změna/reuse nebo nečitelnost uloží
 chybu s vynechanými metrikami, nikdy nulovou paměť. Nula je naopak explicitní platná číselná hodnota.

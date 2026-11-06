@@ -24,6 +24,10 @@ Krátká skutečná host diagnostika ověřila RAM recorder (6 vzorků/3 s), vla
 (179 prezentací/fixed 3 s) a jeden offscreen workload; všechny výsledky a omezení přesně rozlišuje
 [sanitizovaný validační záznam](VALIDATION.md). Žádný z těchto pokusů není L1/S1 nebo potvrzení F0.8.
 
+Samostatný přídavek 2026-11-06: [PROCESS-SERIES.md](PROCESS-SERIES.md) přidává skutečné časové řady
+explicitně registrovaných same-UID testovacích procesů. Má vlastní schema/CLI a bounded owned-child
+validaci; nemění původní systémový RAM recorder, jeho statistiky ani historické výsledky výše.
+
 ## Sestavení a bezpečné ověření
 
 **[implementátor]** Bez externích závislostí (jen existující lokální common a S1Probe):
