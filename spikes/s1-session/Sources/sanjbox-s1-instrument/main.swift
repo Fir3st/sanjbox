@@ -23,13 +23,15 @@ import S1Instrumentation
         sanjbox-s1-instrument process-series --series-json JSON --expect-json JSON [--apply]
         sanjbox-s1-instrument owned-process-series --run-id ID --expect-json JSON [--apply]
         sanjbox-s1-instrument evaluate-process-series --fixture NAME --run-id ID [--apply]
+        sanjbox-s1-instrument inspect-process-journal --fixture NAME [--series-json JSON] [--apply]
         Default is dry-run: no measurements, GUI, files, or fixture reads.
         evaluate reads only /private/tmp/sanjbox-a2-fixture-<your-uid>-<NAME>.json.
+        inspect-process-journal reads only staged /private/tmp/sanjbox-a2-journal-<your-uid>-<NAME>.jsonl; stdout only.
         plan/record JSON schema and manual same-Mac coordination: INSTRUMENTATION.md.
         """
         guard let command = args.first else { print(usage); return 0 }
         if command == "--help" && args.count == 1 { print(usage); return 0 }
-        guard ["record", "plan", "evaluate", "offscreen", "login-marker", "process-memory", "evaluate-supplement", "process-series", "owned-process-series", "evaluate-process-series"].contains(command), args.count <= 10 else { throw InstrumentError("unsupported command or argument count") }
+        guard ["record", "plan", "evaluate", "offscreen", "login-marker", "process-memory", "evaluate-supplement", "process-series", "owned-process-series", "evaluate-process-series", "inspect-process-journal"].contains(command), args.count <= 10 else { throw InstrumentError("unsupported command or argument count") }
         var options: [String: String] = [:]
         var apply = false
         var index = 1
@@ -42,6 +44,17 @@ import S1Instrumentation
             let value = args[index + 1]
             guard value.utf8.count <= 16_384 else { throw InstrumentError("option exceeds 16 KiB") }
             options[key] = value; index += 2
+        }
+        if command == "inspect-process-journal" {
+            guard let name = options["--fixture"], safeID(name), Set(options.keys).isSubset(of: ["--fixture", "--series-json"]) else { throw InstrumentError("journal inspection requires a staged name and optional supplied plan") }
+            let supplied = options["--series-json"].map { Data($0.utf8) }
+            if let supplied { _ = try ProcessJournalInspector.suppliedPlan(supplied) }
+            if !apply { print("dry-run: offline journal inspection; no input read, process lookup, or output file"); return 0 }
+            signal(SIGALRM, SIG_DFL); alarm(30)
+            defer { alarm(0) }
+            let report = try ProcessJournalInspector.inspect(ProcessJournalInspector.readStaged(name: name), suppliedPlanJSON: supplied)
+            print(String(decoding: try encoded(report), as: UTF8.self))
+            return report.structuralError ? 2 : 3
         }
         let allowed: Set<String> = command == "process-series" ? ["--series-json", "--expect-json"] : command == "owned-process-series" ? ["--run-id", "--expect-json"] : command == "login-marker" ? ["--marker-json", "--expect-json"] : command == "process-memory" ? ["--memory-json", "--expect-json"] : command == "record" ? ["--plan-json", "--expect-json"] : command == "plan" ? ["--plan-json"] : command == "offscreen" ? ["--run-id", "--expect-json"] : ["--fixture", "--run-id"]
         guard Set(options.keys) == allowed && !(command == "plan" && apply) else { throw InstrumentError("command requires exactly its documented options") }
