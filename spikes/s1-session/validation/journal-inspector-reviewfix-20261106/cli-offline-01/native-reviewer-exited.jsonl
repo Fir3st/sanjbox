@@ -1,0 +1,2 @@
+{"point":{"errorCode":3,"readStarted":230417.88890225004,"slot":1,"state":"unreadableBefore","time":230417.88893037505},"runID":"a2-series-26f8aad11a45-exited","schemaVersion":1,"sequence":0,"window":{"end":230418.88890150006,"start":230417.88890150006}}
+{"point":{"errorCode":3,"readStarted":230418.89044325004,"slot":1,"state":"unreadableBefore","time":230418.89053204173},"runID":"a2-series-26f8aad11a45-exited","schemaVersion":1,"sequence":1,"window":{"end":230418.88890150006,"start":230417.88890150006}}

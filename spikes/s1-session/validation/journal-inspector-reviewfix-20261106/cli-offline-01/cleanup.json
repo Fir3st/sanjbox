@@ -1,0 +1,134 @@
+[
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-directory.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-fifo.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-hardlink.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-symlink.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-wrong-mode.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-dry-invalid.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-empty.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-possible-utf8-tail.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-invalid-surrogate-tail.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-invalid-utf8-tail.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-derived-bad-final-30.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-derived-bad-final-29.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-derived-bad-final-28.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-derived-bad-final-27.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-derived-bad-middle.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-derived-missing-LF.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-derived-truncated.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-reviewer-cross-run.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-reviewer-bound.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-implementer-cross-run.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-implementer-bound.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-reviewer-lifecycle.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-reviewer-exited.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-reviewer-interrupted-SIGALRM.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-reviewer-interrupted-SIGTERM.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-reviewer-wrong-start.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-reviewer-positive.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-implementer-lifecycle.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-implementer-exited.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-implementer-interrupted-SIGALRM.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-implementer-interrupted-SIGTERM.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-implementer-wrong-start.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-1fbca9c27951454f-native-implementer-positive.jsonl",
+    "removed": true
+  }
+]

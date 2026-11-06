@@ -1,0 +1,122 @@
+[
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-directory.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-fifo.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-hardlink.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-symlink.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-wrong-mode.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-dry-invalid.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-empty.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-derived-bad-final-30.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-derived-bad-final-29.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-derived-bad-final-28.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-derived-bad-final-27.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-derived-bad-middle.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-derived-missing-LF.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-derived-truncated.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-reviewer-cross-run.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-reviewer-bound.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-implementer-cross-run.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-implementer-bound.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-reviewer-lifecycle.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-reviewer-exited.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-reviewer-interrupted-SIGALRM.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-reviewer-interrupted-SIGTERM.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-reviewer-wrong-start.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-reviewer-positive.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-implementer-lifecycle.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-implementer-exited.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-implementer-interrupted-SIGALRM.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-implementer-interrupted-SIGTERM.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-implementer-wrong-start.jsonl",
+    "removed": true
+  },
+  {
+    "path": "/private/tmp/sanjbox-a2-journal-501-journal-inspector-595d542bfb604bff-native-implementer-positive.jsonl",
+    "removed": true
+  }
+]

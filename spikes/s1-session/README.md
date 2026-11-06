@@ -20,6 +20,8 @@ TCC/preflight. A2/L1 zůstává **rozpracované**, LAB prahy jsou návrh a S1 z�
 Navazující [registrované procesní řady](PROCESS-SERIES.md) sbírají metadata/paměť explicitních same-UID
 testovacích instancí a ověřují sampler na vlastních dětech s alokací, narozením a zánikem. Jejich
 úspěšná host validace nenahrazuje L1 ani úplnou atribuci WindowServeru/klientů.
+[Offline inspektor journalu](JOURNAL-INSPECTOR.md) čte explicitně staged zachované řádky/přerušený
+prefix, zachovává diagnostiku a oddělené metriky; každý výstup zůstává neúplný/neověřený bez S1/P4 verdiktu.
 Původní postupy níže jsou zachované pro kompatibilitu; samy nenahrazují nový časový recorder ani L1.
 
 ## Obsah

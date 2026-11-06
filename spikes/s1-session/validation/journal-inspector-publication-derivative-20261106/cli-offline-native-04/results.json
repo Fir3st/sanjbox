@@ -1,0 +1,507 @@
+[
+  {
+    "label": "dry-missing",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-missing"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "dry-run: offline journal inspection; no input read, process lookup, or output file\n",
+    "stderr": ""
+  },
+  {
+    "label": "missing",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-missing",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: cannot open explicitly staged journal\n"
+  },
+  {
+    "label": "path",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "../escape",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: journal inspection requires a staged name and optional supplied plan\n"
+  },
+  {
+    "label": "no-pid",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff",
+      "--pid",
+      "1"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: unknown, missing or duplicate option\n"
+  },
+  {
+    "label": "no-output-dataset",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff",
+      "--run-id",
+      "journal-inspector-595d542bfb604bff"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: journal inspection requires a staged name and optional supplied plan\n"
+  },
+  {
+    "label": "duplicate-apply",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff",
+      "--apply",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: duplicate --apply\n"
+  },
+  {
+    "label": "duplicate-fixture",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: unknown, missing or duplicate option\n"
+  },
+  {
+    "label": "invalid-plan-dry",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff",
+      "--series-json",
+      "{}"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: DecodingError.keyNotFound: Key 'runID' not found in keyed decoding container. Debug description: No value associated with key CodingKeys(stringValue: \"runID\", intValue: nil) (\"runID\").\n"
+  },
+  {
+    "label": "native-implementer-positive",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-implementer-positive",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 2433,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 2433,\n  \"inputSHA256\" : \"a3684d2975973431de577361bfe4153ff6784a53698b2500b2a5ccd33f742aff\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 972,\n        \"start\" : 485\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230260.65969925004,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230260.65973004172\n      },\n      \"sequence\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1458,\n        \"start\" : 972\n      },\n      \"line\" : 3,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230261.6596667917,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230261.6597059584\n      },\n      \"sequence\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1946,\n        \"start\" : 1458\n      },\n      \"line\" : 4,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230262.65791404172,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230262.65793900006\n      },\n      \"sequence\" : 3\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 2433,\n        \"start\" : 1946\n      },\n      \"line\" : 5,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230263.6598390417,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230263.65987287505\n      },\n      \"sequence\" : 4\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-implementer-wrong-start",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-implementer-wrong-start",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 691,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 346,\n        \"start\" : 0\n      },\n      \"code\" : \"retained failure state: identityChangedBefore\",\n      \"line\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 691,\n        \"start\" : 346\n      },\n      \"code\" : \"retained failure state: identityChangedBefore\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 691,\n  \"inputSHA256\" : \"4513c225f0199133f16d957527e5be140e7cb9830842be7be6d5b9e6f16db24f\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 346,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"readStarted\" : 230264.2060540834,\n        \"slot\" : 1,\n        \"state\" : \"identityChangedBefore\",\n        \"time\" : 230264.20606375005\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 691,\n        \"start\" : 346\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"readStarted\" : 230265.2064510417,\n        \"slot\" : 1,\n        \"state\" : \"identityChangedBefore\",\n        \"time\" : 230265.2064700834\n      },\n      \"sequence\" : 1\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-wrong-start\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230265.2060534584,\n    \"start\" : 230264.2060534584\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-implementer-interrupted-SIGTERM",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-implementer-interrupted-SIGTERM",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 995,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 995,\n  \"inputSHA256\" : \"cb23f2afdfaa2ce505e02e2e1918f912c3727ae5ebbdeaeea0f44ad7c9bf136c\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 497,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19579384,\n        \"readStarted\" : 230265.55475650006,\n        \"residentBytes\" : 8257536,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230265.5547775834\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 995,\n        \"start\" : 497\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19579384,\n        \"readStarted\" : 230266.55491195837,\n        \"residentBytes\" : 8257536,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230266.55494262505\n      },\n      \"sequence\" : 1\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-interrupted-SIGTERM\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230271.55475475005,\n    \"start\" : 230265.55475475005\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-implementer-interrupted-SIGALRM",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-implementer-interrupted-SIGALRM",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 989,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 989,\n  \"inputSHA256\" : \"5617c0e85e6279a6e8448f7c23f15798a8caa5c97a07b1840e3fb07edfcb37de\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 494,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19579384,\n        \"readStarted\" : 230266.7721882084,\n        \"residentBytes\" : 8257536,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230266.7722069167\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 989,\n        \"start\" : 494\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19579384,\n        \"readStarted\" : 230267.77289600004,\n        \"residentBytes\" : 8257536,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230267.7729334584\n      },\n      \"sequence\" : 1\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-interrupted-SIGALRM\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230272.7721875417,\n    \"start\" : 230266.7721875417\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-implementer-exited",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-implementer-exited",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 504,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 252,\n        \"start\" : 0\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 504,\n        \"start\" : 252\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 504,\n  \"inputSHA256\" : \"4857b834a7eb9af0177a47392289e2f820ed8bedfa5d4538e4062fcd21846ca9\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 252,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230268.12468462504,\n        \"slot\" : 1,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230268.1247179167\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 504,\n        \"start\" : 252\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230269.1260130417,\n        \"slot\" : 1,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230269.12606541673\n      },\n      \"sequence\" : 1\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-exited\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230269.1246837917,\n    \"start\" : 230268.1246837917\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-implementer-lifecycle",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-implementer-lifecycle",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 5648,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 726,\n        \"start\" : 487\n      },\n      \"code\" : \"retained failure state: notRegistered\",\n      \"line\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1453,\n        \"start\" : 1212\n      },\n      \"code\" : \"retained failure state: notRegistered\",\n      \"line\" : 4\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4153,\n        \"start\" : 3896\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 10\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4900,\n        \"start\" : 4642\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 12\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 5648,\n        \"start\" : 5389\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 14\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 5648,\n  \"inputSHA256\" : \"ad06f901f8bab0d6298e21fee9a19bcbce3b24fe567d65c10be3f23b5f551af1\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 487,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2736632,\n        \"readStarted\" : 230269.65807854172,\n        \"residentBytes\" : 10354688,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230269.6580900834\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 726,\n        \"start\" : 487\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"readStarted\" : 230269.6584263334,\n        \"slot\" : 2,\n        \"state\" : \"notRegistered\",\n        \"time\" : 230269.6584263334\n      },\n      \"sequence\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1212,\n        \"start\" : 726\n      },\n      \"line\" : 3,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2736632,\n        \"readStarted\" : 230270.6612310417,\n        \"residentBytes\" : 10354688,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230270.6612549584\n      },\n      \"sequence\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1453,\n        \"start\" : 1212\n      },\n      \"line\" : 4,\n      \"point\" : {\n        \"readStarted\" : 230270.66227200005,\n        \"slot\" : 2,\n        \"state\" : \"notRegistered\",\n        \"time\" : 230270.66227200005\n      },\n      \"sequence\" : 3\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1942,\n        \"start\" : 1453\n      },\n      \"line\" : 5,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19530232,\n        \"readStarted\" : 230271.84096975005,\n        \"residentBytes\" : 27148288,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230271.84097837505\n      },\n      \"sequence\" : 4\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 2430,\n        \"start\" : 1942\n      },\n      \"line\" : 6,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 520,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 824011,\n          \"startSeconds\" : 1793950084,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 520,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 824011,\n          \"startSeconds\" : 1793950084,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 3621368,\n        \"readStarted\" : 230271.84108029172,\n        \"residentBytes\" : 11239424,\n        \"slot\" : 2,\n        \"state\" : \"sampled\",\n        \"time\" : 230271.84108845837\n      },\n      \"sequence\" : 5\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 2919,\n        \"start\" : 2430\n      },\n      \"line\" : 7,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19530232,\n        \"readStarted\" : 230272.65960200006,\n        \"residentBytes\" : 27148288,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230272.65963804172\n      },\n      \"sequence\" : 6\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 3408,\n        \"start\" : 2919\n      },\n      \"line\" : 8,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 520,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 824011,\n          \"startSeconds\" : 1793950084,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 520,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 824011,\n          \"startSeconds\" : 1793950084,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 11125240,\n        \"readStarted\" : 230272.66041741672,\n        \"residentBytes\" : 18743296,\n        \"slot\" : 2,\n        \"state\" : \"sampled\",\n        \"time\" : 230272.66044037504\n      },\n      \"sequence\" : 7\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 3896,\n        \"start\" : 3408\n      },\n      \"line\" : 9,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19530232,\n        \"readStarted\" : 230273.6599707084,\n        \"residentBytes\" : 27148288,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230273.65999737504\n      },\n      \"sequence\" : 8\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4153,\n        \"start\" : 3896\n      },\n      \"line\" : 10,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230273.6607331667,\n        \"slot\" : 2,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230273.66081662505\n      },\n      \"sequence\" : 9\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4642,\n        \"start\" : 4153\n      },\n      \"line\" : 11,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19530232,\n        \"readStarted\" : 230274.65817825004,\n        \"residentBytes\" : 27148288,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230274.6582199584\n      },\n      \"sequence\" : 10\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4900,\n        \"start\" : 4642\n      },\n      \"line\" : 12,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230274.65908429172,\n        \"slot\" : 2,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230274.6590919584\n      },\n      \"sequence\" : 11\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 5389,\n        \"start\" : 4900\n      },\n      \"line\" : 13,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 493,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 643608,\n          \"startSeconds\" : 1793950082,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19513848,\n        \"readStarted\" : 230275.66103837505,\n        \"residentBytes\" : 27131904,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230275.6610696667\n      },\n      \"sequence\" : 12\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 5648,\n        \"start\" : 5389\n      },\n      \"line\" : 14,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230275.66176866673,\n        \"slot\" : 2,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230275.66177962505\n      },\n      \"sequence\" : 13\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-lifecycle\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230275.65807733338,\n    \"start\" : 230269.65807733338\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-reviewer-positive",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-reviewer-positive",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 2445,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 2445,\n  \"inputSHA256\" : \"76a7a31abdb67041c0441e89fd958237f3e906424d0ee8a8eee78e86514ed19a\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 488,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230409.43809829172,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230409.4381160417\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 977,\n        \"start\" : 488\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230410.43917345838,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230410.43919570837\n      },\n      \"sequence\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1466,\n        \"start\" : 977\n      },\n      \"line\" : 3,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230411.4382500417,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230411.43828141672\n      },\n      \"sequence\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1955,\n        \"start\" : 1466\n      },\n      \"line\" : 4,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230412.4396494584,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230412.43968662506\n      },\n      \"sequence\" : 3\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 2445,\n        \"start\" : 1955\n      },\n      \"line\" : 5,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230413.43878991672,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230413.43881833338\n      },\n      \"sequence\" : 4\n    }\n  ],\n  \"runID\" : \"a2-series-26f8aad11a45-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230413.43809779172,\n    \"start\" : 230409.43809779172\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-reviewer-wrong-start",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-reviewer-wrong-start",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 694,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 347,\n        \"start\" : 0\n      },\n      \"code\" : \"retained failure state: identityChangedBefore\",\n      \"line\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 694,\n        \"start\" : 347\n      },\n      \"code\" : \"retained failure state: identityChangedBefore\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 694,\n  \"inputSHA256\" : \"8678da4b39e66a015439ff6cbd8091e914710e4be1409e9f0039dce2ad59a1ce\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 347,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"readStarted\" : 230413.9807258334,\n        \"slot\" : 1,\n        \"state\" : \"identityChangedBefore\",\n        \"time\" : 230413.98073862505\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 694,\n        \"start\" : 347\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"readStarted\" : 230414.98127366672,\n        \"slot\" : 1,\n        \"state\" : \"identityChangedBefore\",\n        \"time\" : 230414.9812875834\n      },\n      \"sequence\" : 1\n    }\n  ],\n  \"runID\" : \"a2-series-26f8aad11a45-wrong-start\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230414.9807250417,\n    \"start\" : 230413.9807250417\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-reviewer-interrupted-SIGTERM",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-reviewer-interrupted-SIGTERM",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 1001,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 1001,\n  \"inputSHA256\" : \"87729a044be2afbdacb2482e143ac407ea71d20e3dee269e6bdaf1312c1f7f94\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 500,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19563000,\n        \"readStarted\" : 230415.32978645837,\n        \"residentBytes\" : 27181056,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230415.3298034584\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1001,\n        \"start\" : 500\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19563000,\n        \"readStarted\" : 230416.33078016673,\n        \"residentBytes\" : 27181056,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230416.33081445837\n      },\n      \"sequence\" : 1\n    }\n  ],\n  \"runID\" : \"a2-series-26f8aad11a45-interrupted-SIGTERM\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230421.32978587504,\n    \"start\" : 230415.32978587504\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-reviewer-interrupted-SIGALRM",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-reviewer-interrupted-SIGALRM",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 1002,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 1002,\n  \"inputSHA256\" : \"f34fd29dba47f68b6ac87be914a0b978bd5eca8eeb7dc4cb888a411746859a54\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 501,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19563000,\n        \"readStarted\" : 230416.53116508338,\n        \"residentBytes\" : 27181056,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230416.53118395837\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1002,\n        \"start\" : 501\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19563000,\n        \"readStarted\" : 230417.53429725004,\n        \"residentBytes\" : 27181056,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230417.53433500006\n      },\n      \"sequence\" : 1\n    }\n  ],\n  \"runID\" : \"a2-series-26f8aad11a45-interrupted-SIGALRM\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230422.53116425005,\n    \"start\" : 230416.53116425005\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-reviewer-exited",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-reviewer-exited",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 510,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 255,\n        \"start\" : 0\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 510,\n        \"start\" : 255\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 510,\n  \"inputSHA256\" : \"ca30aa1b2b474ce1a01cf52bc1ffee7c9e9ac6edfd6c3f8e5f1d26dc0493d242\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 255,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230417.88890225004,\n        \"slot\" : 1,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230417.88893037505\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 510,\n        \"start\" : 255\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230418.89044325004,\n        \"slot\" : 1,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230418.89053204173\n      },\n      \"sequence\" : 1\n    }\n  ],\n  \"runID\" : \"a2-series-26f8aad11a45-exited\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230418.88890150006,\n    \"start\" : 230417.88890150006\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "native-reviewer-lifecycle",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-native-reviewer-lifecycle",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 5669,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 730,\n        \"start\" : 489\n      },\n      \"code\" : \"retained failure state: notRegistered\",\n      \"line\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1461,\n        \"start\" : 1220\n      },\n      \"code\" : \"retained failure state: notRegistered\",\n      \"line\" : 4\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4170,\n        \"start\" : 3912\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 10\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4919,\n        \"start\" : 4662\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 12\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 5669,\n        \"start\" : 5410\n      },\n      \"code\" : \"retained failure state: unreadableBefore\",\n      \"line\" : 14\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 5669,\n  \"inputSHA256\" : \"a3548377e610b668da5458ced66b9ce32b9a7ff7eeeb6159adb8684f682560f2\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 489,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2769400,\n        \"readStarted\" : 230419.40825204173,\n        \"residentBytes\" : 10387456,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230419.4082623334\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 730,\n        \"start\" : 489\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"readStarted\" : 230419.40860704173,\n        \"slot\" : 2,\n        \"state\" : \"notRegistered\",\n        \"time\" : 230419.40860704173\n      },\n      \"sequence\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1220,\n        \"start\" : 730\n      },\n      \"line\" : 3,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2769400,\n        \"readStarted\" : 230420.41059208338,\n        \"residentBytes\" : 10387456,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230420.41061575006\n      },\n      \"sequence\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1461,\n        \"start\" : 1220\n      },\n      \"line\" : 4,\n      \"point\" : {\n        \"readStarted\" : 230420.41126429173,\n        \"slot\" : 2,\n        \"state\" : \"notRegistered\",\n        \"time\" : 230420.41126429173\n      },\n      \"sequence\" : 3\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1952,\n        \"start\" : 1461\n      },\n      \"line\" : 5,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19563000,\n        \"readStarted\" : 230421.59739062504,\n        \"residentBytes\" : 27181056,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230421.59740412506\n      },\n      \"sequence\" : 4\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 2441,\n        \"start\" : 1952\n      },\n      \"line\" : 6,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2122,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 575534,\n          \"startSeconds\" : 1793950234,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2122,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 575534,\n          \"startSeconds\" : 1793950234,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 3916280,\n        \"readStarted\" : 230421.5976146667,\n        \"residentBytes\" : 11534336,\n        \"slot\" : 2,\n        \"state\" : \"sampled\",\n        \"time\" : 230421.59762408337\n      },\n      \"sequence\" : 5\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 2932,\n        \"start\" : 2441\n      },\n      \"line\" : 7,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19563000,\n        \"readStarted\" : 230422.40910150006,\n        \"residentBytes\" : 27181056,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230422.40912987504\n      },\n      \"sequence\" : 6\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 3422,\n        \"start\" : 2932\n      },\n      \"line\" : 8,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2122,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 575534,\n          \"startSeconds\" : 1793950234,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2122,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 575534,\n          \"startSeconds\" : 1793950234,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 11223544,\n        \"readStarted\" : 230422.40958262506,\n        \"residentBytes\" : 18841600,\n        \"slot\" : 2,\n        \"state\" : \"sampled\",\n        \"time\" : 230422.4095987917\n      },\n      \"sequence\" : 7\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 3912,\n        \"start\" : 3422\n      },\n      \"line\" : 9,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19563000,\n        \"readStarted\" : 230423.4094224167,\n        \"residentBytes\" : 27181056,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230423.40944912506\n      },\n      \"sequence\" : 8\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4170,\n        \"start\" : 3912\n      },\n      \"line\" : 10,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230423.40989933338,\n        \"slot\" : 2,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230423.40997525005\n      },\n      \"sequence\" : 9\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4662,\n        \"start\" : 4170\n      },\n      \"line\" : 11,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19563000,\n        \"readStarted\" : 230424.41140737504,\n        \"residentBytes\" : 27181056,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230424.41144112506\n      },\n      \"sequence\" : 10\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 4919,\n        \"start\" : 4662\n      },\n      \"line\" : 12,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230424.4119337917,\n        \"slot\" : 2,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230424.4119389584\n      },\n      \"sequence\" : 11\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 5410,\n        \"start\" : 4919\n      },\n      \"line\" : 13,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2100,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 395265,\n          \"startSeconds\" : 1793950232,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19530232,\n        \"readStarted\" : 230425.4088797917,\n        \"residentBytes\" : 27148288,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230425.40890712506\n      },\n      \"sequence\" : 12\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 5669,\n        \"start\" : 5410\n      },\n      \"line\" : 14,\n      \"point\" : {\n        \"errorCode\" : 3,\n        \"readStarted\" : 230425.40957783337,\n        \"slot\" : 2,\n        \"state\" : \"unreadableBefore\",\n        \"time\" : 230425.40958200005\n      },\n      \"sequence\" : 13\n    }\n  ],\n  \"runID\" : \"a2-series-26f8aad11a45-lifecycle\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"window\" : {\n    \"end\" : 230425.40825054172,\n    \"start\" : 230419.40825054172\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "implementer-bound",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-implementer-bound",
+      "--apply",
+      "--series-json",
+      "{\"runID\": \"a2-series-8efd4051967e-positive\", \"seconds\": 4, \"registrations\": [{\"slot\": 1, \"identity\": {\"uid\": 501, \"pid\": 312, \"realUID\": 501, \"startSeconds\": 1793950072, \"startMicroseconds\": 474251}, \"role\": \"ownedAllocationFixture\", \"provenanceSHA256\": \"169b2f5e1033c8cf35ffdcd9170297154fcc1f223932967fee1a5d0e30a5e57c\"}]}"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 2433,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 2433,\n  \"inputSHA256\" : \"a3684d2975973431de577361bfe4153ff6784a53698b2500b2a5ccd33f742aff\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 972,\n        \"start\" : 485\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230260.65969925004,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230260.65973004172\n      },\n      \"sequence\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1458,\n        \"start\" : 972\n      },\n      \"line\" : 3,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230261.6596667917,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230261.6597059584\n      },\n      \"sequence\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1946,\n        \"start\" : 1458\n      },\n      \"line\" : 4,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230262.65791404172,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230262.65793900006\n      },\n      \"sequence\" : 3\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 2433,\n        \"start\" : 1946\n      },\n      \"line\" : 5,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230263.6598390417,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230263.65987287505\n      },\n      \"sequence\" : 4\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"suppliedPlanSHA256\" : \"5d609f650a8a3ca27e251b8b3c8bda3b94818be980c83c247c42d0161fdd3b10\",\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "implementer-cross-run",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-implementer-cross-run",
+      "--apply",
+      "--series-json",
+      "{\"runID\": \"a2-series-26f8aad11a45-positive\", \"seconds\": 4, \"registrations\": [{\"slot\": 1, \"identity\": {\"realUID\": 501, \"pid\": 2010, \"startSeconds\": 1793950222, \"startMicroseconds\": 254739, \"uid\": 501}, \"role\": \"ownedAllocationFixture\", \"provenanceSHA256\": \"339c3cf7da8d617068072c8d65436fb850266c3ced4278440888dc5db18e3c54\"}]}"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 0,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"code\" : \"supplied plan run or window mismatch\",\n      \"line\" : 1\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 2433,\n  \"inputSHA256\" : \"a3684d2975973431de577361bfe4153ff6784a53698b2500b2a5ccd33f742aff\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n\n  ],\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : true,\n  \"suppliedPlanSHA256\" : \"fb5515348aa884b9f173fa4e0d925ba28e93b1cf9d99ab009cdec024a3e6d074\",\n  \"unexaminedBytes\" : {\n    \"end\" : 2433,\n    \"start\" : 485\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "reviewer-bound",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-reviewer-bound",
+      "--apply",
+      "--series-json",
+      "{\"runID\": \"a2-series-26f8aad11a45-positive\", \"seconds\": 4, \"registrations\": [{\"slot\": 1, \"identity\": {\"realUID\": 501, \"pid\": 2010, \"startSeconds\": 1793950222, \"startMicroseconds\": 254739, \"uid\": 501}, \"role\": \"ownedAllocationFixture\", \"provenanceSHA256\": \"339c3cf7da8d617068072c8d65436fb850266c3ced4278440888dc5db18e3c54\"}]}"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 2445,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 2445,\n  \"inputSHA256\" : \"76a7a31abdb67041c0441e89fd958237f3e906424d0ee8a8eee78e86514ed19a\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 488,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230409.43809829172,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230409.4381160417\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 977,\n        \"start\" : 488\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230410.43917345838,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230410.43919570837\n      },\n      \"sequence\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1466,\n        \"start\" : 977\n      },\n      \"line\" : 3,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230411.4382500417,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230411.43828141672\n      },\n      \"sequence\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1955,\n        \"start\" : 1466\n      },\n      \"line\" : 4,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230412.4396494584,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230412.43968662506\n      },\n      \"sequence\" : 3\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 2445,\n        \"start\" : 1955\n      },\n      \"line\" : 5,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 2010,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 254739,\n          \"startSeconds\" : 1793950222,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230413.43878991672,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230413.43881833338\n      },\n      \"sequence\" : 4\n    }\n  ],\n  \"runID\" : \"a2-series-26f8aad11a45-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"suppliedPlanSHA256\" : \"fb5515348aa884b9f173fa4e0d925ba28e93b1cf9d99ab009cdec024a3e6d074\",\n  \"window\" : {\n    \"end\" : 230413.43809779172,\n    \"start\" : 230409.43809779172\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "reviewer-cross-run",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-reviewer-cross-run",
+      "--apply",
+      "--series-json",
+      "{\"runID\": \"a2-series-8efd4051967e-positive\", \"seconds\": 4, \"registrations\": [{\"slot\": 1, \"identity\": {\"uid\": 501, \"pid\": 312, \"realUID\": 501, \"startSeconds\": 1793950072, \"startMicroseconds\": 474251}, \"role\": \"ownedAllocationFixture\", \"provenanceSHA256\": \"169b2f5e1033c8cf35ffdcd9170297154fcc1f223932967fee1a5d0e30a5e57c\"}]}"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 0,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 488,\n        \"start\" : 0\n      },\n      \"code\" : \"supplied plan run or window mismatch\",\n      \"line\" : 1\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 2445,\n  \"inputSHA256\" : \"76a7a31abdb67041c0441e89fd958237f3e906424d0ee8a8eee78e86514ed19a\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n\n  ],\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : true,\n  \"suppliedPlanSHA256\" : \"5d609f650a8a3ca27e251b8b3c8bda3b94818be980c83c247c42d0161fdd3b10\",\n  \"unexaminedBytes\" : {\n    \"end\" : 2445,\n    \"start\" : 488\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "derived-truncated",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-derived-truncated",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 1946,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 2416,\n  \"inputSHA256\" : \"1ce2355148b96e6112dcbde109ce9098d0fa4e3a6b492c7a20a2f5e9b67c49c3\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 972,\n        \"start\" : 485\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230260.65969925004,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230260.65973004172\n      },\n      \"sequence\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1458,\n        \"start\" : 972\n      },\n      \"line\" : 3,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230261.6596667917,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230261.6597059584\n      },\n      \"sequence\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1946,\n        \"start\" : 1458\n      },\n      \"line\" : 4,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230262.65791404172,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230262.65793900006\n      },\n      \"sequence\" : 3\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"tail\" : {\n    \"bytes\" : {\n      \"end\" : 2416,\n      \"start\" : 1946\n    },\n    \"kind\" : \"unterminated-final-bytes\",\n    \"line\" : 5\n  },\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "derived-missing-LF",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-derived-missing-LF",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 1946,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 2432,\n  \"inputSHA256\" : \"dd1f36522a2011ca7a95308df07ac5da15637a26eadff682a4af1e81a89198b6\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 972,\n        \"start\" : 485\n      },\n      \"line\" : 2,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230260.65969925004,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230260.65973004172\n      },\n      \"sequence\" : 1\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1458,\n        \"start\" : 972\n      },\n      \"line\" : 3,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230261.6596667917,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230261.6597059584\n      },\n      \"sequence\" : 2\n    },\n    {\n      \"bytes\" : {\n        \"end\" : 1946,\n        \"start\" : 1458\n      },\n      \"line\" : 4,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 19595768,\n        \"readStarted\" : 230262.65791404172,\n        \"residentBytes\" : 27213824,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230262.65793900006\n      },\n      \"sequence\" : 3\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"tail\" : {\n    \"bytes\" : {\n      \"end\" : 2432,\n      \"start\" : 1946\n    },\n    \"kind\" : \"complete-row-without-LF\",\n    \"line\" : 5\n  },\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "derived-bad-middle",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-derived-bad-middle",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 485,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 488,\n        \"start\" : 485\n      },\n      \"code\" : \"invalid row schema, type, unknown key, or null\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 1949,\n  \"inputSHA256\" : \"8552b16aa826a090863730fa7fb7e254bc72f613e43669989757f12307223428\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : true,\n  \"unexaminedBytes\" : {\n    \"end\" : 1949,\n    \"start\" : 488\n  },\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "derived-bad-final-27",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-derived-bad-final-27",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 485,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 488,\n        \"start\" : 485\n      },\n      \"code\" : \"invalid row schema, type, unknown key, or null\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 488,\n  \"inputSHA256\" : \"f1ac573ce5c8b9473469ff1b717ea28360d021343aaaafc95444971f109757fd\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : true,\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "derived-bad-final-28",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-derived-bad-final-28",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 485,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 487,\n        \"start\" : 485\n      },\n      \"code\" : \"invalid row schema, type, unknown key, or null\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 487,\n  \"inputSHA256\" : \"53d0885ae03f69245b804b6f9413c40df031c9658372851cdece0508d23a2a0e\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : true,\n  \"tail\" : {\n    \"bytes\" : {\n      \"end\" : 487,\n      \"start\" : 485\n    },\n    \"kind\" : \"invalid-final-bytes\",\n    \"line\" : 2\n  },\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "derived-bad-final-29",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-derived-bad-final-29",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 485,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 501,\n        \"start\" : 485\n      },\n      \"code\" : \"invalid JSON syntax, duplicate key, number, or depth\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 501,\n  \"inputSHA256\" : \"7df34f523b5caa8c73c5d746435c7d7da9c6c22f5a65d20ea787377f8f99a51f\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : true,\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "derived-bad-final-30",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-derived-bad-final-30",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 485,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 487,\n        \"start\" : 485\n      },\n      \"code\" : \"invalid JSON syntax, duplicate key, number, or depth\",\n      \"line\" : 2\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 487,\n  \"inputSHA256\" : \"7fa05af76070a104f3102d5ffa69445e1d8ab97d271df6e89e1f277d94aad73f\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 485,\n        \"start\" : 0\n      },\n      \"line\" : 1,\n      \"point\" : {\n        \"after\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"before\" : {\n          \"pid\" : 312,\n          \"realUID\" : 501,\n          \"startMicroseconds\" : 474251,\n          \"startSeconds\" : 1793950072,\n          \"uid\" : 501\n        },\n        \"physicalFootprintBytes\" : 2802168,\n        \"readStarted\" : 230259.6574120417,\n        \"residentBytes\" : 10420224,\n        \"slot\" : 1,\n        \"state\" : \"sampled\",\n        \"time\" : 230259.6574345417\n      },\n      \"sequence\" : 0\n    }\n  ],\n  \"runID\" : \"a2-series-8efd4051967e-positive\",\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : true,\n  \"window\" : {\n    \"end\" : 230263.65741041672,\n    \"start\" : 230259.65741041672\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "empty",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-empty",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 0,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 0,\n        \"start\" : 0\n      },\n      \"code\" : \"empty journal; no retained rows\",\n      \"line\" : 1\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 0,\n  \"inputSHA256\" : \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n\n  ],\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "dry-invalid-no-read",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-dry-invalid"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "dry-run: offline journal inspection; no input read, process lookup, or output file\n",
+    "stderr": ""
+  },
+  {
+    "label": "wrong-mode",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-wrong-mode",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: journal type/owner/mode/size/link conflict\n"
+  },
+  {
+    "label": "symlink",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-symlink",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: cannot open explicitly staged journal\n"
+  },
+  {
+    "label": "hardlink",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-hardlink",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: journal type/owner/mode/size/link conflict\n"
+  },
+  {
+    "label": "fifo",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-fifo",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: journal type/owner/mode/size/link conflict\n"
+  },
+  {
+    "label": "directory",
+    "arguments": [
+      "inspect-process-journal",
+      "--fixture",
+      "journal-inspector-595d542bfb604bff-directory",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: journal type/owner/mode/size/link conflict\n"
+  }
+]

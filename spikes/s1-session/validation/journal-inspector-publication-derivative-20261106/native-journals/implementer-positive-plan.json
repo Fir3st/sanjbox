@@ -1,0 +1,1 @@
+{"runID": "a2-series-8efd4051967e-positive", "seconds": 4, "registrations": [{"slot": 1, "identity": {"uid": 501, "pid": 312, "realUID": 501, "startSeconds": 1793950072, "startMicroseconds": 474251}, "role": "ownedAllocationFixture", "provenanceSHA256": "169b2f5e1033c8cf35ffdcd9170297154fcc1f223932967fee1a5d0e30a5e57c"}]}

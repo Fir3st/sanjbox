@@ -74,10 +74,12 @@ začátku ≤100 ms a konce ≤1 s jsou diagnostické kontroly acquisition, **ne
 
 CLI má self-only watchdog `ceil(seconds)+30 s`, fixture runner 30 s; ukončený/zaseknutý běh může
 zanechat intent/registry, dosavadní journal a případný částečný poslední řádek. Úplné již zapsané
-řádky zůstávají i při SIGTERM/SIGALRM. Ruční kontrola prefixu nikdy nevytvoří kompletní verdikt;
+řádky zůstávají i při SIGTERM/SIGALRM. [Offline inspektor](JOURNAL-INSPECTOR.md) nyní kontroluje
+explicitně staged kopii prefixu včetně byte hashů, framingu, schématu a konzistence; vždy vrací
+neúplné/neověřené tvrzení, nikdy kompletní acquisition nebo verdikt;
 bez řádného final recording/report je běh neúplný. Při přerušení uprostřed posledního write může být
 poslední řádek částečný; dřívější řádky se nevyhazují. Automatická recovery ani verdikt z prefixu nejsou
-implementované. Dřívější review repro ztráty bodů před touto opravou zůstává zachované. Žádný kód
+implementované; inspekce původní journal neotevírá k zápisu ani neopravuje. Dřívější review repro ztráty bodů před touto opravou zůstává zachované. Žádný kód
 neopravuje ani nemaže starý raw. Knihovní API bez CLI watchdogu vyžaduje vnější supervision, protože
 zděděné identity helpery a kernel API nemají vlastní deadline.
 

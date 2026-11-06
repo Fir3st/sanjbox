@@ -1,0 +1,185 @@
+Building for production...
+[0/20] /private/tmp/sanjbox-a2-journal-inspector-20261106/native-build/arm64-apple-macosx/release/SanjboxS1PackageTests.derived/runner.swift
+[1/20] Write sources
+[11/20] Write swift-version--58304C5D6DBC2206.txt
+[13/22] Compiling S1Forward Forwarder.swift
+[14/22] Compiling SanjboxProbeKit Canary.swift
+[15/24] Compiling sanjbox_s1_forward main.swift
+[15/24] Write Objects.LinkFileList
+[16/24] Linking sanjbox-s1-forward
+[18/24] Compiling S1Probe OffscreenWorkload.swift
+[19/26] Compiling sanjbox_s1_probe main.swift
+[20/27] Compiling S1ProbeTests S1ProbeTests.swift
+[20/27] Write Objects.LinkFileList
+[21/27] Linking sanjbox-s1-probe
+[23/27] Compiling S1Instrumentation Analysis.swift
+[24/29] Compiling sanjbox_s1_instrument main.swift
+[24/29] Write Objects.LinkFileList
+[25/29] Linking sanjbox-s1-instrument
+[27/29] Compiling S1InstrumentationTests InstrumentationTests.swift
+[28/30] Compiling SanjboxS1PackageTests runner.swift
+[28/30] Write Objects.LinkFileList
+[29/30] Linking SanjboxS1PackageTests
+Build complete! (30.84s)
+Test Suite 'All tests' started at 2026-11-06 12:53:51.226.
+Test Suite 'All tests' passed at 2026-11-06 12:53:51.227.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test consoleSessionHasADisplayAndMetalDevice() started.
+◇ Test uidProcessesIncludeThisProcess() started.
+◇ Test percentileUsesNearestRank() started.
+◇ Test cpuReferenceDependsOnFrameAndIterations() started.
+◇ Test forwarderRelaysBothDirectionsAndHalfCloses() started.
+◇ Test workloadRequiresServicesAndExactProcessOwnership() started.
+◇ Test readerRejectsRealUIDChanges() started.
+◇ Test loginRejectsDuplicateMixedConfigurationAndWrongRole() started.
+◇ Test seriesRejectsDuplicateInstanceAcrossRolesAndSlots() started.
+◇ Test readerRetainsExitBeforeAndDuringRead() started.
+◇ Test seriesRequiresCollectorIdentitySignatureAndClock() started.
+◇ Test offscreenWorkloadMatchesCPUReference() started.
+◇ Test inspectorRejectsCrossRunWindowSequenceAndChronology() started.
+◇ Test inputFixtureIsAllowlistedAndRejectsSymlink() started.
+◇ Test loginTimeoutRemainsFailureNotDiscarded() started.
+◇ Test inspectorKeepsFailureDiagnosticsBeforeBadSibling() started.
+◇ Test readerChecksIdentityBeforeAndAfterSuccessfulRead() started.
+◇ Test goldenRAMBaselineUsesMinAndPreservesNegative() started.
+◇ Test readerChecksAfterRusageFailureAndPreservesErrno() started.
+◇ Test inspectorRejectsContradictoryStatesAndInstanceSwitching() started.
+◇ Test seriesArrivalExitAndMissingStayIncomplete() started.
+◇ Test seriesMissingAndOutOfWindowEndpointsCannotComplete() started.
+◇ Test seriesRejectsRebindingReusedPIDAndUnknownSlots() started.
+◇ Test readerRejectsPIDReuseDuringReadAndDoesNotPublishNumbers() started.
+◇ Test readerRejectsPIDReuseBeforeReadingMemory() started.
+◇ Test inspectorReadsActualWriterAndRetainsZeroVersusFailure() started.
+◇ Test goldenFixedWindowsAndEndpointSlots() started.
+◇ Test seriesExactDecodeRejectsNamesNullAndUnknownNestedKeys() started.
+◇ Test inspectorRejectsBadCompleteMiddleAndFinalWithoutResync() started.
+◇ Test seriesForgedSuccessfulIdentityDoesNotEnterStats() started.
+◇ Test inspectorBoundsRowsBytesDepthAndCounts() started.
+◇ Test workloadClockAndIdentityGapsRemainIncomplete() started.
+◇ Test actualClockEnvelopeAndWarmupRequired() started.
+◇ Test supplementalStrictShapeRejectsUnknownDuplicateAndNull() started.
+◇ Test memoryIsNonAdditiveAndZeroIsNotMissing() started.
+◇ Test registeredPlanRejectsDuplicatesCrossUIDAndBounds() started.
+◇ Test RAMGapsDriftUnknownPressureAndEndpointsAreIncomplete() started.
+◇ Test RAMLoadPressureSwapAndMalformedFreeCount() started.
+◇ Test emptyAndEndGapsCannotPass() started.
+◇ Test loginMissingReversedAndDifferentBootCannotComplete() started.
+◇ Test inspectorTruncationAndAbsentLFNeverCommitARow() started.
+◇ Test memoryUnreadableSampleNeverBecomesZero() started.
+◇ Test childRequestRejectsCommandsAndUnboundedSlots() started.
+◇ Test processPlanRejectsOversizeAndNonfinite() started.
+◇ Test exactIdentityCannotBeReplacedByEmptyMismatchList() started.
+◇ Test malformedTimesAndDuplicatesRejected() started.
+◇ Test inspectorStrictNumbersAndJSONFraming() started.
+◇ Test signatureRejectsBothEntitlementSpellingsAndUndecodedBlob() started.
+◇ Test visibilityCoverageIsRequiredAndOcclusionFails() started.
+◇ Test loginUncertaintyThresholdAndLateReadyAreExplicit() started.
+◇ Test registeredSeriesReportsSeparateKnownDistributions() started.
+◇ Test missingOrExtraBoundariesAreIncompleteNotCrash() started.
+◇ Test seriesRequiresOwnedCompletionWithoutErasingIdentityFailure() started.
+◇ Test seriesGapAndLongReadCannotComplete() started.
+◇ Test workloadSyntheticRecordNeverVerifiesReferencedArtifacts() started.
+◇ Test workloadPreservesReportedFailureAndUnknown() started.
+◇ Test memoryClockIdentityAndSignatureCannotBeAssertedValid() started.
+◇ Test inspectorRejectsUnknownNullDuplicateEscapedAndMissingKeys() started.
+◇ Test syntheticAndDifferentBootCannotProveConcurrency() started.
+◇ Test profilesAreExplicitAndBounded() started.
+◇ Test windowHalfOpenAndLateFramesExcluded() started.
+◇ Test memoryUniqueProcessInstanceAndLifecycleBinding() started.
+◇ Test workloadNeedsRealOutputCategoriesAndBothEnds() started.
+◇ Test journalPersistsPointsAndErrorsAndRefusesReuse() started.
+◇ Test memoryRequiresEndpointsNoGapsAndOrderedSamples() started.
+◇ Test duplicateJSONKeysIncludingEscapesAreRejected() started.
+◇ Test inspectorExplicitPlanBindsClaimsWithoutAuthenticatingThem() started.
+◇ Test inspectorCannotRebindAPriorFailureToAnotherPIDOrIdentity() started.
+◇ Test memoryRejectsPrewindowSamplesAndAcceptsFractionalDurationRounding() started.
+◇ Test inspectorRetainsValidStateShapesIncludingUIDDrift() started.
+◇ Test nonfiniteOffscreenResultsRemainEncodableWithoutGPU() started.
+◇ Test workloadRejectsMixedProfilesMalformedHashesAndUnorderedTimes() started.
+◇ Test loginCalibratedSyntheticAndManualAreDistinguished() started.
+◇ Test inspectorTotalRowLimitRetainsTheEntireAllowedPrefix() started.
+◇ Test storageNeverReusesDatasetOrFile() started.
+◇ Test seriesBoundPerSlotAndEmptyRegistrationRemainExplicit() started.
+◇ Test inspectorRetainsTimingProblemsAsDiagnosticsNotRepairedMetrics() started.
+✔ Test cpuReferenceDependsOnFrameAndIterations() passed after 0.010 seconds.
+✔ Test percentileUsesNearestRank() passed after 0.010 seconds.
+✔ Test readerRejectsRealUIDChanges() passed after 0.028 seconds.
+✔ Test readerRetainsExitBeforeAndDuringRead() passed after 0.028 seconds.
+✔ Test seriesRequiresCollectorIdentitySignatureAndClock() passed after 0.028 seconds.
+✔ Test workloadRequiresServicesAndExactProcessOwnership() passed after 0.028 seconds.
+✔ Test loginTimeoutRemainsFailureNotDiscarded() passed after 0.028 seconds.
+✔ Test loginRejectsDuplicateMixedConfigurationAndWrongRole() passed after 0.028 seconds.
+✔ Test readerChecksIdentityBeforeAndAfterSuccessfulRead() passed after 0.028 seconds.
+✔ Test seriesRejectsDuplicateInstanceAcrossRolesAndSlots() passed after 0.028 seconds.
+✔ Test uidProcessesIncludeThisProcess() passed after 0.028 seconds.
+✔ Test inputFixtureIsAllowlistedAndRejectsSymlink() passed after 0.028 seconds.
+✔ Test readerChecksAfterRusageFailureAndPreservesErrno() passed after 0.028 seconds.
+✔ Test inspectorKeepsFailureDiagnosticsBeforeBadSibling() passed after 0.028 seconds.
+✔ Test seriesArrivalExitAndMissingStayIncomplete() passed after 0.028 seconds.
+✔ Test seriesMissingAndOutOfWindowEndpointsCannotComplete() passed after 0.028 seconds.
+✔ Test seriesRejectsRebindingReusedPIDAndUnknownSlots() passed after 0.028 seconds.
+✔ Test readerRejectsPIDReuseDuringReadAndDoesNotPublishNumbers() passed after 0.028 seconds.
+✔ Test forwarderRelaysBothDirectionsAndHalfCloses() passed after 0.028 seconds.
+✔ Test readerRejectsPIDReuseBeforeReadingMemory() passed after 0.028 seconds.
+✔ Test goldenRAMBaselineUsesMinAndPreservesNegative() passed after 0.028 seconds.
+✔ Test seriesForgedSuccessfulIdentityDoesNotEnterStats() passed after 0.028 seconds.
+✔ Test inspectorReadsActualWriterAndRetainsZeroVersusFailure() passed after 0.028 seconds.
+✔ Test inspectorRejectsContradictoryStatesAndInstanceSwitching() passed after 0.028 seconds.
+✔ Test inspectorRejectsCrossRunWindowSequenceAndChronology() passed after 0.028 seconds.
+✔ Test workloadClockAndIdentityGapsRemainIncomplete() passed after 0.028 seconds.
+✔ Test inspectorRejectsBadCompleteMiddleAndFinalWithoutResync() passed after 0.028 seconds.
+✔ Test memoryIsNonAdditiveAndZeroIsNotMissing() passed after 0.028 seconds.
+✔ Test RAMGapsDriftUnknownPressureAndEndpointsAreIncomplete() passed after 0.028 seconds.
+✔ Test RAMLoadPressureSwapAndMalformedFreeCount() passed after 0.028 seconds.
+✔ Test registeredPlanRejectsDuplicatesCrossUIDAndBounds() passed after 0.028 seconds.
+✔ Test loginMissingReversedAndDifferentBootCannotComplete() passed after 0.028 seconds.
+✔ Test seriesExactDecodeRejectsNamesNullAndUnknownNestedKeys() passed after 0.028 seconds.
+�warning: '--build-system native' has been deprecated and will be removed in a future release; please report an issue at https://github.com/swiftlang/swift-package-manager/issues if you are unable to adopt the default build system.
+�� Test inspectorTruncationAndAbsentLFNeverCommitARow() passed after 0.028 seconds.
+✔ Test memoryUnreadableSampleNeverBecomesZero() passed after 0.028 seconds.
+✔ Test childRequestRejectsCommandsAndUnboundedSlots() passed after 0.028 seconds.
+✔ Test processPlanRejectsOversizeAndNonfinite() passed after 0.028 seconds.
+✔ Test exactIdentityCannotBeReplacedByEmptyMismatchList() passed after 0.028 seconds.
+✔ Test malformedTimesAndDuplicatesRejected() passed after 0.028 seconds.
+✔ Test supplementalStrictShapeRejectsUnknownDuplicateAndNull() passed after 0.028 seconds.
+✔ Test signatureRejectsBothEntitlementSpellingsAndUndecodedBlob() passed after 0.028 seconds.
+✔ Test inspectorStrictNumbersAndJSONFraming() passed after 0.028 seconds.
+✔ Test registeredSeriesReportsSeparateKnownDistributions() passed after 0.028 seconds.
+✔ Test loginUncertaintyThresholdAndLateReadyAreExplicit() passed after 0.028 seconds.
+✔ Test seriesRequiresOwnedCompletionWithoutErasingIdentityFailure() passed after 0.028 seconds.
+✔ Test missingOrExtraBoundariesAreIncompleteNotCrash() passed after 0.028 seconds.
+✔ Test seriesGapAndLongReadCannotComplete() passed after 0.028 seconds.
+✔ Test workloadSyntheticRecordNeverVerifiesReferencedArtifacts() passed after 0.028 seconds.
+✔ Test memoryClockIdentityAndSignatureCannotBeAssertedValid() passed after 0.028 seconds.
+✔ Test workloadPreservesReportedFailureAndUnknown() passed after 0.028 seconds.
+✔ Test inspectorRejectsUnknownNullDuplicateEscapedAndMissingKeys() passed after 0.028 seconds.
+✔ Test syntheticAndDifferentBootCannotProveConcurrency() passed after 0.028 seconds.
+✔ Test profilesAreExplicitAndBounded() passed after 0.028 seconds.
+✔ Test windowHalfOpenAndLateFramesExcluded() passed after 0.028 seconds.
+✔ Test memoryUniqueProcessInstanceAndLifecycleBinding() passed after 0.028 seconds.
+✔ Test workloadNeedsRealOutputCategoriesAndBothEnds() passed after 0.028 seconds.
+✔ Test memoryRequiresEndpointsNoGapsAndOrderedSamples() passed after 0.028 seconds.
+✔ Test journalPersistsPointsAndErrorsAndRefusesReuse() passed after 0.028 seconds.
+✔ Test duplicateJSONKeysIncludingEscapesAreRejected() passed after 0.028 seconds.
+✔ Test goldenFixedWindowsAndEndpointSlots() passed after 0.029 seconds.
+✔ Test memoryRejectsPrewindowSamplesAndAcceptsFractionalDurationRounding() passed after 0.028 seconds.
+✔ Test inspectorCannotRebindAPriorFailureToAnotherPIDOrIdentity() passed after 0.028 seconds.
+✔ Test inspectorRetainsValidStateShapesIncludingUIDDrift() passed after 0.028 seconds.
+✔ Test nonfiniteOffscreenResultsRemainEncodableWithoutGPU() passed after 0.028 seconds.
+✔ Test workloadRejectsMixedProfilesMalformedHashesAndUnorderedTimes() passed after 0.028 seconds.
+✔ Test loginCalibratedSyntheticAndManualAreDistinguished() passed after 0.028 seconds.
+✔ Test inspectorExplicitPlanBindsClaimsWithoutAuthenticatingThem() passed after 0.028 seconds.
+✔ Test storageNeverReusesDatasetOrFile() passed after 0.028 seconds.
+✔ Test seriesBoundPerSlotAndEmptyRegistrationRemainExplicit() passed after 0.028 seconds.
+✔ Test inspectorRetainsTimingProblemsAsDiagnosticsNotRepairedMetrics() passed after 0.028 seconds.
+✔ Test emptyAndEndGapsCannotPass() passed after 0.029 seconds.
+✔ Test visibilityCoverageIsRequiredAndOcclusionFails() passed after 0.029 seconds.
+✔ Test actualClockEnvelopeAndWarmupRequired() passed after 0.047 seconds.
+✔ Test consoleSessionHasADisplayAndMetalDevice() passed after 0.066 seconds.
+✔ Test inspectorBoundsRowsBytesDepthAndCounts() passed after 0.107 seconds.
+✔ Test offscreenWorkloadMatchesCPUReference() passed after 0.786 seconds.
+✔ Test inspectorTotalRowLimitRetainsTheEntireAllowedPrefix() passed after 2.276 seconds.
+✔ Test run with 77 tests in 0 suites passed after 2.277 seconds.

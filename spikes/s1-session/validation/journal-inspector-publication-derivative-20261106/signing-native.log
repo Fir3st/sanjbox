@@ -1,0 +1,28 @@
+/private/tmp/sanjbox-a2-journal-inspector-20261106/native-build/arm64-apple-macosx/release/sanjbox-s1-instrument: replacing existing signature
+Executable=/private/tmp/sanjbox-a2-journal-inspector-20261106/native-build/arm64-apple-macosx/release/sanjbox-s1-instrument
+Identifier=sanjbox-s1-instrument-5555494443e210cf99f5347a9ed6ecb98de9f6e5
+Format=Mach-O thin (arm64)
+CodeDirectory v=20500 size=5663 flags=0x10002(adhoc,runtime) hashes=170+2 location=embedded
+VersionPlatform=1
+VersionMin=983040
+VersionSDK=1769984
+Hash type=sha256 size=32
+CandidateCDHash sha256=3bd4263d5b1c463eb87abccc16f436efcfcd9aed
+CandidateCDHashFull sha256=3bd4263d5b1c463eb87abccc16f436efcfcd9aed3c81624cadda8356fb108954
+Hash choices=sha256
+CMSDigest=3bd4263d5b1c463eb87abccc16f436efcfcd9aed3c81624cadda8356fb108954
+CMSDigestType=2
+Executable Segment base=0
+Executable Segment limit=917504
+Executable Segment flags=0x1
+Page size=16384
+CDHash=3bd4263d5b1c463eb87abccc16f436efcfcd9aed
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Runtime Version=27.2.0
+Sealed Resources=none
+Internal requirements count=0 size=12
+warning: Specifying ':' in the path is deprecated and will not work in a future release
+Total signatures=1
+Chosen signature=1
