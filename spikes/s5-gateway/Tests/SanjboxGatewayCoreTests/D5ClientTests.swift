@@ -53,8 +53,8 @@ private final class D5Workspace: @unchecked Sendable {
         try process.run(); process.waitUntilExit()
         return D5ProcessResult(status: process.terminationStatus, output: try Data(contentsOf: output), error: try Data(contentsOf: errors))
     }
-    func async(_ executable: String, _ args: [String]) async throws -> D5ProcessResult {
-        let (process, output, errors, handles) = try process(executable, args)
+    func async(_ executable: String, _ args: [String], extra: [String: String] = [:]) async throws -> D5ProcessResult {
+        let (process, output, errors, handles) = try process(executable, args, extra: extra)
         defer { handles.forEach { try? $0.close() } }
         let timer = Task {
             do { try await Task.sleep(for: .seconds(20)) } catch { return }
@@ -79,13 +79,13 @@ private final class D5Workspace: @unchecked Sendable {
     for args in [ ["init", "--bare", "--template=", "--initial-branch=main", "owner/fixture.git"],
                   ["--git-dir=owner/fixture.git", "config", "http.receivepack", "true"],
                   ["init", "--template=", "--initial-branch=main", "seed"] ] {
-        #expect(try workspace.sync(args).status == 0)
+        #expect(try await workspace.async("/usr/bin/git", args).status == 0)
     }
     try Data("only a generated fixture\n".utf8).write(to: workspace.root.appendingPathComponent("seed/canary.txt"))
-    #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "add", "canary.txt"]).status == 0)
-    #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
-    #expect(try workspace.sync(workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
-    let initial = try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
+    #expect(try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "seed", "add", "canary.txt"]).status == 0)
+    #expect(try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "seed", "commit", "-m", "synthetic fixture"]).status == 0)
+    #expect(try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "seed", "push", "../owner/fixture.git", "main"], extra: ["GIT_ALLOW_PROTOCOL": "file"]).status == 0)
+    let initial = try await workspace.async("/usr/bin/git", ["--git-dir=owner/fixture.git", "rev-parse", "main"]).output
     let backend = D5Backend { _, request, _ in
         let parts = request.target.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
         let result = try workspace.sync(workspace.gitOptions + ["http-backend"], body: request.body, extra: [
@@ -109,11 +109,11 @@ private final class D5Workspace: @unchecked Sendable {
     guard clone.status == 0 else { return }
     #expect(try Data(contentsOf: workspace.root.appendingPathComponent("clone/canary.txt")) == Data("only a generated fixture\n".utf8))
     try Data("own synthetic change\n".utf8).write(to: workspace.root.appendingPathComponent("clone/canary.txt"))
-    #expect(try workspace.sync(workspace.gitOptions + ["-C", "clone", "commit", "-am", "second synthetic fixture"]).status == 0)
+    #expect(try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "clone", "commit", "-am", "second synthetic fixture"]).status == 0)
     let push = try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "clone", "push", "origin", "HEAD:refs/heads/canary"])
     #expect(push.status == 0, "push: \(String(decoding: push.error, as: UTF8.self))")
-    let local = try workspace.sync(["-C", "clone", "rev-parse", "HEAD"]).output
-    #expect(try workspace.sync(["--git-dir=owner/fixture.git", "rev-parse", "refs/heads/canary"]).output == local)
+    let local = try await workspace.async("/usr/bin/git", ["-C", "clone", "rev-parse", "HEAD"]).output
+    #expect(try await workspace.async("/usr/bin/git", ["--git-dir=owner/fixture.git", "rev-parse", "refs/heads/canary"]).output == local)
     #expect(local != initial)
     let callsBefore = backend.calls.count
     let denied = try await workspace.async("/usr/bin/git", workspace.gitOptions + ["-C", "clone", "push", "http://127.0.0.1:\(port)/git/other.git", "HEAD:refs/heads/forbidden"])
@@ -121,7 +121,7 @@ private final class D5Workspace: @unchecked Sendable {
     #expect(backend.calls.allSatisfy { $0.0 == "git.example" && $0.1.target.hasPrefix("/owner/fixture.git/") })
     #expect(backend.calls.contains { $0.1.method == "POST" && $0.1.target.hasSuffix("/git-upload-pack") })
     #expect(backend.calls.contains { $0.1.method == "POST" && $0.1.target.hasSuffix("/git-receive-pack") })
-    print("D5 local git client: " + String(decoding: try workspace.sync(["--version"]).output, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines))
+    print("D5 local git client: " + String(decoding: try await workspace.async("/usr/bin/git", ["--version"]).output, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
 private actor D5PyPISlot {
@@ -147,7 +147,7 @@ private actor D5PyPISlot {
         wheel.writestr('fixture-1.0.0.dist-info/WHEEL', 'Wheel-Version: 1.0\\nGenerator: synthetic\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n')
         wheel.writestr('fixture-1.0.0.dist-info/RECORD', '')
     """
-    #expect(try workspace.sync(python, ["-I", "-c", script]).status == 0)
+    #expect(try await workspace.async(python, ["-I", "-c", script]).status == 0)
     let bytes = try Data(contentsOf: workspace.root.appendingPathComponent(d5Filename))
     let metadata = try d5Index(files: [d5File(bytes: bytes)])
     let backend = D5Backend { _, request, _ in D5Wire(body: request.target.hasPrefix("/simple/") ? metadata : bytes) }
@@ -166,5 +166,5 @@ private actor D5PyPISlot {
     #expect(try Data(contentsOf: workspace.root.appendingPathComponent("download/" + d5Filename)) == bytes)
     #expect(await handler.downloadRecords().map(\.state) == [.transportAccepted])
     #expect(backend.calls.map { $0.1.target } == ["/simple/fixture/", "/simple/fixture/", "/packages/" + d5Filename, "/simple/fixture/"])
-    print("D5 local pip client: " + String(decoding: try workspace.sync(python, ["-I", "-m", "pip", "--version"]).output, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines))
+    print("D5 local pip client: " + String(decoding: try await workspace.async(python, ["-I", "-m", "pip", "--version"]).output, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines))
 }
