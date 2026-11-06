@@ -11,12 +11,12 @@ Samotný workflow merge neblokuje: správce musí ruleset jednorázově aktivova
 
 | Kontrola | Rozsah |
 |---|---|
-| Discover Swift packages | Najde všechny verzované `Package.swift`; prázdný seznam je chyba |
-| Swift (`balík`, `debug`) | `swift build` všech produktů a `swift test` všech testů balíku |
+| Discover Swift packages | Najde verzované `Package.swift` a vybere balíky k otestování (viz níže); prázdný seznam balíků v repozitáři je chyba |
+| Swift (`balík`, `debug`) | `swift build` všech produktů a `swift test` všech testů balíku pod pětiminutovým hlídačem |
 | Swift (`balík`, `release`) | Stejné sestavení a testy s optimalizacemi |
 | Python (`tools/tests`) | Testy generátoru webu se stavem vývoje (`tools/progress.py`), Python 3.11 jako workflow webu |
 | Python (spikes, macOS) | Každý adresář pod `spikes/` s verzovanými `test*.py`, systémový `/usr/bin/python3 -I -B` na stejném macOS runneru jako Swift |
-| CI required | Projde pouze při úspěšném nalezení balíků, všech bězích matice a obou Python jobech |
+| CI required | Projde pouze při úspěšném nalezení balíků, všech vybraných bězích matice a obou Python jobech |
 
 K 2026-11-04 jde o dvanáct běhů Swift: `spikes/common`, `spikes/s1-session`, `spikes/s3-pf`,
 `spikes/s4-host`, `spikes/s4-state` a `spikes/s5-gateway`, všechny v debug a release, a dva Python joby.
@@ -27,8 +27,20 @@ Python testy spiků běží systémovým Pythonem, pro který jsou psané labora
 pod `spikes/` se přidá automaticky. Dokud žádný neexistuje, job to vypíše a projde.
 
 Workflow běží pro každý pull request včetně změn dokumentace, po pushi do `main`, při `merge_group`
-a při ručním spuštění. Nemá filtry cest. Pull request testuje slučovací commit vytvořený GitHubem.
-Nový commit zruší starší běh stejného PR. Selhání jedné položky matice nezastaví ostatní běhy.
+a při ručním spuštění. Pull request testuje slučovací commit vytvořený GitHubem.
+Nový commit zruší starší běh stejného PR.
+
+**Výběr balíků.** Pull request sestaví a otestuje jen Swift balíky, ve kterých mění soubory, a balíky,
+které na nich přes `.package(path:)` závisejí (změna `spikes/common` tedy spustí téměř všechny).
+Soubor patří nejhlubšímu balíku, ve kterém leží (`spikes/s3-pf/ingress` je samostatný balík).
+Změna pod `.github/` spustí všechny balíky. Pull request bez změny Swift balíku (např. dokumentace)
+Swift joby přeskočí a `CI required` toto přeskočení přijme. Push do `main`, `merge_group` a ruční
+spuštění testují vždy všechny balíky, takže `main` zůstává ověřený celý.
+
+**Zaseknutý test.** `swift test` běží přes [run-with-watchdog.sh](../.github/scripts/run-with-watchdog.sh)
+s limitem 5 minut (nejpomalejší balík potřebuje k 2026-11-06 asi 80 s). Po vypršení zapíše zásobníky
+vláken celého stromu testovacích procesů (`/usr/bin/sample`) do logu i artefaktu, procesy ukončí
+a krok selže s chybou `Timed out`. Celý job má limit 12 minut. Selhání jedné položky matice nezastaví ostatní běhy.
 Povinná kontrola přes `always()` vyhodnotí i selhání, zrušení nebo přeskočení závislých jobů;
 přijímá pouze výsledek `success`. Při zrušení celého workflow nemůže vzniknout nová úspěšná kontrola.
 

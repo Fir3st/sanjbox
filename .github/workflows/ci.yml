@@ -25,38 +25,74 @@ jobs:
     timeout-minutes: 5
     outputs:
       matrix: ${{ steps.discover.outputs.matrix }}
+      run: ${{ steps.discover.outputs.run }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # The pull request merge commit and its base parent, to list the changed files.
+          fetch-depth: 2
           persist-credentials: false
-      - name: Include every tracked Swift package
+      - name: Select the packages to build and test
         id: discover
+        env:
+          EVENT: ${{ github.event_name }}
         run: |
           python3 - <<'PY'
           import json
           import os
           from pathlib import PurePosixPath
+          import posixpath
+          import re
           import subprocess
 
-          files = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
-          packages = sorted({
-              str(PurePosixPath(path).parent)
-              for path in files if PurePosixPath(path).name == "Package.swift"
-          })
+          def git(*args):
+              return subprocess.run(["git", *args], capture_output=True, text=True).stdout
+
+          files = git("ls-files", "-z").split("\0")
+          packages = sorted({str(PurePosixPath(path).parent) for path in files if PurePosixPath(path).name == "Package.swift"})
           if not packages:
               raise SystemExit("No Swift packages found; refusing an empty test matrix")
+          dependents = {package: set() for package in packages}
+          for package in packages:
+              manifest = open(posixpath.join(package, "Package.swift"), encoding="utf-8").read()
+              for target in re.findall(r'\.package\(\s*path:\s*"([^"]+)"', manifest):
+                  dependency = posixpath.normpath(posixpath.join(package, target))
+                  if dependency not in dependents:
+                      raise SystemExit(f"{package} depends on unknown package {dependency}")
+                  dependents[dependency].add(package)
+
+          # Pull requests test only packages they can affect; main, merge queue and manual runs test all.
+          selected, reason = set(packages), f"{os.environ['EVENT']}: every package"
+          parents = git("rev-list", "--parents", "-n", "1", "HEAD").split()
+          if os.environ["EVENT"] == "pull_request" and len(parents) == 3:
+              changed = [path for path in git("diff", "--name-only", "HEAD^1", "HEAD").splitlines() if path]
+              if any(path.startswith(".github/") for path in changed):
+                  reason = "pull request changes CI: every package"
+              else:
+                  owners = {max((p for p in packages if path.startswith(p + "/")), key=len, default=None) for path in changed}
+                  selected, pending = set(), [owner for owner in owners if owner]
+                  while pending:
+                      package = pending.pop()
+                      if package not in selected:
+                          selected.add(package)
+                          pending.extend(dependents[package])
+                  reason = f"pull request changes {len(changed)} files: affected packages and their dependents"
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-              output.write("matrix=" + json.dumps({"package": packages}) + "\n")
-          print("Packages:", ", ".join(packages))
+              output.write("matrix=" + json.dumps({"package": sorted(selected)}) + "\n")
+              output.write(f"run={'true' if selected else 'false'}\n")
+          print(reason)
+          print("Packages:", ", ".join(sorted(selected)) or "none")
           PY
 
   swift-tests:
     name: Swift (${{ matrix.package }}, ${{ matrix.configuration }})
     needs: packages
+    if: ${{ needs.packages.outputs.run == 'true' }}
     # Apple Silicon + macOS 27 / Xcode 27, matching docs/GUIDE.md.
     # This GitHub-hosted image is currently in public preview.
     runs-on: xcode-27
-    timeout-minutes: 20
+    # Build and test normally take under 3 minutes; a hung test is stopped by the watchdog below.
+    timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
@@ -92,7 +128,10 @@ jobs:
       - name: Run all tests
         run: |
           set -euo pipefail
-          swift test --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
+          # The slowest package needs about 80 s. A test that hangs fails after 5 minutes with
+          # the thread stacks of the test processes in the log, instead of the 20-minute job limit.
+          .github/scripts/run-with-watchdog.sh 300 "$CI_LOG_DIR" \
+            swift test --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
             --xunit-output "$CI_LOG_DIR/tests.xml" \
             2>&1 | tee "$CI_LOG_DIR/tests.log"
       - name: Upload logs and test results
@@ -156,6 +195,7 @@ jobs:
     timeout-minutes: 5
     env:
       PACKAGES_RESULT: ${{ needs.packages.result }}
+      SWIFT_SELECTED: ${{ needs.packages.outputs.run }}
       TESTS_RESULT: ${{ needs.swift-tests.result }}
       PYTHON_RESULT: ${{ needs.python-tests.result }}
       SPIKE_PYTHON_RESULT: ${{ needs.spike-python-tests.result }}
@@ -164,7 +204,9 @@ jobs:
         run: |
           set -euo pipefail
           echo "Package discovery: $PACKAGES_RESULT"
-          echo "Builds and tests: $TESTS_RESULT"
+          echo "Builds and tests: $TESTS_RESULT (packages selected: $SWIFT_SELECTED)"
+          # A pull request that touches no Swift package skips the Swift jobs; nothing else may skip.
+          if [[ "$SWIFT_SELECTED" == false && "$TESTS_RESULT" == skipped ]]; then TESTS_RESULT=success; fi
           echo "Python tests: $PYTHON_RESULT"
           echo "Spike Python tests: $SPIKE_PYTHON_RESULT"
           [[ "$PACKAGES_RESULT" == success && "$TESTS_RESULT" == success && "$PYTHON_RESULT" == success \
