@@ -49,9 +49,13 @@ musí mít ověřený podpis, hardened runtime a nepřítomné **oba** `get-task
 Neplatný podpis skončí exit 2 před datasetem/čtením cíle. Pouhý ad-hoc podpis není S8/TCC identita.
 
 Nový create-exclusive dataset role `process-series` má `intent.json` (plán a očekávání), `registry.json`
-(před čtením cílové paměti), `recording.json` a `report.json`. Writer používá držené directory FD,
+(před čtením cílové paměti), `samples.jsonl`, `recording.json` a `report.json`. Writer používá držené directory FD,
 O_NOFOLLOW, owner/mode kontroly, `0700`/`0600`, O_EXCL a fsync; původní výsledky nikdy nepřepisuje.
-Normální registry zůstává po dobu celého běhu neměnný. Chybějící/zániklá instance se nevyřadí z registru.
+Journal vzniká jednou přes O_EXCL a drží vlastní FD; do **tohoto nového** souboru se během acquisition
+připisuje compact JSONL `schemaVersion/runID/sequence/window/point` a provede fsync bezprostředně po
+každém readu (včetně nečitelnosti/notRegistered), před dalším readem nebo wait. Má nejvýše 32×602 bodů,
+4 KiB na řádek a 32 MiB celkem. Po uzavření se už neotevírá k zápisu. To není claim odolnosti proti
+power loss. Normální registry zůstává po dobu celého běhu neměnný. Chybějící/zániklá instance se nevyřadí z registru.
 
 Časové okno je 1–600 s, kadence 1 s a skutečný koncový vzorek; zmeškané termíny se přeskakují. Každý
 read uloží čas začátku/konce a porovná PID, real/effective UID a start před i po
@@ -69,7 +73,11 @@ chybějící/opožděné endpointy, arrival uvnitř okna, změna identity či ch
 začátku ≤100 ms a konce ≤1 s jsou diagnostické kontroly acquisition, **ne změna LAB/F0.8 prahů**.
 
 CLI má self-only watchdog `ceil(seconds)+30 s`, fixture runner 30 s; ukončený/zaseknutý běh může
-zanechat pouze intent/registry či částečný výstup. To je zachovaná neúplnost, nikoli úspěch. Žádný kód
+zanechat intent/registry, dosavadní journal a případný částečný poslední řádek. Úplné již zapsané
+řádky zůstávají i při SIGTERM/SIGALRM. Ruční kontrola prefixu nikdy nevytvoří kompletní verdikt;
+bez řádného final recording/report je běh neúplný. Při přerušení uprostřed posledního write může být
+poslední řádek částečný; dřívější řádky se nevyhazují. Automatická recovery ani verdikt z prefixu nejsou
+implementované. Dřívější review repro ztráty bodů před touto opravou zůstává zachované. Žádný kód
 neopravuje ani nemaže starý raw. Knihovní API bez CLI watchdogu vyžaduje vnější supervision, protože
 zděděné identity helpery a kernel API nemají vlastní deadline.
 
@@ -106,7 +114,7 @@ Reprodukovatelný [CLI validační script](Tests/process_series_validation.py) n
 vlastního workera a použije jeho zapečetěnou registraci v **běžném** `process-series` CLI. Předem určený
 oracle: 4 s, ≥5 bodů, růst footprint ≥8 MiB při známé 16MiB alokaci. To je kontrola nástroje, nikoli P4.
 Ověří dry-run, unknown fields, duplicitní registry, foreign UID, špatný collector ASID, živý pozitivní
-sběr, konfliktní reuse output, offline report, zánik a nativní birth/exit. Výchozí režim scriptu je dry-run.
+sběr, konfliktní reuse output, offline report, zánik, nativní birth/exit, SIGTERM/SIGALRM po dvou zapsaných bodech a uchování prefixu. SIGALRM test ověřuje stejný signal handler jako watchdog, nikoli skutečné uplynutí deadline. Výchozí režim scriptu je dry-run.
 Při selhání uchová dosavadní výsledky. Maže pouze přesně evidované vlastní staged JSON po inode/owner
 kontrole; všechny datasety a logy zůstávají. Samostatný source/build scratch se uklízí až po validaci.
 

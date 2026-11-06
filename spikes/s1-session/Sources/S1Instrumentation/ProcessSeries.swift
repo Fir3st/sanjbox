@@ -241,7 +241,8 @@ extension InstrumentRunner {
         if identity.matches(expected) {
             record.bindings = plan.registrations.map { ProcessSeriesBinding(registration: $0, registeredAt: InstrumentClock.now()) }
             try dataset.write("registry.json", record.bindings)
-            collectProcessSeries(&record)
+            do { try collectProcessSeries(&record, journal: dataset.processSeriesJournal(runID: plan.runID)) }
+            catch { record.errors.append("process journal acquisition failed; partial evidence retained") }
             record.finalIdentity = expected.capture()
         } else { record.errors.append("invalidMeasurement: initial identity; no target read") }
         record.finished = try InstrumentClock.stamp()
@@ -250,7 +251,7 @@ extension InstrumentRunner {
         try dataset.write("report.json", report)
         return (dataset.path, report.acquisitionComplete)
     }
-    static func collectProcessSeries(_ record: inout ProcessSeriesRecording, beforeTick: ((inout ProcessSeriesRecording) -> Void)? = nil) {
+    static func collectProcessSeries(_ record: inout ProcessSeriesRecording, journal: ProcessSeriesJournal, beforeTick: ((inout ProcessSeriesRecording) -> Void)? = nil) throws {
         let begin = InstrumentClock.now(), end = begin + record.seconds
         record.window = Window(start: begin, end: end)
         var next = begin
@@ -258,12 +259,16 @@ extension InstrumentRunner {
             InstrumentClock.wait(until: next)
             beforeTick?(&record)
             for slot in record.expectedSlots {
+                let point: ProcessSeriesPoint
                 if let binding = record.bindings.first(where: { $0.registration.slot == slot }) {
-                    record.samples.append(RegisteredProcessReader.native.sample(binding.registration))
+                    point = RegisteredProcessReader.native.sample(binding.registration)
                 } else {
                     let now = InstrumentClock.now()
-                    record.samples.append(ProcessSeriesPoint(slot: slot, readStarted: now, time: now, state: .notRegistered))
+                    point = ProcessSeriesPoint(slot: slot, readStarted: now, time: now, state: .notRegistered)
                 }
+                record.samples.append(point)
+                // Persist every observation (including errors) before the next read or wait.
+                try journal.append(point, window: record.window!)
             }
             if next >= end { break }
             // Skip missed ticks. Actual read times expose scheduler stalls; never fill gaps with zeros.

@@ -179,3 +179,26 @@ private func seriesFixture() throws -> ProcessSeriesRecording {
     value = try seriesFixture(); value.bindings = []
     #expect(try ProcessSeriesAnalyzer.evaluate(value).processes[0].issues.contains("missing registration"))
 }
+@Test func journalPersistsPointsAndErrorsAndRefusesReuse() throws {
+    let record = try seriesFixture()
+    let runID = "fixture-journal-" + UUID().uuidString
+    let dataset = try Dataset(runID: runID, role: "process-series")
+    let journal = try dataset.processSeriesJournal(runID: runID)
+    try journal.append(record.samples[0], window: record.window!)
+    let failure = ProcessSeriesPoint(slot: 1, readStarted: 101, time: 101.001, state: .readFailed, before: record.bindings[0].registration.identity, after: record.bindings[0].registration.identity, errorCode: 13)
+    try journal.append(failure, window: record.window!)
+    let url = URL(fileURLWithPath: dataset.path).appendingPathComponent("samples.jsonl")
+    let bytes = try Data(contentsOf: url)
+    let lines = bytes.split(separator: 10)
+    let entries = try lines.map { try StrictJSON.decodeExact(ProcessSeriesJournalEntry.self, from: Data($0)) }
+    #expect(entries.count == 2 && entries[0].sequence == 0 && entries[1].sequence == 1)
+    #expect(entries[0].point.physicalFootprintBytes == 0 && entries[1].point.state == .readFailed && entries[1].point.errorCode == 13 && entries[1].point.physicalFootprintBytes == nil)
+    #expect(throws: InstrumentError.self) { try dataset.processSeriesJournal(runID: runID) }
+    #expect(try Data(contentsOf: url) == bytes)
+    let truncated = bytes.dropLast(7)
+    let completed = truncated.split(separator: 10, omittingEmptySubsequences: false).dropLast()
+    #expect(completed.count == 1)
+    #expect(try StrictJSON.decodeExact(ProcessSeriesJournalEntry.self, from: Data(completed.first!)).point.physicalFootprintBytes == 0)
+    #expect(!FileManager.default.fileExists(atPath: dataset.path + "/recording.json"))
+    // Exclusive fixture evidence is intentionally retained like the existing storage regression.
+}

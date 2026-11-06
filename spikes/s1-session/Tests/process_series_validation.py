@@ -12,6 +12,7 @@ from pathlib import Path
 import plistlib
 import re
 import select
+import signal
 import stat
 import subprocess
 import time
@@ -88,7 +89,8 @@ def run(binary, expected_file, output):
             signatures.append(dict(arguments=args, exit=value.returncode, stdout=value.stdout, stderr=value.stderr))
             assert value.returncode == 0, 'signature command failed'
         keep('signature.json', signatures)
-        assert 'runtime' in signatures[1]['stderr'], 'hardened runtime required'
+        flags = re.search(r'^CodeDirectory .* flags=(0x[0-9a-f]+)', signatures[1]['stderr'], re.MULTILINE)
+        assert flags and int(flags[1], 16) & 0x10000, 'hardened runtime required'
         xml = signatures[2]['stdout'].encode()
         entitlements = plistlib.loads(xml) if xml.strip() else {}
         assert isinstance(entitlements, dict) and not {'get-task-allow', 'com.apple.security.get-task-allow'} & entitlements.keys()
@@ -144,6 +146,40 @@ def run(binary, expected_file, output):
         wrong_path = check('wrong-instance', ['process-series', '--series-json', json.dumps(wrong_instance), '--expect-json', json.dumps(expected), '--apply'], 3)
         wrong_raw = json.loads((wrong_path / 'recording.json').read_text())
         assert all(p['state'] == 'identityChangedBefore' and 'physicalFootprintBytes' not in p for p in wrong_raw['samples'])
+        for signal_number, signal_name in [(signal.SIGTERM, 'SIGTERM'), (signal.SIGALRM, 'SIGALRM')]:
+            # Interrupt only our own collector subprocess after two durable observations exist.
+            interrupted = copy.deepcopy(live); interrupted['runID'] = namespace+'-interrupted-'+signal_name; interrupted['seconds'] = 6
+            interrupted_path = Path(f'/private/tmp/sanjbox-a2-{interrupted["runID"]}-uid{os.geteuid()}-process-series')
+            keep('interrupt-'+signal_name+'-preregistration.json', dict(plan=interrupted, expected=expected, oracle=signal_name+' dispatch after >=2 journal rows; retain prefix, no final recording/report or complete claim (SIGALRM exercises watchdog handler, not deadline expiry)'))
+            collector = subprocess.Popen([str(binary), 'process-series', '--series-json', json.dumps(interrupted), '--expect-json', json.dumps(expected), '--apply'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={})
+            try:
+                deadline = time.monotonic() + 4
+                while time.monotonic() < deadline:
+                    journal = interrupted_path / 'samples.jsonl'
+                    if journal.exists() and journal.read_bytes().count(b'\n') >= 2:
+                        break
+                    assert collector.poll() is None, 'collector ended before observations'
+                    time.sleep(0.02)
+                else:
+                    raise AssertionError('no durable journal observations')
+                collector.send_signal(signal_number)  # Popen-owned, unreaped child; never an arbitrary target PID
+                stdout, stderr = collector.communicate(timeout=4)
+                assert collector.returncode == -signal_number
+                prefix = journal.read_bytes()
+                rows = [json.loads(row) for row in prefix.split(b'\n')[:-1]]
+                assert len(rows) >= 2 and all(row['point']['state'] == 'sampled' for row in rows)
+                assert [row['sequence'] for row in rows] == list(range(len(rows)))
+                assert not (interrupted_path / 'recording.json').exists() and not (interrupted_path / 'report.json').exists()
+                # A trailing cut row must not erase prior full observations or imply complete evidence.
+                cut = prefix[:-7]
+                complete_prefix = [json.loads(row) for row in cut.split(b'\n')[:-1]]
+                assert len(complete_prefix) == len(rows)-1
+                entry = dict(label='native-'+signal_name+'-journal', expectedExit=-signal_number, exit=collector.returncode, journalRows=len(rows), truncatedPrefixRows=len(complete_prefix), recordingAbsent=True, stdout=stdout.decode(), stderr=stderr.decode())
+                results.append(entry); keep(f'{len(results):02}-native-{signal_name}-journal.json', entry)
+                datasets.append(str(interrupted_path))
+            finally:
+                if collector.poll() is None:
+                    collector.terminate(); collector.communicate(timeout=4)
         child.stdin.close()
         outcome = line(child); keep('owned-child-completion.json', outcome)
         assert child.wait(timeout=4) == 0
@@ -159,6 +195,8 @@ def run(binary, expected_file, output):
         transient = [p for p in lifecycle['samples'] if p['slot'] == 2]
         assert transient[0]['state'] == 'notRegistered' and any(p['state'] == 'sampled' for p in transient) and any(p['state'] in ('unreadableBefore', 'unreadableAfter') for p in transient)
         assert not summary['acquisitionComplete'] and 'process arrival inside window' in summary['processes'][1]['issues']
+        journal_rows = [json.loads(row) for row in (path / 'samples.jsonl').read_bytes().splitlines()]
+        assert [row['point'] for row in journal_rows] == lifecycle['samples'], 'all sampled/notRegistered/unreadable points must persist'
         assert len(lifecycle['bindings']) == 2 and lifecycle['bindings'][1]['registeredAt'] > lifecycle['window']['start']
         evaluate('offline-lifecycle', lifecycle, 3)
         keep('passed.json', dict(checks=len(results), positiveSamples=len(values), allocationGrowthBytes=max(values)-min(values), fullSessionAttributionComplete=False, ownedChildrenExited=True))

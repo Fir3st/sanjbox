@@ -185,14 +185,14 @@ extension InstrumentRunner {
             do {
                 try launch(1, into: &record)
                 var attemptedTransient = false
-                collectProcessSeries(&record) { value in
+                try collectProcessSeries(&record, journal: dataset.processSeriesJournal(runID: runID)) { value in
                     if !attemptedTransient && InstrumentClock.now() >= value.window!.start + 2 {
                         attemptedTransient = true
                         do { try launch(2, into: &value) }
                         catch { value.errors.append("owned transient registration/launch failed") }
                     }
                 }
-            } catch { record.errors.append("owned initial registration/launch failed") }
+            } catch { record.errors.append("owned registration/launch or journal acquisition failed") }
             record.ownedFixtureResults = []
             var cleaned = true
             for child in children {
