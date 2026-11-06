@@ -270,15 +270,58 @@ private struct JournalJSONSyntax {
                 guard index < bytes.count else { throw JournalSyntaxError.incomplete }
                 let escaped = bytes[index]; index += 1
                 if escaped == 117 {
-                    for _ in 0..<4 {
-                        guard index < bytes.count else { throw JournalSyntaxError.incomplete }
-                        guard (48...57).contains(bytes[index]) || (65...70).contains(bytes[index]) || (97...102).contains(bytes[index]) else { throw JournalSyntaxError.invalid }
-                        index += 1
+                    let unit = try unicodeQuad(lowSurrogate: false)
+                    if (0xD800...0xDBFF).contains(unit) {
+                        try stringByte(92); try stringByte(117)
+                        _ = try unicodeQuad(lowSurrogate: true)
                     }
                 } else if ![34, 92, 47, 98, 102, 110, 114, 116].contains(escaped) { throw JournalSyntaxError.invalid }
+            } else if b >= 128 {
+                // Validate each available byte now: an absent closing quote must not hide
+                // impossible UTF-8 (including overlong scalars, surrogates or > U+10FFFF).
+                switch b {
+                case 0xC2...0xDF: try continuation()
+                case 0xE0: try continuation(0xA0, 0xBF); try continuation()
+                case 0xE1...0xEC, 0xEE...0xEF: try continuation(); try continuation()
+                case 0xED: try continuation(0x80, 0x9F); try continuation()
+                case 0xF0: try continuation(0x90, 0xBF); try continuation(); try continuation()
+                case 0xF1...0xF3: try continuation(); try continuation(); try continuation()
+                case 0xF4: try continuation(0x80, 0x8F); try continuation(); try continuation()
+                default: throw JournalSyntaxError.invalid
+                }
             }
         }
         throw JournalSyntaxError.incomplete
+    }
+    mutating func stringByte(_ expected: UInt8) throws {
+        guard index < bytes.count else { throw JournalSyntaxError.incomplete }
+        guard bytes[index] == expected else { throw JournalSyntaxError.invalid }
+        index += 1
+    }
+    mutating func continuation(_ lower: UInt8 = 0x80, _ upper: UInt8 = 0xBF) throws {
+        guard index < bytes.count else { throw JournalSyntaxError.incomplete }
+        guard (lower...upper).contains(bytes[index]) else { throw JournalSyntaxError.invalid }
+        index += 1
+    }
+    mutating func unicodeQuad(lowSurrogate: Bool) throws -> UInt32 {
+        var value: UInt32 = 0
+        for remaining in (0...3).reversed() {
+            guard index < bytes.count else { throw JournalSyntaxError.incomplete }
+            let byte = bytes[index], digit: UInt32
+            switch byte {
+            case 48...57: digit = UInt32(byte - 48)
+            case 65...70: digit = UInt32(byte - 65 + 10)
+            case 97...102: digit = UInt32(byte - 97 + 10)
+            default: throw JournalSyntaxError.invalid
+            }
+            index += 1; value = value * 16 + digit
+            let minimum = value << (4 * remaining)
+            let maximum = minimum + (UInt32(1) << (4 * remaining)) - 1
+            // Reject an impossible partial escape too, e.g. a standalone \uDC prefix.
+            let possible = lowSurrogate ? maximum >= 0xDC00 && minimum <= 0xDFFF : minimum < 0xDC00 || maximum > 0xDFFF
+            guard possible else { throw JournalSyntaxError.invalid }
+        }
+        return value
     }
     mutating func value(depth: Int, key: String?) throws {
         guard depth <= 24 else { throw JournalSyntaxError.invalid }

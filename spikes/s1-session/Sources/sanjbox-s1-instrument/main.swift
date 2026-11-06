@@ -53,7 +53,18 @@ import S1Instrumentation
             signal(SIGALRM, SIG_DFL); alarm(30)
             defer { alarm(0) }
             let report = try ProcessJournalInspector.inspect(ProcessJournalInspector.readStaged(name: name), suppliedPlanJSON: supplied)
-            print(String(decoding: try encoded(report), as: UTF8.self))
+            // Swift print/libc buffering can defer the last bytes until exit, after this alarm is
+            // cancelled. Write every byte synchronously while the watchdog is still armed.
+            var output = try encoded(report); output.append(10)
+            try output.withUnsafeBytes { buffer in
+                var offset = 0
+                while offset < buffer.count {
+                    let count = Darwin.write(STDOUT_FILENO, buffer.baseAddress!.advanced(by: offset), buffer.count - offset)
+                    if count < 0 && errno == EINTR { continue }
+                    guard count > 0 else { throw InstrumentError("journal inspection stdout write failed") }
+                    offset += count
+                }
+            }
             return report.structuralError ? 2 : 3
         }
         let allowed: Set<String> = command == "process-series" ? ["--series-json", "--expect-json"] : command == "owned-process-series" ? ["--run-id", "--expect-json"] : command == "login-marker" ? ["--marker-json", "--expect-json"] : command == "process-memory" ? ["--memory-json", "--expect-json"] : command == "record" ? ["--plan-json", "--expect-json"] : command == "plan" ? ["--plan-json"] : command == "offscreen" ? ["--run-id", "--expect-json"] : ["--fixture", "--run-id"]

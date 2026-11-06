@@ -102,6 +102,14 @@ def run(binary, output):
         for ending in [b'{}\n', b'{}', b'{"sequence":01}\n', b'\xff\n']:
             report = inspect('derived-bad-final-' + str(len(results)), first + ending, expected=2)
             assert len(report['rows']) == 1 and report['diagnostics'][-1]['line'] == 2
+        for label, suffix, code in [
+            ('invalid-utf8-tail', b'{"runID":"' + bytes([0xFF]), 2),
+            ('invalid-surrogate-tail', b'{"runID":"' + b'\\uDC00', 2),
+            ('possible-utf8-tail', b'{"runID":"' + bytes([0xC3]), 3),
+        ]:
+            report = inspect(label, first + suffix, expected=code)
+            assert len(report['rows']) == 1 and report['contiguousPrefixBytes'] == len(first)
+            assert report['tail']['kind'] == ('invalid-final-bytes' if code == 2 else 'unterminated-final-bytes')
         report = inspect('empty', b'')
         assert not report['rows'] and not report['structuralError']
         invalid_name, invalid_path = stage('dry-invalid', b'not JSON\n')

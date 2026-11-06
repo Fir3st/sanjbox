@@ -189,3 +189,41 @@ private func inspectText(_ text: String) throws -> ProcessJournalInspection { tr
     #expect(report.structuralError && report.rows.count == ProcessJournalInspector.maximumRows)
     #expect(report.contiguousPrefixBytes == prefixBytes)
 }
+
+@Test func inspectorValidatesUnterminatedUTF8WithoutLosingThePrefix() throws {
+    let first = try journalRow(), start = Data("{\"runID\":\"".utf8)
+    let impossible: [[UInt8]] = [
+        [0xFF], [0x80], [0xC0], [0xC1], [0xF5], [0xC2, 0x7F], [0xC2, 0x22],
+        [0xE0, 0x80], [0xED, 0xA0], [0xF0, 0x80], [0xF4, 0x90], [0xE2, 0x82, 0x22]
+    ]
+    for bytes in impossible {
+        let raw = first + start + Data(bytes)
+        let report = try ProcessJournalInspector.inspect(raw)
+        #expect(report.structuralError && report.rows.count == 1 && report.contiguousPrefixBytes == first.count)
+        #expect(report.tail?.kind == "invalid-final-bytes" && report.tail?.line == 2)
+        #expect(report.inputSHA256 == SHA256.hash(data: raw).map { String(format: "%02x", $0) }.joined())
+    }
+    let possible: [[UInt8]] = [
+        [0xC2], [0xC2, 0xA2], [0xE0], [0xE0, 0xA0], [0xED, 0x9F], [0xE2, 0x82],
+        [0xE2, 0x82, 0xAC], [0xF0, 0x90, 0x80], [0xF4, 0x8F, 0xBF], [0xF4, 0x8F, 0xBF, 0xBF]
+    ]
+    for bytes in possible {
+        let report = try ProcessJournalInspector.inspect(first + start + Data(bytes))
+        #expect(!report.structuralError && report.rows.count == 1 && report.tail?.kind == "unterminated-final-bytes")
+    }
+    let invalidFinished = first + start + Data([0xFF, 0x22, 0x7D, 0x0A])
+    #expect(try ProcessJournalInspector.inspect(invalidFinished).structuralError)
+}
+@Test func inspectorRejectsImpossibleSurrogateAndEscapePrefixes() throws {
+    let first = try journalRow(), start = Data("{\"runID\":\"".utf8)
+    for suffix in [#"\uDC00"#, #"\uDC"#, #"\uDFFF"#, #"\uD800x"#, #"\uD800\uD8"#, #"\uD800\u0000"#, #"\q"#, #"\u12x"#, #"\uD800\q"#] {
+        let report = try ProcessJournalInspector.inspect(first + start + Data(suffix.utf8))
+        #expect(report.structuralError && report.rows.count == 1 && report.tail?.kind == "invalid-final-bytes")
+    }
+    for suffix in [#"\u"#, #"\uD"#, #"\uD8"#, #"\uD800"#, #"\uD800\"#, #"\uD800\u"#, #"\uD800\uDC"#, #"\uD800\uDC0"#, #"\uD800\uDC00"#] {
+        let report = try ProcessJournalInspector.inspect(first + start + Data(suffix.utf8))
+        #expect(!report.structuralError && report.rows.count == 1 && report.tail?.kind == "unterminated-final-bytes")
+    }
+    let garbage = first + Data("{\"runID\":\"valid-run\"}garbage".utf8)
+    #expect(try ProcessJournalInspector.inspect(garbage).structuralError)
+}
