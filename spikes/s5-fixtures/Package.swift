@@ -10,6 +10,9 @@ let package = Package(
         .target(name: "SanjboxGatewayFixtures", dependencies: [
             .product(name: "SanjboxGatewayCore", package: "s5-gateway"),
         ]),
-        .testTarget(name: "SanjboxGatewayFixturesTests", dependencies: ["SanjboxGatewayFixtures"]),
+        .testTarget(name: "SanjboxGatewayFixturesTests", dependencies: [
+            "SanjboxGatewayFixtures",
+            .product(name: "SanjboxGatewayCore", package: "s5-gateway"),
+        ]),
     ]
 )

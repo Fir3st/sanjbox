@@ -1,0 +1,146 @@
+Building for production...
+[Pre-planning 1 / 125]
+[Planning deferred tasks]
+[33 / 60]
+[34 / 61] SanjboxGatewayCore
+[44 / 101]
+[47 / 101]
+[53 / 101]
+[55 / 101]
+[59 / 101]
+[61 / 101]
+[65 / 101]
+[69 / 101]
+[71 / 101]
+[72 / 101]
+[75 / 101] SanjboxGatewayCore
+[82 / 102] SanjboxGatewayFixtures
+[84 / 103] SanjboxGatewayFixtures
+[94 / 104] SanjboxGatewayFixturesTests-product
+[103 / 136]
+[110 / 136]
+[111 / 136]
+[114 / 136]
+[117 / 136]
+[119 / 136]
+[121 / 136]
+[122 / 136]
+[125 / 136]
+[126 / 136]
+[127 / 136] SanjboxGatewayFixturesTests-product
+[132 / 136] SanjboxGatewayFixturesTests-product
+[134 / 136] SanjboxGatewayFixturesTests-product
+Build complete! (22,55 secs)
+Test Suite 'All tests' started at 2026-11-06 08:00:56.427.
+Test Suite 'SanjboxGatewayFixturesTests.xctest' started at 2026-11-06 08:00:56.429.
+Test Suite 'DestinationFixtureTests' started at 2026-11-06 08:00:56.430.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testFreshHostSnapshotRejectsAddressThatBecameLocal]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testFreshHostSnapshotRejectsAddressThatBecameLocal]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicPolicyRejectsNonTLSLiteralAndECHWithoutResolverAccess]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicPolicyRejectsNonTLSLiteralAndECHWithoutResolverAccess]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicUpstreamClientRejectsBeforeAnySocketCanBeCreated]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicUpstreamClientRejectsBeforeAnySocketCanBeCreated]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRebindingFromPublicToLoopbackLANIPv6AndMixedAnswers]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRebindingFromPublicToLoopbackLANIPv6AndMixedAnswers]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectDestinationNeedsAnotherPolicyCheck]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectDestinationNeedsAnotherPolicyCheck]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectFixturesDecodeAsMetadataOnlyAtEveryFragmentBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectFixturesDecodeAsMetadataOnlyAtEveryFragmentBoundary]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testResolverAndSnapshotFailuresRemainFailures]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testResolverAndSnapshotFailuresRemainFailures]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testScriptConsumptionHostnameAndLimits]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testScriptConsumptionHostnameAndLimits]' passed (0.001 seconds).
+Test Suite 'DestinationFixtureTests' passed at 2026-11-06 08:00:56.440.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.010 (0.011) seconds
+Test Suite 'NPMCompatibilityTests' started at 2026-11-06 08:00:56.440.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIDirectLockfileRequestObservesMock403]' started.
+/Users/janfiedler/.codex/worktrees/sanjbox-d4-handler-integration/sanjbox/spikes/s5-fixtures/Tests/SanjboxGatewayFixturesTests/NPMRun.swift:17: -[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIDirectLockfileRequestObservesMock403] : Test skipped - optional: supply inspected absolute SANJBOX_FIXTURE_NODE and SANJBOX_FIXTURE_NPM_CLI paths
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIDirectLockfileRequestObservesMock403]' skipped (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIRejectsManifestLockfileMismatchWithoutArtifactIssuance]' started.
+/Users/janfiedler/.codex/worktrees/sanjbox-d4-handler-integration/sanjbox/spikes/s5-fixtures/Tests/SanjboxGatewayFixturesTests/NPMRun.swift:17: -[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIRejectsManifestLockfileMismatchWithoutArtifactIssuance] : Test skipped - optional: supply inspected absolute SANJBOX_FIXTURE_NODE and SANJBOX_FIXTURE_NPM_CLI paths
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIRejectsManifestLockfileMismatchWithoutArtifactIssuance]' skipped (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIScopedLockfileFetchAndOfflineClientCacheBoundary]' started.
+/Users/janfiedler/.codex/worktrees/sanjbox-d4-handler-integration/sanjbox/spikes/s5-fixtures/Tests/SanjboxGatewayFixturesTests/NPMRun.swift:17: -[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIScopedLockfileFetchAndOfflineClientCacheBoundary] : Test skipped - optional: supply inspected absolute SANJBOX_FIXTURE_NODE and SANJBOX_FIXTURE_NPM_CLI paths
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIScopedLockfileFetchAndOfflineClientCacheBoundary]' skipped (0.000 seconds).
+Test Suite 'NPMCompatibilityTests' passed at 2026-11-06 08:00:56.442.
+	 Executed 3 tests, with 3 tests skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'NPMHandlerIntegrationTests' started at 2026-11-06 08:00:56.442.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testActualPackumentFiltersBothNamesAtDeterministicBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testActualPackumentFiltersBothNamesAtDeterministicBoundary]' passed (0.011 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testAdapterPropagatesHandlerCancellation]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testAdapterPropagatesHandlerCancellation]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testCorruptArtifactAndTransportFailuresRemainCounterexamples]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testCorruptArtifactAndTransportFailuresRemainCounterexamples]' passed (0.006 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testDirectAndGatewayCacheMatricesExerciseSixteenActualHandlerScenarios]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testDirectAndGatewayCacheMatricesExerciseSixteenActualHandlerScenarios]' passed (0.037 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testFixedClockAtCutoffAndOneSecondLaterChangesActualDecision]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testFixedClockAtCutoffAndOneSecondLaterChangesActualDecision]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testGenericDenialNeverHidesLeakedBytesAuditOrBadStatus]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testGenericDenialNeverHidesLeakedBytesAuditOrBadStatus]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testLocalProcessReceiptsRejectWrongManifestAndExit]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testLocalProcessReceiptsRejectWrongManifestAndExit]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testMetadataChangeAfterFetchIsNotMistakenForExpectedDelivery]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testMetadataChangeAfterFetchIsNotMistakenForExpectedDelivery]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testOptionalAllFortyScenariosWithActualNpmLockfileCacheAndImport]' started.
+/Users/janfiedler/.codex/worktrees/sanjbox-d4-handler-integration/sanjbox/spikes/s5-fixtures/Tests/SanjboxGatewayFixturesTests/NPMRun.swift:17: -[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testOptionalAllFortyScenariosWithActualNpmLockfileCacheAndImport] : Test skipped - optional: supply inspected absolute SANJBOX_FIXTURE_NODE and SANJBOX_FIXTURE_NPM_CLI paths
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testOptionalAllFortyScenariosWithActualNpmLockfileCacheAndImport]' skipped (0.000 seconds).
+Test Suite 'NPMHandlerIntegrationTests' passed at 2026-11-06 08:00:56.511.
+	 Executed 9 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.068 (0.069) seconds
+Test Suite 'RegistryFixtureTests' started at 2026-11-06 08:00:56.511.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testArchiveMatchesIndependentPythonUstarGzipVector]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testArchiveMatchesIndependentPythonUstarGzipVector]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testCustomCatalogLatestUsesNumericVersionTriple]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testCustomCatalogLatestUsesNumericVersionTriple]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testD1AuthAndMethodsRejectBeforeMockHandler]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testD1AuthAndMethodsRejectBeforeMockHandler]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testInvalidNamesVersionsDatesAndDuplicateKeysRejected]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testInvalidNamesVersionsDatesAndDuplicateKeysRejected]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testLockfilesPinArtifactIdentityURLAndDigest]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testLockfilesPinArtifactIdentityURLAndDigest]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockServesUnfilteredArtifactsAndExactPaths]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockServesUnfilteredArtifactsAndExactPaths]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockTranscriptOverflowFailsRatherThanDroppingEvidence]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockTranscriptOverflowFailsRatherThanDroppingEvidence]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testPackumentTimeBoundaryAndUnknownDate]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testPackumentTimeBoundaryAndUnknownDate]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testScopedTargetsRetainEncodedPackumentAndSeparateTarballNamespace]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testScopedTargetsRetainEncodedPackumentAndSeparateTarballNamespace]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testStableCatalogBytesAndIntegrity]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testStableCatalogBytesAndIntegrity]' passed (0.002 seconds).
+Test Suite 'RegistryFixtureTests' passed at 2026-11-06 08:00:56.524.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.013 (0.014) seconds
+Test Suite 'ScenarioHarnessTests' started at 2026-11-06 08:00:56.524.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testAccessPathCannotBeInferredFromTerminalHTTPTrace]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testAccessPathCannotBeInferredFromTerminalHTTPTrace]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testDenialRejectsPartialArtifactLeakAndWrongReason]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testDenialRejectsPartialArtifactLeakAndWrongReason]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLocalCacheOutcomeNeverMeansGatewayEnforcement]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLocalCacheOutcomeNeverMeansGatewayEnforcement]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLockfileEvidenceRequiresExactInputsAndExitOutcome]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLockfileEvidenceRequiresExactInputsAndExitOutcome]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthMockScenarioMatrix]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthMockScenarioMatrix]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthSchemaRejectsDuplicatesUnknownScopesAndOversizedInputs]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthSchemaRejectsDuplicatesUnknownScopesAndOversizedInputs]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testObservationBounds]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testObservationBounds]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testRunnerCallsAdapterWithInputAndPreservesMismatch]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testRunnerCallsAdapterWithInputAndPreservesMismatch]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testScenarioInventoryIncludesExactBoundaryScopedAndLocalCases]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testScenarioInventoryIncludesExactBoundaryScopedAndLocalCases]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierDetectsWrongBytesAuditsSequenceAndAmbiguousDelivery]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierDetectsWrongBytesAuditsSequenceAndAmbiguousDelivery]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRejectsEveryAdditionalPackumentResponseIncludingArtifactLeak]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRejectsEveryAdditionalPackumentResponseIncludingArtifactLeak]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRequiresClosedObservationAndRequestProvenance]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRequiresClosedObservationAndRequestProvenance]' passed (0.001 seconds).
+Test Suite 'ScenarioHarnessTests' passed at 2026-11-06 08:00:56.536.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.011 (0.012) seconds
+Test Suite 'SanjboxGatewayFixturesTests.xctest' passed at 2026-11-06 08:00:56.536.
+	 Executed 42 tests, with 4 tests skipped and 0 failures (0 unexpected) in 0.103 (0.107) seconds
+Test Suite 'All tests' passed at 2026-11-06 08:00:56.536.
+	 Executed 42 tests, with 4 tests skipped and 0 failures (0 unexpected) in 0.103 (0.109) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
