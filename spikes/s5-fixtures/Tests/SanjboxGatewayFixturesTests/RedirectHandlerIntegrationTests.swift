@@ -34,6 +34,7 @@ import XCTest
             if status == 200 { try assertDelivery(receipt, artifact) }
             else { try assertRefusal(receipt, status: status) }
             print("D4_REDIRECT_CORPUS \(redirect.id) status=\(receipt.exchange.status) dns=\(dnsAttempts(receipt).count) dials=\(dialAttempts(receipt).count) audits=\(receipt.downloads.count) reason=unobserved")
+            printObservedTrace(receipt, id: redirect.id)
         }
     }
 
@@ -308,6 +309,28 @@ import XCTest
         version["dist"] = dist; versions[artifact.key.version] = version; root["versions"] = versions
         result.append(try JSONSerialization.data(withJSONObject: root, options: [.sortedKeys, .withoutEscapingSlashes]))
         return result
+    }
+    /// Persist compact observed traces. Request bytes are synthetic; response hashes
+    /// are computed from received chunks, never from the planned WireStep responses.
+    private func printObservedTrace(_ receipt: RedirectHandlerReceipt, id: String) {
+        for (sequence, event) in receipt.events.enumerated() {
+            let value: String
+            switch event {
+            case .dns(let host): value = "dns host=\(host)"
+            case .answers(let host, let addresses): value = "answers host=\(host) addresses=\(addresses)"
+            case .hostSnapshot(let addresses): value = "host-snapshot addresses=\(addresses)"
+            case .dial(let connection, let host, let port, let addresses):
+                value = "dial connection=\(connection) host=\(host) port=\(port) addresses=\(addresses)"
+            case .start(let connection): value = "start connection=\(connection)"
+            case .send(let connection, let bytes):
+                value = "send connection=\(connection) request-base64=\(bytes.base64EncodedString())"
+            case .receive(let connection, let bytes, let eof):
+                let hash = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
+                value = "receive connection=\(connection) bytes=\(bytes.count) sha256=\(hash) eof=\(eof)"
+            case .cancel(let connection): value = "cancel connection=\(connection)"
+            }
+            print("D4_REDIRECT_TRACE \(id) sequence=\(sequence) \(value)")
+        }
     }
     private func dnsAttempts(_ receipt: RedirectHandlerReceipt) -> [String] {
         receipt.events.compactMap { if case .dns(let host) = $0 { host } else { nil } }
