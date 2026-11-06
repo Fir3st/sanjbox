@@ -203,7 +203,7 @@ public enum ProcessJournalInspector {
                 try require(p.physicalFootprintBytes! <= 1 << 60 && p.residentBytes! <= 1 << 60, "memory metric exceeds bound")
                 matchedBefore = true
             case .notRegistered:
-                try require(p.before == nil && p.after == nil && p.errorCode == nil && !registeredSlots.contains(p.slot), "inconsistent notRegistered point")
+                try require(p.before == nil && p.after == nil && p.errorCode == nil && p.time == p.readStarted && !registeredSlots.contains(p.slot), "inconsistent notRegistered point")
                 try require(plan == nil, "notRegistered contradicts supplied fixed plan")
             case .unreadableBefore:
                 try require(p.before == nil && p.after == nil && p.errorCode != nil, "inconsistent unreadableBefore point")

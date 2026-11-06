@@ -108,7 +108,7 @@ private func inspectText(_ text: String) throws -> ProcessJournalInspection { tr
     let identity = journalPoint().before!
     var drift = identity; drift.uid = 0; drift.realUID = 4502
     let points = [
-        ProcessSeriesPoint(slot: 1, readStarted: 100, time: 100.01, state: .notRegistered),
+        ProcessSeriesPoint(slot: 1, readStarted: 100, time: 100, state: .notRegistered),
         ProcessSeriesPoint(slot: 1, readStarted: 101, time: 101.01, state: .identityChangedBefore, before: drift),
         ProcessSeriesPoint(slot: 1, readStarted: 102, time: 102.01, state: .readFailed, before: identity, after: identity, errorCode: 0),
         ProcessSeriesPoint(slot: 1, readStarted: 103, time: 103.01, state: .unreadableAfter, before: identity, errorCode: 3),
@@ -124,7 +124,8 @@ private func inspectText(_ text: String) throws -> ProcessJournalInspection { tr
     var missingMetric = journalPoint(); missingMetric.residentBytes = nil
     var errorMetric = journalPoint(); errorMetric.state = .readFailed; errorMetric.errorCode = 13
     var unreadable = journalPoint(); unreadable.state = .unreadableBefore; unreadable.physicalFootprintBytes = nil; unreadable.residentBytes = nil
-    for point in [sampled, missingMetric, errorMetric, unreadable] { #expect(try ProcessJournalInspector.inspect(journalRow(point)).structuralError) }
+    let noReadWithDuration = ProcessSeriesPoint(slot: 1, readStarted: 100, time: 100.01, state: .notRegistered)
+    for point in [sampled, missingMetric, errorMetric, unreadable, noReadWithDuration] { #expect(try ProcessJournalInspector.inspect(journalRow(point)).structuralError) }
     var changed = journalPoint(101); changed.before!.startSeconds += 1; changed.after = changed.before
     #expect(try ProcessJournalInspector.inspect(journalRow() + journalRow(changed, sequence: 1)).rows.count == 1)
     var duplicate = journalPoint(101, slot: 2); duplicate.before = journalPoint().before; duplicate.after = duplicate.before
@@ -174,7 +175,7 @@ private func inspectText(_ text: String) throws -> ProcessJournalInspection { tr
     #expect(try ProcessJournalInspector.inspect(first + journalRow(journalPoint(101), sequence: 1)).structuralError)
     var changed = journalPoint(101); changed.before!.pid += 1; changed.after = changed.before
     #expect(try ProcessJournalInspector.inspect(first + journalRow(changed, sequence: 1)).structuralError)
-    let absent = ProcessSeriesPoint(slot: 1, readStarted: 101, time: 101.01, state: .notRegistered)
+    let absent = ProcessSeriesPoint(slot: 1, readStarted: 101, time: 101, state: .notRegistered)
     #expect(try ProcessJournalInspector.inspect(first + journalRow(absent, sequence: 1)).structuralError)
 }
 @Test func inspectorTotalRowLimitRetainsTheEntireAllowedPrefix() throws {
