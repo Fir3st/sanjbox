@@ -50,11 +50,12 @@ import S1Instrumentation
             let supplied = options["--series-json"].map { Data($0.utf8) }
             if let supplied { _ = try ProcessJournalInspector.suppliedPlan(supplied) }
             if !apply { print("dry-run: offline journal inspection; no input read, process lookup, or output file"); return 0 }
+            // This command is one-shot: leave the deadline armed through top-level error
+            // output and process exit too, including a blocked stderr after a thrown read/write.
             signal(SIGALRM, SIG_DFL); alarm(30)
-            defer { alarm(0) }
             let report = try ProcessJournalInspector.inspect(ProcessJournalInspector.readStaged(name: name), suppliedPlanJSON: supplied)
-            // Swift print/libc buffering can defer the last bytes until exit, after this alarm is
-            // cancelled. Write every byte synchronously while the watchdog is still armed.
+            // Swift print/libc buffering can defer the last bytes until exit. Write every byte
+            // synchronously under the watchdog; no inspection stdout remains buffered on return.
             var output = try encoded(report); output.append(10)
             try output.withUnsafeBytes { buffer in
                 var offset = 0
