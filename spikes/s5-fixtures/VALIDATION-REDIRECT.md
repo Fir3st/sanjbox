@@ -15,7 +15,7 @@ Adaptér, přesné hraniční kontroly a audit `prepared` proti původnímu loop
 Testy používají skutečné `NPMGateway` a `UpstreamClient` se stávajícími testovými seamy.
 Zdroj `s5-gateway` ani `common` se nemění; produkční API/SSRF/TLS politika nejsou rozšířeny.
 
-## Samostatný neměnný záznam
+## Původní záznam a publikovaná diagnostická kopie
 
 Autor: janfiedler / Codex + Astra, implementační worker D4. Stroj `LAB-janfiedler-01 / r1`:
 MacBookPro17,1, Apple M1, 16 GiB, arm64; aktuálně macOS 27.2 (26B123), Xcode 27.2 (27B52),
@@ -38,7 +38,29 @@ obsahuje:
   porovnán s testovaným commitem před hashováním. Cesty jsou relativní ke kořeni repozitáře;
 - [cleanup.txt](validation/redirect/20261106T114745Z-janfiedler-LAB-janfiedler-01-r1-4d98e62b/cleanup.txt)
   a [manifest.sha256](validation/redirect/20261106T114745Z-janfiedler-LAB-janfiedler-01-r1-4d98e62b/manifest.sha256)
-  všech souborů tohoto uzavřeného záznamu.
+  všech souborů aktuální publikované kopie kromě manifestu samotného.
+
+### Normalizace jediné pracovní cesty (publikační metadata)
+
+Původní publikace commitu `a8fe29c5451ecc866c73a51f88fe2146504b6693` je zachována
+**přesně beze změny** v soukromém adresáři
+`/private/tmp/sanjbox-d4-publication-original-c6us1ldj/original-publication`:
+všech 16 souborů původního manifestu i původní manifest, ověřené původními hashi.
+Adresáře mají režim 0700 a soubory 0600. Tato kopie vznikla před změnou veřejných bajtů.
+
+Veřejný `commands.txt` je nyní výslovně **diagnostická odvozená kopie**: jediná absolutní
+pracovní cesta na prvním řádku byla nahrazena přenositelným `<REPO_ROOT>`. Ostatní bajty
+souboru jsou stejné. [publication.json](validation/redirect/20261106T114745Z-janfiedler-LAB-janfiedler-01-r1-4d98e62b/publication.json)
+uvádí původní i publikovaný SHA-256 příkazového záznamu, SHA-256 původního manifestu,
+přesné místo a počet nahrazení, hash původní hodnoty i cestu k soukromému přesnému mapování.
+Původní osobní cesta se tímto mapováním znovu nezveřejňuje.
+
+Aktuální veřejný manifest má **17 položek**: 16 původních souborů (z nich pouze
+`commands.txt` je odvozená kopie) a nový publikační záznam. Původní 16položkový manifest
+zůstává v soukromém archivu. Všech dalších 15 původních souborů, včetně `receipt.json`,
+raw výsledků, 152 trace událostí a všech 61 zdrojových hashů, má původní bajty. Historické
+počty a testovaný zdroj `649f45325b4d91700a9928549a331c0c3d548333` zůstávají stejné.
+Tato změna je pouze publikační: neproběhl nový test, měření ani změna runtime zdrojů.
 
 Čistý základ byl `dd058d3f4e758ed7fdef7dc64eba1c9a34a66967`; první commit `e875fb8` převzal
 pouze vlastní řádek D4. Finální měřený zdroj je

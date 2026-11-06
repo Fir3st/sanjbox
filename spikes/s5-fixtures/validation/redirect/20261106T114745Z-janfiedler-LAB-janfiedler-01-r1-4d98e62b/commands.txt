@@ -1,4 +1,4 @@
-Working directory: /Users/janfiedler/.codex/worktrees/sanjbox-d4-redirect-handler/sanjbox
+Working directory: <REPO_ROOT>
 Each test command returned exit 0. All builds use own paths and --jobs 2.
 01 (7ccf0bb), targeted 12/12:
 /usr/bin/env CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-d4-redirect-20261106-astra/modules SWIFTPM_MODULECACHE_OVERRIDE=/private/tmp/sanjbox-d4-redirect-20261106-astra/modules TMPDIR=/private/tmp/sanjbox-d4-redirect-20261106-astra/tmp /usr/bin/swift test -c release --jobs 2 --package-path spikes/s5-fixtures --scratch-path /private/tmp/sanjbox-d4-redirect-20261106-astra/build --cache-path /private/tmp/sanjbox-d4-redirect-20261106-astra/cache --config-path /private/tmp/sanjbox-d4-redirect-20261106-astra/config --security-path /private/tmp/sanjbox-d4-redirect-20261106-astra/security --disable-sandbox --filter RedirectHandlerIntegrationTests > /private/tmp/sanjbox-d4-redirect-20261106-astra/logs/01-targeted-release.log 2>&1

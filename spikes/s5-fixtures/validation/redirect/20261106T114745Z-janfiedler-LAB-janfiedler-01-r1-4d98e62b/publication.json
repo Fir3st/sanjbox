@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "kind": "diagnostic-publication-derivative",
+  "createdAtUTC": "2026-11-06T12:08:11.864499+00:00",
+  "author": "janfiedler / Codex + Astra",
+  "originalPublicationCommit": "a8fe29c5451ecc866c73a51f88fe2146504b6693",
+  "testedSourceCommit": "649f45325b4d91700a9928549a331c0c3d548333",
+  "originalRoot": "/private/tmp/sanjbox-d4-publication-original-c6us1ldj/original-publication",
+  "originalManifestSHA256": "fa9f52f813b1468a76f97acf2fe75638dd2de006d9ce12d7fd4bdfa6cd994bd7",
+  "originalManifestEntryCount": 16,
+  "publishedManifestEntryCount": 17,
+  "redactedDerivatives": [
+    {
+      "file": "commands.txt",
+      "originalSHA256": "176fe5e13a3ba67dca4ce9a3618e8ea70ed4090cf5a0a75a30faa9819970b0b8",
+      "publishedSHA256": "7cd976c78a5954b25ec5969b00e431b246295f7ebc171b7ddab0b8685d2a5b2c",
+      "transformation": "Replace the sole absolute repository working-directory value on line 1 with portable <REPO_ROOT>; every other byte is unchanged.",
+      "replacementMap": [
+        {
+          "file": "commands.txt",
+          "line": 1,
+          "field": "Working directory",
+          "originalValueSHA256": "8ed340b51768758ad6e629bac0c25ddece178c9bc147167ec360220028fc0d43",
+          "replacement": "<REPO_ROOT>",
+          "occurrences": 1,
+          "exactOriginalMappingPrivateFile": "/private/tmp/sanjbox-d4-publication-original-c6us1ldj/replacement-map.private.json"
+        }
+      ]
+    }
+  ],
+  "allOtherFiles": "All 15 other original manifest entries retain exact original bytes, including scientific raw logs, 152 observed trace events, 61 tested-source hashes and receipt.json. The original 16-entry manifest is preserved unchanged under originalRoot; current manifest.sha256 covers 17 published files including this provenance record, excluding itself.",
+  "validation": "Publication metadata normalization only; no source edits, new runtime tests, reruns or changes to prior results."
+}
