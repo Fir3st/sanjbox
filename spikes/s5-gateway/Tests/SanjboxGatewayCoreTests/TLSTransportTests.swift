@@ -283,6 +283,17 @@ struct TLSTransportTests {
         let connection = NWConnection(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
         connection.start(queue: DispatchQueue(label: "sanjbox.gateway.relay-test"))
         defer { connection.cancel() }
+        var reachedEnd = false
+        defer {
+            // Temporary stress-branch capture; never merged. Runs only after a failure.
+            if !reachedEnd {
+                print("DIAG relay stalled client state=\(connection.state) path=\(String(describing: connection.currentPath)) gatewayPort=\(port) upstreamPort=\(upstreamPort) upstreamRequests=\(upstreamServer.requests.count)")
+                let shell = Process()
+                shell.executableURL = URL(fileURLWithPath: "/bin/sh")
+                shell.arguments = ["-c", "netstat -anv -p tcp | grep -E '127\\.0\\.0\\.1\\.(\(port)|\(upstreamPort)) ' | sed 's/^/DIAG NETSTAT /'; netstat -an -p tcp | awk 'NR>2 {print $6}' | sort | uniq -c | sed 's/^/DIAG TCPSTATES /'; ps -axo pid,ppid,etime,stat,command | grep -vE 'grep|ps -axo' | grep -iE 'swift|sanjbox|git|npm|python|openssl|tar|node' | sed 's/^/DIAG PS /'"]
+                try? shell.run(); shell.waitUntilExit()
+            }
+        }
         try await tlsSend(Data("GET /api/events HTTP/1.1\r\nHost: 127.0.0.1:\(port)\r\n\r\n".utf8), connection: connection)
         var wire = Data()
         while true {
@@ -296,6 +307,7 @@ struct TLSTransportTests {
             guard wire.count < 65_536 else { throw HTTPFailure.tooLarge }
             if part.endOfStream { break }
         }
+        reachedEnd = true
         let text = String(decoding: wire, as: UTF8.self)
         #expect(text.hasPrefix("HTTP/1.1 200 OK\r\n"))
         #expect(text.contains("Content-Type: text/event-stream\r\n"))
