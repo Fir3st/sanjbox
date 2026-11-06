@@ -9,7 +9,7 @@ public final class Dataset {
     private let device: dev_t
     private let inode: ino_t
     public init(runID: String, role: String) throws {
-        try require(identifier(runID) && ["presentation", "ram", "report", "offscreen", "login-marker", "process-memory"].contains(role), "invalid dataset name")
+        try require(identifier(runID) && ["presentation", "ram", "report", "offscreen", "login-marker", "process-memory", "process-series"].contains(role), "invalid dataset name")
         let name = "sanjbox-a2-\(runID)-uid\(geteuid())-\(role)"
         path = "/private/tmp/" + name
         let parent = open("/private/tmp", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
@@ -26,7 +26,7 @@ public final class Dataset {
     }
     deinit { close(fd) }
     public func write<T: Encodable>(_ name: String, _ value: T) throws {
-        try require(["intent.json", "recording.json", "report.json"].contains(name), "unsupported output name")
+        try require(["intent.json", "recording.json", "report.json", "registry.json", "registry-1.json", "registry-2.json"].contains(name), "unsupported output name")
         var info = stat()
         try require(fstat(fd, &info) == 0 && info.st_dev == device && info.st_ino == inode && info.st_uid == geteuid() && info.st_mode & 0o777 == 0o700, "dataset changed; preserving conflict")
         let data = try encoded(value)

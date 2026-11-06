@@ -8,6 +8,10 @@ import S1Instrumentation
         catch { fputs("s1-instrument: \(error)\n", stderr); exit(2) }
     }
     @MainActor static func run(_ args: [String]) throws -> Int32 {
+        if args.first == "owned-memory-fixture" {
+            guard args.count == 4 && args[1] == "--fixture-json" && args[3] == "--apply" && args[2].utf8.count <= 16_384 else { throw InstrumentError("internal fixture requires bounded protocol and --apply") }
+            try InstrumentRunner.ownedMemoryFixture(requestJSON: Data(args[2].utf8)); return 0
+        }
         let usage = """
         sanjbox-s1-instrument record --plan-json JSON --expect-json JSON [--apply]
         sanjbox-s1-instrument offscreen --run-id ID --expect-json JSON [--apply]
@@ -16,13 +20,16 @@ import S1Instrumentation
         sanjbox-s1-instrument login-marker --marker-json JSON --expect-json JSON [--apply]
         sanjbox-s1-instrument process-memory --memory-json JSON --expect-json JSON [--apply]
         sanjbox-s1-instrument evaluate-supplement --fixture NAME --run-id ID [--apply]
+        sanjbox-s1-instrument process-series --series-json JSON --expect-json JSON [--apply]
+        sanjbox-s1-instrument owned-process-series --run-id ID --expect-json JSON [--apply]
+        sanjbox-s1-instrument evaluate-process-series --fixture NAME --run-id ID [--apply]
         Default is dry-run: no measurements, GUI, files, or fixture reads.
         evaluate reads only /private/tmp/sanjbox-a2-fixture-<your-uid>-<NAME>.json.
         plan/record JSON schema and manual same-Mac coordination: INSTRUMENTATION.md.
         """
         guard let command = args.first else { print(usage); return 0 }
         if command == "--help" && args.count == 1 { print(usage); return 0 }
-        guard ["record", "plan", "evaluate", "offscreen", "login-marker", "process-memory", "evaluate-supplement"].contains(command), args.count <= 10 else { throw InstrumentError("unsupported command or argument count") }
+        guard ["record", "plan", "evaluate", "offscreen", "login-marker", "process-memory", "evaluate-supplement", "process-series", "owned-process-series", "evaluate-process-series"].contains(command), args.count <= 10 else { throw InstrumentError("unsupported command or argument count") }
         var options: [String: String] = [:]
         var apply = false
         var index = 1
@@ -31,13 +38,42 @@ import S1Instrumentation
             if key == "--apply" {
                 guard !apply else { throw InstrumentError("duplicate --apply") }; apply = true; index += 1; continue
             }
-            guard ["--plan-json", "--expect-json", "--fixture", "--run-id", "--marker-json", "--memory-json"].contains(key), options[key] == nil, index + 1 < args.count else { throw InstrumentError("unknown, missing or duplicate option") }
+            guard ["--plan-json", "--expect-json", "--fixture", "--run-id", "--marker-json", "--memory-json", "--series-json"].contains(key), options[key] == nil, index + 1 < args.count else { throw InstrumentError("unknown, missing or duplicate option") }
             let value = args[index + 1]
             guard value.utf8.count <= 16_384 else { throw InstrumentError("option exceeds 16 KiB") }
             options[key] = value; index += 2
         }
-        let allowed: Set<String> = command == "login-marker" ? ["--marker-json", "--expect-json"] : command == "process-memory" ? ["--memory-json", "--expect-json"] : command == "record" ? ["--plan-json", "--expect-json"] : command == "plan" ? ["--plan-json"] : command == "offscreen" ? ["--run-id", "--expect-json"] : ["--fixture", "--run-id"]
+        let allowed: Set<String> = command == "process-series" ? ["--series-json", "--expect-json"] : command == "owned-process-series" ? ["--run-id", "--expect-json"] : command == "login-marker" ? ["--marker-json", "--expect-json"] : command == "process-memory" ? ["--memory-json", "--expect-json"] : command == "record" ? ["--plan-json", "--expect-json"] : command == "plan" ? ["--plan-json"] : command == "offscreen" ? ["--run-id", "--expect-json"] : ["--fixture", "--run-id"]
         guard Set(options.keys) == allowed && !(command == "plan" && apply) else { throw InstrumentError("command requires exactly its documented options") }
+        if command == "process-series" {
+            let plan = try StrictJSON.decodeExact(ProcessSeriesPlan.self, from: Data(options["--series-json"]!.utf8))
+            try plan.validate()
+            let expected = try decodeExpectation(options["--expect-json"]!)
+            try plan.validate(expectedUID: expected.uid)
+            if !apply { print("dry-run: \(plan.registrations.count) explicitly registered same-UID test processes, \(plan.seconds) seconds; no target read"); return 0 }
+            signal(SIGALRM, SIG_DFL); alarm(UInt32(ceil(plan.seconds)) + 30)
+            defer { alarm(0) }
+            let result = try InstrumentRunner.processSeries(plan: plan, expected: expected)
+            print(result.path); return result.valid ? 0 : 3
+        }
+        if command == "owned-process-series" {
+            guard safeID(options["--run-id"]!) else { throw InstrumentError("invalid run ID") }
+            let expected = try decodeExpectation(options["--expect-json"]!)
+            if !apply { print("dry-run: fixed 6-second own-child validation, 16 + 8 MiB, arrival/exit retained incomplete; no child launched"); return 0 }
+            signal(SIGALRM, SIG_DFL); alarm(30)
+            defer { alarm(0) }
+            let result = try InstrumentRunner.ownedProcessSeries(runID: options["--run-id"]!, expected: expected)
+            print(result.path); return result.valid ? 0 : 3
+        }
+        if command == "evaluate-process-series" {
+            guard safeID(options["--fixture"]!), safeID(options["--run-id"]!) else { throw InstrumentError("invalid run or fixture ID") }
+            if !apply { print("dry-run: evaluate registered process series; no fixture read"); return 0 }
+            let raw = try StrictJSON.decodeExact(ProcessSeriesRecording.self, from: Dataset.readFixture(name: options["--fixture"]!))
+            let report = try ProcessSeriesAnalyzer.evaluate(raw)
+            let dataset = try Dataset(runID: options["--run-id"]!, role: "report")
+            try dataset.write("report.json", report)
+            print(dataset.path); return report.acquisitionComplete ? 0 : 3
+        }
         if command == "login-marker" {
             let request = try StrictJSON.decodeExact(LoginMarkerRequest.self, from: Data(options["--marker-json"]!.utf8))
             try request.validate()

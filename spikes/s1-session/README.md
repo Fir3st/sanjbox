@@ -17,6 +17,9 @@ Nový [runbook instrumentace](INSTRUMENTATION.md) popisuje `sanjbox-s1-instrumen
 prezentaci, systémový RAM time-series recorder, strict identity/ASID, společný pevný harmonogram,
 create-new per-UID výstupy a offline fixed-window výpočet. Výchozí režim je dry-run; nová cesta nevolá
 TCC/preflight. A2/L1 zůstává **rozpracované**, LAB prahy jsou návrh a S1 zůstává Neověřeno.
+Navazující [registrované procesní řady](PROCESS-SERIES.md) sbírají metadata/paměť explicitních same-UID
+testovacích instancí a ověřují sampler na vlastních dětech s alokací, narozením a zánikem. Jejich
+úspěšná host validace nenahrazuje L1 ani úplnou atribuci WindowServeru/klientů.
 Původní postupy níže jsou zachované pro kompatibilitu; samy nenahrazují nový časový recorder ani L1.
 
 ## Obsah
