@@ -33,7 +33,7 @@ import XCTest
             try assertTrace(receipt, steps: steps, dns: dns, artifact: artifact)
             if status == 200 { try assertDelivery(receipt, artifact) }
             else { try assertRefusal(receipt, status: status) }
-            print("D4_REDIRECT_CORPUS \(redirect.id) status=\(receipt.exchange.status) dns=\(dnsAttempts(receipt).count) dials=\(dialAttempts(receipt).count) audits=\(receipt.downloads.count) reason=unobserved")
+            writeObserved("D4_REDIRECT_CORPUS \(redirect.id) status=\(receipt.exchange.status) dns=\(dnsAttempts(receipt).count) dials=\(dialAttempts(receipt).count) audits=\(receipt.downloads.count) reason=unobserved")
             printObservedTrace(receipt, id: redirect.id)
         }
     }
@@ -310,6 +310,11 @@ import XCTest
         result.append(try JSONSerialization.data(withJSONObject: root, options: [.sortedKeys, .withoutEscapingSlashes]))
         return result
     }
+    // Emit each short line in one write; buffered print can be interrupted by XCTest
+    // diagnostics halfway through a line when both streams share a captured log.
+    private func writeObserved(_ line: String) {
+        FileHandle.standardOutput.write(Data((line + "\n").utf8))
+    }
     /// Persist compact observed traces. Request bytes are synthetic; response hashes
     /// are computed from received chunks, never from the planned WireStep responses.
     private func printObservedTrace(_ receipt: RedirectHandlerReceipt, id: String) {
@@ -329,7 +334,7 @@ import XCTest
                 value = "receive connection=\(connection) bytes=\(bytes.count) sha256=\(hash) eof=\(eof)"
             case .cancel(let connection): value = "cancel connection=\(connection)"
             }
-            print("D4_REDIRECT_TRACE \(id) sequence=\(sequence) \(value)")
+            writeObserved("D4_REDIRECT_TRACE \(id) sequence=\(sequence) \(value)")
         }
     }
     private func dnsAttempts(_ receipt: RedirectHandlerReceipt) -> [String] {
