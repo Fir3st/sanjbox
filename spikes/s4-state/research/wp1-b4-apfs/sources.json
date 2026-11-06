@@ -1,0 +1,157 @@
+{
+  "schema": "sanjbox.b4-apfs.sources.v1",
+  "capture_kind": "read-only-document-research-not-apfs-experiment",
+  "environment": {
+    "macOS": "27.2",
+    "macOS_build": "26B123",
+    "Xcode": "27.2",
+    "Xcode_build": "27B52",
+    "SDK": "macosx27.2",
+    "repository_base": "2a15fc2608a04b3cf06ba676810ffe69edae3982"
+  },
+  "sources": [
+    {
+      "id": "S01",
+      "title": "SDK snapshot declarations",
+      "kind": "installed-primary",
+      "location": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/snapshot.h",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "856743dd87f03522e227c518cf5df3dd1ef6ad443afe20d8042dfef209f00802",
+      "bytes": 3197,
+      "locators": "declarations fs_snapshot_create/list/delete/rename/mount/revert; snapshot mount flags",
+      "document_date": null
+    },
+    {
+      "id": "S02",
+      "title": "SDK snapshot manual",
+      "kind": "installed-primary",
+      "location": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/share/man/man2/fs_snapshot_create.2",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "e036252d5715e4aa34c310fd13a2d9f420429efaabd7b6c6ca8af252b69a1fa7",
+      "bytes": 6946,
+      "locators": "DESCRIPTION; COMPATIBILITY; ERRORS; HISTORY",
+      "document_date": "July 4th, 2017"
+    },
+    {
+      "id": "S03",
+      "title": "Installed asr manual",
+      "kind": "installed-primary",
+      "location": "/usr/share/man/man8/asr.8",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "23ed36fa3d608fe96d21ddea760b5372ef46ae77db3ade84b891ac775f6ef7bf",
+      "bytes": 34647,
+      "locators": "restore options; RESTORING WITH APFS FILESYSTEMS; REPLICATION AND THE INVERTER; RESTORING WITH APFS SNAPSHOTS; SNAPSHOTS AND ROSV VOLUME GROUPS",
+      "document_date": "December 10, 2020"
+    },
+    {
+      "id": "S04",
+      "title": "Installed diskutil manual",
+      "kind": "installed-primary",
+      "location": "/usr/share/man/man8/diskutil.8",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "2a55a1d4465782826baacb7d6322d88f61d1cc5892969bb00d1c709e3e23cb63",
+      "bytes": 102783,
+      "locators": "info; mount; APFS objects; listSnapshots; deleteSnapshot; DISK IDENTIFIER",
+      "document_date": "11 June 2024"
+    },
+    {
+      "id": "S05",
+      "title": "Installed mount_apfs manual",
+      "kind": "installed-primary",
+      "location": "/usr/share/man/man8/mount_apfs.8",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "fb8d5bc189a0ccbb0d6afea4a52b3405ad8881a87d5870e963108e9f16e068f1",
+      "bytes": 2016,
+      "locators": "SYNOPSIS; DESCRIPTION; -s",
+      "document_date": "September 16, 2015"
+    },
+    {
+      "id": "S06",
+      "title": "SDK clonefile manual",
+      "kind": "installed-primary",
+      "location": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/share/man/man2/clonefile.2",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "3e3b636855446f5b4b0a97327c5393f10bc55e04913f03c299e23f83deeda486",
+      "bytes": 9944,
+      "locators": "DESCRIPTION; flags; EXDEV",
+      "document_date": "June 3, 2021"
+    },
+    {
+      "id": "S07",
+      "title": "SDK copyfile manual",
+      "kind": "installed-primary",
+      "location": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/share/man/man3/copyfile.3",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "92d66fb9f4122ac47d33236d9cd8ebb22a04026da2f7a8ffc2b49fb47c0a3545",
+      "bytes": 24601,
+      "locators": "COPYFILE_ALL; COPYFILE_CLONE; recursive copies; COPYFILE_STATE_FORBID_CROSS_MOUNT; BUGS",
+      "document_date": "March 29, 2024"
+    },
+    {
+      "id": "S08",
+      "title": "SDK rename manual",
+      "kind": "installed-primary",
+      "location": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/share/man/man2/rename.2",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "b4c11ad36613fc6929ea7cff79a09d430ca842cc1efe582cdcedfbcf41a8b339",
+      "bytes": 12006,
+      "locators": "RENAME_SWAP; EXDEV",
+      "document_date": "June 3, 2021"
+    },
+    {
+      "id": "S09",
+      "title": "Installed launchctl manual",
+      "kind": "installed-primary",
+      "location": "/usr/share/man/man1/launchctl.1",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "cf8752dd8eb8c3370c7d03b333430aa68a665c907c475ea407cb1b6542083ae2",
+      "bytes": 25952,
+      "locators": "domains; bootstrap/bootout; enable/disable",
+      "document_date": "1 October, 2014"
+    },
+    {
+      "id": "S10",
+      "title": "SDK filesystem attribute declarations",
+      "kind": "installed-primary",
+      "location": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/attr.h",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "5118b9245bc932bc32dcc60084b1e40d70bb5479a360b31cdbf188ef866deefe",
+      "bytes": 27496,
+      "locators": "VOL_CAP_INT_SNAPSHOT; ATTR_VOL_UUID; ATTR_VOL_CAPABILITIES",
+      "document_date": null
+    },
+    {
+      "id": "S11",
+      "title": "Apple XNU VFS dispatcher",
+      "kind": "web-primary",
+      "location": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/vfs/vfs_syscalls.c",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "b30d68fb85f34b864b5e71e3127541c2674e0fb52e59d6ee072c8b0ecbb46a4f",
+      "bytes": 384171,
+      "locators": "snapshot_revert; vfs_context_can_snapshot; fs_snapshot",
+      "revision": "f6217f891ac0bb64f3d375211650a4c1ff8ca1ea"
+    },
+    {
+      "id": "S12",
+      "title": "Apple Support: View APFS snapshots",
+      "kind": "web-primary",
+      "location": "https://support.apple.com/en-ca/guide/disk-utility/dskuf82354dc/mac",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "75abbf38c4f9cabad23cd6a75d14e2b14a3aa968bf664781204528b17207c7e0",
+      "bytes": 566119,
+      "locators": "read-only parent volume; XID/UUID; rename",
+      "revision": null
+    },
+    {
+      "id": "S13",
+      "title": "Apple File System Guide: Features (retired)",
+      "kind": "web-primary",
+      "location": "https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/APFS_Guide/Features/Features.html",
+      "captured_at": "2026-11-06T07:00:45+00:00",
+      "sha256": "fc9a246bbcb09ef82c58223e6c74e6448076786b73583896b9a19fbfbdeb274b",
+      "bytes": 10338,
+      "locators": "Retired Document; Crash Protection; Atomic Safe-Save",
+      "revision": null
+    }
+  ]
+}

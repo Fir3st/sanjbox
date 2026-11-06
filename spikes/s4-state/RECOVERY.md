@@ -5,6 +5,14 @@ trvalý host-control deník a testy pádu procesu. **Jediný adaptér je synteti
 Nevytváří APFS snapshot, nepřipojuje svazek, nezastavuje procesy a nemůže povolit skutečný start.
 B4 zůstává **částečný**; RB-02…08, R2/R7 a brána S4 zůstávají **Neověřeno**.
 
+Samostatná [APFS feasibility studie](research/wp1-b4-apfs/README.md) (2026-11-06) mapuje tento
+model na primární SDK/man a Apple zdroje. Dokumentovaným kandidátem pro nový writable stav je
+`asr` snapshot replication; samotný snapshot mount zůstává read-only a in-place revert nesplňuje
+B3 prepare-then-switch strategii. Snapshot UUID se při replication může opakovat na jiném parent
+svazku, takže nativní receipt musí zahrnout rodičovskou identitu. Studie dodává
+[podmíněné uživatelské experimenty](research/wp1-b4-apfs/EXPERIMENTS.md), nikoli nativní adaptér:
+oprávnění snapshot creation, whole-UID admission a crash/reboot completion zůstávají neprokázané.
+
 B3 [manifest/schema](SCHEMA.md), příklady, validátor a předchozí důkazy zůstávají beze změny.
 Koordinátor přijímá stejnou úplnou restore unit a odmítá backend s jinou množinou svazků. Deklarované
 mountpointy se nikdy neotevřou. B2 není závislostí; společný balík poskytuje jen kontrolu identity CLI.
