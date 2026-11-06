@@ -19,7 +19,7 @@ import Testing
             process.currentDirectoryURL = directory; process.arguments = args
             process.environment = ["PATH": "/usr/bin:/bin"]
             process.standardOutput = FileHandle.nullDevice; process.standardError = FileHandle.nullDevice
-            try process.run(); process.waitUntilExit()
+            try process.run(); Diag.blocking("ModelTLSMaterial.openssl \(args[0])") { process.waitUntilExit() }
             guard process.terminationStatus == 0 else { throw ModelAPIFailure.configuration }
         }
         try openssl(["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", "ca-key.pem", "-out", "ca.pem", "-days", "1",

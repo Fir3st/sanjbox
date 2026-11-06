@@ -406,7 +406,7 @@ private final class NPMLateResultClock: @unchecked Sendable {
     tar.executableURL = URL(fileURLWithPath: "/usr/bin/tar")
     tar.arguments = ["-czf", archive.path, "-C", folder.path, "package"]
     tar.environment = ["PATH": "/usr/bin:/bin", "COPYFILE_DISABLE": "1"]
-    try tar.run(); tar.waitUntilExit()
+    try tar.run(); Diag.blocking("NPM.tar") { tar.waitUntilExit() }
     #expect(tar.terminationStatus == 0)
     let bytes = try Data(contentsOf: archive)
     var document = try JSONSerialization.jsonObject(with: packument(bytes: bytes)) as! [String: Any]

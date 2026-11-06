@@ -50,7 +50,7 @@ private final class D5Workspace: @unchecked Sendable {
         let timer = DispatchWorkItem { if process.isRunning { process.terminate() } }
         DispatchQueue.global().asyncAfter(deadline: .now() + 10, execute: timer)
         defer { timer.cancel() }
-        try process.run(); process.waitUntilExit()
+        try process.run(); Diag.blocking("D5.sync \(args.first ?? "")") { process.waitUntilExit() }
         return D5ProcessResult(status: process.terminationStatus, output: try Data(contentsOf: output), error: try Data(contentsOf: errors))
     }
     func async(_ executable: String, _ args: [String]) async throws -> D5ProcessResult {

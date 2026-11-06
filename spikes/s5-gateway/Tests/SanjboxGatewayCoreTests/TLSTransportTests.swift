@@ -23,7 +23,7 @@ private struct SyntheticTLSMaterial {
             process.standardOutput = FileHandle.nullDevice
             process.standardError = FileHandle.nullDevice
             try process.run()
-            process.waitUntilExit()
+            Diag.blocking("SyntheticTLSMaterial.openssl \(arguments[0])") { process.waitUntilExit() }
             guard process.terminationStatus == 0 else { throw UpstreamFailure.tlsFailed }
         }
         try openssl(["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", "ephemeral.pem", "-out", "leaf.pem",
@@ -265,6 +265,9 @@ struct TLSTransportTests {
 
     @Test func typedHandlerRelaysRealTLSUpstreamAsLocalSSE() async throws {
         let material = try Self.material.get()
+        let probe = MainLagProbe(), began = Diag.now()
+        var phase = "begin"
+        defer { Diag.log("relay began=\(String(format: "%.3f", began)) elapsed=\(Int((Diag.now() - began) * 1000))ms phase=\(phase) \(probe.stop())") }
         let upstreamServer = try SyntheticTLSServer(material: material) { connection in
             try await tlsSend(Data("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\nd\r\ndata: first\n\n\r\n0\r\n\r\n".utf8), connection: connection)
         }
@@ -283,7 +286,9 @@ struct TLSTransportTests {
         let connection = NWConnection(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
         connection.start(queue: DispatchQueue(label: "sanjbox.gateway.relay-test"))
         defer { connection.cancel() }
+        phase = "send"
         try await tlsSend(Data("GET /api/events HTTP/1.1\r\nHost: 127.0.0.1:\(port)\r\n\r\n".utf8), connection: connection)
+        phase = "receive-head"
         var wire = Data()
         while true {
             let part: ReceivedBytes = try await boundedIO(timeout: .seconds(3), cancel: { connection.cancel() }) { result in
@@ -293,9 +298,12 @@ struct TLSTransportTests {
                 }
             }
             wire.append(part.data)
+            phase = "receive bytes=\(wire.count) upstreamRequests=\(upstreamServer.requests.count)"
             guard wire.count < 65_536 else { throw HTTPFailure.tooLarge }
             if part.endOfStream { break }
         }
+        phase = "done"
+
         let text = String(decoding: wire, as: UTF8.self)
         #expect(text.hasPrefix("HTTP/1.1 200 OK\r\n"))
         #expect(text.contains("Content-Type: text/event-stream\r\n"))
