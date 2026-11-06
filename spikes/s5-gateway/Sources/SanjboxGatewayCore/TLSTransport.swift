@@ -73,6 +73,7 @@ final class PinnedTLSConnection: UpstreamConnection {
         let connection = self.connection
         try await boundedIO(timeout: timeout, cancel: { connection.cancel() }) { [queue] (result: IOResult<Void>) in
             connection.stateUpdateHandler = { state in
+                diag("upstream tls state=\(state)")
                 switch state {
                 case .ready: result.finish(.success(()))
                 case .failed(let error), .waiting(let error): result.finish(.failure(Self.failure(error)))

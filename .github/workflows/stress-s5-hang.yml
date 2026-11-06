@@ -15,8 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        configuration: [debug, release]
-        shard: [1, 2, 3, 4, 5]
+        configuration: [debug]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     env:
       CI_LOG_DIR: ${{ github.workspace }}/ci-results
     steps:
@@ -44,7 +44,8 @@ jobs:
               hangs=$((${hangs:-0} + 1))
             fi
             if [[ $status -ne 0 ]]; then grep -E '✘|error' "$CI_LOG_DIR/run-$i.log" | head -20; fi
-            grep -E '^DIAG' "$CI_LOG_DIR/run-$i.log" | sed "s/^/run $i /"
+            if [[ $status -ne 0 ]]; then pattern='^DIAG'; else pattern='^DIAG [0-9.]+ (relay began|monitor)'; fi
+            grep -E "$pattern" "$CI_LOG_DIR/run-$i.log" | sed "s/^/run $i /"
             if [[ $status -ne 124 ]]; then rm -rf "$CI_LOG_DIR/run-$i" "$CI_LOG_DIR/run-$i.log"; fi
           done
           echo "hangs: ${hangs:-0}"

@@ -79,8 +79,11 @@ private func tlsSend(_ data: Data, connection: NWConnection) async throws {
             Task { @MainActor in self?.accept(connection) }
         }
         let listener = self.listener
+        let began = Diag.now()
+        defer { Diag.log("synthetic listener start returned after \(Int((Diag.now() - began) * 1000))ms") }
         return try await boundedIO(timeout: .seconds(3), cancel: { listener.cancel() }) { [queue, listener] result in
             listener.stateUpdateHandler = { [weak listener] state in
+                Diag.log("synthetic listener state=\(state) +\(Int((Diag.now() - began) * 1000))ms port=\(listener?.port?.rawValue ?? 0)")
                 switch state {
                 case .ready: result.finish(.success(listener?.port?.rawValue ?? 0))
                 case .failed, .cancelled: result.finish(.failure(UpstreamFailure.connectionFailed))
@@ -99,6 +102,8 @@ private func tlsSend(_ data: Data, connection: NWConnection) async throws {
     }
 
     private func accept(_ connection: NWConnection) {
+        Diag.log("synthetic accept \(connection.endpoint)")
+        connection.stateUpdateHandler = { state in Diag.log("synthetic conn state=\(state)") }
         connections.append(connection)
         connection.start(queue: queue)
         tasks.append(Task { [weak self, serve] in
@@ -270,7 +275,10 @@ struct TLSTransportTests {
         let upstreamServer = try SyntheticTLSServer(material: material) { connection in
             try await tlsSend(Data("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\nd\r\ndata: first\n\n\r\n0\r\n\r\n".utf8), connection: connection)
         }
+        phase = "upstream-start"
+        defer { Diag.log("relay upstream requests=\(upstreamServer.requests.count) names=\(upstreamServer.serverNames)") }
         let upstreamPort = try await upstreamServer.start()
+        phase = "gateway-start"
         defer { upstreamServer.stop() }
         let upstream = UpstreamClient(resolver: SequenceDNS([["8.8.8.8"]]), hostAddresses: NoHostAddresses(),
                                       dialer: LocalTLSDialer(port: upstreamPort, certificate: material.certificate))
@@ -282,10 +290,14 @@ struct TLSTransportTests {
         let gateway = GatewayServer(router: router)
         let port = try await gateway.start()
         defer { gateway.stop() }
+        phase = "client-connect"
         let connection = NWConnection(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
+        connection.stateUpdateHandler = { state in Diag.log("relay client state=\(state)") }
         connection.start(queue: DispatchQueue(label: "sanjbox.gateway.relay-test"))
         defer { connection.cancel() }
+        phase = "send"
         try await tlsSend(Data("GET /api/events HTTP/1.1\r\nHost: 127.0.0.1:\(port)\r\n\r\n".utf8), connection: connection)
+        phase = "receive-head upstreamRequests=\(upstreamServer.requests.count)"
         var wire = Data()
         while true {
             let part: ReceivedBytes = try await boundedIO(timeout: .seconds(3), cancel: { connection.cancel() }) { result in

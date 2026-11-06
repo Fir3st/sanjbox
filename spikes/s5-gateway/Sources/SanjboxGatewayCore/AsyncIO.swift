@@ -104,3 +104,8 @@ func boundedOperation<Value: Sendable>(timeout: Duration,
     guard clock.now < deadline else { throw UpstreamFailure.timedOut }
     return value
 }
+
+/// Temporary stress-branch instrumentation; never merged.
+func diag(_ message: String) {
+    print(String(format: "DIAG %.3f ", ProcessInfo.processInfo.systemUptime) + message)
+}

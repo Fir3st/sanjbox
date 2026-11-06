@@ -50,6 +50,7 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
         let listener = try NWListener(using: parameters)
         self.listener = listener
         listener.newConnectionHandler = { [weak self, weak listener] connection in
+            diag("gateway newConnection \(connection.endpoint)")
             Task { @MainActor in
                 guard let self, let listener, self.listener === listener else { connection.cancel(); return }
                 self.accept(connection)
@@ -162,10 +163,12 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
     }
 
     func received(_ data: Data?, eof: Bool, failed: Bool) {
+        diag("gateway received \(data?.count ?? -1) eof=\(eof) failed=\(failed) closed=\(closed)")
         guard !closed else { return }
         guard !failed else { close(); return }
         do {
             if let request = try decoder.append(data ?? Data()) {
+                diag("gateway request \(request.target)")
                 requestTimer?.cancel()
                 // Exact local authority prevents DNS-rebinding/browser Host tricks.
                 guard request.headers["host"]?.lowercased() == "127.0.0.1:\(port)" else {
@@ -191,6 +194,7 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
                             }
                         case .events(let produce):
                             started = true
+                            diag("gateway sending SSE head")
                             try await send(Data("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\nCache-Control: no-store\r\nConnection: close\r\nX-Content-Type-Options: nosniff\r\n\r\n".utf8))
                             // Each event is one chunk, no response accumulation. Network
                             // send completion is awaited before the producer can emit again.
@@ -198,6 +202,7 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
                             try await send(Data("0\r\n\r\n".utf8))
                         }
                     } catch {
+                        diag("gateway work error \(error) started=\(started)")
                         if !started, !closed { try? await send(HTTPResponse.error(500).encoded()) }
                         // No second response after partial headers/SSE. Cancel the stream.
                         // Handler errors are not reflected (may contain private upstream data).
