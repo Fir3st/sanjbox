@@ -29,7 +29,8 @@ jobs:
           swift build --package-path spikes/s5-gateway -c ${{ matrix.configuration }} --build-tests -Xswiftc -enable-testing
       - name: Repeat the full test suite under the watchdog
         run: |
-          set -uo pipefail
+          set +e -uo pipefail
+          mkdir -p "$CI_LOG_DIR"
           for i in $(seq 1 25); do
             start=$SECONDS
             .github/scripts/run-with-watchdog.sh 150 "$CI_LOG_DIR/run-$i" \
