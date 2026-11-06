@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "<WORKTREE>/spikes/s3-pf/tools/check-network-provenance.py",
+    "--sender",
+    "/private/tmp/sanjbox-network-review-astra-vji294lx/signed/sanjbox-s3-probe",
+    "--counterpart",
+    "/private/tmp/sanjbox-network-review-astra-vji294lx/signed/sanjbox-counterpart",
+    "--apply"
+  ],
+  "exit": 0
+}

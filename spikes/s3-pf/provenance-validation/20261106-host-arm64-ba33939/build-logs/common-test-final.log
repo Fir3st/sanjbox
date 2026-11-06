@@ -1,0 +1,96 @@
+[0/1] Planning build
+Building for production...
+[0/6] Write sources
+[1/6] Write swift-version--58304C5D6DBC2206.txt
+[3/5] Compiling SanjboxNetworkProvenance CLI.swift
+[4/9] Compiling sanjbox_counterpart main.swift
+[4/9] Write Objects.LinkFileList
+[6/9] Compiling SanjboxNetworkProvenanceTests ProvenanceTests.swift
+[6/9] Write Objects.LinkFileList
+[7/9] Linking sanjbox-counterpart
+[8/9] Linking SanjboxProbeKitPackageTests
+Build complete! (6.69s)
+Test Suite 'All tests' started at 2026-11-06 09:10:11.124.
+Test Suite 'SanjboxProbeKitPackageTests.xctest' started at 2026-11-06 09:10:11.127.
+Test Suite 'ProvenanceTests' started at 2026-11-06 09:10:11.127.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testExactEndpointsAndUnsupportedFamilies]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testExactEndpointsAndUnsupportedFamilies]' passed (0.002 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testExpiredFutureAndInvalidChallengeRejected]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testExpiredFutureAndInvalidChallengeRejected]' passed (0.005 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testPreparedFrameBindsRunFlowAndFreshChallenge]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testPreparedFrameBindsRunFlowAndFreshChallenge]' passed (0.001 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testRegistrationBoundsAndFreshness]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testRegistrationBoundsAndFreshness]' passed (0.003 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testSignaturePolicyRejectsEvenFalseTaskAllowAndIncompleteMetadata]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testSignaturePolicyRejectsEvenFalseTaskAllowAndIncompleteMetadata]' passed (0.000 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testStrictJSONRejectsUnknownEscapedDuplicateAndDepth]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testStrictJSONRejectsUnknownEscapedDuplicateAndDepth]' passed (0.001 seconds).
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testTestAreaRetainsStrictC1IdentityPolicy]' started.
+Test Case '-[SanjboxNetworkProvenanceTests.ProvenanceTests testTestAreaRetainsStrictC1IdentityPolicy]' passed (0.001 seconds).
+Test Suite 'ProvenanceTests' passed at 2026-11-06 09:10:11.141.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.013 (0.014) seconds
+Test Suite 'SanjboxProbeKitPackageTests.xctest' passed at 2026-11-06 09:10:11.141.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.013 (0.014) seconds
+Test Suite 'All tests' passed at 2026-11-06 09:10:11.141.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.013 (0.017) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test incompleteLogsAreReported() started.
+◇ Test recordsTCPAndUDPFlowsWithCanaries() started.
+◇ Test unverifiableFactsAreMismatchesNotPasses() started.
+◇ Test quietRunIsCompleteAndEmpty() started.
+◇ Test onlySetFieldsAreChecked() started.
+◇ Test tokenHasPrefixLabelAndRandomSuffix() started.
+◇ Test groupsOfInterestCoverRequiredAndForbidden() started.
+◇ Test streamScannerFindsTokensSplitAcrossChunks() started.
+◇ Test invalidLabelsAreRejected(label:) started.
+◇ Test captureReportsTheCallingProcess() started.
+◇ Test hostConsoleContextIsRejectedOnEveryIdentityField() started.
+◇ Test matchingContextIsValid() started.
+◇ Test writtenCanaryRoundTripsThroughRegistryAndIsRemoved() started.
+◇ Test forbiddenGroupMembershipIsAMismatch() started.
+◇ Test contactWithoutBytesStillCounts() started.
+◇ Test anyCanaryMatchingReportsUnregisteredTokens() started.
+◇ Test cleanupRefusesChangedContentAndSymlinks() started.
+◇ Test scannerFindsRawAndHexInAnyCase() started.
+◇ Test expectationWithoutEffectiveUIDDoesNotDecode() started.
+◇ Test recordRoundTripsAsJSONLines() started.
+◇ Test argumentsSeparateFlagsFromPositionals() started.
+◇ Test dnsQuestionJoinsLabelsAndRejectsOtherData() started.
+◇ Test existingLogOrRawCapturesAreNeverReused() started.
+◇ Test creationRefusesExistingFileAndSymlink() started.
+◇ Test case passing 1 argument label → "" to invalidLabelsAreRejected(label:) started.
+◇ Test case passing 1 argument label → "Home" to invalidLabelsAreRejected(label:) started.
+◇ Test case passing 1 argument label → "home/.." to invalidLabelsAreRejectedwarning: '--build-system native' has been deprecated and will be removed in a future release; please report an issue at https://github.com/swiftlang/swift-package-manager/issues if you are unable to adopt the default build system.
+(label:) started.
+◇ Test stopClosesAndCountsOpenConnections() started.
+◇ Test case passing 1 argument label → "a b" to invalidLabelsAreRejected(label:) started.
+◇ Test case passing 1 argument label → "-home" to invalidLabelsAreRejected(label:) started.
+◇ Test case passing 1 argument label → "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" to invalidLabelsAreRejected(label:) started.
+✔ Test incompleteLogsAreReported() passed after 0.005 seconds.
+✔ Test groupsOfInterestCoverRequiredAndForbidden() passed after 0.005 seconds.
+✔ Test unverifiableFactsAreMismatchesNotPasses() passed after 0.005 seconds.
+✔ Test tokenHasPrefixLabelAndRandomSuffix() passed after 0.005 seconds.
+✔ Test streamScannerFindsTokensSplitAcrossChunks() passed after 0.005 seconds.
+✔ Test onlySetFieldsAreChecked() passed after 0.005 seconds.
+✔ Test hostConsoleContextIsRejectedOnEveryIdentityField() passed after 0.007 seconds.
+✔ Test invalidLabelsAreRejected(label:) with 6 test cases passed after 0.007 seconds.
+✔ Test matchingContextIsValid() passed after 0.007 seconds.
+✔ Test scannerFindsRawAndHexInAnyCase() passed after 0.007 seconds.
+✔ Test anyCanaryMatchingReportsUnregisteredTokens() passed after 0.007 seconds.
+✔ Test expectationWithoutEffectiveUIDDoesNotDecode() passed after 0.007 seconds.
+✔ Test cleanupRefusesChangedContentAndSymlinks() passed after 0.007 seconds.
+✔ Test forbiddenGroupMembershipIsAMismatch() passed after 0.007 seconds.
+✔ Test argumentsSeparateFlagsFromPositionals() passed after 0.006 seconds.
+✔ Test writtenCanaryRoundTripsThroughRegistryAndIsRemoved() passed after 0.007 seconds.
+✔ Test dnsQuestionJoinsLabelsAndRejectsOtherData() passed after 0.007 seconds.
+✔ Test creationRefusesExistingFileAndSymlink() passed after 0.007 seconds.
+✔ Test quietRunIsCompleteAndEmpty() passed after 0.007 seconds.
+✔ Test existingLogOrRawCapturesAreNeverReused() passed after 0.006 seconds.
+✔ Test contactWithoutBytesStillCounts() passed after 0.019 seconds.
+✔ Test recordsTCPAndUDPFlowsWithCanaries() passed after 0.020 seconds.
+✔ Test stopClosesAndCountsOpenConnections() passed after 0.019 seconds.
+✔ Test captureReportsTheCallingProcess() passed after 0.023 seconds.
+✔ Test recordRoundTripsAsJSONLines() passed after 0.091 seconds.
+✔ Test run with 25 tests in 0 suites passed after 0.091 seconds.

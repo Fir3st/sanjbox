@@ -170,3 +170,7 @@ Lokální vývoj: Apple Silicon arm64, macOS **27.2 (26B123)**; Swift build pou�
 Xcode/SDK, přesná verze je v [VALIDATION.md](VALIDATION.md). Runtime podpora není prokázána
 na žádném buildu. Testy prokazují pouze níže uvedené mockované a souborové vlastnosti,
 nikoli Darwin PF syntaxi, účinnost anchoru, NATLOOK, síťovou izolaci nebo kompatibilitu.
+
+## Navazující producer provenance
+
+[Verzovaný C1/common režim](NETWORK-PROVENANCE.md) doplňuje skutečné run/flow/challenge bytes, vlastní identity a bounded raw. [Host diagnostika a regrese](NETWORK-PROVENANCE-VALIDATION.md) nepředstavují S3/S3b/L4 verdikt.

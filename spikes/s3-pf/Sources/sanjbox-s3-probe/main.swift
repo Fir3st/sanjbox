@@ -1,6 +1,12 @@
 import C1ProbeKit
+import SanjboxNetworkProvenance
 import Foundation
 import SanjboxProbeKit
+
+let provenanceArguments = Array(CommandLine.arguments.dropFirst())
+if ProvenanceCLI.handles(provenanceArguments) {
+    exit(ProvenanceCLI.run(provenanceArguments, receiver: false, operation: ProvenanceSender.run))
+}
 
 let usage = "usage: sanjbox-s3-probe --input FILE --expect FILE [--apply] (default: dry-run, no identity/network capture)"
 var raw = Array(CommandLine.arguments.dropFirst())

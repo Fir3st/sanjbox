@@ -1,0 +1,36 @@
+{
+  "allOtherFiles": "Exact original bytes. Original manifest covers original files, outer publication manifest covers published derivatives.",
+  "originalRoot": "/private/tmp/sanjbox-network-review-astra-vji294lx",
+  "redactedDerivatives": [
+    {
+      "file": "actual-command.json",
+      "originalSHA256": "a634ae5938a5128cc7d6914bb74e715b13be3a3d5ee88bc35fb6bf3be6ee419e",
+      "publishedSHA256": "90800914b3f3a506d837e4239e0cba6e00890bbac612b7f8be05e81169dca9ff",
+      "transformation": "Absolute source worktree prefix replaced by <WORKTREE> and user home prefix in SwiftPM warnings by <USER_HOME>; original retained under reviewer temp root."
+    },
+    {
+      "file": "c1.log",
+      "originalSHA256": "890dfa5896e3e58537b4ab2d8e8d1fecde2909a07a02b68003b22aa5444b25f1",
+      "publishedSHA256": "7b15ff5f46ee62d7a6ff1eb18c0e14e7fafa3807f3f878ecd5159b4d784a1d5b",
+      "transformation": "Absolute source worktree prefix replaced by <WORKTREE> and user home prefix in SwiftPM warnings by <USER_HOME>; original retained under reviewer temp root."
+    },
+    {
+      "file": "c3.log",
+      "originalSHA256": "f7f0bc945c6aa02bbefe5837f1f71db7b6cea29f00513189619fee19d345c531",
+      "publishedSHA256": "eb40265b59396a70bd48e69b4fd698040841438cdaf282e3437a52685bb83174",
+      "transformation": "Absolute source worktree prefix replaced by <WORKTREE> and user home prefix in SwiftPM warnings by <USER_HOME>; original retained under reviewer temp root."
+    },
+    {
+      "file": "common.log",
+      "originalSHA256": "df5786b53bbb2f71daed8b57cf36498e02c1ff9d9cb247e3bda18913c8de5053",
+      "publishedSHA256": "726c006fe2df89a64d290cbceff202a8f41d1423c2f39a11cc0112ea1f1f82bb",
+      "transformation": "Absolute source worktree prefix replaced by <WORKTREE> and user home prefix in SwiftPM warnings by <USER_HOME>; original retained under reviewer temp root."
+    },
+    {
+      "file": "unit-results.json",
+      "originalSHA256": "f7232b33041d9c47e1cac713750f259ccc0e77e3e15b38634a911fb59929002d",
+      "publishedSHA256": "c5d74b23e43a5d652a6dbb56ca41d069cc653fbe17d334f913bac9726bee4ee1",
+      "transformation": "Absolute source worktree prefix replaced by <WORKTREE> and user home prefix in SwiftPM warnings by <USER_HOME>; original retained under reviewer temp root."
+    }
+  ]
+}

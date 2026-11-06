@@ -1,0 +1,2 @@
+{"host":"127.0.0.1","output":"/private/tmp/sanjbox-network-35f733f5-2723-4152-927a-f1ba09a2767e-2ab1d8e5-d0cb-4498-98eb-3277d023fa0e-receiver","port":"63529"}
+{"output":"/private/tmp/sanjbox-network-35f733f5-2723-4152-927a-f1ba09a2767e-2ab1d8e5-d0cb-4498-98eb-3277d023fa0e-receiver","status":"incompleteOperation","verdict":"none; inspect independent raw, no isolation or capture-completeness claim"}

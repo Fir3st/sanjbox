@@ -1,0 +1,74 @@
+{
+  "checks": [
+    "unhardened own executable rejected before missing target",
+    "duplicate input refused before socket",
+    "unknown input field refused before socket",
+    "default dry-run produces no journal"
+  ],
+  "expectation": {
+    "forbiddenAuditSessionIDs": [],
+    "identity": {
+      "auditFlags": 8240,
+      "auditSessionID": 100002,
+      "auditUID": 501,
+      "effectiveGID": 20,
+      "effectiveUID": 501,
+      "forbiddenGroups": [],
+      "kernelGroups": [
+        12,
+        20,
+        33,
+        61,
+        79,
+        80,
+        81,
+        98,
+        100,
+        204,
+        250,
+        395,
+        398,
+        399,
+        400,
+        701
+      ],
+      "loginDone": true,
+      "managerName": "Aqua",
+      "managerUID": 501,
+      "onConsole": true,
+      "realGID": 20,
+      "realUID": 501,
+      "requiredGroups": [],
+      "windowAuditSessionID": 100002,
+      "windowUID": 501
+    },
+    "schemaVersion": 1,
+    "scope": "hostDiagnostic",
+    "signature": {
+      "codeHash": "fc252cc39dfe1bc149dc242082617dcbd8784d41",
+      "getTaskAllowAbsent": true,
+      "hardenedRuntime": true,
+      "valid": true
+    }
+  },
+  "network": "none",
+  "registration": {
+    "controlledTarget": true,
+    "durationMilliseconds": 1000,
+    "endpoint": {
+      "host": "127.0.0.1",
+      "port": 12345
+    },
+    "flow": {
+      "challenge": "2a0a0a55b83f34334dadcbd163a9c51976df1f5eef5405118f10108a3a3a4fda",
+      "flowID": "D3D3A4D9-1ED7-4D84-8DFA-14D47E36AC78",
+      "preparedAtUTC": "2026-11-06T08:15:07.748Z",
+      "runID": "58EFC1B3-C723-43B7-9E13-84F3EBA34010"
+    },
+    "maximumContacts": 8,
+    "schemaVersion": 1,
+    "scope": "hostDiagnostic",
+    "transport": "tcp"
+  },
+  "scope": "offlineCLIHostDiagnostic"
+}

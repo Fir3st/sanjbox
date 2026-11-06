@@ -1,0 +1,26 @@
+{
+  "checks": [
+    {
+      "check": "unhardened",
+      "exit": 2,
+      "passed": true
+    },
+    {
+      "check": "duplicate",
+      "exit": 2,
+      "passed": true
+    },
+    {
+      "check": "unknown",
+      "exit": 2,
+      "passed": true
+    },
+    {
+      "check": "default dry-run no journal",
+      "exit": 0,
+      "passed": true
+    }
+  ],
+  "cleanup": "All bounded CLI processes reaped; no sockets or output journals created.",
+  "network": "none"
+}

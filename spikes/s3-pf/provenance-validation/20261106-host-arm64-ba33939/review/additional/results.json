@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "receiver-identity-before-target",
+    "receiver-signature-before-target",
+    "strict-escaped-duplicate",
+    "strict-unknown",
+    "strict-null-required",
+    "input-symlink-rejected",
+    "all-harness-manifest-files-exact",
+    "independent-raw-sequence-process-timing-claims",
+    "c3-rejects-new-wire-as-sanjboxNetworkProvenanceV1",
+    "c3-rejects-new-wire-as-commonCounterpartJSONL",
+    "c3-rejects-new-wire-as-c1RunRecordStream"
+  ],
+  "limitations": "hostDiagnostic only, no isolation/capture/L4 claim",
+  "passed": true,
+  "rawReferencesChecked": 21
+}

@@ -1,0 +1,3 @@
+P2 payload reproduction: conflicting matrix claim; zero-byte contact retained
+P2 packet reproduction: unmatched raw and matrix occurrences reported; both packet records retained
+25/25 offline CLI checks passed; 0 skipped; no smoke/identity/network operations

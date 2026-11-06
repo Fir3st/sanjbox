@@ -1,0 +1,309 @@
+{
+  "assertions": [
+    "four native flows bind actual exact tuples and raw bytes",
+    "zero/malformed/wrong nonce/foreign run/replay remain contacts",
+    "TCP split reassembles; stalled read is incomplete",
+    "contact budget is incomplete",
+    "interrupted TCP retains prefix without terminal",
+    "refused native attempt retains zero local acceptance",
+    "identity/signature before missing target; dry-run no socket/output; no reused output"
+  ],
+  "cases": [
+    {
+      "actor": "native",
+      "label": "tcp-v4",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "127.0.0.1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "18d4402b1870ee6c97ea174a443d19ab2ca27b58ef62559406e7628a27f0015f",
+          "flowID": "0F0525EB-2AE1-4B96-B2C3-D08590CB1099",
+          "preparedAtUTC": "2026-11-06T08:11:26.267Z",
+          "runID": "30553519-76C0-4D91-9927-1F935AF40A8B"
+        },
+        "maximumContacts": 16,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "tcp"
+      }
+    },
+    {
+      "actor": "native",
+      "label": "udp-v4",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "127.0.0.1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "d83a9d8993a9b4a456f7bc4accda1b6415c2c5c76a67a0df4a7291e6501a2ff9",
+          "flowID": "87FC6970-B422-4668-BEE7-FCA3998B9DAC",
+          "preparedAtUTC": "2026-11-06T08:11:26.280Z",
+          "runID": "420F940F-6DBE-428A-BA6F-00DFF7E6BA20"
+        },
+        "maximumContacts": 16,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "udp"
+      }
+    },
+    {
+      "actor": "native",
+      "label": "tcp-v6",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "::1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "a64ada26c1df9bcb4af4464b81af37f65710b1da4f3dbba28a1b2b857e3f01b0",
+          "flowID": "EA762AED-689F-4199-B5E9-A3DA86244156",
+          "preparedAtUTC": "2026-11-06T08:11:26.291Z",
+          "runID": "BA6E266A-9618-4355-9599-31EC12BF7F03"
+        },
+        "maximumContacts": 16,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "tcp"
+      }
+    },
+    {
+      "actor": "native",
+      "label": "udp-v6",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "::1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "22708d9c3fd9048e39f83986d306e246f5c01f78ce0e47f5b7738093090a4557",
+          "flowID": "84CF97AD-48D8-43EF-BC80-AB42D0A991A7",
+          "preparedAtUTC": "2026-11-06T08:11:26.300Z",
+          "runID": "8EB7887A-2036-4AC1-8BA0-B9906CDB33D1"
+        },
+        "maximumContacts": 16,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "udp"
+      }
+    },
+    {
+      "actor": "pythonFixture",
+      "label": "udp-adversarial",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "127.0.0.1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "b0464a726826cb04436313b08c2e37b56df1a71ce15f3046ca0c3e3a592aa3e8",
+          "flowID": "A274536F-78B5-4A28-9F56-2AD2EE88BB9D",
+          "preparedAtUTC": "2026-11-06T08:11:26.308Z",
+          "runID": "454874E7-89D5-44B6-A3D8-985FA8D0D1FC"
+        },
+        "maximumContacts": 16,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "udp"
+      }
+    },
+    {
+      "actor": "pythonFixture",
+      "label": "tcp-adversarial",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "127.0.0.1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "e6ecaf8834363320512c09929ef04b08e647f489cd06d9ee12faabd391abbbeb",
+          "flowID": "DFF34C26-6200-40D7-A6DB-B10637391BF3",
+          "preparedAtUTC": "2026-11-06T08:11:26.316Z",
+          "runID": "5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC"
+        },
+        "maximumContacts": 16,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "tcp"
+      }
+    },
+    {
+      "actor": "pythonFixture",
+      "label": "contact-limit",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "127.0.0.1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "74c804e41823705860e313ed61554afe04e2217b94fb3d07db9de9ccea735892",
+          "flowID": "2AB1D8E5-D0CB-4498-98EB-3277D023FA0E",
+          "preparedAtUTC": "2026-11-06T08:11:26.323Z",
+          "runID": "35F733F5-2723-4152-927A-F1BA09A2767E"
+        },
+        "maximumContacts": 2,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "udp"
+      }
+    },
+    {
+      "actor": "pythonFixture",
+      "label": "interrupted-prefix",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "127.0.0.1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "65c065b535541e5be70a7956d08ad6d2733b99362d7c8edaa66b6a6fa97bac7d",
+          "flowID": "77A3CA6B-9279-41A2-A8BC-A86423ABAA08",
+          "preparedAtUTC": "2026-11-06T08:11:26.331Z",
+          "runID": "5E78C81C-7EB1-4C54-BF20-5D59FBCD806A"
+        },
+        "maximumContacts": 16,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "tcp"
+      }
+    },
+    {
+      "actor": "native",
+      "label": "refused-connect",
+      "registration": {
+        "controlledTarget": true,
+        "durationMilliseconds": 1500,
+        "endpoint": {
+          "host": "127.0.0.1",
+          "port": 0
+        },
+        "flow": {
+          "challenge": "b6ad981be734a7f0fb2e6924bc3b856655c0fef7066dc65df884412057e999ce",
+          "flowID": "BCC52D2B-977E-42EE-9719-3AF7264F4296",
+          "preparedAtUTC": "2026-11-06T08:11:26.338Z",
+          "runID": "6444869E-64F8-42C9-B25D-4EBD40FC9C4D"
+        },
+        "maximumContacts": 16,
+        "schemaVersion": 1,
+        "scope": "hostDiagnostic",
+        "transport": "tcp"
+      }
+    }
+  ],
+  "expectations": {
+    "receiver": {
+      "forbiddenAuditSessionIDs": [],
+      "identity": {
+        "auditFlags": 8240,
+        "auditSessionID": 100002,
+        "auditUID": 501,
+        "effectiveGID": 20,
+        "effectiveUID": 501,
+        "forbiddenGroups": [],
+        "kernelGroups": [
+          12,
+          20,
+          33,
+          61,
+          79,
+          80,
+          81,
+          98,
+          100,
+          204,
+          250,
+          395,
+          398,
+          399,
+          400,
+          701
+        ],
+        "loginDone": true,
+        "managerName": "Aqua",
+        "managerUID": 501,
+        "onConsole": true,
+        "realGID": 20,
+        "realUID": 501,
+        "requiredGroups": [],
+        "windowAuditSessionID": 100002,
+        "windowUID": 501
+      },
+      "schemaVersion": 1,
+      "scope": "hostDiagnostic",
+      "signature": {
+        "codeHash": "e0221a7c136df13bfded97237876d03483a5c7b0",
+        "getTaskAllowAbsent": true,
+        "hardenedRuntime": true,
+        "valid": true
+      }
+    },
+    "sender": {
+      "forbiddenAuditSessionIDs": [],
+      "identity": {
+        "auditFlags": 8240,
+        "auditSessionID": 100002,
+        "auditUID": 501,
+        "effectiveGID": 20,
+        "effectiveUID": 501,
+        "forbiddenGroups": [],
+        "kernelGroups": [
+          12,
+          20,
+          33,
+          61,
+          79,
+          80,
+          81,
+          98,
+          100,
+          204,
+          250,
+          395,
+          398,
+          399,
+          400,
+          701
+        ],
+        "loginDone": true,
+        "managerName": "Aqua",
+        "managerUID": 501,
+        "onConsole": true,
+        "realGID": 20,
+        "realUID": 501,
+        "requiredGroups": [],
+        "windowAuditSessionID": 100002,
+        "windowUID": 501
+      },
+      "schemaVersion": 1,
+      "scope": "hostDiagnostic",
+      "signature": {
+        "codeHash": "fc252cc39dfe1bc149dc242082617dcbd8784d41",
+        "getTaskAllowAbsent": true,
+        "hardenedRuntime": true,
+        "valid": true
+      }
+    }
+  },
+  "kind": "hostDiagnosticNotL4",
+  "limitations": "No peer authentication, packet capture, cross-zone isolation, S1, S3/S3b or L4 verdict; Python injection is a fixture actor.",
+  "preparedUTC": "2026-11-06T08:11:26Z",
+  "schemaVersion": 1
+}
