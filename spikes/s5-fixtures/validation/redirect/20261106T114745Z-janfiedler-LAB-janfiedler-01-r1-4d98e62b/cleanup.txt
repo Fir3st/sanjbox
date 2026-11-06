@@ -1,0 +1,10 @@
+Own npm UUID fixture directories remaining before build cleanup: 0
+Removed only exact checked own paths:
+/private/tmp/sanjbox-d4-redirect-20261106-astra/build
+/private/tmp/sanjbox-d4-redirect-20261106-astra/modules
+/private/tmp/sanjbox-d4-redirect-20261106-astra/cache
+/private/tmp/sanjbox-d4-redirect-20261106-astra/config
+/private/tmp/sanjbox-d4-redirect-20261106-astra/security
+/private/tmp/sanjbox-d4-redirect-20261106-astra/tmp
+/private/tmp/sanjbox-d4-redirect-20261106-astra/home
+Removed two own empty npmrc files. Small own raw/logs retained. No global prefix deletion or host cleanup.

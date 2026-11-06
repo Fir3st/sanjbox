@@ -1,0 +1,79 @@
+Building for production...
+[Pre-planning 1 / 125]
+[Planning deferred tasks]
+[33 / 60]
+[34 / 61] SanjboxGatewayCore
+[40 / 101]
+[44 / 101]
+[47 / 101]
+[52 / 101]
+[54 / 101]
+[55 / 101]
+[59 / 101]
+[61 / 101]
+[65 / 101]
+[68 / 101]
+[69 / 101]
+[70 / 101]
+[71 / 101]
+[72 / 101]
+[75 / 101] SanjboxGatewayCore
+[82 / 102] SanjboxGatewayFixtures
+[84 / 103] SanjboxGatewayFixtures
+[94 / 104] SanjboxGatewayFixturesTests-product
+[99 / 136]
+[102 / 136]
+[106 / 136]
+[107 / 136]
+[109 / 136]
+[112 / 136]
+[114 / 136]
+[116 / 136]
+[118 / 136]
+[121 / 136]
+[122 / 136]
+[125 / 136]
+[126 / 136]
+[127 / 136] SanjboxGatewayFixturesTests-product
+[132 / 136] SanjboxGatewayFixturesTests-product
+[134 / 136] SanjboxGatewayFixturesTests-product
+Build complete! (24,65 secs)
+Test Suite 'Selected tests' started at 2026-11-06 12:43:51.033.
+Test Suite 'SanjboxGatewayFixturesTests.xctest' started at 2026-11-06 12:43:51.034.
+Test Suite 'RedirectHandlerIntegrationTests' started at 2026-11-06 12:43:51.034.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testChangedCachedDigestForcesRefetchAndCannotReleaseOldRedirectBytes]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testChangedCachedDigestForcesRefetchAndCannotReleaseOldRedirectBytes]' passed (0.013 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testClientCredentialsRejectedBeforeDNSAndOtherHeadersNeverCrossRedirect]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testClientCredentialsRejectedBeforeDNSAndOtherHeadersNeverCrossRedirect]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testCorruptRedirectBodyFailsDigestWithoutFinalMetadataOrAudit]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testCorruptRedirectBodyFailsDigestWithoutFinalMetadataOrAudit]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testFinalReauthorizationWithholdsFetchedRedirectArtifactWhenMetadataChanges]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testFinalReauthorizationWithholdsFetchedRedirectArtifactWhenMetadataChanges]' passed (0.014 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRebindingAndFreshHostInterfaceSnapshotPreventForbiddenTargetDial]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRebindingAndFreshHostInterfaceSnapshotPreventForbiddenTargetDial]' passed (0.010 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectedCacheRechecksCooldownAndUnknownDateAtBothAuthorizations]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectedCacheRechecksCooldownAndUnknownDateAtBothAuthorizations]' passed (0.012 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectLoopStopsBeforeRedialAndHopLimitHasExactBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectLoopStopsBeforeRedialAndHopLimitHasExactBoundary]' passed (0.016 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectReauthorizationRejectsChangedDateSourceAndDigestBeforeTargetDial]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectReauthorizationRejectsChangedDateSourceAndDigestBeforeTargetDial]' passed (0.009 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectSeedAndCacheHitKeepPreparedAuditAndReauthorizeTwice]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectSeedAndCacheHitKeepPreparedAuditAndReauthorizeTwice]' passed (0.005 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testSameHostPositiveControlUsesFreshDNSAndHostSnapshotAtEachRequest]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testSameHostPositiveControlUsesFreshDNSAndHostSnapshotAtEachRequest]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testScriptLeftoversAndUnexpectedAttemptsCannotMasqueradeAsSafeRefusal]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testScriptLeftoversAndUnexpectedAttemptsCannotMasqueradeAsSafeRefusal]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testSixExistingCorpusResponsesReachActualHandlerAndTraceEveryAttempt]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testSixExistingCorpusResponsesReachActualHandlerAndTraceEveryAttempt]' passed (0.009 seconds).
+Test Suite 'RedirectHandlerIntegrationTests' passed at 2026-11-06 12:43:51.136.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.102 (0.103) seconds
+Test Suite 'SanjboxGatewayFixturesTests.xctest' passed at 2026-11-06 12:43:51.136.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.102 (0.103) seconds
+Test Suite 'Selected tests' passed at 2026-11-06 12:43:51.136.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.102 (0.104) seconds
+D4_REDIRECT_CORPUS cdn status=200 dns=5 dials=5 audits=1 reason=unobserved
+D4_REDIRECT_CORPUS same-host-rebinding status=502 dns=4 dials=3 audits=0 reason=unobserved
+D4_REDIRECT_CORPUS loopback status=403 dns=2 dials=2 audits=0 reason=unobserved
+D4_REDIRECT_CORPUS downgrade status=403 dns=2 dials=2 audits=0 reason=unobserved
+D4_REDIRECT_CORPUS userinfo status=403 dns=2 dials=2 audits=0 reason=unobserved
+D4_REDIRECT_CORPUS unapproved-origin status=403 dns=2 dials=2 audits=0 reason=unobserved

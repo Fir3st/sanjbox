@@ -1,0 +1,6 @@
+Initial read-only environment preflight under tool sandbox:
+/usr/sbin/sysctl -n hw.model hw.memsize machdep.cpu.brand_string
+sysctl: sysctl fmt -1 1024 1: Operation not permitted
+/usr/bin/date -u +%Y%m%dT%H%M%SZ
+zsh:1: no such file or directory: /usr/bin/date
+Output preserved from exec tool. Read-only metadata retried with escalation; time path corrected to /bin/date. No test failed.

@@ -1,0 +1,21 @@
+Author: janfiedler / Codex + Astra (D4 implementation worker)
+Machine: LAB-janfiedler-01 / r1 identity, current toolchain measured separately below
+Model: MacBookPro17,1; Apple M1; arm64; RAM 17179869184 B (16 GiB)
+macOS 27.2 (26B123)
+Xcode 27.2 (27B52)
+Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1), swift-driver 1.168.6
+Node v26.13.0: /opt/homebrew/Cellar/node/26.13.0_2/bin/node
+npm 11.20.0: /opt/homebrew/lib/node_modules/npm/bin/npm-cli.js
+Base: dd058d3f4e758ed7fdef7dc64eba1c9a34a66967 (clean detached verified)
+Claim: e875fb8
+First source: 7ccf0bbc12853a1ddb778da18ca165d87cdb6bc8
+Trace output source: 464bb25974b946e711974784bfa24e51ac43c4b3
+Final tested source: 649f45325b4d91700a9928549a331c0c3d548333
+Tested-source manifest is relative to repository root; every entry checked against final commit.
+Final changes after this source are documentation/coverage/evidence only.
+Clock fixed 2026-01-01T00:00:00Z; cooldown 604800 seconds.
+Upstream is finite synthetic HTTP/DNS/interface input and test-only in-memory dialer; no upstream sockets.
+Optional unchanged npm tests use own exact-loopback listeners, inert archives, empty configs/profiles and --ignore-scripts.
+No TLS certificates, live credentials, external installs, host mutations or lab slot.
+No S5/L5/acceptance verdict, real DNS/TLS/registry, isolation or performance measurement.
+Other independent workers shared this machine; no timing/performance claim.

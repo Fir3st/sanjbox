@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "local-synthetic-handler-validation",
+  "author": "janfiedler / Codex + Astra",
+  "machine": "LAB-janfiedler-01",
+  "machine_revision": "r1",
+  "run_id": "20261106T114745Z-janfiedler-LAB-janfiedler-01-r1-4d98e62b",
+  "source_commit": "649f45325b4d91700a9928549a331c0c3d548333",
+  "base_commit": "dd058d3f4e758ed7fdef7dc64eba1c9a34a66967",
+  "final_release": {
+    "tests": 54,
+    "passed": 54,
+    "failures": 0,
+    "skipped": 0,
+    "compiler_warnings": 0,
+    "exit_code": 0
+  },
+  "new_redirect_test_methods": 12,
+  "original_matrix": {
+    "scenarios": 40,
+    "matched": 28,
+    "incomplete": 12,
+    "mismatched": 0
+  },
+  "redirect_corpus_cases": 6,
+  "observed_trace_events": 152,
+  "audit_scope": "direct handler: prepared only; existing npm: transportAccepted",
+  "denial_reason": "not observable; never inferred from fixture",
+  "preflight_failures_preserved": true,
+  "acceptance_or_gate_verdict": false
+}
