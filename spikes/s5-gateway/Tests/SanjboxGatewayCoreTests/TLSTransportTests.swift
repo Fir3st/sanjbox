@@ -264,6 +264,9 @@ struct TLSTransportTests {
 
     @Test func typedHandlerRelaysRealTLSUpstreamAsLocalSSE() async throws {
         let material = try await Self.material.value
+        let probe = MainLagProbe(), began = Diag.now()
+        var phase = "begin"
+        defer { Diag.log("relay began=\(String(format: "%.3f", began)) elapsed=\(Int((Diag.now() - began) * 1000))ms phase=\(phase) \(probe.stop())") }
         let upstreamServer = try SyntheticTLSServer(material: material) { connection in
             try await tlsSend(Data("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\nd\r\ndata: first\n\n\r\n0\r\n\r\n".utf8), connection: connection)
         }
@@ -292,9 +295,11 @@ struct TLSTransportTests {
                 }
             }
             wire.append(part.data)
+            phase = "receive bytes=\(wire.count) upstreamRequests=\(upstreamServer.requests.count)"
             guard wire.count < 65_536 else { throw HTTPFailure.tooLarge }
             if part.endOfStream { break }
         }
+        phase = "done"
         let text = String(decoding: wire, as: UTF8.self)
         #expect(text.hasPrefix("HTTP/1.1 200 OK\r\n"))
         #expect(text.contains("Content-Type: text/event-stream\r\n"))
