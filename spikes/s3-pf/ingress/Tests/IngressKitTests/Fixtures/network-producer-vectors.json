@@ -1,0 +1,595 @@
+{
+  "contact-limit": {
+    "bindings": [],
+    "endpoints": [],
+    "runID": "35F733F5-2723-4152-927A-F1BA09A2767E",
+    "runStartUTC": "2026-11-06T08:11:35.811Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJlMDIyMWE3YzEzNmRmMTNiZmRlZDk3MjM3ODc2ZDAzNDgzYTVjN2IwIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDAKICB9LAogICJmbG93IjogewogICAgImNoYWxsZW5nZSI6ICI3NGM4MDRlNDE4MjM3MDU4NjBlMzEzZWQ2MTU1NGFmZTA0ZTIyMTdiOTRmYjNkMDdkYjlkZTljY2VhNzM1ODkyIiwKICAgICJmbG93SUQiOiAiMkFCMUQ4RTUtRDBDQi00NDk4LTk4RUItMzI3N0QwMjNGQTBFIiwKICAgICJwcmVwYXJlZEF0VVRDIjogIjIwMjYtMTEtMDZUMDg6MTE6MjYuMzIzWiIsCiAgICAicnVuSUQiOiAiMzVGNzMzRjUtMjcyMy00MTUyLTkyN0EtRjFCQTA5QTI3NjdFIgogIH0sCiAgIm1heGltdW1Db250YWN0cyI6IDIsCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInRyYW5zcG9ydCI6ICJ1ZHAiCn0K",
+            "count": 477,
+            "name": "probe.json",
+            "sha256": "d949351a8d8e4b240df5af85d6d40150e9e92e45d1d4d61cb5fc03d4feb152a2"
+          },
+          {
+            "base64": "",
+            "count": 0,
+            "name": "received-1.bin",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "base64": "",
+            "count": 0,
+            "name": "received-2.bin",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "receiver",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df\",\"family\":\"ipv4\",\"flowID\":\"2AB1D8E5-D0CB-4498-98EB-3277D023FA0E\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"A1840FC8-A184-4548-A403-DE43FDB14896\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23907,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":0},\"flow\":{\"challenge\":\"74c804e41823705860e313ed61554afe04e2217b94fb3d07db9de9ccea735892\",\"flowID\":\"2AB1D8E5-D0CB-4498-98EB-3277D023FA0E\",\"preparedAtUTC\":\"2026-11-06T08:11:26.323Z\",\"runID\":\"35F733F5-2723-4152-927A-F1BA09A2767E\"},\"maximumContacts\":2,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"udp\"},\"registrationSHA256\":\"d949351a8d8e4b240df5af85d6d40150e9e92e45d1d4d61cb5fc03d4feb152a2\",\"role\":\"receiver\",\"runID\":\"35F733F5-2723-4152-927A-F1BA09A2767E\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"e0221a7c136df13bfded97237876d03483a5c7b0\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232882637143291,\"utc\":\"2026-11-06T08:11:35.811Z\"},\"transport\":\"udp\"}\n{\"family\":\"ipv4\",\"flowID\":\"2AB1D8E5-D0CB-4498-98EB-3277D023FA0E\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A1840FC8-A184-4548-A403-DE43FDB14896\",\"kind\":\"receiverStarted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63529},\"parentPID\":23796,\"pid\":23907,\"role\":\"receiver\",\"runID\":\"35F733F5-2723-4152-927A-F1BA09A2767E\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"timestamp\":{\"monotonicNanoseconds\":232882638942333,\"utc\":\"2026-11-06T08:11:35.813Z\"},\"transport\":\"udp\"}\n{\"bytes\":0,\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"2AB1D8E5-D0CB-4498-98EB-3277D023FA0E\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A1840FC8-A184-4548-A403-DE43FDB14896\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63529},\"parentPID\":23796,\"pid\":23907,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":55534},\"role\":\"receiver\",\"runID\":\"35F733F5-2723-4152-927A-F1BA09A2767E\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232882640489333,\"utc\":\"2026-11-06T08:11:35.815Z\"},\"transport\":\"udp\"}\n{\"bytes\":0,\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"2AB1D8E5-D0CB-4498-98EB-3277D023FA0E\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A1840FC8-A184-4548-A403-DE43FDB14896\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63529},\"matchesRegisteredPayload\":false,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23907,\"rawFile\":\"received-1.bin\",\"rawSHA256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":55534},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"35F733F5-2723-4152-927A-F1BA09A2767E\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232882641389250,\"utc\":\"2026-11-06T08:11:35.816Z\"},\"transport\":\"udp\"}\n{\"bytes\":0,\"contactID\":2,\"family\":\"ipv4\",\"flowID\":\"2AB1D8E5-D0CB-4498-98EB-3277D023FA0E\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A1840FC8-A184-4548-A403-DE43FDB14896\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63529},\"parentPID\":23796,\"pid\":23907,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":55534},\"role\":\"receiver\",\"runID\":\"35F733F5-2723-4152-927A-F1BA09A2767E\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"timestamp\":{\"monotonicNanoseconds\":232882641928458,\"utc\":\"2026-11-06T08:11:35.816Z\"},\"transport\":\"udp\"}\n{\"bytes\":0,\"contactID\":2,\"family\":\"ipv4\",\"flowID\":\"2AB1D8E5-D0CB-4498-98EB-3277D023FA0E\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A1840FC8-A184-4548-A403-DE43FDB14896\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63529},\"matchesRegisteredPayload\":false,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23907,\"rawFile\":\"received-2.bin\",\"rawSHA256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":55534},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"35F733F5-2723-4152-927A-F1BA09A2767E\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":6,\"timestamp\":{\"monotonicNanoseconds\":232882642551166,\"utc\":\"2026-11-06T08:11:35.817Z\"},\"transport\":\"udp\"}\n{\"contactID\":2,\"family\":\"ipv4\",\"flowID\":\"2AB1D8E5-D0CB-4498-98EB-3277D023FA0E\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A1840FC8-A184-4548-A403-DE43FDB14896\",\"kind\":\"receiverStopped\",\"operationFinished\":false,\"parentPID\":23796,\"pid\":23907,\"reason\":\"contactLimit\",\"role\":\"receiver\",\"runID\":\"35F733F5-2723-4152-927A-F1BA09A2767E\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":7,\"timestamp\":{\"monotonicNanoseconds\":232882643081666,\"utc\":\"2026-11-06T08:11:35.817Z\"},\"transport\":\"udp\"}\n"
+      }
+    ]
+  },
+  "interrupted-prefix": {
+    "bindings": [],
+    "endpoints": [],
+    "runID": "5E78C81C-7EB1-4C54-BF20-5D59FBCD806A",
+    "runStartUTC": "2026-11-06T08:11:35.855Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJlMDIyMWE3YzEzNmRmMTNiZmRlZDk3MjM3ODc2ZDAzNDgzYTVjN2IwIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDAKICB9LAogICJmbG93IjogewogICAgImNoYWxsZW5nZSI6ICI2NWMwNjViNTM1NTQxZTViZTcwYTc5NTZkMDhhZDZkMjczM2I5OTM2MmQ3YzhlZGFhNjZiNmE2ZmE5N2JhYzdkIiwKICAgICJmbG93SUQiOiAiNzdBM0NBNkItOTI3OS00MUEyLUE4QkMtQTg2NDIzQUJBQTA4IiwKICAgICJwcmVwYXJlZEF0VVRDIjogIjIwMjYtMTEtMDZUMDg6MTE6MjYuMzMxWiIsCiAgICAicnVuSUQiOiAiNUU3OEM4MUMtN0VCMS00QzU0LUJGMjAtNUQ1OUZCQ0Q4MDZBIgogIH0sCiAgIm1heGltdW1Db250YWN0cyI6IDE2LAogICJzY2hlbWFWZXJzaW9uIjogMSwKICAic2NvcGUiOiAiaG9zdERpYWdub3N0aWMiLAogICJ0cmFuc3BvcnQiOiAidGNwIgp9Cg==",
+            "count": 478,
+            "name": "probe.json",
+            "sha256": "21c9317ea1ff3571f10faa1b54c694b42da0553c8973404db9367883d5f73d97"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8NUU3OEM=",
+            "count": 35,
+            "name": "received-1.bin",
+            "sha256": "194684377b97e63e19a4ea280a7f1ac50e3d08c72de20f09b591e1d0e55aa896"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "receiver",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df\",\"family\":\"ipv4\",\"flowID\":\"77A3CA6B-9279-41A2-A8BC-A86423ABAA08\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"23F41E2C-FB2A-44EA-90C6-6E02F8B1A7FF\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23910,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":0},\"flow\":{\"challenge\":\"65c065b535541e5be70a7956d08ad6d2733b99362d7c8edaa66b6a6fa97bac7d\",\"flowID\":\"77A3CA6B-9279-41A2-A8BC-A86423ABAA08\",\"preparedAtUTC\":\"2026-11-06T08:11:26.331Z\",\"runID\":\"5E78C81C-7EB1-4C54-BF20-5D59FBCD806A\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"tcp\"},\"registrationSHA256\":\"21c9317ea1ff3571f10faa1b54c694b42da0553c8973404db9367883d5f73d97\",\"role\":\"receiver\",\"runID\":\"5E78C81C-7EB1-4C54-BF20-5D59FBCD806A\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"e0221a7c136df13bfded97237876d03483a5c7b0\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232882680981500,\"utc\":\"2026-11-06T08:11:35.855Z\"},\"transport\":\"tcp\"}\n{\"family\":\"ipv4\",\"flowID\":\"77A3CA6B-9279-41A2-A8BC-A86423ABAA08\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"23F41E2C-FB2A-44EA-90C6-6E02F8B1A7FF\",\"kind\":\"receiverStarted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53432},\"parentPID\":23796,\"pid\":23910,\"role\":\"receiver\",\"runID\":\"5E78C81C-7EB1-4C54-BF20-5D59FBCD806A\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"timestamp\":{\"monotonicNanoseconds\":232882682135208,\"utc\":\"2026-11-06T08:11:35.856Z\"},\"transport\":\"tcp\"}\n{\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"77A3CA6B-9279-41A2-A8BC-A86423ABAA08\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"23F41E2C-FB2A-44EA-90C6-6E02F8B1A7FF\",\"kind\":\"accepted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53432},\"parentPID\":23796,\"pid\":23910,\"remote\":{\"host\":\"127.0.0.1\",\"port\":53433},\"role\":\"receiver\",\"runID\":\"5E78C81C-7EB1-4C54-BF20-5D59FBCD806A\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232882683317583,\"utc\":\"2026-11-06T08:11:35.858Z\"},\"transport\":\"tcp\"}\n"
+      }
+    ]
+  },
+  "refused-connect": {
+    "bindings": [],
+    "endpoints": [],
+    "runID": "6444869E-64F8-42C9-B25D-4EBD40FC9C4D",
+    "runStartUTC": "2026-11-06T08:11:35.910Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJmYzI1MmNjMzlkZmUxYmMxNDlkYzI0MjA4MjYxN2RjYmQ4Nzg0ZDQxIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDUzNDM0CiAgfSwKICAiZmxvdyI6IHsKICAgICJjaGFsbGVuZ2UiOiAiYjZhZDk4MWJlNzM0YTdmMGZiMmU2OTI0YmMzYjg1NjY1NWMwZmVmNzA2NmRjNjVkZjg4NDQxMjA1N2U5OTljZSIsCiAgICAiZmxvd0lEIjogIkJDQzUyRDJCLTk3N0UtNDJFRS05NzE5LTNBRjcyNjRGNDI5NiIsCiAgICAicHJlcGFyZWRBdFVUQyI6ICIyMDI2LTExLTA2VDA4OjExOjI2LjMzOFoiLAogICAgInJ1bklEIjogIjY0NDQ4NjlFLTY0RjgtNDJDOS1CMjVELTRFQkQ0MEZDOUM0RCIKICB9LAogICJtYXhpbXVtQ29udGFjdHMiOiAxNiwKICAic2NoZW1hVmVyc2lvbiI6IDEsCiAgInNjb3BlIjogImhvc3REaWFnbm9zdGljIiwKICAidHJhbnNwb3J0IjogInRjcCIKfQo=",
+            "count": 482,
+            "name": "probe.json",
+            "sha256": "639f97c8c8d5c629dbffadd05a6e72875eb7603b5c389c7cbe9523a2c35d4561"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8NjQ0NDg2OUUtNjRGOC00MkM5LUIyNUQtNEVCRDQwRkM5QzREfEJDQzUyRDJCLTk3N0UtNDJFRS05NzE5LTNBRjcyNjRGNDI5NnxiNmFkOTgxYmU3MzRhN2YwZmIyZTY5MjRiYzNiODU2NjU1YzBmZWY3MDY2ZGM2NWRmODg0NDEyMDU3ZTk5OWNlCg==",
+            "count": 169,
+            "name": "sent.bin",
+            "sha256": "8d24cbb7056202fb72c03c2edada7956053c78ac1c4ed9640dd8da9d6bc638b8"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "sender",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f\",\"family\":\"ipv4\",\"flowID\":\"BCC52D2B-977E-42EE-9719-3AF7264F4296\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"2C960B77-C331-491F-B4FB-41AA0C30AD7B\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23914,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":53434},\"flow\":{\"challenge\":\"b6ad981be734a7f0fb2e6924bc3b856655c0fef7066dc65df884412057e999ce\",\"flowID\":\"BCC52D2B-977E-42EE-9719-3AF7264F4296\",\"preparedAtUTC\":\"2026-11-06T08:11:26.338Z\",\"runID\":\"6444869E-64F8-42C9-B25D-4EBD40FC9C4D\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"tcp\"},\"registrationSHA256\":\"639f97c8c8d5c629dbffadd05a6e72875eb7603b5c389c7cbe9523a2c35d4561\",\"role\":\"sender\",\"runID\":\"6444869E-64F8-42C9-B25D-4EBD40FC9C4D\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"fc252cc39dfe1bc149dc242082617dcbd8784d41\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232882735620375,\"utc\":\"2026-11-06T08:11:35.910Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"family\":\"ipv4\",\"flowID\":\"BCC52D2B-977E-42EE-9719-3AF7264F4296\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"2C960B77-C331-491F-B4FB-41AA0C30AD7B\",\"kind\":\"attemptStarted\",\"localKernelAcceptedBytes\":0,\"parentPID\":23796,\"pid\":23914,\"rawFile\":\"sent.bin\",\"rawSHA256\":\"8d24cbb7056202fb72c03c2edada7956053c78ac1c4ed9640dd8da9d6bc638b8\",\"role\":\"sender\",\"runID\":\"6444869E-64F8-42C9-B25D-4EBD40FC9C4D\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"target\":{\"host\":\"127.0.0.1\",\"port\":53434},\"timestamp\":{\"monotonicNanoseconds\":232882736920083,\"utc\":\"2026-11-06T08:11:35.911Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"family\":\"ipv4\",\"flowID\":\"BCC52D2B-977E-42EE-9719-3AF7264F4296\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"2C960B77-C331-491F-B4FB-41AA0C30AD7B\",\"kind\":\"attemptEnded\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53435},\"localKernelAcceptedBytes\":0,\"operationFinished\":false,\"parentPID\":23796,\"pid\":23914,\"reason\":\"connect deadline\",\"role\":\"sender\",\"runID\":\"6444869E-64F8-42C9-B25D-4EBD40FC9C4D\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"target\":{\"host\":\"127.0.0.1\",\"port\":53434},\"timestamp\":{\"monotonicNanoseconds\":232884242205666,\"utc\":\"2026-11-06T08:11:37.416Z\"},\"transport\":\"tcp\"}\n"
+      }
+    ]
+  },
+  "tcp-adversarial": {
+    "bindings": [],
+    "endpoints": [],
+    "runID": "5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC",
+    "runStartUTC": "2026-11-06T08:11:34.248Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJlMDIyMWE3YzEzNmRmMTNiZmRlZDk3MjM3ODc2ZDAzNDgzYTVjN2IwIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDAKICB9LAogICJmbG93IjogewogICAgImNoYWxsZW5nZSI6ICJlNmVjYWY4ODM0MzYzMzIwNTEyYzA5OTI5ZWYwNGIwOGU2NDdmNDg5Y2QwNmQ5ZWUxMmZhYWJkMzkxYWJiYmViIiwKICAgICJmbG93SUQiOiAiREZGMzRDMjYtNjIwMC00MEQ3LUE2REItQjEwNjM3MzkxQkYzIiwKICAgICJwcmVwYXJlZEF0VVRDIjogIjIwMjYtMTEtMDZUMDg6MTE6MjYuMzE2WiIsCiAgICAicnVuSUQiOiAiNUI1RTY0QjctRDE2MC00NDQwLUJGOUMtMEY1QzJGREI0QUVDIgogIH0sCiAgIm1heGltdW1Db250YWN0cyI6IDE2LAogICJzY2hlbWFWZXJzaW9uIjogMSwKICAic2NvcGUiOiAiaG9zdERpYWdub3N0aWMiLAogICJ0cmFuc3BvcnQiOiAidGNwIgp9Cg==",
+            "count": 478,
+            "name": "probe.json",
+            "sha256": "77ec7059d0c9b6fe70b6bf3bfe0da5a55419faeae21ff1f3e777572e700d357f"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8NUI1RTY0QjctRDE2MC00NDQwLUJGOUMtMEY1QzJGREI0QUVDfERGRjM0QzI2LTYyMDAtNDBENy1BNkRCLUIxMDYzNzM5MUJGM3xlNmVjYWY4ODM0MzYzMzIwNTEyYzA5OTI5ZWYwNGIwOGU2NDdmNDg5Y2QwNmQ5ZWUxMmZhYWJkMzkxYWJiYmViCg==",
+            "count": 169,
+            "name": "received-1.bin",
+            "sha256": "bfd88aa73f1627039fbd4ac1daccea141eb8fcb2ed0a276fed62206daf12e24b"
+          },
+          {
+            "base64": "",
+            "count": 0,
+            "name": "received-2.bin",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "base64": "aGVsZC1wcmVmaXg=",
+            "count": 11,
+            "name": "received-3.bin",
+            "sha256": "036c03cf25097375ef2a9b25d490e31ca409743ee4a971151a5da46ac7143a2e"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "receiver",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df\",\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23897,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":0},\"flow\":{\"challenge\":\"e6ecaf8834363320512c09929ef04b08e647f489cd06d9ee12faabd391abbbeb\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"preparedAtUTC\":\"2026-11-06T08:11:26.316Z\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"tcp\"},\"registrationSHA256\":\"77ec7059d0c9b6fe70b6bf3bfe0da5a55419faeae21ff1f3e777572e700d357f\",\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"e0221a7c136df13bfded97237876d03483a5c7b0\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232881073847833,\"utc\":\"2026-11-06T08:11:34.248Z\"},\"transport\":\"tcp\"}\n{\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"receiverStarted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53428},\"parentPID\":23796,\"pid\":23897,\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"timestamp\":{\"monotonicNanoseconds\":232881075521833,\"utc\":\"2026-11-06T08:11:34.250Z\"},\"transport\":\"tcp\"}\n{\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"accepted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53428},\"parentPID\":23796,\"pid\":23897,\"remote\":{\"host\":\"127.0.0.1\",\"port\":53429},\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232881082126750,\"utc\":\"2026-11-06T08:11:34.256Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"closed\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53428},\"matchesRegisteredPayload\":true,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"e6ecaf8834363320512c09929ef04b08e647f489cd06d9ee12faabd391abbbeb\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\"},\"pid\":23897,\"rawFile\":\"received-1.bin\",\"rawSHA256\":\"bfd88aa73f1627039fbd4ac1daccea141eb8fcb2ed0a276fed62206daf12e24b\",\"rawTruncated\":false,\"reason\":\"peerEOF\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":53429},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232881105708583,\"utc\":\"2026-11-06T08:11:34.280Z\"},\"transport\":\"tcp\"}\n{\"contactID\":2,\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"accepted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53428},\"parentPID\":23796,\"pid\":23897,\"remote\":{\"host\":\"127.0.0.1\",\"port\":53430},\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"timestamp\":{\"monotonicNanoseconds\":232881106375041,\"utc\":\"2026-11-06T08:11:34.281Z\"},\"transport\":\"tcp\"}\n{\"bytes\":0,\"contactID\":2,\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"closed\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53428},\"matchesRegisteredPayload\":false,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23897,\"rawFile\":\"received-2.bin\",\"rawSHA256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"rawTruncated\":false,\"reason\":\"peerEOF\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":53430},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":6,\"timestamp\":{\"monotonicNanoseconds\":232881107128875,\"utc\":\"2026-11-06T08:11:34.281Z\"},\"transport\":\"tcp\"}\n{\"contactID\":3,\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"accepted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53428},\"parentPID\":23796,\"pid\":23897,\"remote\":{\"host\":\"127.0.0.1\",\"port\":53431},\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":7,\"timestamp\":{\"monotonicNanoseconds\":232881107751000,\"utc\":\"2026-11-06T08:11:34.282Z\"},\"transport\":\"tcp\"}\n{\"bytes\":11,\"contactID\":3,\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"closed\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53428},\"matchesRegisteredPayload\":false,\"operationFinished\":false,\"parentPID\":23796,\"pid\":23897,\"rawFile\":\"received-3.bin\",\"rawSHA256\":\"036c03cf25097375ef2a9b25d490e31ca409743ee4a971151a5da46ac7143a2e\",\"rawTruncated\":false,\"reason\":\"readDeadline\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":53431},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":8,\"timestamp\":{\"monotonicNanoseconds\":232881611499541,\"utc\":\"2026-11-06T08:11:34.786Z\"},\"transport\":\"tcp\"}\n{\"contactID\":3,\"family\":\"ipv4\",\"flowID\":\"DFF34C26-6200-40D7-A6DB-B10637391BF3\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"A6B24A45-39C8-4B89-9E27-939C772CA7EA\",\"kind\":\"receiverStopped\",\"operationFinished\":false,\"parentPID\":23796,\"pid\":23897,\"reason\":\"windowElapsed\",\"role\":\"receiver\",\"runID\":\"5B5E64B7-D160-4440-BF9C-0F5C2FDB4AEC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":9,\"timestamp\":{\"monotonicNanoseconds\":232882579192416,\"utc\":\"2026-11-06T08:11:35.753Z\"},\"transport\":\"tcp\"}\n"
+      }
+    ]
+  },
+  "tcp-v4": {
+    "bindings": [
+      {
+        "endpointID": "exact",
+        "flowID": "0F0525EB-2AE1-4B96-B2C3-D08590CB1099",
+        "network": {
+          "contactID": 1,
+          "receiverSourceID": "receiver",
+          "senderSourceID": "sender"
+        },
+        "scenarioID": "NET-10.ipv4.loopback.hostToZone",
+        "stage": "test"
+      }
+    ],
+    "endpoints": [
+      {
+        "bind": {
+          "host": "127.0.0.1",
+          "port": 53420
+        },
+        "id": "exact",
+        "local": {
+          "host": "127.0.0.1",
+          "port": 53420
+        },
+        "remote": {
+          "host": "127.0.0.1",
+          "port": 53421
+        },
+        "scenarioID": "NET-10.ipv4.loopback.hostToZone",
+        "transport": "tcp"
+      }
+    ],
+    "runID": "30553519-76C0-4D91-9927-1F935AF40A8B",
+    "runStartUTC": "2026-11-06T08:11:26.425Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJlMDIyMWE3YzEzNmRmMTNiZmRlZDk3MjM3ODc2ZDAzNDgzYTVjN2IwIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDAKICB9LAogICJmbG93IjogewogICAgImNoYWxsZW5nZSI6ICIxOGQ0NDAyYjE4NzBlZTZjOTdlYTE3NGE0NDNkMTlhYjJjYTI3YjU4ZWY2MjU1OTQwNmU3NjI4YTI3ZjAwMTVmIiwKICAgICJmbG93SUQiOiAiMEYwNTI1RUItMkFFMS00Qjk2LUIyQzMtRDA4NTkwQ0IxMDk5IiwKICAgICJwcmVwYXJlZEF0VVRDIjogIjIwMjYtMTEtMDZUMDg6MTE6MjYuMjY3WiIsCiAgICAicnVuSUQiOiAiMzA1NTM1MTktNzZDMC00RDkxLTk5MjctMUY5MzVBRjQwQThCIgogIH0sCiAgIm1heGltdW1Db250YWN0cyI6IDE2LAogICJzY2hlbWFWZXJzaW9uIjogMSwKICAic2NvcGUiOiAiaG9zdERpYWdub3N0aWMiLAogICJ0cmFuc3BvcnQiOiAidGNwIgp9Cg==",
+            "count": 478,
+            "name": "probe.json",
+            "sha256": "dc79983d03862447d9d3cee493210b30831ff042af7a7ee328b98b96a8de873c"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8MzA1NTM1MTktNzZDMC00RDkxLTk5MjctMUY5MzVBRjQwQThCfDBGMDUyNUVCLTJBRTEtNEI5Ni1CMkMzLUQwODU5MENCMTA5OXwxOGQ0NDAyYjE4NzBlZTZjOTdlYTE3NGE0NDNkMTlhYjJjYTI3YjU4ZWY2MjU1OTQwNmU3NjI4YTI3ZjAwMTVmCg==",
+            "count": 169,
+            "name": "received-1.bin",
+            "sha256": "1d6d6f7a46ddddc7b6ca65f17fc4620de44deaac9a47af40763e6c3bd90331d2"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "receiver",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df\",\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"42F26747-01C5-4D16-A950-10AD595F4CF0\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23820,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":0},\"flow\":{\"challenge\":\"18d4402b1870ee6c97ea174a443d19ab2ca27b58ef62559406e7628a27f0015f\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"preparedAtUTC\":\"2026-11-06T08:11:26.267Z\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"tcp\"},\"registrationSHA256\":\"dc79983d03862447d9d3cee493210b30831ff042af7a7ee328b98b96a8de873c\",\"role\":\"receiver\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"e0221a7c136df13bfded97237876d03483a5c7b0\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232873250864583,\"utc\":\"2026-11-06T08:11:26.425Z\"},\"transport\":\"tcp\"}\n{\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"42F26747-01C5-4D16-A950-10AD595F4CF0\",\"kind\":\"receiverStarted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53420},\"parentPID\":23796,\"pid\":23820,\"role\":\"receiver\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"timestamp\":{\"monotonicNanoseconds\":232873252305458,\"utc\":\"2026-11-06T08:11:26.427Z\"},\"transport\":\"tcp\"}\n{\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"42F26747-01C5-4D16-A950-10AD595F4CF0\",\"kind\":\"accepted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53420},\"parentPID\":23796,\"pid\":23820,\"remote\":{\"host\":\"127.0.0.1\",\"port\":53421},\"role\":\"receiver\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232873297116041,\"utc\":\"2026-11-06T08:11:26.471Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"42F26747-01C5-4D16-A950-10AD595F4CF0\",\"kind\":\"closed\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53420},\"matchesRegisteredPayload\":true,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"18d4402b1870ee6c97ea174a443d19ab2ca27b58ef62559406e7628a27f0015f\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\"},\"pid\":23820,\"rawFile\":\"received-1.bin\",\"rawSHA256\":\"1d6d6f7a46ddddc7b6ca65f17fc4620de44deaac9a47af40763e6c3bd90331d2\",\"rawTruncated\":false,\"reason\":\"peerEOF\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":53421},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232873297858791,\"utc\":\"2026-11-06T08:11:26.472Z\"},\"transport\":\"tcp\"}\n{\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"42F26747-01C5-4D16-A950-10AD595F4CF0\",\"kind\":\"receiverStopped\",\"operationFinished\":true,\"parentPID\":23796,\"pid\":23820,\"reason\":\"windowElapsed\",\"role\":\"receiver\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"timestamp\":{\"monotonicNanoseconds\":232874756493333,\"utc\":\"2026-11-06T08:11:27.931Z\"},\"transport\":\"tcp\"}\n"
+      },
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJmYzI1MmNjMzlkZmUxYmMxNDlkYzI0MjA4MjYxN2RjYmQ4Nzg0ZDQxIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDUzNDIwCiAgfSwKICAiZmxvdyI6IHsKICAgICJjaGFsbGVuZ2UiOiAiMThkNDQwMmIxODcwZWU2Yzk3ZWExNzRhNDQzZDE5YWIyY2EyN2I1OGVmNjI1NTk0MDZlNzYyOGEyN2YwMDE1ZiIsCiAgICAiZmxvd0lEIjogIjBGMDUyNUVCLTJBRTEtNEI5Ni1CMkMzLUQwODU5MENCMTA5OSIsCiAgICAicHJlcGFyZWRBdFVUQyI6ICIyMDI2LTExLTA2VDA4OjExOjI2LjI2N1oiLAogICAgInJ1bklEIjogIjMwNTUzNTE5LTc2QzAtNEQ5MS05OTI3LTFGOTM1QUY0MEE4QiIKICB9LAogICJtYXhpbXVtQ29udGFjdHMiOiAxNiwKICAic2NoZW1hVmVyc2lvbiI6IDEsCiAgInNjb3BlIjogImhvc3REaWFnbm9zdGljIiwKICAidHJhbnNwb3J0IjogInRjcCIKfQo=",
+            "count": 482,
+            "name": "probe.json",
+            "sha256": "6b742840ad1b1a5cdf1b481983f07aaff338e023af7292dd536e03d5f48ee480"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8MzA1NTM1MTktNzZDMC00RDkxLTk5MjctMUY5MzVBRjQwQThCfDBGMDUyNUVCLTJBRTEtNEI5Ni1CMkMzLUQwODU5MENCMTA5OXwxOGQ0NDAyYjE4NzBlZTZjOTdlYTE3NGE0NDNkMTlhYjJjYTI3YjU4ZWY2MjU1OTQwNmU3NjI4YTI3ZjAwMTVmCg==",
+            "count": 169,
+            "name": "sent.bin",
+            "sha256": "1d6d6f7a46ddddc7b6ca65f17fc4620de44deaac9a47af40763e6c3bd90331d2"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "sender",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f\",\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"D2E45ACC-34C8-4EFC-B76E-B719E2643A39\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23824,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":53420},\"flow\":{\"challenge\":\"18d4402b1870ee6c97ea174a443d19ab2ca27b58ef62559406e7628a27f0015f\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"preparedAtUTC\":\"2026-11-06T08:11:26.267Z\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"tcp\"},\"registrationSHA256\":\"6b742840ad1b1a5cdf1b481983f07aaff338e023af7292dd536e03d5f48ee480\",\"role\":\"sender\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"fc252cc39dfe1bc149dc242082617dcbd8784d41\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232873294619875,\"utc\":\"2026-11-06T08:11:26.469Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"D2E45ACC-34C8-4EFC-B76E-B719E2643A39\",\"kind\":\"attemptStarted\",\"localKernelAcceptedBytes\":0,\"parentPID\":23796,\"pid\":23824,\"rawFile\":\"sent.bin\",\"rawSHA256\":\"1d6d6f7a46ddddc7b6ca65f17fc4620de44deaac9a47af40763e6c3bd90331d2\",\"role\":\"sender\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"target\":{\"host\":\"127.0.0.1\",\"port\":53420},\"timestamp\":{\"monotonicNanoseconds\":232873296296458,\"utc\":\"2026-11-06T08:11:26.471Z\"},\"transport\":\"tcp\"}\n{\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"D2E45ACC-34C8-4EFC-B76E-B719E2643A39\",\"kind\":\"connected\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53421},\"parentPID\":23796,\"pid\":23824,\"remote\":{\"host\":\"127.0.0.1\",\"port\":53420},\"role\":\"sender\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232873296933125,\"utc\":\"2026-11-06T08:11:26.471Z\"},\"transport\":\"tcp\"}\n{\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"D2E45ACC-34C8-4EFC-B76E-B719E2643A39\",\"kind\":\"kernelAccepted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53421},\"localKernelAcceptedBytes\":169,\"parentPID\":23796,\"pid\":23824,\"remote\":{\"host\":\"127.0.0.1\",\"port\":53420},\"role\":\"sender\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232873297285166,\"utc\":\"2026-11-06T08:11:26.471Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"family\":\"ipv4\",\"flowID\":\"0F0525EB-2AE1-4B96-B2C3-D08590CB1099\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"D2E45ACC-34C8-4EFC-B76E-B719E2643A39\",\"kind\":\"attemptEnded\",\"local\":{\"host\":\"127.0.0.1\",\"port\":53421},\"localKernelAcceptedBytes\":169,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23824,\"reason\":\"localKernelAcceptedFrame\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":53420},\"role\":\"sender\",\"runID\":\"30553519-76C0-4D91-9927-1F935AF40A8B\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"target\":{\"host\":\"127.0.0.1\",\"port\":53420},\"timestamp\":{\"monotonicNanoseconds\":232873297641916,\"utc\":\"2026-11-06T08:11:26.472Z\"},\"transport\":\"tcp\"}\n"
+      }
+    ]
+  },
+  "tcp-v6": {
+    "bindings": [
+      {
+        "endpointID": "exact",
+        "flowID": "EA762AED-689F-4199-B5E9-A3DA86244156",
+        "network": {
+          "contactID": 1,
+          "receiverSourceID": "receiver",
+          "senderSourceID": "sender"
+        },
+        "scenarioID": "NET-10.ipv6.loopback.hostToZone",
+        "stage": "test"
+      }
+    ],
+    "endpoints": [
+      {
+        "bind": {
+          "host": "::1",
+          "port": 53424
+        },
+        "id": "exact",
+        "local": {
+          "host": "::1",
+          "port": 53424
+        },
+        "remote": {
+          "host": "::1",
+          "port": 53425
+        },
+        "scenarioID": "NET-10.ipv6.loopback.hostToZone",
+        "transport": "tcp"
+      }
+    ],
+    "runID": "BA6E266A-9618-4355-9599-31EC12BF7F03",
+    "runStartUTC": "2026-11-06T08:11:29.554Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJlMDIyMWE3YzEzNmRmMTNiZmRlZDk3MjM3ODc2ZDAzNDgzYTVjN2IwIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjo6MSIsCiAgICAicG9ydCI6IDAKICB9LAogICJmbG93IjogewogICAgImNoYWxsZW5nZSI6ICJhNjRhZGEyNmMxZGY5YmNiNGFmNDQ2NGI4MWFmMzdmNjU3MTBiMWRhNGYzZGJiYTI4YTFiMmI4NTdlM2YwMWIwIiwKICAgICJmbG93SUQiOiAiRUE3NjJBRUQtNjg5Ri00MTk5LUI1RTktQTNEQTg2MjQ0MTU2IiwKICAgICJwcmVwYXJlZEF0VVRDIjogIjIwMjYtMTEtMDZUMDg6MTE6MjYuMjkxWiIsCiAgICAicnVuSUQiOiAiQkE2RTI2NkEtOTYxOC00MzU1LTk1OTktMzFFQzEyQkY3RjAzIgogIH0sCiAgIm1heGltdW1Db250YWN0cyI6IDE2LAogICJzY2hlbWFWZXJzaW9uIjogMSwKICAic2NvcGUiOiAiaG9zdERpYWdub3N0aWMiLAogICJ0cmFuc3BvcnQiOiAidGNwIgp9Cg==",
+            "count": 472,
+            "name": "probe.json",
+            "sha256": "34f2fabc7de45dda70e734271486c0d6f1debde3b16e564ae268428acdaef551"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8QkE2RTI2NkEtOTYxOC00MzU1LTk1OTktMzFFQzEyQkY3RjAzfEVBNzYyQUVELTY4OUYtNDE5OS1CNUU5LUEzREE4NjI0NDE1NnxhNjRhZGEyNmMxZGY5YmNiNGFmNDQ2NGI4MWFmMzdmNjU3MTBiMWRhNGYzZGJiYTI4YTFiMmI4NTdlM2YwMWIwCg==",
+            "count": 169,
+            "name": "received-1.bin",
+            "sha256": "1d1656a8e561aad2965dcb91154039845e822eef2f1e98c34b90ab164bbe24e0"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "receiver",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df\",\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"8C079C3B-907C-4BF4-BCF2-9B93D6E06934\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23856,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"::1\",\"port\":0},\"flow\":{\"challenge\":\"a64ada26c1df9bcb4af4464b81af37f65710b1da4f3dbba28a1b2b857e3f01b0\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"preparedAtUTC\":\"2026-11-06T08:11:26.291Z\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"tcp\"},\"registrationSHA256\":\"34f2fabc7de45dda70e734271486c0d6f1debde3b16e564ae268428acdaef551\",\"role\":\"receiver\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"e0221a7c136df13bfded97237876d03483a5c7b0\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232876379966375,\"utc\":\"2026-11-06T08:11:29.554Z\"},\"transport\":\"tcp\"}\n{\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"8C079C3B-907C-4BF4-BCF2-9B93D6E06934\",\"kind\":\"receiverStarted\",\"local\":{\"host\":\"::1\",\"port\":53424},\"parentPID\":23796,\"pid\":23856,\"role\":\"receiver\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"timestamp\":{\"monotonicNanoseconds\":232876381625250,\"utc\":\"2026-11-06T08:11:29.556Z\"},\"transport\":\"tcp\"}\n{\"contactID\":1,\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"8C079C3B-907C-4BF4-BCF2-9B93D6E06934\",\"kind\":\"accepted\",\"local\":{\"host\":\"::1\",\"port\":53424},\"parentPID\":23796,\"pid\":23856,\"remote\":{\"host\":\"::1\",\"port\":53425},\"role\":\"receiver\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232876432761791,\"utc\":\"2026-11-06T08:11:29.607Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"contactID\":1,\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"8C079C3B-907C-4BF4-BCF2-9B93D6E06934\",\"kind\":\"closed\",\"local\":{\"host\":\"::1\",\"port\":53424},\"matchesRegisteredPayload\":true,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"a64ada26c1df9bcb4af4464b81af37f65710b1da4f3dbba28a1b2b857e3f01b0\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\"},\"pid\":23856,\"rawFile\":\"received-1.bin\",\"rawSHA256\":\"1d1656a8e561aad2965dcb91154039845e822eef2f1e98c34b90ab164bbe24e0\",\"rawTruncated\":false,\"reason\":\"peerEOF\",\"remote\":{\"host\":\"::1\",\"port\":53425},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232876433475416,\"utc\":\"2026-11-06T08:11:29.608Z\"},\"transport\":\"tcp\"}\n{\"contactID\":1,\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"8C079C3B-907C-4BF4-BCF2-9B93D6E06934\",\"kind\":\"receiverStopped\",\"operationFinished\":true,\"parentPID\":23796,\"pid\":23856,\"reason\":\"windowElapsed\",\"role\":\"receiver\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"timestamp\":{\"monotonicNanoseconds\":232877886441833,\"utc\":\"2026-11-06T08:11:31.061Z\"},\"transport\":\"tcp\"}\n"
+      },
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJmYzI1MmNjMzlkZmUxYmMxNDlkYzI0MjA4MjYxN2RjYmQ4Nzg0ZDQxIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjo6MSIsCiAgICAicG9ydCI6IDUzNDI0CiAgfSwKICAiZmxvdyI6IHsKICAgICJjaGFsbGVuZ2UiOiAiYTY0YWRhMjZjMWRmOWJjYjRhZjQ0NjRiODFhZjM3ZjY1NzEwYjFkYTRmM2RiYmEyOGExYjJiODU3ZTNmMDFiMCIsCiAgICAiZmxvd0lEIjogIkVBNzYyQUVELTY4OUYtNDE5OS1CNUU5LUEzREE4NjI0NDE1NiIsCiAgICAicHJlcGFyZWRBdFVUQyI6ICIyMDI2LTExLTA2VDA4OjExOjI2LjI5MVoiLAogICAgInJ1bklEIjogIkJBNkUyNjZBLTk2MTgtNDM1NS05NTk5LTMxRUMxMkJGN0YwMyIKICB9LAogICJtYXhpbXVtQ29udGFjdHMiOiAxNiwKICAic2NoZW1hVmVyc2lvbiI6IDEsCiAgInNjb3BlIjogImhvc3REaWFnbm9zdGljIiwKICAidHJhbnNwb3J0IjogInRjcCIKfQo=",
+            "count": 476,
+            "name": "probe.json",
+            "sha256": "95dfd902413b632999a8936f28cce26aceb373bd27477a3fcaeeda953fa788f8"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8QkE2RTI2NkEtOTYxOC00MzU1LTk1OTktMzFFQzEyQkY3RjAzfEVBNzYyQUVELTY4OUYtNDE5OS1CNUU5LUEzREE4NjI0NDE1NnxhNjRhZGEyNmMxZGY5YmNiNGFmNDQ2NGI4MWFmMzdmNjU3MTBiMWRhNGYzZGJiYTI4YTFiMmI4NTdlM2YwMWIwCg==",
+            "count": 169,
+            "name": "sent.bin",
+            "sha256": "1d1656a8e561aad2965dcb91154039845e822eef2f1e98c34b90ab164bbe24e0"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "sender",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f\",\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"5EF9647F-61D2-4D47-8852-08F4E0975BDC\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23860,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"::1\",\"port\":53424},\"flow\":{\"challenge\":\"a64ada26c1df9bcb4af4464b81af37f65710b1da4f3dbba28a1b2b857e3f01b0\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"preparedAtUTC\":\"2026-11-06T08:11:26.291Z\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"tcp\"},\"registrationSHA256\":\"95dfd902413b632999a8936f28cce26aceb373bd27477a3fcaeeda953fa788f8\",\"role\":\"sender\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"fc252cc39dfe1bc149dc242082617dcbd8784d41\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232876430781500,\"utc\":\"2026-11-06T08:11:29.605Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"5EF9647F-61D2-4D47-8852-08F4E0975BDC\",\"kind\":\"attemptStarted\",\"localKernelAcceptedBytes\":0,\"parentPID\":23796,\"pid\":23860,\"rawFile\":\"sent.bin\",\"rawSHA256\":\"1d1656a8e561aad2965dcb91154039845e822eef2f1e98c34b90ab164bbe24e0\",\"role\":\"sender\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"target\":{\"host\":\"::1\",\"port\":53424},\"timestamp\":{\"monotonicNanoseconds\":232876432056083,\"utc\":\"2026-11-06T08:11:29.606Z\"},\"transport\":\"tcp\"}\n{\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"5EF9647F-61D2-4D47-8852-08F4E0975BDC\",\"kind\":\"connected\",\"local\":{\"host\":\"::1\",\"port\":53425},\"parentPID\":23796,\"pid\":23860,\"remote\":{\"host\":\"::1\",\"port\":53424},\"role\":\"sender\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232876432675916,\"utc\":\"2026-11-06T08:11:29.607Z\"},\"transport\":\"tcp\"}\n{\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"5EF9647F-61D2-4D47-8852-08F4E0975BDC\",\"kind\":\"kernelAccepted\",\"local\":{\"host\":\"::1\",\"port\":53425},\"localKernelAcceptedBytes\":169,\"parentPID\":23796,\"pid\":23860,\"remote\":{\"host\":\"::1\",\"port\":53424},\"role\":\"sender\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232876433044625,\"utc\":\"2026-11-06T08:11:29.607Z\"},\"transport\":\"tcp\"}\n{\"bytes\":169,\"family\":\"ipv6\",\"flowID\":\"EA762AED-689F-4199-B5E9-A3DA86244156\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"5EF9647F-61D2-4D47-8852-08F4E0975BDC\",\"kind\":\"attemptEnded\",\"local\":{\"host\":\"::1\",\"port\":53425},\"localKernelAcceptedBytes\":169,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23860,\"reason\":\"localKernelAcceptedFrame\",\"remote\":{\"host\":\"::1\",\"port\":53424},\"role\":\"sender\",\"runID\":\"BA6E266A-9618-4355-9599-31EC12BF7F03\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"target\":{\"host\":\"::1\",\"port\":53424},\"timestamp\":{\"monotonicNanoseconds\":232876433485208,\"utc\":\"2026-11-06T08:11:29.608Z\"},\"transport\":\"tcp\"}\n"
+      }
+    ]
+  },
+  "udp-adversarial": {
+    "bindings": [],
+    "endpoints": [],
+    "runID": "454874E7-89D5-44B6-A3D8-985FA8D0D1FC",
+    "runStartUTC": "2026-11-06T08:11:32.684Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJlMDIyMWE3YzEzNmRmMTNiZmRlZDk3MjM3ODc2ZDAzNDgzYTVjN2IwIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDAKICB9LAogICJmbG93IjogewogICAgImNoYWxsZW5nZSI6ICJiMDQ2NGE3MjY4MjZjYjA0NDM2MzEzYjA4YzJlMzdiNTZkZjFhNzFjZTE1ZjMwNDZjYTBjM2UzYTU5MmFhM2U4IiwKICAgICJmbG93SUQiOiAiQTI3NDUzNkYtNzhCNS00QTI4LTlGNTYtMkFEMkVFODhCQjlEIiwKICAgICJwcmVwYXJlZEF0VVRDIjogIjIwMjYtMTEtMDZUMDg6MTE6MjYuMzA4WiIsCiAgICAicnVuSUQiOiAiNDU0ODc0RTctODlENS00NEI2LUEzRDgtOTg1RkE4RDBEMUZDIgogIH0sCiAgIm1heGltdW1Db250YWN0cyI6IDE2LAogICJzY2hlbWFWZXJzaW9uIjogMSwKICAic2NvcGUiOiAiaG9zdERpYWdub3N0aWMiLAogICJ0cmFuc3BvcnQiOiAidWRwIgp9Cg==",
+            "count": 478,
+            "name": "probe.json",
+            "sha256": "5dbbe56706c3f436609b7468529f1a17c5e04d3419ed7298c4662c6783c1bdcd"
+          },
+          {
+            "base64": "",
+            "count": 0,
+            "name": "received-1.bin",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8NDU0ODc0RTctODlENS00NEI2LUEzRDgtOTg1RkE4RDBEMUZDfEEyNzQ1MzZGLTc4QjUtNEEyOC05RjU2LTJBRDJFRTg4QkI5RHxiMDQ2NGE3MjY4MjZjYjA0NDM2MzEzYjA4YzJlMzdiNTZkZjFhNzFjZTE1ZjMwNDZjYTBjM2UzYTU5MmFhM2UwCg==",
+            "count": 169,
+            "name": "received-2.bin",
+            "sha256": "cd3498899181991a1105bd845c5ec784e9c004460da5b30b820a7cff11a42181"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8NDU0ODc0RTctODlENS00NEI2LUEzRDgtOTg1RkE4RDBEMUZDfEEyNzQ1MzZGLTc4QjUtNEEyOC05RjU2LTJBRDJFRTg4QkI5RHxiMDQ2NGE3MjY4MjZjYjA0NDM2MzEzYjA4YzJlMzdiNTZkZjFhNzFjZTE1ZjMwNDZjYTBjM2UzYTU5MmFhM2U4Cg==",
+            "count": 169,
+            "name": "received-3.bin",
+            "sha256": "e9312affa66f8cf5c363654521cd21d835972e4f3ceb9e0ec1acb7e36799a81e"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8NDU0ODc0RTctODlENS00NEI2LUEzRDgtOTg1RkE4RDBEMUZDfEEyNzQ1MzZGLTc4QjUtNEEyOC05RjU2LTJBRDJFRTg4QkI5RHxiMDQ2NGE3MjY4MjZjYjA0NDM2MzEzYjA4YzJlMzdiNTZkZjFhNzFjZTE1ZjMwNDZjYTBjM2UzYTU5MmFhM2U4Cg==",
+            "count": 169,
+            "name": "received-4.bin",
+            "sha256": "e9312affa66f8cf5c363654521cd21d835972e4f3ceb9e0ec1acb7e36799a81e"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8RjY4NTA2RDMtRTU2Ni00N0QwLTk5QTUtRUVBQjI5NkU0NTI5fEEyNzQ1MzZGLTc4QjUtNEEyOC05RjU2LTJBRDJFRTg4QkI5RHxiMDQ2NGE3MjY4MjZjYjA0NDM2MzEzYjA4YzJlMzdiNTZkZjFhNzFjZTE1ZjMwNDZjYTBjM2UzYTU5MmFhM2U4Cg==",
+            "count": 169,
+            "name": "received-5.bin",
+            "sha256": "386919e54047a304799695c4fb6e70eb8618ad93713e60aa3d9c882321bb29fe"
+          },
+          {
+            "base64": "bWFsZm9ybWVk",
+            "count": 9,
+            "name": "received-6.bin",
+            "sha256": "60ec9bb7299d85e0cdd35d4058fabd7cb6bdc9b788c6efde44427e9bb9234e13"
+          },
+          {
+            "base64": "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eA==",
+            "count": 4096,
+            "name": "received-7.bin",
+            "sha256": "a2e659dacb4691e887ac0139f8893d04764ee197d70fb73d3190d56113d18e3e"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "receiver",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df\",\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23885,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":0},\"flow\":{\"challenge\":\"b0464a726826cb04436313b08c2e37b56df1a71ce15f3046ca0c3e3a592aa3e8\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"preparedAtUTC\":\"2026-11-06T08:11:26.308Z\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"udp\"},\"registrationSHA256\":\"5dbbe56706c3f436609b7468529f1a17c5e04d3419ed7298c4662c6783c1bdcd\",\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"e0221a7c136df13bfded97237876d03483a5c7b0\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232879510013958,\"utc\":\"2026-11-06T08:11:32.684Z\"},\"transport\":\"udp\"}\n{\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"receiverStarted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"parentPID\":23796,\"pid\":23885,\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"timestamp\":{\"monotonicNanoseconds\":232879511684166,\"utc\":\"2026-11-06T08:11:32.686Z\"},\"transport\":\"udp\"}\n{\"bytes\":0,\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"parentPID\":23796,\"pid\":23885,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232879513327708,\"utc\":\"2026-11-06T08:11:32.688Z\"},\"transport\":\"udp\"}\n{\"bytes\":0,\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"matchesRegisteredPayload\":false,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23885,\"rawFile\":\"received-1.bin\",\"rawSHA256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232879514199708,\"utc\":\"2026-11-06T08:11:32.688Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":2,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"parentPID\":23796,\"pid\":23885,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"timestamp\":{\"monotonicNanoseconds\":232879514751833,\"utc\":\"2026-11-06T08:11:32.689Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":2,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"matchesRegisteredPayload\":false,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"b0464a726826cb04436313b08c2e37b56df1a71ce15f3046ca0c3e3a592aa3e0\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\"},\"pid\":23885,\"rawFile\":\"received-2.bin\",\"rawSHA256\":\"cd3498899181991a1105bd845c5ec784e9c004460da5b30b820a7cff11a42181\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":6,\"timestamp\":{\"monotonicNanoseconds\":232879515451666,\"utc\":\"2026-11-06T08:11:32.690Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":3,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"parentPID\":23796,\"pid\":23885,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":7,\"timestamp\":{\"monotonicNanoseconds\":232879516024750,\"utc\":\"2026-11-06T08:11:32.690Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":3,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"matchesRegisteredPayload\":true,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"b0464a726826cb04436313b08c2e37b56df1a71ce15f3046ca0c3e3a592aa3e8\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\"},\"pid\":23885,\"rawFile\":\"received-3.bin\",\"rawSHA256\":\"e9312affa66f8cf5c363654521cd21d835972e4f3ceb9e0ec1acb7e36799a81e\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":8,\"timestamp\":{\"monotonicNanoseconds\":232879516847375,\"utc\":\"2026-11-06T08:11:32.691Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":4,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"parentPID\":23796,\"pid\":23885,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":9,\"timestamp\":{\"monotonicNanoseconds\":232879517346541,\"utc\":\"2026-11-06T08:11:32.692Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":4,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"matchesRegisteredPayload\":true,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"b0464a726826cb04436313b08c2e37b56df1a71ce15f3046ca0c3e3a592aa3e8\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\"},\"pid\":23885,\"rawFile\":\"received-4.bin\",\"rawSHA256\":\"e9312affa66f8cf5c363654521cd21d835972e4f3ceb9e0ec1acb7e36799a81e\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"repeatedRegisteredPayload\":true,\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":10,\"timestamp\":{\"monotonicNanoseconds\":232879517993333,\"utc\":\"2026-11-06T08:11:32.692Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":5,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"parentPID\":23796,\"pid\":23885,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":11,\"timestamp\":{\"monotonicNanoseconds\":232879518503708,\"utc\":\"2026-11-06T08:11:32.693Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":5,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"matchesRegisteredPayload\":false,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"b0464a726826cb04436313b08c2e37b56df1a71ce15f3046ca0c3e3a592aa3e8\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"runID\":\"F68506D3-E566-47D0-99A5-EEAB296E4529\"},\"pid\":23885,\"rawFile\":\"received-5.bin\",\"rawSHA256\":\"386919e54047a304799695c4fb6e70eb8618ad93713e60aa3d9c882321bb29fe\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":12,\"timestamp\":{\"monotonicNanoseconds\":232879519194583,\"utc\":\"2026-11-06T08:11:32.693Z\"},\"transport\":\"udp\"}\n{\"bytes\":9,\"contactID\":6,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"parentPID\":23796,\"pid\":23885,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":13,\"timestamp\":{\"monotonicNanoseconds\":232879519708958,\"utc\":\"2026-11-06T08:11:32.694Z\"},\"transport\":\"udp\"}\n{\"bytes\":9,\"contactID\":6,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"matchesRegisteredPayload\":false,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23885,\"rawFile\":\"received-6.bin\",\"rawSHA256\":\"60ec9bb7299d85e0cdd35d4058fabd7cb6bdc9b788c6efde44427e9bb9234e13\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":14,\"timestamp\":{\"monotonicNanoseconds\":232879520398041,\"utc\":\"2026-11-06T08:11:32.695Z\"},\"transport\":\"udp\"}\n{\"bytes\":4096,\"contactID\":7,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"parentPID\":23796,\"pid\":23885,\"rawTruncated\":true,\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":15,\"timestamp\":{\"monotonicNanoseconds\":232879520909583,\"utc\":\"2026-11-06T08:11:32.695Z\"},\"transport\":\"udp\"}\n{\"bytes\":4096,\"contactID\":7,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":63837},\"matchesRegisteredPayload\":false,\"operationFinished\":false,\"parentPID\":23796,\"pid\":23885,\"rawFile\":\"received-7.bin\",\"rawSHA256\":\"a2e659dacb4691e887ac0139f8893d04764ee197d70fb73d3190d56113d18e3e\",\"rawTruncated\":true,\"reason\":\"datagramTruncated\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":51901},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":16,\"timestamp\":{\"monotonicNanoseconds\":232879521533791,\"utc\":\"2026-11-06T08:11:32.696Z\"},\"transport\":\"udp\"}\n{\"contactID\":7,\"family\":\"ipv4\",\"flowID\":\"A274536F-78B5-4A28-9F56-2AD2EE88BB9D\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"1D2165BD-31C2-41D8-98FE-284D9887DEB6\",\"kind\":\"receiverStopped\",\"operationFinished\":false,\"parentPID\":23796,\"pid\":23885,\"reason\":\"windowElapsed\",\"role\":\"receiver\",\"runID\":\"454874E7-89D5-44B6-A3D8-985FA8D0D1FC\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":17,\"timestamp\":{\"monotonicNanoseconds\":232881015061291,\"utc\":\"2026-11-06T08:11:34.189Z\"},\"transport\":\"udp\"}\n"
+      }
+    ]
+  },
+  "udp-v4": {
+    "bindings": [
+      {
+        "endpointID": "exact",
+        "flowID": "87FC6970-B422-4668-BEE7-FCA3998B9DAC",
+        "network": {
+          "contactID": 1,
+          "receiverSourceID": "receiver",
+          "senderSourceID": "sender"
+        },
+        "scenarioID": "NET-10.ipv4.loopback.hostToZone",
+        "stage": "test"
+      }
+    ],
+    "endpoints": [
+      {
+        "bind": {
+          "host": "127.0.0.1",
+          "port": 49170
+        },
+        "id": "exact",
+        "local": {
+          "host": "127.0.0.1",
+          "port": 49170
+        },
+        "remote": {
+          "host": "127.0.0.1",
+          "port": 52823
+        },
+        "scenarioID": "NET-10.ipv4.loopback.hostToZone",
+        "transport": "udp"
+      }
+    ],
+    "runID": "420F940F-6DBE-428A-BA6F-00DFF7E6BA20",
+    "runStartUTC": "2026-11-06T08:11:27.990Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJlMDIyMWE3YzEzNmRmMTNiZmRlZDk3MjM3ODc2ZDAzNDgzYTVjN2IwIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDAKICB9LAogICJmbG93IjogewogICAgImNoYWxsZW5nZSI6ICJkODNhOWQ4OTkzYTliNGE0NTZmN2JjNGFjY2RhMWI2NDE1YzJjNWM3NmE2N2EwZGY0YTcyOTFlNjUwMWEyZmY5IiwKICAgICJmbG93SUQiOiAiODdGQzY5NzAtQjQyMi00NjY4LUJFRTctRkNBMzk5OEI5REFDIiwKICAgICJwcmVwYXJlZEF0VVRDIjogIjIwMjYtMTEtMDZUMDg6MTE6MjYuMjgwWiIsCiAgICAicnVuSUQiOiAiNDIwRjk0MEYtNkRCRS00MjhBLUJBNkYtMDBERkY3RTZCQTIwIgogIH0sCiAgIm1heGltdW1Db250YWN0cyI6IDE2LAogICJzY2hlbWFWZXJzaW9uIjogMSwKICAic2NvcGUiOiAiaG9zdERpYWdub3N0aWMiLAogICJ0cmFuc3BvcnQiOiAidWRwIgp9Cg==",
+            "count": 478,
+            "name": "probe.json",
+            "sha256": "692e918e3e362d0d19db98a4245d0c9ae2f5215944e3ab07c4f034f2402a6ade"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8NDIwRjk0MEYtNkRCRS00MjhBLUJBNkYtMDBERkY3RTZCQTIwfDg3RkM2OTcwLUI0MjItNDY2OC1CRUU3LUZDQTM5OThCOURBQ3xkODNhOWQ4OTkzYTliNGE0NTZmN2JjNGFjY2RhMWI2NDE1YzJjNWM3NmE2N2EwZGY0YTcyOTFlNjUwMWEyZmY5Cg==",
+            "count": 169,
+            "name": "received-1.bin",
+            "sha256": "fccd58cd8ce7a82f779010a3f0ef4a0b71cf3a44f001d7469801eaddec16acbd"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "receiver",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df\",\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"B4302265-9986-4FB9-B259-24F5FBBB4736\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23837,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":0},\"flow\":{\"challenge\":\"d83a9d8993a9b4a456f7bc4accda1b6415c2c5c76a67a0df4a7291e6501a2ff9\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"preparedAtUTC\":\"2026-11-06T08:11:26.280Z\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"udp\"},\"registrationSHA256\":\"692e918e3e362d0d19db98a4245d0c9ae2f5215944e3ab07c4f034f2402a6ade\",\"role\":\"receiver\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"e0221a7c136df13bfded97237876d03483a5c7b0\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232874816030083,\"utc\":\"2026-11-06T08:11:27.990Z\"},\"transport\":\"udp\"}\n{\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"B4302265-9986-4FB9-B259-24F5FBBB4736\",\"kind\":\"receiverStarted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":49170},\"parentPID\":23796,\"pid\":23837,\"role\":\"receiver\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"timestamp\":{\"monotonicNanoseconds\":232874817651750,\"utc\":\"2026-11-06T08:11:27.992Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"B4302265-9986-4FB9-B259-24F5FBBB4736\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"127.0.0.1\",\"port\":49170},\"parentPID\":23796,\"pid\":23837,\"rawTruncated\":false,\"remote\":{\"host\":\"127.0.0.1\",\"port\":52823},\"role\":\"receiver\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232874871472458,\"utc\":\"2026-11-06T08:11:28.046Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"B4302265-9986-4FB9-B259-24F5FBBB4736\",\"kind\":\"datagram\",\"local\":{\"host\":\"127.0.0.1\",\"port\":49170},\"matchesRegisteredPayload\":true,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"d83a9d8993a9b4a456f7bc4accda1b6415c2c5c76a67a0df4a7291e6501a2ff9\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\"},\"pid\":23837,\"rawFile\":\"received-1.bin\",\"rawSHA256\":\"fccd58cd8ce7a82f779010a3f0ef4a0b71cf3a44f001d7469801eaddec16acbd\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":52823},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232874872223291,\"utc\":\"2026-11-06T08:11:28.046Z\"},\"transport\":\"udp\"}\n{\"contactID\":1,\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"B4302265-9986-4FB9-B259-24F5FBBB4736\",\"kind\":\"receiverStopped\",\"operationFinished\":true,\"parentPID\":23796,\"pid\":23837,\"reason\":\"windowElapsed\",\"role\":\"receiver\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"timestamp\":{\"monotonicNanoseconds\":232876321751958,\"utc\":\"2026-11-06T08:11:29.496Z\"},\"transport\":\"udp\"}\n"
+      },
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJmYzI1MmNjMzlkZmUxYmMxNDlkYzI0MjA4MjYxN2RjYmQ4Nzg0ZDQxIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjEyNy4wLjAuMSIsCiAgICAicG9ydCI6IDQ5MTcwCiAgfSwKICAiZmxvdyI6IHsKICAgICJjaGFsbGVuZ2UiOiAiZDgzYTlkODk5M2E5YjRhNDU2ZjdiYzRhY2NkYTFiNjQxNWMyYzVjNzZhNjdhMGRmNGE3MjkxZTY1MDFhMmZmOSIsCiAgICAiZmxvd0lEIjogIjg3RkM2OTcwLUI0MjItNDY2OC1CRUU3LUZDQTM5OThCOURBQyIsCiAgICAicHJlcGFyZWRBdFVUQyI6ICIyMDI2LTExLTA2VDA4OjExOjI2LjI4MFoiLAogICAgInJ1bklEIjogIjQyMEY5NDBGLTZEQkUtNDI4QS1CQTZGLTAwREZGN0U2QkEyMCIKICB9LAogICJtYXhpbXVtQ29udGFjdHMiOiAxNiwKICAic2NoZW1hVmVyc2lvbiI6IDEsCiAgInNjb3BlIjogImhvc3REaWFnbm9zdGljIiwKICAidHJhbnNwb3J0IjogInVkcCIKfQo=",
+            "count": 482,
+            "name": "probe.json",
+            "sha256": "225cdb07a3560596d7b3bf0fbd4c797a74e3b14eacd1a35f714425e1a6280ad6"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8NDIwRjk0MEYtNkRCRS00MjhBLUJBNkYtMDBERkY3RTZCQTIwfDg3RkM2OTcwLUI0MjItNDY2OC1CRUU3LUZDQTM5OThCOURBQ3xkODNhOWQ4OTkzYTliNGE0NTZmN2JjNGFjY2RhMWI2NDE1YzJjNWM3NmE2N2EwZGY0YTcyOTFlNjUwMWEyZmY5Cg==",
+            "count": 169,
+            "name": "sent.bin",
+            "sha256": "fccd58cd8ce7a82f779010a3f0ef4a0b71cf3a44f001d7469801eaddec16acbd"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "sender",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f\",\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"5C5FCC04-560E-4B1F-92C5-25FFF0C54C0D\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23841,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"127.0.0.1\",\"port\":49170},\"flow\":{\"challenge\":\"d83a9d8993a9b4a456f7bc4accda1b6415c2c5c76a67a0df4a7291e6501a2ff9\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"preparedAtUTC\":\"2026-11-06T08:11:26.280Z\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"udp\"},\"registrationSHA256\":\"225cdb07a3560596d7b3bf0fbd4c797a74e3b14eacd1a35f714425e1a6280ad6\",\"role\":\"sender\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"fc252cc39dfe1bc149dc242082617dcbd8784d41\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232874868158458,\"utc\":\"2026-11-06T08:11:28.042Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"5C5FCC04-560E-4B1F-92C5-25FFF0C54C0D\",\"kind\":\"attemptStarted\",\"localKernelAcceptedBytes\":0,\"parentPID\":23796,\"pid\":23841,\"rawFile\":\"sent.bin\",\"rawSHA256\":\"fccd58cd8ce7a82f779010a3f0ef4a0b71cf3a44f001d7469801eaddec16acbd\",\"role\":\"sender\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"target\":{\"host\":\"127.0.0.1\",\"port\":49170},\"timestamp\":{\"monotonicNanoseconds\":232874870344500,\"utc\":\"2026-11-06T08:11:28.045Z\"},\"transport\":\"udp\"}\n{\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"5C5FCC04-560E-4B1F-92C5-25FFF0C54C0D\",\"kind\":\"connected\",\"local\":{\"host\":\"127.0.0.1\",\"port\":52823},\"parentPID\":23796,\"pid\":23841,\"remote\":{\"host\":\"127.0.0.1\",\"port\":49170},\"role\":\"sender\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232874870783208,\"utc\":\"2026-11-06T08:11:28.045Z\"},\"transport\":\"udp\"}\n{\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"5C5FCC04-560E-4B1F-92C5-25FFF0C54C0D\",\"kind\":\"kernelAccepted\",\"local\":{\"host\":\"127.0.0.1\",\"port\":52823},\"localKernelAcceptedBytes\":169,\"parentPID\":23796,\"pid\":23841,\"remote\":{\"host\":\"127.0.0.1\",\"port\":49170},\"role\":\"sender\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232874871155666,\"utc\":\"2026-11-06T08:11:28.045Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"family\":\"ipv4\",\"flowID\":\"87FC6970-B422-4668-BEE7-FCA3998B9DAC\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"5C5FCC04-560E-4B1F-92C5-25FFF0C54C0D\",\"kind\":\"attemptEnded\",\"local\":{\"host\":\"127.0.0.1\",\"port\":52823},\"localKernelAcceptedBytes\":169,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23841,\"reason\":\"localKernelAcceptedFrame\",\"remote\":{\"host\":\"127.0.0.1\",\"port\":49170},\"role\":\"sender\",\"runID\":\"420F940F-6DBE-428A-BA6F-00DFF7E6BA20\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"target\":{\"host\":\"127.0.0.1\",\"port\":49170},\"timestamp\":{\"monotonicNanoseconds\":232874871543625,\"utc\":\"2026-11-06T08:11:28.046Z\"},\"transport\":\"udp\"}\n"
+      }
+    ]
+  },
+  "udp-v6": {
+    "bindings": [
+      {
+        "endpointID": "exact",
+        "flowID": "84CF97AD-48D8-43EF-BC80-AB42D0A991A7",
+        "network": {
+          "contactID": 1,
+          "receiverSourceID": "receiver",
+          "senderSourceID": "sender"
+        },
+        "scenarioID": "NET-10.ipv6.loopback.hostToZone",
+        "stage": "test"
+      }
+    ],
+    "endpoints": [
+      {
+        "bind": {
+          "host": "::1",
+          "port": 58474
+        },
+        "id": "exact",
+        "local": {
+          "host": "::1",
+          "port": 58474
+        },
+        "remote": {
+          "host": "::1",
+          "port": 64561
+        },
+        "scenarioID": "NET-10.ipv6.loopback.hostToZone",
+        "transport": "udp"
+      }
+    ],
+    "runID": "8EB7887A-2036-4AC1-8BA0-B9906CDB33D1",
+    "runStartUTC": "2026-11-06T08:11:31.119Z",
+    "schemaVersion": 1,
+    "sources": [
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJlMDIyMWE3YzEzNmRmMTNiZmRlZDk3MjM3ODc2ZDAzNDgzYTVjN2IwIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjo6MSIsCiAgICAicG9ydCI6IDAKICB9LAogICJmbG93IjogewogICAgImNoYWxsZW5nZSI6ICIyMjcwOGQ5YzNmZDkwNDhlMzlmODM5ODZkMzA2ZTI0NmY1YzAxZjc4Y2UwZTQ3ZjViNzczODA5MzA5MGE0NTU3IiwKICAgICJmbG93SUQiOiAiODRDRjk3QUQtNDhEOC00M0VGLUJDODAtQUI0MkQwQTk5MUE3IiwKICAgICJwcmVwYXJlZEF0VVRDIjogIjIwMjYtMTEtMDZUMDg6MTE6MjYuMzAwWiIsCiAgICAicnVuSUQiOiAiOEVCNzg4N0EtMjAzNi00QUMxLThCQTAtQjk5MDZDREIzM0QxIgogIH0sCiAgIm1heGltdW1Db250YWN0cyI6IDE2LAogICJzY2hlbWFWZXJzaW9uIjogMSwKICAic2NvcGUiOiAiaG9zdERpYWdub3N0aWMiLAogICJ0cmFuc3BvcnQiOiAidWRwIgp9Cg==",
+            "count": 472,
+            "name": "probe.json",
+            "sha256": "49e4b61458a090642e462c3020ef6143cf7a774fae55bbb34620e5cf4c07c8cb"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8OEVCNzg4N0EtMjAzNi00QUMxLThCQTAtQjk5MDZDREIzM0QxfDg0Q0Y5N0FELTQ4RDgtNDNFRi1CQzgwLUFCNDJEMEE5OTFBN3wyMjcwOGQ5YzNmZDkwNDhlMzlmODM5ODZkMzA2ZTI0NmY1YzAxZjc4Y2UwZTQ3ZjViNzczODA5MzA5MGE0NTU3Cg==",
+            "count": 169,
+            "name": "received-1.bin",
+            "sha256": "b62f48e9a94494dcc60c9cfbeabbc68dacbca7d7b0cb23e0fe04a1289e9ada4d"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "receiver",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"101d90fe3e9221a2aa2c035ca0513fb0551f07b3d59b72d723c7d3a7eaf248df\",\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"87F36F59-91E4-4A7A-A148-8CFEE83F63E9\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23868,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"::1\",\"port\":0},\"flow\":{\"challenge\":\"22708d9c3fd9048e39f83986d306e246f5c01f78ce0e47f5b7738093090a4557\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"preparedAtUTC\":\"2026-11-06T08:11:26.300Z\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"udp\"},\"registrationSHA256\":\"49e4b61458a090642e462c3020ef6143cf7a774fae55bbb34620e5cf4c07c8cb\",\"role\":\"receiver\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"e0221a7c136df13bfded97237876d03483a5c7b0\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232877944939166,\"utc\":\"2026-11-06T08:11:31.119Z\"},\"transport\":\"udp\"}\n{\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"87F36F59-91E4-4A7A-A148-8CFEE83F63E9\",\"kind\":\"receiverStarted\",\"local\":{\"host\":\"::1\",\"port\":58474},\"parentPID\":23796,\"pid\":23868,\"role\":\"receiver\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"timestamp\":{\"monotonicNanoseconds\":232877946538541,\"utc\":\"2026-11-06T08:11:31.121Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":1,\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"87F36F59-91E4-4A7A-A148-8CFEE83F63E9\",\"kind\":\"datagramContact\",\"local\":{\"host\":\"::1\",\"port\":58474},\"parentPID\":23796,\"pid\":23868,\"rawTruncated\":false,\"remote\":{\"host\":\"::1\",\"port\":64561},\"role\":\"receiver\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232877998528708,\"utc\":\"2026-11-06T08:11:31.173Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"contactID\":1,\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"87F36F59-91E4-4A7A-A148-8CFEE83F63E9\",\"kind\":\"datagram\",\"local\":{\"host\":\"::1\",\"port\":58474},\"matchesRegisteredPayload\":true,\"operationFinished\":true,\"parentPID\":23796,\"payloadClaims\":{\"challenge\":\"22708d9c3fd9048e39f83986d306e246f5c01f78ce0e47f5b7738093090a4557\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\"},\"pid\":23868,\"rawFile\":\"received-1.bin\",\"rawSHA256\":\"b62f48e9a94494dcc60c9cfbeabbc68dacbca7d7b0cb23e0fe04a1289e9ada4d\",\"rawTruncated\":false,\"reason\":\"datagramReceived\",\"remote\":{\"host\":\"::1\",\"port\":64561},\"repeatedRegisteredPayload\":false,\"role\":\"receiver\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232877999263833,\"utc\":\"2026-11-06T08:11:31.173Z\"},\"transport\":\"udp\"}\n{\"contactID\":1,\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"87F36F59-91E4-4A7A-A148-8CFEE83F63E9\",\"kind\":\"receiverStopped\",\"operationFinished\":true,\"parentPID\":23796,\"pid\":23868,\"reason\":\"windowElapsed\",\"role\":\"receiver\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"timestamp\":{\"monotonicNanoseconds\":232879451144625,\"utc\":\"2026-11-06T08:11:32.625Z\"},\"transport\":\"udp\"}\n"
+      },
+      {
+        "artifacts": [
+          {
+            "base64": "ewogICJmb3JiaWRkZW5BdWRpdFNlc3Npb25JRHMiOiBbXSwKICAiaWRlbnRpdHkiOiB7CiAgICAiYXVkaXRGbGFncyI6IDgyNDAsCiAgICAiYXVkaXRTZXNzaW9uSUQiOiAxMDAwMDIsCiAgICAiYXVkaXRVSUQiOiA1MDEsCiAgICAiZWZmZWN0aXZlR0lEIjogMjAsCiAgICAiZWZmZWN0aXZlVUlEIjogNTAxLAogICAgImZvcmJpZGRlbkdyb3VwcyI6IFtdLAogICAgImtlcm5lbEdyb3VwcyI6IFsKICAgICAgMTIsCiAgICAgIDIwLAogICAgICAzMywKICAgICAgNjEsCiAgICAgIDc5LAogICAgICA4MCwKICAgICAgODEsCiAgICAgIDk4LAogICAgICAxMDAsCiAgICAgIDIwNCwKICAgICAgMjUwLAogICAgICAzOTUsCiAgICAgIDM5OCwKICAgICAgMzk5LAogICAgICA0MDAsCiAgICAgIDcwMQogICAgXSwKICAgICJsb2dpbkRvbmUiOiB0cnVlLAogICAgIm1hbmFnZXJOYW1lIjogIkFxdWEiLAogICAgIm1hbmFnZXJVSUQiOiA1MDEsCiAgICAib25Db25zb2xlIjogdHJ1ZSwKICAgICJyZWFsR0lEIjogMjAsCiAgICAicmVhbFVJRCI6IDUwMSwKICAgICJyZXF1aXJlZEdyb3VwcyI6IFtdLAogICAgIndpbmRvd0F1ZGl0U2Vzc2lvbklEIjogMTAwMDAyLAogICAgIndpbmRvd1VJRCI6IDUwMQogIH0sCiAgInNjaGVtYVZlcnNpb24iOiAxLAogICJzY29wZSI6ICJob3N0RGlhZ25vc3RpYyIsCiAgInNpZ25hdHVyZSI6IHsKICAgICJjb2RlSGFzaCI6ICJmYzI1MmNjMzlkZmUxYmMxNDlkYzI0MjA4MjYxN2RjYmQ4Nzg0ZDQxIiwKICAgICJnZXRUYXNrQWxsb3dBYnNlbnQiOiB0cnVlLAogICAgImhhcmRlbmVkUnVudGltZSI6IHRydWUsCiAgICAidmFsaWQiOiB0cnVlCiAgfQp9Cg==",
+            "count": 835,
+            "name": "expect.json",
+            "sha256": "6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f"
+          },
+          {
+            "base64": "ewogICJjb250cm9sbGVkVGFyZ2V0IjogdHJ1ZSwKICAiZHVyYXRpb25NaWxsaXNlY29uZHMiOiAxNTAwLAogICJlbmRwb2ludCI6IHsKICAgICJob3N0IjogIjo6MSIsCiAgICAicG9ydCI6IDU4NDc0CiAgfSwKICAiZmxvdyI6IHsKICAgICJjaGFsbGVuZ2UiOiAiMjI3MDhkOWMzZmQ5MDQ4ZTM5ZjgzOTg2ZDMwNmUyNDZmNWMwMWY3OGNlMGU0N2Y1Yjc3MzgwOTMwOTBhNDU1NyIsCiAgICAiZmxvd0lEIjogIjg0Q0Y5N0FELTQ4RDgtNDNFRi1CQzgwLUFCNDJEMEE5OTFBNyIsCiAgICAicHJlcGFyZWRBdFVUQyI6ICIyMDI2LTExLTA2VDA4OjExOjI2LjMwMFoiLAogICAgInJ1bklEIjogIjhFQjc4ODdBLTIwMzYtNEFDMS04QkEwLUI5OTA2Q0RCMzNEMSIKICB9LAogICJtYXhpbXVtQ29udGFjdHMiOiAxNiwKICAic2NoZW1hVmVyc2lvbiI6IDEsCiAgInNjb3BlIjogImhvc3REaWFnbm9zdGljIiwKICAidHJhbnNwb3J0IjogInVkcCIKfQo=",
+            "count": 476,
+            "name": "probe.json",
+            "sha256": "954239b497ee07aff2c471905815176dbbbb1e9a85648fc96acc76e942a2acb6"
+          },
+          {
+            "base64": "U0FOSkJPWC1ORVRXT1JLLVBST1ZFTkFOQ0UtVjF8OEVCNzg4N0EtMjAzNi00QUMxLThCQTAtQjk5MDZDREIzM0QxfDg0Q0Y5N0FELTQ4RDgtNDNFRi1CQzgwLUFCNDJEMEE5OTFBN3wyMjcwOGQ5YzNmZDkwNDhlMzlmODM5ODZkMzA2ZTI0NmY1YzAxZjc4Y2UwZTQ3ZjViNzczODA5MzA5MGE0NTU3Cg==",
+            "count": 169,
+            "name": "sent.bin",
+            "sha256": "b62f48e9a94494dcc60c9cfbeabbc68dacbca7d7b0cb23e0fe04a1289e9ada4d"
+          }
+        ],
+        "format": "sanjboxNetworkProvenanceV1",
+        "id": "sender",
+        "origin": "importedMeasured",
+        "text": "{\"expectationSHA256\":\"6ab4b707be74dff8d96594f3cebc5f2ad3495e4165d15421db2008f5f19cbb4f\",\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"identity\":{\"auditFlags\":8240,\"auditSessionID\":100002,\"auditUID\":501,\"effectiveGID\":20,\"effectiveUID\":501,\"forbiddenGroups\":[],\"kernelGroups\":[12,20,33,61,79,80,81,98,100,204,250,395,398,399,400,701],\"loginDone\":true,\"managerName\":\"Aqua\",\"managerUID\":501,\"onConsole\":true,\"realGID\":20,\"realUID\":501,\"requiredGroups\":[],\"windowAuditSessionID\":100002,\"windowUID\":501},\"instanceID\":\"B1E4DC32-FBAB-421D-8350-6BDDFA2CB224\",\"kind\":\"registered\",\"parentPID\":23796,\"pid\":23872,\"registration\":{\"controlledTarget\":true,\"durationMilliseconds\":1500,\"endpoint\":{\"host\":\"::1\",\"port\":58474},\"flow\":{\"challenge\":\"22708d9c3fd9048e39f83986d306e246f5c01f78ce0e47f5b7738093090a4557\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"preparedAtUTC\":\"2026-11-06T08:11:26.300Z\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\"},\"maximumContacts\":16,\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"transport\":\"udp\"},\"registrationSHA256\":\"954239b497ee07aff2c471905815176dbbbb1e9a85648fc96acc76e942a2acb6\",\"role\":\"sender\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":1,\"signature\":{\"codeHash\":\"fc252cc39dfe1bc149dc242082617dcbd8784d41\",\"getTaskAllowAbsent\":true,\"hardenedRuntime\":true,\"valid\":true},\"timestamp\":{\"monotonicNanoseconds\":232877996039500,\"utc\":\"2026-11-06T08:11:31.170Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"B1E4DC32-FBAB-421D-8350-6BDDFA2CB224\",\"kind\":\"attemptStarted\",\"localKernelAcceptedBytes\":0,\"parentPID\":23796,\"pid\":23872,\"rawFile\":\"sent.bin\",\"rawSHA256\":\"b62f48e9a94494dcc60c9cfbeabbc68dacbca7d7b0cb23e0fe04a1289e9ada4d\",\"role\":\"sender\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":2,\"target\":{\"host\":\"::1\",\"port\":58474},\"timestamp\":{\"monotonicNanoseconds\":232877997564291,\"utc\":\"2026-11-06T08:11:31.172Z\"},\"transport\":\"udp\"}\n{\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"B1E4DC32-FBAB-421D-8350-6BDDFA2CB224\",\"kind\":\"connected\",\"local\":{\"host\":\"::1\",\"port\":64561},\"parentPID\":23796,\"pid\":23872,\"remote\":{\"host\":\"::1\",\"port\":58474},\"role\":\"sender\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":3,\"timestamp\":{\"monotonicNanoseconds\":232877997964333,\"utc\":\"2026-11-06T08:11:31.172Z\"},\"transport\":\"udp\"}\n{\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"B1E4DC32-FBAB-421D-8350-6BDDFA2CB224\",\"kind\":\"kernelAccepted\",\"local\":{\"host\":\"::1\",\"port\":64561},\"localKernelAcceptedBytes\":169,\"parentPID\":23796,\"pid\":23872,\"remote\":{\"host\":\"::1\",\"port\":58474},\"role\":\"sender\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":4,\"timestamp\":{\"monotonicNanoseconds\":232877998331583,\"utc\":\"2026-11-06T08:11:31.173Z\"},\"transport\":\"udp\"}\n{\"bytes\":169,\"family\":\"ipv6\",\"flowID\":\"84CF97AD-48D8-43EF-BC80-AB42D0A991A7\",\"format\":\"sanjboxNetworkProvenanceV1\",\"instanceID\":\"B1E4DC32-FBAB-421D-8350-6BDDFA2CB224\",\"kind\":\"attemptEnded\",\"local\":{\"host\":\"::1\",\"port\":64561},\"localKernelAcceptedBytes\":169,\"operationFinished\":true,\"parentPID\":23796,\"pid\":23872,\"reason\":\"localKernelAcceptedFrame\",\"remote\":{\"host\":\"::1\",\"port\":58474},\"role\":\"sender\",\"runID\":\"8EB7887A-2036-4AC1-8BA0-B9906CDB33D1\",\"schemaVersion\":1,\"scope\":\"hostDiagnostic\",\"sequence\":5,\"target\":{\"host\":\"::1\",\"port\":58474},\"timestamp\":{\"monotonicNanoseconds\":232877998671250,\"utc\":\"2026-11-06T08:11:31.173Z\"},\"transport\":\"udp\"}\n"
+      }
+    ]
+  }
+}

@@ -49,7 +49,7 @@ Typy a přísné schéma: [WireEvidence.swift](Sources/IngressKit/WireEvidence.s
 | `counterpart` | `sourceID` a numerické `flowID` common. Toto číslo platí jen uvnitř daného zdroje, není run nonce ani ingress UUID. |
 | `capture` | `sourceID` a `captureID` odděleného packet importu. Packet má přímo ingress flow UUID; shoda je stále neautentizované tvrzení importéra. |
 
-C1 přímo nepředává svůj run/flow/canary/endpoint. Adapter neztotožní source ID, PID, caseID,
+Legacy `c1RunRecordStream` přímo nepředává svůj run/flow/canary/endpoint. Adapter neztotožní source ID, PID, caseID,
 číslo common flow, úspěšný kernel send ani podobný čas s chybějícím nonce. Report tyto mezery
 vypisuje **i při shodě všech dostupných údajů**. Jediný sender řádek/common flow nelze přiřadit
 více bindingům. Jediný ingress flow UUID nelze recyklovat mezi buňkami nebo controls;
@@ -169,14 +169,106 @@ rodiny, scoped/link-local, multicast a IPv4-mapped IPv6 jsou explicitně nepodpo
 Clock offset ±24 h, uncertainty 1…60 000 ms; projekce jen −1 h…+2 h kolem epochy. Tyto meze
 jsou přístrojové limity, ne přijatá akceptační metodika L4.
 
-C1 run/flow/tuple/canary/interval metadata, common identity a nezávislá capture provenance
-stále chybí v producerech. UDP wildcard receiver loguje bind endpoint (`0.0.0.0`/`::`),
+Legacy C1 run/flow/tuple/canary/interval metadata a common identity v původních formátech
+stále chybí; nový opt-in formát níže tuto část doplňuje. Nezávislá capture provenance stále chybí. UDP wildcard receiver loguje bind endpoint (`0.0.0.0`/`::`),
 nikoli skutečnou cílovou interface adresu; takový raw log nelze vydat za exact local tuple.
 V6-only/mapped/reuse, fixed-port squatting/owner/reclaim, autentizovaný same-zone roundtrip,
 full LAB controls, opakování a L4 délky/failure modes, tři oblasti a ochranný mechanismus
 zůstávají otevřené. Neproběhlo živé měření, pf read/write, změna uživatelů, TCC, signing,
 settings, přístup ke Klíčence/tajemstvím/databázím ani LAN/wildcard/network probe.
 
-Navazující krok je doplnění těchto chybějících skutečných producer vazeb a nezávislé review
-původu importovaných raw, nikoli ruční nastavení signing booleanu či přejmenování fixture.
+Navazující krok je nezávislé review původu importovaných raw, skutečné testArea/L4 a bind policy; ruční nastavení signing booleanu či přejmenování fixture tyto důkazy nedoplní.
 Původní laboratorní předpoklady a [LABPLAN](LABPLAN.md) zůstávají v platnosti.
+
+## Explicitní consumer `sanjboxNetworkProvenanceV1`
+
+Nová opt-in větev čte přesný schema-1 JSONL z C1/common na základním commitu
+`dd058d3f4e758ed7fdef7dc64eba1c9a34a66967`. Převod do legacy formátů není povolený.
+Starší [producer dokument](../NETWORK-PROVENANCE.md) popisuje stav před tímto consumerem;
+producer ani jeho historické důkazy tento follow-up nemění.
+
+`source.format` je přesně `sanjboxNetworkProvenanceV1`, `text` obsahuje původní JSONL.
+Volitelné `artifacts` je pole nejvýše 18 objektů `{name, count, sha256, base64}`:
+
+- `expect.json` a `probe.json`: přesné původní vstupní bajty, každý nejvýše 16 KiB.
+- `sent.bin` a `received-1.bin`…`received-16.bin`: přesné application bytes, každý nejvýše 4096 B.
+- Base64 musí být canonical RFC4648 bez whitespace; skutečný počet a SHA-256 se ověří.
+  Duplicitní názvy, jiné názvy/cesty, chybná délka, hash nebo encoding jsou konflikty.
+  Prázdný soubor má explicitně `count: 0`, `base64: ""` a hash prázdných bytes.
+- Názvy jsou pouze klíče v envelope. **Žádný soubor se podle nich neotevře.** Chybějící
+  artifact je neznámý, nikdy nula ani rekonstrukce z hashe nebo `payloadClaims`.
+  Raw bez terminalu může mít ověřené vložené bytes, ale nedostane smyšlený terminal count.
+
+Pro binding se použije pouze:
+
+```json
+"network": {"senderSourceID": "sender", "receiverSourceID": "receiver", "contactID": 1}
+```
+
+Stále platí explicitní ingress `flowID`, `scenarioID`, `stage`, `endpointID`; původní
+`capture` zůstává oddělený packet import. `network` se nesmí míchat s `sender`,
+`senderIdentity`, `counterpart` nebo legacy `canary`. Sender lze přiřadit jednomu bindingu,
+receiver contact jednomu bindingu. `contactID` platí jen v konkrétním receiver source/instance.
+Tentýž producer instance pod více source ID je replay/alias konflikt. Binding nevybírá
+jen „povedené“ kontakty: všechny ostatní raw kontakty zůstávají v globálních findings.
+
+Schéma odmítá duplicate/escaped duplicate keys, unknown keys a explicitní `null` v nových
+source/envelope polích a novém wire. Optional pole se vynechává. Platí původní 1 MiB stdin,
+16 zdrojů, 512 KiB text/source, 256 řádků/source, 16 KiB/řádek, 84 bindingů a depth <24.
+Žádný limit legacy formátů se nezvyšuje. Syntakticky neinterpretovatelný řádek se uvede
+jako možný další nález; dekódované kontakty se zachovají i při chybném lifecycle či metadatech.
+
+Consumer ověřuje:
+
+1. Přesné hashe vstupů z `registered`, obsah `probe.json` proti vložené registraci a
+   names-free identitu/podpis proti `expect.json`. Common validace identity a policy je
+   čistá; **neprobíhá OS membership dotaz, codesign, preflight ani sběr identity**.
+   Tyto shody ověřují konzistenci dodaných tvrzení, ne autorství/podpis importu.
+2. Stabilní run/flow/instance/PID/parentPID/role/scope/transport/family; posloupnost od 1
+   bez duplicit/mezer; monotonic i UTC pořadí uvnitř procesu. Příprava flow se porovná
+   s historickým `registered` (−1…600 s), nikdy s dnešním časem.
+3. Sender intent v `sent.bin`, kumulativní `kernelAccepted`, `attemptEnded`, a skutečný
+   `connected.local/remote` odděleně. Partial/error progress se zachová; accepted bytes
+   nejsou potvrzení příjmu. Receiver má vlastní `receiverStarted` skutečný bind,
+   kontakt před raw a přesný terminal/count/hash/tuple. Chybějící konce, limity,
+   truncation a přerušené prefixy vždy znamenají neúplnost.
+4. Receiver claims se znovu parsují z **vložených raw bytes**, včetně foreign zero UUID,
+   malformed/partial bytes, cizího run/flow/nonce, nuly a opakovaného frame. Zero UUID je
+   povolený jen v cizích payload claims, nikdy v lokální registraci/identitě běhu.
+   Challenge je korelace; neposkytuje autentizaci peeru ani globální replay prevention.
+5. Sender skutečný local tuple odpovídá receiver remote a sender remote/target receiver
+   local. Matice dále ověřuje vlastní identitu/PID/instance/signature flags účastníků.
+   Exact-bind producer **nepokrývá wildcard scénáře**; původní matice 28 scénářů se nemění.
+6. `attempt`, `connected`, `accepted`, `closed`, `payload` a oddělené packet observations se párují
+   s maticí jedna ku jedné v obou směrech. UTC projekce potřebuje externě dodané bounded
+   `clock`; samotné monotonic časy nedokládají společnou doménu mezi procesy/stroji.
+   Kontroly oken, drain/retry/RTT, capture gaps a jeho lifecycle zůstávají konzervativní.
+
+`SourceReport.network` vrací dekódované producer záznamy, chyby každého řádku, receipts
+artifactů a konkrétní kontroly. Raw observation `findings` přidává `networkFlowID`,
+`networkContactID` a `payloadDisposition`; disposition je výslovně tvrzení z logu,
+nikoli důvěryhodná klasifikace peeru. `source.problems` a record errors platí i při
+zachovaném kontaktu. Žádný consumer výstup není isolation pass nebo capture completeness.
+`hostDiagnostic` zůstává host diagnostikou, nikdy se nepovýší na `testArea`/L4.
+
+### Reprodukce bez sítě
+
+[Kompatibilitní vektory](Tests/IngressKitTests/Fixtures/network-producer-vectors.json)
+obsahují přesné nezměněné bytes 61 souborů z devíti uložených producer případů: čtyři
+signed C1 TCP/UDP v4/v6 positives, common receiver UDP/TCP adversarial, contact limit,
+přerušený TCP prefix a odmítnutý connect. [Provenance](Tests/IngressKitTests/Fixtures/network-producer-provenance.json)
+uvádí původní cesty a hashe, producer commit `ba339392df85f0798ba66b9f4842735558467646`
+a hash původního manifestu. Adversarial provoz původně generovala syntetická Python fixture;
+receiver logy pocházejí ze skutečného produceru. Vektory neobsahují vymyšlený matrix/capture/clock.
+
+```sh
+python3 spikes/s3-pf/ingress/tools/network-producer-vectors.py
+python3 spikes/s3-pf/ingress/tools/check-network-adapter-cli.py "$C3_TMP/build/release/sanjbox-ingress"
+python3 spikes/s3-pf/ingress/tools/check-offline-cli.py "$C3_TMP/build/release/sanjbox-ingress"
+```
+
+První příkaz ověřuje přesnou projekci proti původnímu manifestu; `--write` explicitně
+přegeneruje pouze dva vlastní fixture soubory. Druhý provádí devět replays a syntetické
+negativní vstupy pouze přes stdin; `--output NOVY_ADRESAR` uloží přesné vstupy/stdout/stderr
+bez přepsání existujícího adresáře. Unit negativní mutace i matrix/clock overlays jsou
+výslovně `fixture`/mock a nemění původní evidence. Žádný příkaz nepouští síťovou sondu.

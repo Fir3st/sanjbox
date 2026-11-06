@@ -27,8 +27,9 @@ public struct ImportSource: Codable, Sendable {
     public var origin: ImportOrigin
     public var clock: ImportClock?
     public var text: String
+    public var artifacts: [NetworkArtifact]? = nil
     static let shape: Shape = .object(["id": .scalar, "format": .scalar, "origin": .scalar,
-        "clock": ImportClock.shape, "text": .scalar])
+        "clock": ImportClock.shape, "text": .scalar, "artifacts": .array(NetworkArtifact.shape)])
 }
 public struct WireEndpoint: Codable, Equatable, Sendable {
     public var host: String
@@ -115,9 +116,10 @@ public struct FlowBinding: Codable, Sendable {
     public var senderIdentity: RecordReference?
     public var counterpart: CounterpartReference?
     public var capture: CaptureReference?
+    public var network: NetworkBinding? = nil
     static let shape: Shape = .object(["flowID": .scalar, "scenarioID": .scalar, "stage": .scalar,
         "endpointID": .scalar, "canary": .scalar, "sender": RecordReference.shape,
-        "senderIdentity": RecordReference.shape, "counterpart": CounterpartReference.shape, "capture": CaptureReference.shape])
+        "senderIdentity": RecordReference.shape, "counterpart": CounterpartReference.shape, "capture": CaptureReference.shape, "network": NetworkBinding.shape])
 }
 public struct AdapterInput: Codable, Sendable {
     public var schemaVersion: Int
@@ -138,6 +140,18 @@ public struct AdapterInput: Codable, Sendable {
               Set(input.sources.map(\.id)).count == input.sources.count,
               input.sources.allSatisfy({ validLabel($0.id) && validLabel($0.format) && $0.text.utf8.count <= 524_288 }),
               Set(input.endpoints.map(\.id)).count == input.endpoints.count else { throw IngressError("invalid adapter envelope/bounds/duplicate source or endpoint ID") }
+        let object = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        for source in object["sources"] as? [[String: Any]] ?? [] {
+            if source["format"] as? String == "sanjboxNetworkProvenanceV1" { try rejectNetworkNulls(source) }
+            else if let artifacts = source["artifacts"] { try rejectNetworkNulls(artifacts) }
+        }
+        for binding in object["bindings"] as? [[String: Any]] ?? [] {
+            if let network = binding["network"] { try rejectNetworkNulls(network) }
+        }
+        guard input.sources.allSatisfy({ ($0.artifacts?.count ?? 0) <= 18 &&
+            ($0.artifacts == nil || $0.format == "sanjboxNetworkProvenanceV1") }),
+            input.bindings.allSatisfy({ $0.network.map { validLabel($0.senderSourceID) && validLabel($0.receiverSourceID) && (1...16).contains($0.contactID) } ?? true })
+        else { throw IngressError("invalid network artifact/binding bounds or legacy mixing") }
         return input
     }
 }
@@ -295,7 +309,8 @@ public struct SourceReport: Codable, Sendable {
     public var sender: [WireRecord<SenderWire>]
     public var counterpart: [WireRecord<CounterpartWire>]
     public var packets: [WireRecord<PacketWire>]
-    var recordProblems: Bool { sender.contains { !$0.problems.isEmpty } || counterpart.contains { !$0.problems.isEmpty } || packets.contains { !$0.problems.isEmpty } }
+    public var network: NetworkSourceReport? = nil
+    var recordProblems: Bool { network?.records.contains { !$0.problems.isEmpty } == true || sender.contains { !$0.problems.isEmpty } || counterpart.contains { !$0.problems.isEmpty } || packets.contains { !$0.problems.isEmpty } }
 }
 
 func validLabel(_ text: String) -> Bool { text.range(of: #"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"#, options: .regularExpression) != nil }
@@ -313,6 +328,7 @@ func utcDate(_ text: String) -> Date? {
 }
 
 func parseSource(_ source: ImportSource) -> SourceReport {
+    if source.format == "sanjboxNetworkProvenanceV1" { return parseNetworkSource(source) }
     var report = SourceReport(id: source.id, format: source.format, origin: source.origin, clock: source.clock,
         sha256: SHA256.hash(data: Data(source.text.utf8)).map { String(format: "%02x", $0) }.joined(),
         problems: [], sender: [], counterpart: [], packets: [])

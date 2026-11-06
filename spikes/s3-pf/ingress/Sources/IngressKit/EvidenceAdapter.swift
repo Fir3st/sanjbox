@@ -1,6 +1,7 @@
 import CryptoKit
 import Foundation
 import SanjboxProbeKit
+import SanjboxNetworkProvenance
 
 public struct ImportedFinding: Codable, Sendable {
     public var sourceID: String
@@ -12,6 +13,9 @@ public struct ImportedFinding: Codable, Sendable {
     public var bytes: Int?
     public var claimedBindings: [UUID]
     public var hasInvalidOrIncompleteSource: Bool
+    public var networkFlowID: UUID? = nil
+    public var networkContactID: Int? = nil
+    public var payloadDisposition: String? = nil
     public var disposition = "retained raw observation claim; attribution and forbidden-operation decision require external review"
 }
 public struct TimeProjection: Codable, Sendable {
@@ -54,7 +58,14 @@ public struct AdapterReport: Codable, Sendable {
 public enum EvidenceAdapter {
     public static func link(_ data: Data) throws -> AdapterReport {
         let input = try AdapterInput.decode(data)
-        let sources = input.sources.map(parseSource).sorted { $0.id < $1.id }
+        var sources = input.sources.map(parseSource).sorted { $0.id < $1.id }
+        let instances = sources.compactMap { $0.network?.records.first?.record.instanceID }
+        for index in sources.indices {
+            if let instance = sources[index].network?.records.first?.record.instanceID,
+               instances.filter({ $0 == instance }).count > 1 {
+                sources[index].problems.append("network producer instance reused across source IDs; alias/replay ambiguity")
+            }
+        }
         var matrixInput: EvidenceInput?
         var matrixProblems: [String] = []
         if let raw = input.matrixJSON {
@@ -86,6 +97,23 @@ public enum EvidenceAdapter {
                     claimedBindings: Array(Set(ids)).sorted { $0.uuidString < $1.uuidString },
                     hasInvalidOrIncompleteSource: !source.problems.isEmpty || source.recordProblems))
             }
+            for row in source.network?.records ?? [] where ["accepted", "closed", "datagramContact", "datagram"].contains(row.record.kind) {
+                let e = row.record
+                let ids = input.bindings.filter { $0.network?.receiverSourceID == source.id && $0.network?.contactID == e.contactID }.map(\.flowID)
+                let disposition: String
+                if e.repeatedRegisteredPayload == true { disposition = "claimed repeated registered payload; retained contact, not a fresh authenticated peer" }
+                else if e.bytes == 0 { disposition = "explicit zero-byte contact" }
+                else if ["accepted", "datagramContact"].contains(e.kind) { disposition = "contact before terminal/raw validation; absent ending is unknown, not zero" }
+                else if e.rawTruncated == true || e.operationFinished != true { disposition = "partial/truncated/interrupted contact" }
+                else if e.payloadClaims == nil { disposition = "malformed/partial payload claim; exact raw checked separately" }
+                else if e.matchesRegisteredPayload != true { disposition = "foreign run/flow/challenge payload claim" }
+                else { disposition = "claimed registered payload; exact raw checked separately, not peer authentication" }
+                findings.append(.init(sourceID: source.id, line: row.line, origin: source.origin, kind: e.kind,
+                    counterpartFlowID: nil, packetFlowID: nil, bytes: e.bytes,
+                    claimedBindings: Array(Set(ids)).sorted { $0.uuidString < $1.uuidString },
+                    hasInvalidOrIncompleteSource: !source.problems.isEmpty || source.recordProblems,
+                    networkFlowID: e.flowID, networkContactID: e.contactID, payloadDisposition: disposition))
+            }
             for row in source.packets where row.record.kind == .packetContact {
                 let ids = input.bindings.filter { $0.capture?.sourceID == source.id && $0.capture?.captureID == row.record.captureID && $0.flowID == row.record.flowID }.map(\.flowID)
                 findings.append(.init(sourceID: source.id, line: row.line, origin: source.origin, kind: "packetContact",
@@ -101,12 +129,16 @@ public enum EvidenceAdapter {
     }
 
     private static func linkFlow(_ binding: FlowBinding, input: AdapterInput, sources: [SourceReport], matrix: EvidenceInput?, matrixReport: MatrixReport) -> LinkedFlow {
-        var result = LinkedFlow(binding: binding, endpoint: nil, status: "partialLinkNeedsReview", origins: [], sourceRecords: [], times: [], checks: [], problems: [], missingBindings: [
+        var result = LinkedFlow(binding: binding, endpoint: nil, status: "partialLinkNeedsReview", origins: [], sourceRecords: [], times: [], checks: [], problems: [], missingBindings: binding.network == nil ? [
             "C1 send wire has no runID, flowID, canary, target/local tuple, family, start/end interval or monotonic clock ID",
             "common counterpart wire has no runID, caseID, ingress flow nonce, process/peer identity, signature or clock ID",
             "common bytes/accepts are application observations, not packet capture or zero-packet proof",
             "C1 is one-way; common counterpart does not echo or authenticate an expected peer handshake",
             "raw origins, preregistration, identities/signatures, calibration, capture topology and L4 duration/repetitions require independent review"
+        ] : [
+            "application bytes/contacts are not packet capture or zero-packet proof",
+            "challenge is correlation, not peer authentication or global replay prevention; no authenticated same-zone roundtrip",
+            "raw origins, prior registration, recorded own identity/signature, external clock calibration, capture topology and L4 require independent review"
         ])
         let scenario = Scenario.all.first { $0.id == binding.scenarioID }
         let cell = matrix?.cells.first { $0.scenarioID == binding.scenarioID }
@@ -171,12 +203,12 @@ public enum EvidenceAdapter {
         var observations: [MatrixObservation] = []
         func reconcileObservations() {
             guard let cell else { return }
-            for kind in [EventKind.accepted, .closed, .payload, .packetContact] {
+            for kind in [EventKind.accepted, .closed, .payload, .packetContact] + (binding.network == nil ? [] : [.attempt, .connected]) {
                 let raw = observations.filter { $0.kind == kind }
                 // Keep all claims for this flow, including wrong-stage/actor claims, so
                 // neither side can disappear merely because it has no eligible edge.
                 let expected = cell.events.enumerated().filter { $0.element.flowID == binding.flowID && $0.element.kind == kind }
-                let actor: Actor = kind == .packetContact ? .oracle : .listener
+                let actor: Actor = kind == .packetContact ? .oracle : [.attempt, .connected].contains(kind) ? .initiator : .listener
                 let edges = raw.map { observation -> [Int] in
                     guard observation.eligible, let t = observation.time.relativeMs,
                           let uncertainty = observation.time.uncertaintyMs else { return [] }
@@ -215,6 +247,7 @@ public enum EvidenceAdapter {
             if a + au > first || b - bu < last || a >= b { result.problems.append("\(label) does not cover controls/test/drain with clock uncertainty") }
         }
 
+        if binding.network == nil {
         var sender: SenderWire?
         if let ref = binding.sender, let source = useSource(ref.sourceID, format: "c1RunRecordStream") {
             if let row = source.sender.first(where: { $0.line == ref.line && $0.record.probe == "sanjbox-s3-probe.send" }) {
@@ -304,6 +337,103 @@ public enum EvidenceAdapter {
             }
             lifecycleCoverage(start, end, label: "common listener")
         } else { result.missingBindings.append("common counterpart raw flow binding") }
+
+        } else if let network = binding.network {
+            if binding.sender != nil || binding.senderIdentity != nil || binding.counterpart != nil || binding.canary != nil {
+                result.problems.append("network binding cannot mix legacy sender/counterpart/canary references")
+            }
+            if network.senderSourceID == network.receiverSourceID { result.problems.append("network sender and receiver must be distinct sources/instances") }
+            if input.bindings.filter({ $0.network?.senderSourceID == network.senderSourceID }).count != 1 ||
+                input.bindings.filter({ $0.network?.receiverSourceID == network.receiverSourceID && $0.network?.contactID == network.contactID }).count != 1 {
+                result.problems.append("network sender or receiver contact reused across bindings")
+            }
+            let sendSource = useSource(network.senderSourceID, format: "sanjboxNetworkProvenanceV1")
+            let recvSource = useSource(network.receiverSourceID, format: "sanjboxNetworkProvenanceV1")
+            let send = sendSource?.network?.records ?? [], recv = recvSource?.network?.records ?? []
+            let sr = send.first?.record, rr = recv.first?.record
+            if sr?.kind != "registered" || rr?.kind != "registered" || sr?.role != "sender" || rr?.role != "receiver" || sr?.instanceID == rr?.instanceID {
+                result.problems.append("network binding missing distinct registered sender/receiver instances")
+            }
+            if sr?.runID != input.runID || rr?.runID != input.runID || sr?.flowID != binding.flowID || rr?.flowID != binding.flowID ||
+                sr?.registration?.flow != rr?.registration?.flow || sr?.scope != rr?.scope || sr?.transport != rr?.transport {
+                result.problems.append("network registered run/flow/challenge/scope/transport binding mismatch")
+            } else { result.checks.append("sender and receiver registered run/flow/challenge agree (correlation only)") }
+            if sr?.scope != .testArea || rr?.scope != .testArea { result.missingBindings.append("hostDiagnostic provenance is not a testArea/L4 identity or isolation measurement") }
+            for (source, registered, actor) in [(sendSource, sr, Actor.initiator), (recvSource, rr, Actor.listener)] {
+                guard let source, let registered else { continue }
+                if let p = cell?.participants.first(where: { $0.actor == actor }), let identity = registered.identity,
+                   let adapted = try? JSONDecoder().decode(Identity.self, from: encodeJSON(identity)),
+                   p.expected == adapted, p.observed == adapted, p.pid == registered.pid, p.instanceID == registered.instanceID,
+                   p.signature?.valid == registered.signature?.valid,
+                   p.signature?.hardenedRuntime == registered.signature?.hardenedRuntime,
+                   p.signature?.getTaskAllowAbsent == registered.signature?.getTaskAllowAbsent {
+                    result.checks.append("network recorded own identity/PID/instance/signature flags match matrix \(actor.rawValue) claims")
+                } else { result.problems.append("network recorded own identity/PID/instance/signature differs from matrix \(actor.rawValue)") }
+                result.checks += source.network?.checks ?? []
+            }
+            let terminal = recv.filter { $0.record.contactID == network.contactID && ["closed", "datagram"].contains($0.record.kind) }
+            let connected = send.first { $0.record.kind == "connected" }?.record
+            let ended = send.first { $0.record.kind == "attemptEnded" }?.record
+            let started = recv.first { $0.record.kind == "receiverStarted" }?.record
+            if let endpoint, let connected, let started,
+               networkEndpoint(connected.local)?.matches(endpoint.remote) == true,
+               networkEndpoint(connected.remote)?.matches(endpoint.local) == true,
+               networkEndpoint(sr?.registration?.endpoint)?.matches(endpoint.local) == true,
+               networkEndpoint(started.local)?.matches(endpoint.bind) == true,
+               sr?.transport.rawValue == endpoint.transport.rawValue {
+                result.checks.append("actual sender tuple reverses exact receiver endpoint allowlist; receiver bound endpoint checked")
+            } else { result.problems.append("network sender actual/target or receiver bound tuple differs from exact allowlist; exact-bind diagnostics do not cover wildcard scenarios") }
+            if terminal.count != 1 { result.problems.append("network selected contact terminal missing/duplicate; raw byte count unknown") }
+            if let terminal = terminal.first?.record, let source = input.sources.first(where: { $0.id == network.receiverSourceID }),
+               let raw = networkRaw(source, name: "received-\(network.contactID).bin"), let registration = sr?.registration {
+                if raw != registration.flow.bytes || terminal.matchesRegisteredPayload != true || terminal.repeatedRegisteredPayload != false || terminal.rawTruncated != false {
+                    result.problems.append("network selected raw is zero/partial/foreign/replayed payload; no fresh exact frame correlation")
+                } else { result.checks.append("exact independently supplied receiver bytes equal sender registered frame; no bytes reconstructed from hashes") }
+                if let accepted = ended?.localKernelAcceptedBytes {
+                    if raw.count > accepted { result.problems.append("network received bytes exceed sender kernel accepted count") }
+                } else { result.missingBindings.append("sender terminal kernel accepted count (unknown, never zero)") }
+            } else { result.missingBindings.append("selected exact receiver raw and sender registration; hash/payload claims cannot supply bytes") }
+            if let source = sendSource {
+                for row in send {
+                    reference(source, row.line)
+                    let t = project(row.record.timestamp.utc, source: source, line: row.line)
+                    if row.record.kind != "registered" { withinStage(t, allowDrain: true) }
+                    if row.record.kind == "attemptStarted" {
+                        observations.append(.init(kind: .attempt, time: t, value: nil,
+                            eligible: row.problems.isEmpty && source.problems.isEmpty && endpoint.map {
+                                networkEndpoint(row.record.target)?.matches($0.local) == true
+                            } == true))
+                    }
+                    if row.record.kind == "connected" {
+                        observations.append(.init(kind: .connected, time: t, value: nil,
+                            eligible: row.problems.isEmpty && source.problems.isEmpty && endpoint.map {
+                                networkEndpoint(row.record.local)?.matches($0.remote) == true && networkEndpoint(row.record.remote)?.matches($0.local) == true
+                            } == true))
+                    }
+                }
+            }
+            if let source = recvSource {
+                var start: TimeProjection?, end: TimeProjection?
+                for row in recv where row.record.contactID == network.contactID || ["registered", "receiverStarted", "receiverStopped"].contains(row.record.kind) {
+                    reference(source, row.line)
+                    let e = row.record, t = project(e.timestamp.utc, source: source, line: row.line)
+                    if e.kind == "receiverStarted" { start = t }
+                    else if e.kind == "receiverStopped" { end = t }
+                    else if e.kind != "registered" {
+                        withinStage(t, allowDrain: true)
+                        let tuple = endpoint.map { networkEndpoint(e.local)?.matches($0.local) == true && networkEndpoint(e.remote)?.matches($0.remote) == true && e.transport.rawValue == $0.transport.rawValue } == true
+                        if !tuple { result.problems.append("network selected receiver contact tuple differs from allowlist/sender") }
+                        let eligible = row.problems.isEmpty && source.problems.isEmpty && tuple
+                        if e.kind == "accepted" { observations.append(.init(kind: .accepted, time: t, value: nil, eligible: eligible)) }
+                        if e.kind == "closed" { observations.append(.init(kind: .closed, time: t, value: nil, eligible: eligible)) }
+                        if ["closed", "datagram"].contains(e.kind), let bytes = e.bytes {
+                            observations.append(.init(kind: .payload, time: t, value: bytes, eligible: eligible, requiresMatrixEvent: bytes > 0))
+                        }
+                    }
+                }
+                lifecycleCoverage(start, end, label: "network receiver")
+            }
+        }
 
         if let ref = binding.capture, let source = useSource(ref.sourceID, format: "packetImportV1JSONL") {
             let rows = source.packets.filter { $0.record.captureID == ref.captureID }

@@ -2,8 +2,8 @@
 
 **C3 je částečné. S3b, NET-10…12 a R2/R3 zůstávají Neověřeno.** Tento samostatný Swift 6.4 balík
 připravuje scénáře a přístroj. Není to bind policy, firewall ani důkaz izolace. Dílčí offline C1/common
-adapter je dostupný; chybějící producer metadata a skutečný uživatelský běh L4 zbývají. Nevychází z kódu neintegrovaných větví; jediná závislost je lokální veřejné
-API `../../common` (`ProbeContext`, `ProbeExpectation`, jejich Codable modely).
+adapter podporuje také explicitní `sanjboxNetworkProvenanceV1` s přesnými vloženými raw bajty; autentizace peeru, nezávislý capture, bind policy a skutečný uživatelský běh L4 zbývají. Nevychází z kódu neintegrovaných větví; jediná závislost je lokální veřejné
+API `../../common` (`ProbeContext`, `ProbeExpectation` a Codable modely `SanjboxNetworkProvenance`). Offline `link` nevolá jejich živé preflight/capture operace.
 
 ## Co lze provést nyní
 
