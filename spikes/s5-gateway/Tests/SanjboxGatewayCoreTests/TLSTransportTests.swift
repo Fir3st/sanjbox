@@ -103,7 +103,7 @@ private func tlsSend(_ data: Data, connection: NWConnection) async throws {
 
     private func accept(_ connection: NWConnection) {
         Diag.trace("synthetic accept \(connection.endpoint)")
-        connection.stateUpdateHandler = { state in Diag.trace("synthetic conn state=\(state)") }
+        if diagMode == "full" { connection.stateUpdateHandler = { state in Diag.trace("synthetic conn state=\(state)") } }
         connections.append(connection)
         connection.start(queue: queue)
         tasks.append(Task { [weak self, serve] in
@@ -295,7 +295,7 @@ struct TLSTransportTests {
         defer { gateway.stop() }
         phase = "client-connect"
         let connection = NWConnection(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
-        connection.stateUpdateHandler = { state in Diag.trace("relay client state=\(state)") }
+        if diagMode == "full" { connection.stateUpdateHandler = { state in Diag.trace("relay client state=\(state)") } }
         connection.start(queue: DispatchQueue(label: "sanjbox.gateway.relay-test"))
         defer { connection.cancel() }
         phase = "send"

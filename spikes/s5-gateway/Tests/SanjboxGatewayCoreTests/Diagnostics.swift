@@ -5,7 +5,7 @@ import Foundation
 enum Diag {
     static func now() -> Double { ProcessInfo.processInfo.systemUptime }
     static func log(_ message: String) { print(String(format: "DIAG %.3f ", now()) + message) }
-    static func trace(_ message: String) { DiagTrace.shared.add(message) }
+    static func trace(_ message: String) { if diagMode != "off" { DiagTrace.shared.add(message) } }
     static func blocking<T>(_ label: String, _ body: () throws -> T) rethrows -> T {
         let start = now()
         defer {

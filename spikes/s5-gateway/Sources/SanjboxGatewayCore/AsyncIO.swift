@@ -119,4 +119,5 @@ public final class DiagTrace: @unchecked Sendable {
         lock.withLock { events.filter { $0.0 >= since }.map { String(format: "%.3f ", $0.0) + $0.1 } }
     }
 }
-func diag(_ message: String) { DiagTrace.shared.add(message) }
+public let diagMode = ProcessInfo.processInfo.environment["SANJBOX_DIAG"] ?? "off"
+func diag(_ message: String) { if diagMode != "off" { DiagTrace.shared.add(message) } }
