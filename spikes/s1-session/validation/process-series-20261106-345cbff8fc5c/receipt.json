@@ -1,0 +1,124 @@
+{
+  "evidenceID": "A2-process-series-20261106-345cbff8fc5c",
+  "scope": "implementation validation on controlled own host children; no LAB/L1/P4/S1 verdict",
+  "sourceCommit": "76d01f2d6846d246395a5213c197af9c08406857",
+  "completedUTC": "2026-11-06T07:28:09.216638+00:00",
+  "configuration": {
+    "macOS": "27.2",
+    "build": "26B123",
+    "architecture": "arm64",
+    "Xcode": "27.2 (27B52)",
+    "Swift": "6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)"
+  },
+  "releaseTests": {
+    "passed": 63,
+    "failed": 0,
+    "skipped": 0,
+    "historicalTests": 43,
+    "newTests": 20
+  },
+  "legacyCLIChecks": 30,
+  "processSeriesCLIChecks": 17,
+  "signature": {
+    "type": "ad-hoc",
+    "hardenedRuntime": true,
+    "forbiddenKeysAbsent": [
+      "get-task-allow",
+      "com.apple.security.get-task-allow"
+    ],
+    "artifacts": [
+      "sanjbox-s1-instrument",
+      "sanjbox-s1-probe",
+      "sanjbox-s1-forward",
+      "SanjboxS1PackageTests.xctest"
+    ],
+    "verifiedAfterFinalBuild": true,
+    "unchangedAfterTests": true
+  },
+  "positive": {
+    "durationSeconds": 4,
+    "samples": 5,
+    "allocationMiB": 16,
+    "footprintGrowthBytes": 16793600,
+    "acquisitionComplete": true,
+    "fullSessionAttributionComplete": false
+  },
+  "lifecycle": {
+    "durationSeconds": 6,
+    "totalPoints": 14,
+    "slot1Points": 7,
+    "slot2States": [
+      "notRegistered",
+      "notRegistered",
+      "sampled",
+      "sampled",
+      "unreadableBefore",
+      "unreadableBefore",
+      "unreadableBefore"
+    ],
+    "ownedCleanupComplete": true,
+    "acquisitionComplete": false,
+    "expectedExit": 3
+  },
+  "interruptionChecks": [
+    {
+      "label": "native-SIGTERM-journal",
+      "exit": -15,
+      "journalRows": 2,
+      "truncatedPrefixRows": 1,
+      "recordingAbsent": true
+    },
+    {
+      "label": "native-SIGALRM-journal",
+      "exit": -14,
+      "journalRows": 2,
+      "truncatedPrefixRows": 1,
+      "recordingAbsent": true
+    }
+  ],
+  "sourceManifestSHA256": "77cc4df1edcec3ccb63de1a0597e956debef79fcecc308e88c43d0c6dc81a39a",
+  "artifactSHA256": {
+    "sanjbox-s1-instrument": "3d6f28c8a6859939aa6a035d896673c3f25e7db9b0358f26a36ce17e7af2dbae",
+    "sanjbox-s1-probe": "b21024a2106b94026b63664f36c32b2d066590d5ca19c4807a28249f99e4a021",
+    "sanjbox-s1-forward": "024c25b313ad79853c8539a51eeddc7a2d792ac102ba5c56f0e1b4833ff08587",
+    "SanjboxS1PackageTests": "ead97a0b936dc55c65a0e7fb6a39eca619529509fd5a4d45a3d2b5120d6db088"
+  },
+  "retainedEvidenceSHA256": {
+    "preregistration.json": "ae58dd3c390acfd8b22b9fb54bdf651778a74b557300cb3d86ccb567599739ff",
+    "signatures-07.json": "fc5b1620733669aa8d1962b7d794a5aab04b77e14d10c33d630261a585045ede",
+    "tests-07.log": "c749ef3833d91af77deb404fbb57cb7c3f6c9b675ee60bb3548da2e54f425b83",
+    "cli-series-07/results.json": "eefe3a85d763bf697bde5e62e2fd0c35b444cabbc279b9e8d489cc572ae3e25a",
+    "cli-series-07/manifest.json": "ded77c9c6fc0c5b3fedf3259474dd20a243ff301218a5754481256a343944f17",
+    "cli-legacy-07/results.json": "53ffacf35e42d08eef0661f3fd2729e174415f7f9a5f39df1c996d2b86d9a6c7",
+    "final-run-07.json": "a54d3b0ee5495c1f44e2ce008df1362feadd65c091a78c8142b7b504edc45d87"
+  },
+  "rawSHA256": {
+    "signed-live-registry/intent.json": "e2e9e0fcc4e12d9a762193a96acf3e400e4f3d00918072406ee2004643da8eff",
+    "signed-live-registry/recording.json": "9d1e6e07e4e1cc34216f7182ead4b1e98f98c4f789e52905dd0009aea448de6f",
+    "signed-live-registry/report.json": "dbb8e0eaa3baee541f98b16570a938042abb1872ed4b7665948b3c6c5f7a7c4e",
+    "signed-live-registry/samples.jsonl": "a3684d2975973431de577361bfe4153ff6784a53698b2500b2a5ccd33f742aff",
+    "native-birth-allocation-exit/intent.json": "e4e2bb5b9a2b42ea539c490771a316f722cfd05c6afdfa0a7e85766412e4b983",
+    "native-birth-allocation-exit/recording.json": "b8bdfd6d4cfcfdfd706d7a7aa5f7613a4464b5f595949e02a80570b35d8a5e50",
+    "native-birth-allocation-exit/report.json": "ff40d9341148961ef0e39f8b6976fe348289a5a9f21875c10182506019f0caf0",
+    "native-birth-allocation-exit/samples.jsonl": "ad06f901f8bab0d6298e21fee9a19bcbce3b24fe567d65c10be3f23b5f551af1"
+  },
+  "historicalBuildsRetained": {
+    "build05": {
+      "releaseTests": 59,
+      "newCLI": 15,
+      "legacyCLI": 30
+    },
+    "build06": {
+      "releaseTests": 62,
+      "newCLI": 15,
+      "legacyCLI": 30
+    },
+    "reviewP2": "Interrupted collection lost acquired points before 76d01f2; original reviewer reproduction retained separately"
+  },
+  "signatureNegativeBuild06": {
+    "noRuntime": "CLI exit 2, no dataset/child",
+    "prefixedFalse": "CLI exit 2, no dataset/child",
+    "unprefixedFalse": "macOS SIGKILL at launch; not a demonstrated application-level rejection",
+    "setupFailures": "Two wrapper assertions incorrectly matched runtime in the no-runtime filename; original records and amendment retained"
+  }
+}

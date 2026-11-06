@@ -152,3 +152,92 @@ Původní storage test záměrně zachovává svůj create-exclusive syntetický
 
 Zbývající funkční a důkazní mezery jsou v [SUPPLEMENTARY.md](SUPPLEMENTARY.md). A2/L1 zůstává
 rozpracované; nikdy nebyl proveden ani odvozen reálný třírelační výsledek.
+
+## Registrované procesní řady — 2026-11-06
+
+Nové implementační evidence ID **A2-process-series-20261106-345cbff8fc5c**; finální validace dokončena
+2026-11-06T07:28:09Z. Jde o **host diagnostiku na vlastních kontrolovaných dětech**, nikoli L1,
+testovací oblast, P4 nebo verdikt S1. Historické výsledky výše se nemění. Přesný malý
+[receipt s hashi](validation/process-series-20261106-345cbff8fc5c/receipt.json) nepublikuje raw identity.
+
+Výchozí main `2a15fc2608a04b3cf06ba676810ffe69edae3982`, claim `b857c99`, implementace `684b59b`,
+oprava zachování rozpracovaných bodů `76d01f2d6846d246395a5213c197af9c08406857`. Finální source manifest
+SHA-256 `77cc4df1edcec3ccb63de1a0597e956debef79fcecc308e88c43d0c6dc81a39a` zahrnuje místní common
+závislost, která se nezměnila. Konfigurace je macOS **27.2 (26B123), arm64, Xcode 27.2 (27B52),
+Swift 6.4.2** (`swiftlang-6.4.2.1.9 clang-2100.4.1.1`). Xcode se liší od historického LAB/r1;
+stará konfigurace ani závěr brány se nepřenášejí.
+
+| Kontrola | Výsledek a omezení |
+|---|---|
+| Finální native Release build `build-07.log` | Úspěšný, bez externích balíčků; před aktivní validací znovu podpis všech 3 CLI a test bundle |
+| Signatures po posledním buildu | Ad-hoc, runtime, prázdné entitlements; `codesign --verify --strict`, skutečné CodeDirectory flags a nepřítomné oba get-task-allow klíče. Hash binárek po testech nezměněn |
+| Kompletní Release sada | **63/63**, 0 failed, 0 skipped: původních 43 + 20 nových testů. Zděděný test own-UID inventory spuštěn jednou jako autorizovaná regrese; jeho seznam/jména se nepublikují. Nové live kolektory žádnou inventuru nedělají |
+| Původní CLI sada | **30/30**, vlastní fixture/negativní vstupy, původní schémata kompatibilní |
+| Nová signed CLI sada | **17/17**, skutečné registrace/čtení vlastních dětí, životní cyklus, identity/start mismatch, foreign UID, strict schema, immutable output a journal interruption |
+| Běžný `process-series`, živý pozitivní běh | 4 s, **5 platných bodů**, známá dotčená 16MiB alokace, růst footprint **16 793 600 B**; PID/UID/start shodné před/po každém readu; `acquisitionComplete:true`, `fullSessionAttributionComplete:false` |
+| Pevný owned-child birth/exit běh | 6 s, 14 bodů; první dítě 7 bodů, druhé `notRegistered → sampled → unreadableBefore`; arrival a zánik uchované jako neúplnost, **exit 3**, nikoli performance fail/pass. Obě děti prokazatelně skončily, cleanup true |
+| Přerušení vlastního collectoru SIGTERM / SIGALRM | Oba pokusy po 2 zapsaných bodech: journal uchoval 2 plné řádky; záměrně zkrácený prefix uchoval první řádek; žádný final recording/report. Exit −15 / −14, vždy neúplné. SIGALRM testuje dispatch stejného handleru jako watchdog, nikoli skutečnou expiraci deadline |
+| Pořadí kontrol | Neshodný ASID → exit 3 a žádná target metadata/paměť/children; cizí registry UID → exit 2 před datasetem; chybný start stále živého dítěte → `identityChangedBefore` bez metrik |
+
+Před pozitivní akvizicí se samostatně zkontroloval sanitizovaný vlastní host kontext, explicitně zvolila
+přesná očekávání a uložily `expected-reviewed.json` a `preregistration.json`; koordinátor tento rozsah
+ověřil. Collector nikdy neodvozuje schválená očekávání z právě zjištěné identity. První úmyslný mismatch
+zůstává v `initial-identity-rejection.json` a jeho samostatném create-exclusive datasetu.
+
+### Oprava potvrzeného review nálezu a uchovaná historie
+
+Nezávislý reviewer na `684b59b` potvrdil P2: SIGTERM **2,2067 s** po uzavření registru zachoval jen
+intent/registry, protože vzorky čekaly v RAM na konec série. Původní repro je ponecháno v jeho vlastním
+scratch a nebylo přepsáno. `76d01f2` přidává čerstvý bounded `samples.jsonl`, zápis a fsync **po každém
+readu před dalším readem/wait**, včetně chyb a `notRegistered`. Nezmění částečný prefix na úplný report,
+neimplementuje automatickou recovery a netvrdí power-loss odolnost. Protokol a limity jsou v
+[PROCESS-SERIES.md](PROCESS-SERIES.md).
+
+`build-05` má zachovaných **59/59 + CLI 15/15 + původní CLI 30/30**, `build-06` **62/62 + 15/15 + 30/30**.
+Tyto dřívější úspěchy nepokrývaly přerušení a nezastupují finální opravu. `build-01` zachoval odmítnutou
+static non-Sendable reader hodnotu, `build-02` a `build-03` compiler type-check timeout ve fixture
+výrazu; po lokální opravě proběhl úspěšný build-04. Žádný z chybových logů není odstraněn nebo přejmenován
+na úspěšný test.
+
+Samostatné doplňující signature pokusy na kopiích build-06: skutečný CLI bez runtime i s
+`com.apple.security.get-task-allow:false` skončil exit 2 před datasetem/child launch. Kopii s
+`get-task-allow:false` macOS zabil při startu SIGKILL; **není** to doložené odmítnutí aplikačním gate.
+Deterministické testy ověřují oba klíče včetně false. Přípravu těchto kopií dvakrát zastavila chyba
+validačního wrapperu: substring `runtime` nesprávně našel ve filename `no-runtime`. První interpretace
+příčiny zůstala uchovaná a má samostatný amendment s opravou; finální kontrola parsovala CodeDirectory
+flags. Skutečná finální runtime binárka zůstala beze změny. Žádná osobní signing identity/Keychain se
+nevyhledávala a žádné nastavení systému se nezměnilo.
+
+### Reprodukce a evidence
+
+Použít nový vlastní scratch, stejný native Release postup jako ve validačním záznamu 2026-11-04,
+`--build-tests -Xswiftc -enable-testing`, a po **posledním** buildu re-sign/verify všech artefaktů.
+Potom bez rebuildu:
+
+```bash
+CLANG_MODULE_CACHE_PATH="$TASK_SCRATCH/clang" \
+SWIFTPM_MODULECACHE_OVERRIDE="$TASK_SCRATCH/module" \
+swift test --package-path spikes/s1-session --scratch-path "$TASK_SCRATCH/build" \
+  --configuration release --build-system native --disable-sandbox --skip-build
+python3 spikes/s1-session/Tests/cli_validation.py \
+  --binary "$RELEASE_OUTPUT/sanjbox-s1-instrument" --output "$TASK_SCRATCH/cli-legacy-new" --apply
+python3 spikes/s1-session/Tests/process_series_validation.py \
+  --binary "$RELEASE_OUTPUT/sanjbox-s1-instrument" --expect-file "$TASK_SCRATCH/expected-reviewed.json" \
+  --output "$TASK_SCRATCH/cli-series-new" --apply
+```
+
+`expected-reviewed.json` se připravuje samostatně před během podle konkrétního kontrolovaného hosta/
+relace; nekopírovat zdejší numeric expectation na jinou konfiguraci. Fixture script výchozím dry-runem
+nic nečte ani nespouští. Nový běh vytvoří nové namespace a output adresáře, uchová i neúspěšné kroky.
+
+Malé privátní evidence jsou v `/private/tmp/sanjbox-a2-series-345cbff8fc5c`: `preregistration.json`,
+`source-manifest-07.json`, `signatures-07.json`, `tests-07.log`, `final-run-07.json`, `cli-series-07`
+a `cli-legacy-07`; přesné nové raw cesty jsou v `cli-*/datasets.json`. Raw/report/journals zůstanou,
+stejně jako staré build/test/CLI logy a review repro. Mazatelné jsou pouze přesně vlastní build/cache,
+pomocné podpisové kopie a prázdný plist; žádný cizí scratch nebo uzavřená evidence. Staged fixture JSON
+script odstraňuje po kontrole vlastní inode/owner identity. Nový storage regression záměrně zachovává
+vlastní create-exclusive journal fixture. Receipt obsahuje hashe vybraných malých záznamů a raw.
+
+**Zůstává neověřeno:** skutečné L1 aplikace/tři souběžné relace, úplnost registru jejich procesů a nových
+dětí, WindowServer/klienti mimo UID, W0/pressure/swap a ostatní LAB důkazy. Žádný součet procesní paměti
+se nepřičítá k systémovému ΔM; F0.8/P4 prahy, původní schémata, brány a 155 případů se nemění.
