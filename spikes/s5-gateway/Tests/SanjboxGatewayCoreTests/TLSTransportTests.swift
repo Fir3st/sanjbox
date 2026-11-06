@@ -298,6 +298,15 @@ struct TLSTransportTests {
         if diagMode == "full" { connection.stateUpdateHandler = { state in Diag.trace("relay client state=\(state)") } }
         connection.start(queue: DispatchQueue(label: "sanjbox.gateway.relay-test"))
         defer { connection.cancel() }
+        defer {
+            if phase != "done" {
+                Diag.log("relay stalled client state=\(connection.state) path=\(String(describing: connection.currentPath)) gatewayPort=\(port) upstreamPort=\(upstreamPort)")
+                let netstat = Process()
+                netstat.executableURL = URL(fileURLWithPath: "/bin/sh")
+                netstat.arguments = ["-c", "netstat -anv -p tcp | grep -E '127\\.0\\.0\\.1\\.(\(port)|\(upstreamPort)) ' | sed 's/^/DIAG NETSTAT /'"]
+                try? netstat.run(); netstat.waitUntilExit()
+            }
+        }
         phase = "send"
         try await tlsSend(Data("GET /api/events HTTP/1.1\r\nHost: 127.0.0.1:\(port)\r\n\r\n".utf8), connection: connection)
         phase = "receive-head upstreamRequests=\(upstreamServer.requests.count)"
