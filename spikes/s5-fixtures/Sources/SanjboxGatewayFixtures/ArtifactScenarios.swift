@@ -55,6 +55,9 @@ public enum ArtifactAccessEvidence: Sendable {
     case gatewayCache(seededArtifact: Data, upstreamArtifactFetches: Int)
     case clientCache
     case localImport
+    /// Actual process receipt; legacy cases above remain useful for verifier-only mocks.
+    case clientCacheInstallation(manifest: Data, exitStatus: Int32)
+    case localImportInstallation(manifest: Data, exitStatus: Int32)
 }
 public struct ArtifactExchange: Sendable {
     public let sequence: Int
@@ -85,6 +88,8 @@ public struct ArtifactObservation: Sendable {
             try fixtureCheck(manifest.count <= 65_536 && lockfile.count <= 65_536, .limit)
         case .gatewayCache(let bytes, let count):
             try fixtureCheck(bytes.count <= 65_536 && (0...64).contains(count), .limit)
+        case .clientCacheInstallation(let manifest, _), .localImportInstallation(let manifest, _):
+            try fixtureCheck(manifest.count <= 65_536, .limit)
         default: break
         }
         self.outcome = outcome; self.exchanges = exchanges; self.downloadAudits = downloadAudits; self.complete = complete
@@ -130,6 +135,11 @@ public enum ArtifactHarness {
                 return .mismatched("lockfile provenance mismatch")
             }
             guard (status == 0) == (scenario.expected == .deliver) else { return .mismatched("npm exit mismatch") }
+        case (.clientCache, .clientCacheInstallation(let manifest, let status)),
+             (.localImport, .localImportInstallation(let manifest, let status)):
+            guard status == 0, manifest == scenario.input.artifact.manifest else {
+                return .mismatched("local installation receipt mismatch")
+            }
         case (.gatewayCache, .gatewayCache(let seeded, let fetches)):
             guard seeded == scenario.input.artifact.archive, fetches == 0 else {
                 return .mismatched("gateway cache provenance mismatch")
@@ -154,12 +164,18 @@ public enum ArtifactHarness {
                 return .mismatched("delivery bytes, status, or download audit mismatch")
             }
             return .matched
-        case (.denyCooldown, .denied(.cooldown)), (.denyUnknownDate, .denied(.unknownDate)):
+        case (.denyCooldown, .denied(let reason)), (.denyUnknownDate, .denied(let reason)):
             guard response.status == 403, observation.downloadAudits.isEmpty,
                   [Data(), Data("{\"error\":403}\n".utf8)].contains(response.responseBody) else {
                 return .mismatched("denial issued artifact or successful download audit")
             }
-            return .matched
+            // Validate counterexamples before reporting the missing diagnostic. D2 exposes
+            // the same 403 for several causes; fixture input is not a measured reason.
+            switch (scenario.expected, reason) {
+            case (_, .other): return .incomplete("denial reason not observable")
+            case (.denyCooldown, .cooldown), (.denyUnknownDate, .unknownDate): return .matched
+            default: return .mismatched("unexpected outcome")
+            }
         default: return .mismatched("unexpected outcome")
         }
     }

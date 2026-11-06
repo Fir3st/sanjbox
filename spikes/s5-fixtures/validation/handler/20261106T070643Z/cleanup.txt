@@ -1,0 +1,4 @@
+/private/tmp/sanjbox-d4-handler-20261106-build removed after owner/type/no-symlink check; absence verified
+/private/tmp/sanjbox-d4-handler-20261106-cache removed after owner/type/no-symlink check; absence verified
+/private/tmp/sanjbox-d4-handler-20261106-modules removed after owner/type/no-symlink check; absence verified
+NPMRun.cleanup() removed each own UUID directory and asserted absence; final suite has 0 cleanup failures.

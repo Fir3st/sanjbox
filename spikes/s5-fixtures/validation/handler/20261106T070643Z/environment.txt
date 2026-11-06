@@ -1,0 +1,13 @@
+Validation closed UTC: 2026-11-06T07:06:43Z
+Base: 2a15fc2608a04b3cf06ba676810ffe69edae3982
+Claim: b53be62
+Tested working-tree Swift sources: tested-source.sha256 (final-release.log)
+macOS 27.2 (26B123), arm64
+Xcode 27.2 (27B52)
+Apple Swift 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)
+Node v26.13.0: /opt/homebrew/Cellar/node/26.13.0_2/bin/node
+npm 11.20.0: /opt/homebrew/lib/node_modules/npm/bin/npm-cli.js
+Installed paths inspected via metadata; --version called with isolated empty-config environment.
+Upstream: in-memory synthetic HTTP, fixed DNS data; no upstream sockets.
+Client: optional real npm against own loopback GatewayServer only, inert own archives.
+Not a lab run, isolation proof, S5 gate or L5/performance result.

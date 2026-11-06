@@ -1,0 +1,152 @@
+Building for production...
+[1 / 4]
+Build complete! (0,28 secs)
+Test Suite 'All tests' started at 2026-11-06 08:01:39.224.
+Test Suite 'SanjboxGatewayFixturesTests.xctest' started at 2026-11-06 08:01:39.225.
+Test Suite 'DestinationFixtureTests' started at 2026-11-06 08:01:39.225.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testFreshHostSnapshotRejectsAddressThatBecameLocal]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testFreshHostSnapshotRejectsAddressThatBecameLocal]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicPolicyRejectsNonTLSLiteralAndECHWithoutResolverAccess]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicPolicyRejectsNonTLSLiteralAndECHWithoutResolverAccess]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicUpstreamClientRejectsBeforeAnySocketCanBeCreated]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicUpstreamClientRejectsBeforeAnySocketCanBeCreated]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRebindingFromPublicToLoopbackLANIPv6AndMixedAnswers]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRebindingFromPublicToLoopbackLANIPv6AndMixedAnswers]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectDestinationNeedsAnotherPolicyCheck]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectDestinationNeedsAnotherPolicyCheck]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectFixturesDecodeAsMetadataOnlyAtEveryFragmentBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectFixturesDecodeAsMetadataOnlyAtEveryFragmentBoundary]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testResolverAndSnapshotFailuresRemainFailures]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testResolverAndSnapshotFailuresRemainFailures]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testScriptConsumptionHostnameAndLimits]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testScriptConsumptionHostnameAndLimits]' passed (0.000 seconds).
+Test Suite 'DestinationFixtureTests' passed at 2026-11-06 08:01:39.233.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.008 (0.008) seconds
+Test Suite 'NPMCompatibilityTests' started at 2026-11-06 08:01:39.234.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIDirectLockfileRequestObservesMock403]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIDirectLockfileRequestObservesMock403]' passed (0.814 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIRejectsManifestLockfileMismatchWithoutArtifactIssuance]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIRejectsManifestLockfileMismatchWithoutArtifactIssuance]' passed (0.509 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIScopedLockfileFetchAndOfflineClientCacheBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIScopedLockfileFetchAndOfflineClientCacheBoundary]' passed (1.184 seconds).
+Test Suite 'NPMCompatibilityTests' passed at 2026-11-06 08:01:41.741.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 2.507 (2.507) seconds
+Test Suite 'NPMHandlerIntegrationTests' started at 2026-11-06 08:01:41.741.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testActualPackumentFiltersBothNamesAtDeterministicBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testActualPackumentFiltersBothNamesAtDeterministicBoundary]' passed (0.010 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testAdapterPropagatesHandlerCancellation]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testAdapterPropagatesHandlerCancellation]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testCorruptArtifactAndTransportFailuresRemainCounterexamples]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testCorruptArtifactAndTransportFailuresRemainCounterexamples]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testDirectAndGatewayCacheMatricesExerciseSixteenActualHandlerScenarios]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testDirectAndGatewayCacheMatricesExerciseSixteenActualHandlerScenarios]' passed (0.029 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testFixedClockAtCutoffAndOneSecondLaterChangesActualDecision]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testFixedClockAtCutoffAndOneSecondLaterChangesActualDecision]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testGenericDenialNeverHidesLeakedBytesAuditOrBadStatus]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testGenericDenialNeverHidesLeakedBytesAuditOrBadStatus]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testLocalProcessReceiptsRejectWrongManifestAndExit]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testLocalProcessReceiptsRejectWrongManifestAndExit]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testMetadataChangeAfterFetchIsNotMistakenForExpectedDelivery]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testMetadataChangeAfterFetchIsNotMistakenForExpectedDelivery]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testOptionalAllFortyScenariosWithActualNpmLockfileCacheAndImport]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testOptionalAllFortyScenariosWithActualNpmLockfileCacheAndImport]' passed (14.766 seconds).
+Test Suite 'NPMHandlerIntegrationTests' passed at 2026-11-06 08:01:56.563.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 14.821 (14.822) seconds
+Test Suite 'RegistryFixtureTests' started at 2026-11-06 08:01:56.563.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testArchiveMatchesIndependentPythonUstarGzipVector]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testArchiveMatchesIndependentPythonUstarGzipVector]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testCustomCatalogLatestUsesNumericVersionTriple]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testCustomCatalogLatestUsesNumericVersionTriple]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testD1AuthAndMethodsRejectBeforeMockHandler]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testD1AuthAndMethodsRejectBeforeMockHandler]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testInvalidNamesVersionsDatesAndDuplicateKeysRejected]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testInvalidNamesVersionsDatesAndDuplicateKeysRejected]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testLockfilesPinArtifactIdentityURLAndDigest]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testLockfilesPinArtifactIdentityURLAndDigest]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockServesUnfilteredArtifactsAndExactPaths]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockServesUnfilteredArtifactsAndExactPaths]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockTranscriptOverflowFailsRatherThanDroppingEvidence]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockTranscriptOverflowFailsRatherThanDroppingEvidence]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testPackumentTimeBoundaryAndUnknownDate]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testPackumentTimeBoundaryAndUnknownDate]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testScopedTargetsRetainEncodedPackumentAndSeparateTarballNamespace]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testScopedTargetsRetainEncodedPackumentAndSeparateTarballNamespace]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testStableCatalogBytesAndIntegrity]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testStableCatalogBytesAndIntegrity]' passed (0.002 seconds).
+Test Suite 'RegistryFixtureTests' passed at 2026-11-06 08:01:56.575.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.011 (0.012) seconds
+Test Suite 'ScenarioHarnessTests' started at 2026-11-06 08:01:56.575.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testAccessPathCannotBeInferredFromTerminalHTTPTrace]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testAccessPathCannotBeInferredFromTerminalHTTPTrace]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testDenialRejectsPartialArtifactLeakAndWrongReason]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testDenialRejectsPartialArtifactLeakAndWrongReason]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLocalCacheOutcomeNeverMeansGatewayEnforcement]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLocalCacheOutcomeNeverMeansGatewayEnforcement]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLockfileEvidenceRequiresExactInputsAndExitOutcome]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLockfileEvidenceRequiresExactInputsAndExitOutcome]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthMockScenarioMatrix]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthMockScenarioMatrix]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthSchemaRejectsDuplicatesUnknownScopesAndOversizedInputs]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthSchemaRejectsDuplicatesUnknownScopesAndOversizedInputs]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testObservationBounds]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testObservationBounds]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testRunnerCallsAdapterWithInputAndPreservesMismatch]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testRunnerCallsAdapterWithInputAndPreservesMismatch]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testScenarioInventoryIncludesExactBoundaryScopedAndLocalCases]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testScenarioInventoryIncludesExactBoundaryScopedAndLocalCases]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierDetectsWrongBytesAuditsSequenceAndAmbiguousDelivery]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierDetectsWrongBytesAuditsSequenceAndAmbiguousDelivery]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRejectsEveryAdditionalPackumentResponseIncludingArtifactLeak]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRejectsEveryAdditionalPackumentResponseIncludingArtifactLeak]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRequiresClosedObservationAndRequestProvenance]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRequiresClosedObservationAndRequestProvenance]' passed (0.001 seconds).
+Test Suite 'ScenarioHarnessTests' passed at 2026-11-06 08:01:56.585.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.010 (0.011) seconds
+Test Suite 'SanjboxGatewayFixturesTests.xctest' passed at 2026-11-06 08:01:56.585.
+	 Executed 42 tests, with 0 failures (0 unexpected) in 17.357 (17.360) seconds
+Test Suite 'All tests' passed at 2026-11-06 08:01:56.585.
+	 Executed 42 tests, with 0 failures (0 unexpected) in 17.357 (17.361) seconds
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

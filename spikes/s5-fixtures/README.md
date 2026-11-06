@@ -1,7 +1,8 @@
 # S5 — fixtures a mocky (WP1.D4)
 
-Samostatný Swift 6 balík nad veřejným API `../s5-gateway` (D1). Bez externích balíčků,
-bez závislosti na D2/D3 a bez kopie jejich implementace. **Hotové D4 není prošlá brána S5.**
+Samostatný Swift 6 balík nad `../s5-gateway`. Knihovna používá veřejné D1 API; testy navíc
+volají skutečný D2 npm handler přes [testový adaptér](HANDLER-INTEGRATION.md). Bez externích
+balíčků a bez kopie D2/D3 implementace. **Hotové D4 není prošlá brána S5.**
 Všech 155 případů COVERAGE i všechny brány zůstávají Neověřeno.
 
 ## Co se skutečně ověřuje
@@ -12,7 +13,7 @@ Všech 155 případů COVERAGE i všechny brány zůstávají Neověřeno.
 | Vlastní fixtures | 8 reprodukovatelných `.tgz`, metadata, lockfile v3, 40 očekávání vydání artefaktu, 6 redirect odpovědí | Implementace cooldownu, filtr packumentu, důvěryhodný původ metadat |
 | Vlastní OAuth model | 15 scénářů explicitně mockované identity, scopes, účtu, zdroje, expirace/revokace a oblasti | Skutečné OAuth, ověření tokenu, transportní autentizace oblasti, uživatelský důkaz scopes |
 | Volitelný skutečný npm | Čtení vlastního lockfilu a tarballu přes D1 loopback listener, reakce na mock 403, neplatný lockfile, offline klientská cache | D2 handler, zákaz instalací, provoz v izolované oblasti, npm/pnpm/yarn kompatibilita obecně |
-| Adaptér pro budoucí D2 | `ArtifactHarness` kontroluje předaná pozorování proti očekávání | **Adaptér D2 není dodán ani spuštěn.** Úspěch testů verifieru není úspěch 40 scénářů proti bráně |
+| Skutečný D2 handler | Testový adaptér: metadata, přímé URL, cache reautorizace, skutečný npm lockfile/cache/import; 40 scénářů: **28 matched, 12 incomplete, 0 mismatched** | Důvod generické 403 nepozorovatelný; synthetic upstream, žádný živý registry/TLS ani verdikt S5/L5 |
 
 Mapování přípravy: R3/R8 a **GW-01…09, GW-12…13, GW-15** (jen relevantní části).
 Číslování v [COVERAGE](../../docs/COVERAGE.md) zůstává autoritativní. Nenahrazuje D7/L5,
@@ -55,7 +56,7 @@ tarballTarget:           /npm/@fixture/bead/-/bead-1.2.0.tgz
 `FixtureOrigin.upstream` používá `https://registry.fixture.invalid` bez `/npm`;
 `.cdn` používá `https://cdn.fixture.invalid`. Jsou to pouze inertní metadata, nikdo na ně
 nespojuje. `.loopback(port:)` generuje `http://127.0.0.1:<port>/npm/...` pro vlastní mock server.
-Budoucí adaptér musí explicitně mapovat registry resource → typed gateway mount.
+Testový adaptér mapuje registry resource → typed gateway mount; žádný upstream socket neotevírá.
 
 ## Použití knihovny a kontrakt adaptéru
 
@@ -73,7 +74,7 @@ dočasného portu nastav `configure(origin:)`. Mock vydá **všechny** verze vč
 Mock zaznamenává metodu, přesný raw target, status a počet bajtů. Při overflow odmítne vydat
 úplný transcript, aby ztracené požadavky nevypadaly jako nulové kontakty.
 
-Budoucí D2 adaptér předá do `ArtifactHarness.run(scenarios, observe:)` async closure přijímající
+D2 testový adaptér předává do `ArtifactHarness.run(scenarios, observe:)` async closure přijímající
 jen `ArtifactInput`, nikoli expected výsledek. Musí zavolat skutečný handler, shromáždit odpovědi
 a audit z nezávislých testovacích hooků, uzavřít pozorování a vrátit `ArtifactObservation`.
 Nesmí vracet expected hodnoty jako pozorování. Konstruktor výsledku používá jeden enum outcome,
@@ -82,7 +83,9 @@ klient → brána na tarball**, s pořadovým číslem 0 a správným endpointem
 exchange nebo packument target odmítne, i s 403 či prázdným tělem; žádné tělo neignoruje.
 Pro vydání vyžaduje shodné bajty a jeden download audit; při odmítnutí 403, žádný download
 audit a prázdné tělo nebo přesné D1 error tělo.
-Neznámé odmítnutí `.other` nenahrazuje cooldown/unknown-date očekávání.
+Neznámé odmítnutí `.other` nenahrazuje cooldown/unknown-date očekávání: po kontrole
+statusu/těla/auditu vrátí `incomplete("denial reason not observable")`. Vadný status, únik
+bajtů či audit zůstane `mismatched`; nedostupná diagnostika nesmí skrýt counterexample.
 
 Samotný HTTP trace nedokládá přístupovou cestu. `accessEvidence` je ve výchozím stavu
 `.unverified` a výsledek pak zůstává incomplete. Adaptér musí dodat odpovídající variantu:
@@ -90,7 +93,9 @@ direct URL, lockfile CI, cache brány, klientská cache nebo lokální import. P
 skutečný manifest i lockfile s přesnými vygenerovanými vstupy, loopback origin a exit status
 npm. Pro cache brány jsou potřeba shodné seed bajty a pozorovaných nula upstream fetchů
 artefaktu. Přímé stažení proto samo nemůže projít scénářem cache či CI. Údaje mají přijít
-z instrumentace skutečného běhu; jejich pravost knihovna neautentizuje.
+z instrumentace skutečného běhu; jejich pravost knihovna neautentizuje. Nové varianty
+`clientCacheInstallation` / `localImportInstallation` ověřují také exit 0 a skutečně
+nainstalovaný manifest; původní jednodušší varianty zůstávají pro verifier/mock testy.
 
 40 scénářů = 8 artefaktů × direct URL, lockfile CI, cache brány, klientská cache, lokální import.
 První tři cesty mají 24 očekávání vydání/odmítnutí; poslední dvě 16 očekávání
@@ -142,8 +147,11 @@ Apple Silicon + Swift 6.x / Xcode 27.x dle GUIDE. Standardní spuštění:
 swift test --package-path spikes/s5-fixtures
 ```
 
-**30** testů nepotřebuje npm ani listenery. Další **3** jsou ve výchozím stavu výslovně skipped.
-Testy používají veřejný import D1, nikdy `@testable` přes hranici balíku.
+**38** testů nepotřebuje npm ani listenery. Další **4** jsou ve výchozím stavu výslovně skipped.
+Testový D2 adaptér používá `@testable import SanjboxGatewayCore` pouze pro existující
+interní clock/dialer seam; SwiftPM Release sestavení je ověřené. Knihovna nadále používá
+veřejný import. Nevzniklo veřejné nastavení pro vypnutí SSRF/TLS; podrobnosti a limity
+jsou v [HANDLER-INTEGRATION.md](HANDLER-INTEGRATION.md).
 
 Pro izolované build/cache adresáře v tomto pracovním prostředí byl použit příkaz:
 
@@ -161,8 +169,9 @@ env CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-d4-clang-cache \
 V prostředí, které vnořený SwiftPM sandbox podporuje, jej vynech. Síťově omezený tool sandbox
 může zvlášť odmítnout loopback bind; není to výsledek bezpečnostní brány.
 
-Volitelné npm testy vyžadují explicitně zvolené existující binárky. Na tomto stroji bylo
-ověřeno **Node v26.12.1**, **npm 11.20.0**, Swift 6.4, arm64 macOS 27.2. K výše uvedenému
+Volitelné npm testy vyžadují explicitně zvolené existující binárky. Historický běh
+2026-11-03 použil **Node v26.12.1**, **npm 11.20.0**, Swift 6.4, arm64 macOS 27.2.
+Nová [validace 2026-11-06](VALIDATION-HANDLER.md) uvádí aktuálně ověřené cesty/verze. K výše uvedenému
 `env` lze přidat následující dvě proměnné (nebo spustit přímo):
 
 ```bash
@@ -179,7 +188,7 @@ auth, proxy, `NODE_OPTIONS`, scoped registry ani uživatelská npm nastavení. R
 lockfile resolved URL míří jen na vlastní D1 `127.0.0.1` listener s dočasným portem.
 Každý příkaz má `--ignore-scripts --no-audit --no-fund --update-notifier=false`.
 
-Tři testy provádějí:
+Tři původní mock kompatibilitní testy provádějí:
 
 1. `npm ci` se scoped lockfilem nové verze: právě jeden tarball GET, žádný packument GET,
    stejné nainstalované package.json a nezměněný lockfile. Poté explicitně
@@ -197,8 +206,13 @@ instalaci. Finální test výslovně modeluje **importovanou/předexistující k
 Před seedováním jsou příslušné čerstvé npm operace úspěšné; výsledky 403 a metadata nejsou
 zaměněné za nefunkční transport.
 
+Čtvrtý opt-in test `NPMHandlerIntegrationTests.testOptionalAllFortyScenariosWithActualNpmLockfileCacheAndImport`
+provádí všech 40 vstupů přes skutečný adaptér. Jeho npm operace a oddělení od původních
+mock testů popisuje [HANDLER-INTEGRATION.md](HANDLER-INTEGRATION.md).
+
 **Úklid:** testy zavírají listener a podprocesy v `defer`; smažou pouze vlastní vytvořený
-UUID adresář a ověří jeho nepřítomnost. Build/cache z příkazu zůstávají pro další vývoj.
+UUID adresář a ověří jeho nepřítomnost. Vlastní build/cache po validačním běhu odstraň implementátorem ověřenými přesnými cestami;
+malé receipts uchovej podle [nové validace](VALIDATION-HANDLER.md).
 Nevzniká účet, certifikát, Keychain položka, TCC grant, pf pravidlo ani systémová služba.
 **[uživatel]** Žádný privilegovaný krok ani laboratorní slot tento balík nepotřebuje.
 

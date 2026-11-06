@@ -54,7 +54,8 @@ import XCTest
         XCTAssertEqual(ArtifactHarness.verify(scenario, try value(Data())), .matched)
         XCTAssertEqual(ArtifactHarness.verify(scenario, try value(scenario.input.artifact.archive.prefix(10))),
                        .mismatched("denial issued artifact or successful download audit"))
-        XCTAssertEqual(ArtifactHarness.verify(scenario, try value(Data(), denial: .other)), .mismatched("unexpected outcome"))
+        XCTAssertEqual(ArtifactHarness.verify(scenario, try value(Data(), denial: .other)), .incomplete("denial reason not observable"))
+        XCTAssertEqual(ArtifactHarness.verify(scenario, try value(Data(), denial: .unknownDate)), .mismatched("unexpected outcome"))
     }
 
     func testLocalCacheOutcomeNeverMeansGatewayEnforcement() throws {

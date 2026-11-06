@@ -1,0 +1,12 @@
+Commands run from repository root. No network dependencies or tool installation.
+
+1. Native/default Release (native-release.log):
+CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-d4-handler-20261106-modules swift test -c release --package-path spikes/s5-fixtures --scratch-path /private/tmp/sanjbox-d4-handler-20261106-build --cache-path /private/tmp/sanjbox-d4-handler-20261106-cache --disable-sandbox
+
+2. Opt-in Release (npm-release.log):
+SANJBOX_FIXTURE_NODE=/opt/homebrew/Cellar/node/26.13.0_2/bin/node SANJBOX_FIXTURE_NPM_CLI=/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-d4-handler-20261106-modules swift test -c release --package-path spikes/s5-fixtures --scratch-path /private/tmp/sanjbox-d4-handler-20261106-build --cache-path /private/tmp/sanjbox-d4-handler-20261106-cache --disable-sandbox
+
+3. Final opt-in Release after explicit wrong-reason regression (final-release.log):
+SANJBOX_FIXTURE_NODE=/opt/homebrew/Cellar/node/26.13.0_2/bin/node SANJBOX_FIXTURE_NPM_CLI=/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-d4-handler-20261106-modules swift test -c release --package-path spikes/s5-fixtures --scratch-path /private/tmp/sanjbox-d4-handler-20261106-build --cache-path /private/tmp/sanjbox-d4-handler-20261106-cache --disable-sandbox
+
+No compiler warnings or failures in these runs. Final source fingerprints in tested-source.sha256.
