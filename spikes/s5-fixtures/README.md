@@ -13,6 +13,7 @@ Všech 155 případů COVERAGE i všechny brány zůstávají Neověřeno.
 | Vlastní fixtures | 8 reprodukovatelných `.tgz`, metadata, lockfile v3, 40 očekávání vydání artefaktu, 6 redirect odpovědí | Implementace cooldownu, filtr packumentu, důvěryhodný původ metadat |
 | Vlastní OAuth model | 15 scénářů explicitně mockované identity, scopes, účtu, zdroje, expirace/revokace a oblasti | Skutečné OAuth, ověření tokenu, transportní autentizace oblasti, uživatelský důkaz scopes |
 | Volitelný skutečný npm | Čtení vlastního lockfilu a tarballu přes D1 loopback listener, reakce na mock 403, neplatný lockfile, offline klientská cache | D2 handler, zákaz instalací, provoz v izolované oblasti, npm/pnpm/yarn kompatibilita obecně |
+| D4 redirect → skutečný D2 | Všech 6 původních HTTP redirect fixtures, úplný DNS/interface/dial/bytes sled, reautorizace a digest/cache, omezené smyčky; [nový validační dodatek](VALIDATION-REDIRECT.md) | Jen testový transport, přímý audit `prepared`; důvod chyby nepozorovatelný, žádné živé DNS/TLS ani verdikt |
 | Skutečný D2 handler | Testový adaptér: metadata, přímé URL, cache reautorizace, skutečný npm lockfile/cache/import; 40 scénářů: **28 matched, 12 incomplete, 0 mismatched** | Důvod generické 403 nepozorovatelný; synthetic upstream, žádný živý registry/TLS ani verdikt S5/L5 |
 
 Mapování přípravy: R3/R8 a **GW-01…09, GW-12…13, GW-15** (jen relevantní části).
@@ -147,7 +148,9 @@ Apple Silicon + Swift 6.x / Xcode 27.x dle GUIDE. Standardní spuštění:
 swift test --package-path spikes/s5-fixtures
 ```
 
-**38** testů nepotřebuje npm ani listenery. Další **4** jsou ve výchozím stavu výslovně skipped.
+**50** testů nepotřebuje npm ani listenery (včetně 12 nových redirect metod). Další **4**
+jsou ve výchozím stavu výslovně skipped. Nový [redirect dodatek](VALIDATION-REDIRECT.md)
+vede vlastní běhy a nemění historické počty níže.
 Testový D2 adaptér používá `@testable import SanjboxGatewayCore` pouze pro existující
 interní clock/dialer seam; SwiftPM Release sestavení je ověřené. Knihovna nadále používá
 veřejný import. Nevzniklo veřejné nastavení pro vypnutí SSRF/TLS; podrobnosti a limity

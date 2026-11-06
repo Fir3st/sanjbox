@@ -1,0 +1,373 @@
+Building for production...
+[Pre-planning 1 / 125]
+[Planning deferred tasks]
+[2 / 7] SanjboxGatewayCore
+[7 / 47]
+[11 / 47]
+[14 / 47]
+[18 / 47]
+[21 / 47]
+[22 / 47]
+[25 / 47]
+[27 / 47]
+[29 / 47]
+[32 / 47]
+[35 / 47]
+[37 / 47]
+[38 / 47]
+[39 / 47]
+[42 / 47] SanjboxGatewayCore
+[46 / 49] SanjboxGatewayFixtures
+[47 / 50] SanjboxGatewayFixtures
+[56 / 61] SanjboxGatewayFixturesTests-product
+[60 / 93]
+[62 / 93]
+[64 / 93]
+[67 / 93]
+[69 / 93]
+[73 / 93]
+[75 / 93]
+[77 / 93]
+[79 / 93]
+[83 / 93]
+[84 / 93]
+[87 / 93]
+[88 / 93]
+[89 / 93] SanjboxGatewayFixturesTests-product
+[93 / 94] SanjboxGatewayFixturesTests-product
+[96 / 96] SanjboxGatewayFixturesTests-product
+Build complete! (23,12 secs)
+Test Suite 'All tests' started at 2026-11-06 12:45:35.712.
+Test Suite 'SanjboxGatewayFixturesTests.xctest' started at 2026-11-06 12:45:35.713.
+Test Suite 'DestinationFixtureTests' started at 2026-11-06 12:45:35.713.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testFreshHostSnapshotRejectsAddressThatBecameLocal]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testFreshHostSnapshotRejectsAddressThatBecameLocal]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicPolicyRejectsNonTLSLiteralAndECHWithoutResolverAccess]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicPolicyRejectsNonTLSLiteralAndECHWithoutResolverAccess]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicUpstreamClientRejectsBeforeAnySocketCanBeCreated]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testPublicUpstreamClientRejectsBeforeAnySocketCanBeCreated]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRebindingFromPublicToLoopbackLANIPv6AndMixedAnswers]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRebindingFromPublicToLoopbackLANIPv6AndMixedAnswers]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectDestinationNeedsAnotherPolicyCheck]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectDestinationNeedsAnotherPolicyCheck]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectFixturesDecodeAsMetadataOnlyAtEveryFragmentBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testRedirectFixturesDecodeAsMetadataOnlyAtEveryFragmentBoundary]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testResolverAndSnapshotFailuresRemainFailures]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testResolverAndSnapshotFailuresRemainFailures]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testScriptConsumptionHostnameAndLimits]' started.
+Test Case '-[SanjboxGatewayFixturesTests.DestinationFixtureTests testScriptConsumptionHostnameAndLimits]' passed (0.000 seconds).
+Test Suite 'DestinationFixtureTests' passed at 2026-11-06 12:45:35.722.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.008 (0.008) seconds
+Test Suite 'NPMCompatibilityTests' started at 2026-11-06 12:45:35.722.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIDirectLockfileRequestObservesMock403]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIDirectLockfileRequestObservesMock403]' passed (0.659 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIRejectsManifestLockfileMismatchWithoutArtifactIssuance]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIRejectsManifestLockfileMismatchWithoutArtifactIssuance]' passed (1.661 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIScopedLockfileFetchAndOfflineClientCacheBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMCompatibilityTests testNpmCIScopedLockfileFetchAndOfflineClientCacheBoundary]' passed (1.432 seconds).
+Test Suite 'NPMCompatibilityTests' passed at 2026-11-06 12:45:39.473.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 3.751 (3.752) seconds
+Test Suite 'NPMHandlerIntegrationTests' started at 2026-11-06 12:45:39.473.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testActualPackumentFiltersBothNamesAtDeterministicBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testActualPackumentFiltersBothNamesAtDeterministicBoundary]' passed (0.009 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testAdapterPropagatesHandlerCancellation]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testAdapterPropagatesHandlerCancellation]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testCorruptArtifactAndTransportFailuresRemainCounterexamples]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testCorruptArtifactAndTransportFailuresRemainCounterexamples]' passed (0.006 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testDirectAndGatewayCacheMatricesExerciseSixteenActualHandlerScenarios]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testDirectAndGatewayCacheMatricesExerciseSixteenActualHandlerScenarios]' passed (0.034 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testFixedClockAtCutoffAndOneSecondLaterChangesActualDecision]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testFixedClockAtCutoffAndOneSecondLaterChangesActualDecision]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testGenericDenialNeverHidesLeakedBytesAuditOrBadStatus]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testGenericDenialNeverHidesLeakedBytesAuditOrBadStatus]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testLocalProcessReceiptsRejectWrongManifestAndExit]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testLocalProcessReceiptsRejectWrongManifestAndExit]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testMetadataChangeAfterFetchIsNotMistakenForExpectedDelivery]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testMetadataChangeAfterFetchIsNotMistakenForExpectedDelivery]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testOptionalAllFortyScenariosWithActualNpmLockfileCacheAndImport]' started.
+Test Case '-[SanjboxGatewayFixturesTests.NPMHandlerIntegrationTests testOptionalAllFortyScenariosWithActualNpmLockfileCacheAndImport]' passed (17.361 seconds).
+Test Suite 'NPMHandlerIntegrationTests' passed at 2026-11-06 12:45:56.897.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 17.423 (17.423) seconds
+Test Suite 'RedirectHandlerIntegrationTests' started at 2026-11-06 12:45:56.897.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testChangedCachedDigestForcesRefetchAndCannotReleaseOldRedirectBytes]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testChangedCachedDigestForcesRefetchAndCannotReleaseOldRedirectBytes]' passed (0.006 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testClientCredentialsRejectedBeforeDNSAndOtherHeadersNeverCrossRedirect]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testClientCredentialsRejectedBeforeDNSAndOtherHeadersNeverCrossRedirect]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testCorruptRedirectBodyFailsDigestWithoutFinalMetadataOrAudit]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testCorruptRedirectBodyFailsDigestWithoutFinalMetadataOrAudit]' passed (0.004 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testFinalReauthorizationWithholdsFetchedRedirectArtifactWhenMetadataChanges]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testFinalReauthorizationWithholdsFetchedRedirectArtifactWhenMetadataChanges]' passed (0.016 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRebindingAndFreshHostInterfaceSnapshotPreventForbiddenTargetDial]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRebindingAndFreshHostInterfaceSnapshotPreventForbiddenTargetDial]' passed (0.011 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectedCacheRechecksCooldownAndUnknownDateAtBothAuthorizations]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectedCacheRechecksCooldownAndUnknownDateAtBothAuthorizations]' passed (0.012 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectLoopStopsBeforeRedialAndHopLimitHasExactBoundary]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectLoopStopsBeforeRedialAndHopLimitHasExactBoundary]' passed (0.017 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectReauthorizationRejectsChangedDateSourceAndDigestBeforeTargetDial]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectReauthorizationRejectsChangedDateSourceAndDigestBeforeTargetDial]' passed (0.008 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectSeedAndCacheHitKeepPreparedAuditAndReauthorizeTwice]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testRedirectSeedAndCacheHitKeepPreparedAuditAndReauthorizeTwice]' passed (0.005 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testSameHostPositiveControlUsesFreshDNSAndHostSnapshotAtEachRequest]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testSameHostPositiveControlUsesFreshDNSAndHostSnapshotAtEachRequest]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testScriptLeftoversAndUnexpectedAttemptsCannotMasqueradeAsSafeRefusal]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testScriptLeftoversAndUnexpectedAttemptsCannotMasqueradeAsSafeRefusal]' passed (0.003 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testSixExistingCorpusResponsesReachActualHandlerAndTraceEveryAttempt]' started.
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_REDIRECT_CORPUS cdn status=200 dns=5 dials=5 audits=1 reason=unobserved
+D4_REDIRECT_TRACE cdn sequence=0 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE cdn sequence=1 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=2 host-snapshot addresses=[]
+D4_REDIRECT_TRACE cdn sequence=3 dial connection=0 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=4 start connection=0
+D4_REDIRECT_TRACE cdn sequence=5 send connection=0 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE cdn sequence=6 receive connection=0 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE cdn sequence=7 receive connection=0 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE cdn sequence=8 cancel connection=0
+D4_REDIRECT_TRACE cdn sequence=9 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE cdn sequence=10 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=11 host-snapshot addresses=[]
+D4_REDIRECT_TRACE cdn sequence=12 dial connection=1 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=13 start connection=1
+D4_REDIRECT_TRACE cdn sequence=14 send connection=1 request-base64=R0VUIC9maXh0dXJlLWJlYWQvLS9maXh0dXJlLWJlYWQtMS4wLjAudGd6IEhUVFAvMS4xDQpIb3N0OiByZWdpc3RyeS5maXh0dXJlLmludmFsaWQNCkNvbm5lY3Rpb246IGNsb3NlDQpBY2NlcHQtRW5jb2Rpbmc6IGlkZW50aXR5DQpDb250ZW50LUxlbmd0aDogMA0KDQo=
+D4_REDIRECT_TRACE cdn sequence=15 receive connection=1 bytes=103 sha256=cb8757531c9373a744cb33c2f82802e6885e44fae6fbdf8467dce6df95eb556b eof=true
+D4_REDIRECT_TRACE cdn sequence=16 cancel connection=1
+D4_REDIRECT_TRACE cdn sequence=17 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE cdn sequence=18 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=19 host-snapshot addresses=[]
+D4_REDIRECT_TRACE cdn sequence=20 dial connection=2 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=21 start connection=2
+D4_REDIRECT_TRACE cdn sequence=22 send connection=2 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE cdn sequence=23 receive connection=2 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE cdn sequence=24 receive connection=2 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE cdn sequence=25 cancel connection=2
+D4_REDIRECT_TRACE cdn sequence=26 dns host=cdn.fixture.invalid
+D4_REDIRECT_TRACE cdn sequence=27 answers host=cdn.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=28 host-snapshot addresses=[]
+D4_REDIRECT_TRACE cdn sequence=29 dial connection=3 host=cdn.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=30 start connection=3
+D4_REDIRECT_TRACE cdn sequence=31 send connection=3 request-base64=R0VUIC9maXh0dXJlLWJlYWQtMS4wLjAudGd6IEhUVFAvMS4xDQpIb3N0OiBjZG4uZml4dHVyZS5pbnZhbGlkDQpDb25uZWN0aW9uOiBjbG9zZQ0KQWNjZXB0LUVuY29kaW5nOiBpZGVudGl0eQ0KQ29udGVudC1MZW5ndGg6IDANCg0K
+D4_REDIRECT_TRACE cdn sequence=32 receive connection=3 bytes=257 sha256=da1e17476b1159e30f9dec0e171c2635fa5e5b6df09b0fe24a6905ca84d74f88 eof=false
+D4_REDIRECT_TRACE cdn sequence=33 receive connection=3 bytes=257 sha256=0b1eaced921646e1fb692fcfb18683ed8abc8be3b39a698723986a37a49d19da eof=false
+D4_REDIRECT_TRACE cdn sequence=34 receive connection=3 bytes=257 sha256=60d41d2849e5980f424d0b7c1fb82152d5a01046a7ced8879e6dd402d41369ba eof=false
+D4_REDIRECT_TRACE cdn sequence=35 receive connection=3 bytes=257 sha256=6c934d0cdf9dba94b474d6d1929f16739bd9a8ed31d0c3bcaf82c283fb7a3568 eof=false
+D4_REDIRECT_TRACE cdn sequence=36 receive connection=3 bytes=257 sha256=eeacd4d470ad6073a4b9a7959c4cc66fd73b2fc3b1f321c0725641b09f2b6e05 eof=false
+D4_REDIRECT_TRACE cdn sequence=37 receive connection=3 bytes=257 sha256=80aa26ae0f02247e46fb716f2cb79b161ccf79948c232e41277625125d9e5b8e eof=false
+D4_REDIRECT_TRACE cdn sequence=38 receive connection=3 bytes=257 sha256=e5c28eeef9fd1cc1958e2569491d2f03fc5e556e095dc100cde16c22e3f0ee14 eof=false
+D4_REDIRECT_TRACE cdn sequence=39 receive connection=3 bytes=257 sha256=6c934d0cdf9dba94b474d6d1929f16739bd9a8ed31d0c3bcaf82c283fb7a3568 eof=false
+D4_REDIRECT_TRACE cdn sequence=40 receive connection=3 bytes=257 sha256=6c934d0cdf9dba94b474d6d1929f16739bd9a8ed31d0c3bcaf82c283fb7a3568 eof=false
+D4_REDIRECT_TRACE cdn sequence=41 receive connection=3 bytes=257 sha256=6c934d0cdf9dba94b474d6d1929f16739bd9a8ed31d0c3bcaf82c283fb7a3568 eof=false
+D4_REDIRECT_TRACE cdn sequence=42 receive connection=3 bytes=257 sha256=6c934d0cdf9dba94b474d6d1929f16739bd9a8ed31d0c3bcaf82c283fb7a3568 eof=false
+D4_REDIRECT_TRACE cdn sequence=43 receive connection=3 bytes=257 sha256=6c934d0cdf9dba94b474d6d1929f16739bd9a8ed31d0c3bcaf82c283fb7a3568 eof=false
+D4_REDIRECT_TRACE cdn sequence=44 receive connection=3 bytes=116 sha256=43b780d69616a7b44b70de78d1e319282c96f4d740783d39f556fb033d300619 eof=true
+D4_REDIRECT_TRACE cdn sequence=45 cancel connection=3
+D4_REDIRECT_TRACE cdn sequence=46 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE cdn sequence=47 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=48 host-snapshot addresses=[]
+D4_REDIRECT_TRACE cdn sequence=49 dial connection=4 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE cdn sequence=50 start connection=4
+D4_REDIRECT_TRACE cdn sequence=51 send connection=4 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE cdn sequence=52 receive connection=4 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE cdn sequence=53 receive connection=4 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE cdn sequence=54 cancel connection=4
+D4_REDIRECT_CORPUS same-host-rebinding status=502 dns=4 dials=3 audits=0 reason=unobserved
+D4_REDIRECT_TRACE same-host-rebinding sequence=0 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE same-host-rebinding sequence=1 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE same-host-rebinding sequence=2 host-snapshot addresses=[]
+D4_REDIRECT_TRACE same-host-rebinding sequence=3 dial connection=0 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE same-host-rebinding sequence=4 start connection=0
+D4_REDIRECT_TRACE same-host-rebinding sequence=5 send connection=0 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE same-host-rebinding sequence=6 receive connection=0 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE same-host-rebinding sequence=7 receive connection=0 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE same-host-rebinding sequence=8 cancel connection=0
+D4_REDIRECT_TRACE same-host-rebinding sequence=9 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE same-host-rebinding sequence=10 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE same-host-rebinding sequence=11 host-snapshot addresses=[]
+D4_REDIRECT_TRACE same-host-rebinding sequence=12 dial connection=1 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE same-host-rebinding sequence=13 start connection=1
+D4_REDIRECT_TRACE same-host-rebinding sequence=14 send connection=1 request-base64=R0VUIC9maXh0dXJlLWJlYWQvLS9maXh0dXJlLWJlYWQtMS4wLjAudGd6IEhUVFAvMS4xDQpIb3N0OiByZWdpc3RyeS5maXh0dXJlLmludmFsaWQNCkNvbm5lY3Rpb246IGNsb3NlDQpBY2NlcHQtRW5jb2Rpbmc6IGlkZW50aXR5DQpDb250ZW50LUxlbmd0aDogMA0KDQo=
+D4_REDIRECT_TRACE same-host-rebinding sequence=15 receive connection=1 bytes=95 sha256=836d2d2ecaeff1718364d88b4a6fdda9b6c81253d48129532e36762823c48fdb eof=true
+D4_REDIRECT_TRACE same-host-rebinding sequence=16 cancel connection=1
+D4_REDIRECT_TRACE same-host-rebinding sequence=17 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE same-host-rebinding sequence=18 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE same-host-rebinding sequence=19 host-snapshot addresses=[]
+D4_REDIRECT_TRACE same-host-rebinding sequence=20 dial connection=2 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE same-host-rebinding sequence=21 start connection=2
+D4_REDIRECT_TRACE same-host-rebinding sequence=22 send connection=2 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE same-host-rebinding sequence=23 receive connection=2 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE same-host-rebinding sequence=24 receive connection=2 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE same-host-rebinding sequence=25 cancel connection=2
+D4_REDIRECT_TRACE same-host-rebinding sequence=26 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE same-host-rebinding sequence=27 answers host=registry.fixture.invalid addresses=["127.0.0.1"]
+D4_REDIRECT_TRACE same-host-rebinding sequence=28 host-snapshot addresses=[]
+D4_REDIRECT_CORPUS loopback status=403 dns=2 dials=2 audits=0 reason=unobserved
+D4_REDIRECT_TRACE loopback sequence=0 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE loopback sequence=1 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE loopback sequence=2 host-snapshot addresses=[]
+D4_REDIRECT_TRACE loopback sequence=3 dial connection=0 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE loopback sequence=4 start connection=0
+D4_REDIRECT_TRACE loopback sequence=5 send connection=0 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE loopback sequence=6 receive connection=0 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE loopback sequence=7 receive connection=0 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE loopback sequence=8 cancel connection=0
+D4Test Case '-[SanjboxGatewayFixturesTests.RedirectHandlerIntegrationTests testSixExistingCorpusResponsesReachActualHandlerAndTraceEveryAttempt]' passed (0.010 seconds).
+Test Suite 'RedirectHandlerIntegrationTests' passed at 2026-11-06 12:45:56.997.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.099 (0.100) seconds
+Test Suite 'RegistryFixtureTests' started at 2026-11-06 12:45:56.997.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testArchiveMatchesIndependentPythonUstarGzipVector]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testArchiveMatchesIndependentPythonUstarGzipVector]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testCustomCatalogLatestUsesNumericVersionTriple]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testCustomCatalogLatestUsesNumericVersionTriple]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testD1AuthAndMethodsRejectBeforeMockHandler]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testD1AuthAndMethodsRejectBeforeMockHandler]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testInvalidNamesVersionsDatesAndDuplicateKeysRejected]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testInvalidNamesVersionsDatesAndDuplicateKeysRejected]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testLockfilesPinArtifactIdentityURLAndDigest]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testLockfilesPinArtifactIdentityURLAndDigest]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockServesUnfilteredArtifactsAndExactPaths]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockServesUnfilteredArtifactsAndExactPaths]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockTranscriptOverflowFailsRatherThanDroppingEvidence]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testMockTranscriptOverflowFailsRatherThanDroppingEvidence]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testPackumentTimeBoundaryAndUnknownDate]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testPackumentTimeBoundaryAndUnknownDate]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testScopedTargetsRetainEncodedPackumentAndSeparateTarballNamespace]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testScopedTargetsRetainEncodedPackumentAndSeparateTarballNamespace]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testStableCatalogBytesAndIntegrity]' started.
+Test Case '-[SanjboxGatewayFixturesTests.RegistryFixtureTests testStableCatalogBytesAndIntegrity]' passed (0.002 seconds).
+Test Suite 'RegistryFixtureTests' passed at 2026-11-06 12:45:57.008.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.011 (0.011) seconds
+Test Suite 'ScenarioHarnessTests' started at 2026-11-06 12:45:57.008.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testAccessPathCannotBeInferredFromTerminalHTTPTrace]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testAccessPathCannotBeInferredFromTerminalHTTPTrace]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testDenialRejectsPartialArtifactLeakAndWrongReason]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testDenialRejectsPartialArtifactLeakAndWrongReason]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLocalCacheOutcomeNeverMeansGatewayEnforcement]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLocalCacheOutcomeNeverMeansGatewayEnforcement]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLockfileEvidenceRequiresExactInputsAndExitOutcome]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testLockfileEvidenceRequiresExactInputsAndExitOutcome]' passed (0.002 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthMockScenarioMatrix]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthMockScenarioMatrix]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthSchemaRejectsDuplicatesUnknownScopesAndOversizedInputs]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testOAuthSchemaRejectsDuplicatesUnknownScopesAndOversizedInputs]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testObservationBounds]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testObservationBounds]' passed (0.000 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testRunnerCallsAdapterWithInputAndPreservesMismatch]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testRunnerCallsAdapterWithInputAndPreservesMismatch]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testScenarioInventoryIncludesExactBoundaryScopedAndLocalCases]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testScenarioInventoryIncludesExactBoundaryScopedAndLocalCases]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierDetectsWrongBytesAuditsSequenceAndAmbiguousDelivery]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierDetectsWrongBytesAuditsSequenceAndAmbiguousDelivery]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRejectsEveryAdditionalPackumentResponseIncludingArtifactLeak]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRejectsEveryAdditionalPackumentResponseIncludingArtifactLeak]' passed (0.001 seconds).
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRequiresClosedObservationAndRequestProvenance]' started.
+Test Case '-[SanjboxGatewayFixturesTests.ScenarioHarnessTests testVerifierRequiresClosedObservationAndRequestProvenance]' passed (0.001 seconds).
+Test Suite 'ScenarioHarnessTests' passed at 2026-11-06 12:45:57.018.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.010 (0.010) seconds
+Test Suite 'SanjboxGatewayFixturesTests.xctest' passed at 2026-11-06 12:45:57.018.
+	 Executed 54 tests, with 0 failures (0 unexpected) in 21.301 (21.305) seconds
+Test Suite 'All tests' passed at 2026-11-06 12:45:57.018.
+	 Executed 54 tests, with 0 failures (0 unexpected) in 21.301 (21.305) seconds
+_REDIRECT_TRACE loopback sequence=9 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE loopback sequence=10 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE loopback sequence=11 host-snapshot addresses=[]
+D4_REDIRECT_TRACE loopback sequence=12 dial connection=1 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE loopback sequence=13 start connection=1
+D4_REDIRECT_TRACE loopback sequence=14 send connection=1 request-base64=R0VUIC9maXh0dXJlLWJlYWQvLS9maXh0dXJlLWJlYWQtMS4wLjAudGd6IEhUVFAvMS4xDQpIb3N0OiByZWdpc3RyeS5maXh0dXJlLmludmFsaWQNCkNvbm5lY3Rpb246IGNsb3NlDQpBY2NlcHQtRW5jb2Rpbmc6IGlkZW50aXR5DQpDb250ZW50LUxlbmd0aDogMA0KDQo=
+D4_REDIRECT_TRACE loopback sequence=15 receive connection=1 bytes=82 sha256=d43ac40361549a73a1309768f0d2c70e4c1259e50e0cd9a25bf804391b05ed25 eof=true
+D4_REDIRECT_TRACE loopback sequence=16 cancel connection=1
+D4_REDIRECT_CORPUS downgrade status=403 dns=2 dials=2 audits=0 reason=unobserved
+D4_REDIRECT_TRACE downgrade sequence=0 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE downgrade sequence=1 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE downgrade sequence=2 host-snapshot addresses=[]
+D4_REDIRECT_TRACE downgrade sequence=3 dial connection=0 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE downgrade sequence=4 start connection=0
+D4_REDIRECT_TRACE downgrade sequence=5 send connection=0 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE downgrade sequence=6 receive connection=0 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE downgrade sequence=7 receive connection=0 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE downgrade sequence=8 cancel connection=0
+D4_REDIRECT_TRACE downgrade sequence=9 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE downgrade sequence=10 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE downgrade sequence=11 host-snapshot addresses=[]
+D4_REDIRECT_TRACE downgrade sequence=12 dial connection=1 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE downgrade sequence=13 start connection=1
+D4_REDIRECT_TRACE downgrade sequence=14 send connection=1 request-base64=R0VUIC9maXh0dXJlLWJlYWQvLS9maXh0dXJlLWJlYWQtMS4wLjAudGd6IEhUVFAvMS4xDQpIb3N0OiByZWdpc3RyeS5maXh0dXJlLmludmFsaWQNCkNvbm5lY3Rpb246IGNsb3NlDQpBY2NlcHQtRW5jb2Rpbmc6IGlkZW50aXR5DQpDb250ZW50LUxlbmd0aDogMA0KDQo=
+D4_REDIRECT_TRACE downgrade sequence=15 receive connection=1 bytes=91 sha256=343fc692cd4f73d23f1f9c8715e3c3ba085d14a5cd66185d7aa0f7b3dd2c6961 eof=true
+D4_REDIRECT_TRACE downgrade sequence=16 cancel connection=1
+D4_REDIRECT_CORPUS userinfo status=403 dns=2 dials=2 audits=0 reason=unobserved
+D4_REDIRECT_TRACE userinfo sequence=0 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE userinfo sequence=1 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE userinfo sequence=2 host-snapshot addresses=[]
+D4_REDIRECT_TRACE userinfo sequence=3 dial connection=0 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE userinfo sequence=4 start connection=0
+D4_REDIRECT_TRACE userinfo sequence=5 send connection=0 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE userinfo sequence=6 receive connection=0 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE userinfo sequence=7 receive connection=0 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE userinfo sequence=8 cancel connection=0
+D4_REDIRECT_TRACE userinfo sequence=9 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE userinfo sequence=10 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE userinfo sequence=11 host-snapshot addresses=[]
+D4_REDIRECT_TRACE userinfo sequence=12 dial connection=1 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE userinfo sequence=13 start connection=1
+D4_REDIRECT_TRACE userinfo sequence=14 send connection=1 request-base64=R0VUIC9maXh0dXJlLWJlYWQvLS9maXh0dXJlLWJlYWQtMS4wLjAudGd6IEhUVFAvMS4xDQpIb3N0OiByZWdpc3RyeS5maXh0dXJlLmludmFsaWQNCkNvbm5lY3Rpb246IGNsb3NlDQpBY2NlcHQtRW5jb2Rpbmc6IGlkZW50aXR5DQpDb250ZW50LUxlbmd0aDogMA0KDQo=
+D4_REDIRECT_TRACE userinfo sequence=15 receive connection=1 bytes=102 sha256=baa1ddea2aa0428f46721ee292cdfa0fee0a67450ba32dfe81cc1d4b18e5543f eof=true
+D4_REDIRECT_TRACE userinfo sequence=16 cancel connection=1
+D4_REDIRECT_CORPUS unapproved-origin status=403 dns=2 dials=2 audits=0 reason=unobserved
+D4_REDIRECT_TRACE unapproved-origin sequence=0 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE unapproved-origin sequence=1 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE unapproved-origin sequence=2 host-snapshot addresses=[]
+D4_REDIRECT_TRACE unapproved-origin sequence=3 dial connection=0 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE unapproved-origin sequence=4 start connection=0
+D4_REDIRECT_TRACE unapproved-origin sequence=5 send connection=0 request-base64=R0VUIC9maXh0dXJlLWJlYWQgSFRUUC8xLjENCkhvc3Q6IHJlZ2lzdHJ5LmZpeHR1cmUuaW52YWxpZA0KQ29ubmVjdGlvbjogY2xvc2UNCkFjY2VwdC1FbmNvZGluZzogaWRlbnRpdHkNCkNvbnRlbnQtTGVuZ3RoOiAwDQphY2NlcHQ6IGFwcGxpY2F0aW9uL2pzb24NCmNhY2hlLWNvbnRyb2w6IG5vLWNhY2hlDQoNCg==
+D4_REDIRECT_TRACE unapproved-origin sequence=6 receive connection=0 bytes=257 sha256=2c05d3bbae68e1d84e35837f1413b9c94983cae6d17c533906cec9ba4ab949cf eof=false
+D4_REDIRECT_TRACE unapproved-origin sequence=7 receive connection=0 bytes=198 sha256=ef30b7de9dcbaa9f8a68ad97ab7911bc9f2e8f4d982c611ee3266d939457571b eof=true
+D4_REDIRECT_TRACE unapproved-origin sequence=8 cancel connection=0
+D4_REDIRECT_TRACE unapproved-origin sequence=9 dns host=registry.fixture.invalid
+D4_REDIRECT_TRACE unapproved-origin sequence=10 answers host=registry.fixture.invalid addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE unapproved-origin sequence=11 host-snapshot addresses=[]
+D4_REDIRECT_TRACE unapproved-origin sequence=12 dial connection=1 host=registry.fixture.invalid port=443 addresses=["8.8.8.8"]
+D4_REDIRECT_TRACE unapproved-origin sequence=13 start connection=1
+D4_REDIRECT_TRACE unapproved-origin sequence=14 send connection=1 request-base64=R0VUIC9maXh0dXJlLWJlYWQvLS9maXh0dXJlLWJlYWQtMS4wLjAudGd6IEhUVFAvMS4xDQpIb3N0OiByZWdpc3RyeS5maXh0dXJlLmludmFsaWQNCkNvbm5lY3Rpb246IGNsb3NlDQpBY2NlcHQtRW5jb2Rpbmc6IGlkZW50aXR5DQpDb250ZW50LUxlbmd0aDogMA0KDQo=
+D4_REDIRECT_TRACE unapproved-origin sequence=15 receive connection=1 bytes=94 sha256=aa7d4101fe6dab459bfc11e8a67b422596603c5cacd463de6a7f848d429d3808 eof=true
+D4_REDIRECT_TRACE unapproved-origin sequence=16 cancel connection=1
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.

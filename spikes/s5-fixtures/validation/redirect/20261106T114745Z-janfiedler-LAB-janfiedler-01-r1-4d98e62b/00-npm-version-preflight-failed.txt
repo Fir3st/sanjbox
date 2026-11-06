@@ -1,0 +1,6 @@
+Command: env -i HOME=<own home> PATH=/usr/bin:/bin TMPDIR=<own tmp> NPM_CONFIG_USERCONFIG=/dev/null NPM_CONFIG_GLOBALCONFIG=/dev/null NPM_CONFIG_CACHE=<own cache>/npm-version NPM_CONFIG_UPDATE_NOTIFIER=false /opt/homebrew/Cellar/node/26.13.0_2/bin/node /opt/homebrew/lib/node_modules/npm/bin/npm-cli.js --version
+Observed output (preserved from exec tool):
+Exit prior to config file resolving
+cause
+double-loading config "/dev/null" as "global", previously loaded as "user"
+This tool-version preflight failed; no test invocation depended on it. Retried with two distinct empty own config files.

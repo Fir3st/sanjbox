@@ -1,0 +1,40 @@
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.0.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.1.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.2.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO fixture-bead@1.3.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.0.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:directURL result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:lockfileCI result=matched handler_calls=1 upstream_requests=3 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:gatewayCache result=matched handler_calls=2 upstream_requests=2 audits=1
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.1.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.2.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:directURL result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:lockfileCI result=incomplete("denial reason not observable") handler_calls=1 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:gatewayCache result=incomplete("denial reason not observable") handler_calls=2 upstream_requests=1 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:clientCache result=matched handler_calls=0 upstream_requests=0 audits=0
+D4_HANDLER_SCENARIO @fixture/bead@1.3.0:localImport result=matched handler_calls=0 upstream_requests=0 audits=0

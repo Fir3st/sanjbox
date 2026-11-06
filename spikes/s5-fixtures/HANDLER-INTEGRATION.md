@@ -83,6 +83,56 @@ nikoli incomplete. Další kontroly ověřují:
 - Filter packumentu pro oba názvy vydá jen 1.0.0 a přesnou hranici 1.1.0, odstraní neplatný
   latest tag a přepíše tarball URL; nesprávný lokální exit/manifest zneplatní receipt.
 
-D3/OAuth zůstává mock. D4 redirect corpus není tímto adaptérem integrován do D2; existující
-D2 redirect testy zůstávají vlastním důkazem gateway balíku. S5/D7/L5, pf cesta/identity,
-F0.7, skutečné registry a výkon ≤1,1× jsou nadále neověřené.
+## Doplněk: původní redirect korpus přes D2
+
+`RedirectHandlerAdapter.swift` a `RedirectHandlerIntegrationTests.swift` v témže test targetu
+přidávají **12 nových testových metod**. Přímo spotřebují `response` všech šesti existujících
+`RedirectFixture.standard`; předchozí D2 testy z `s5-gateway` se nepřesouvají ani nezapočítávají
+jako nové. Adaptér přijímá pouze finite HTTP/DNS/interface skripty a request, nikdy očekávání.
+Hodiny, inertní archivy a existující interní clock/dialer API zůstávají stejné.
+
+| Původní fixture | Pozorovaná odpověď | DNS / dial | Nový audit |
+|---|---|---|---|
+| cdn | 200, přesné archive bytes a SHA-512 | 5 / 5 | 1 `prepared` |
+| same-host-rebinding | 502, přesné generické chybové tělo | 4 / 3 | 0 |
+| loopback | 403, přesné generické chybové tělo | 2 / 2 | 0 |
+| downgrade | 403, přesné generické chybové tělo | 2 / 2 | 0 |
+| userinfo | 403, přesné generické chybové tělo | 2 / 2 | 0 |
+| unapproved-origin | 403, přesné generické chybové tělo | 2 / 2 | 0 |
+
+Rebinding fixture vrátí při čtvrtém lookupu loopback adresu. V záznamu je její nové DNS
+vyhodnocení a nový snapshot, ale žádný čtvrtý dial. `DestinationFailure` handler mapuje na
+502; měření ji nepřejmenovává na 403 ani na diagnostický důvod odmítnutí. Čtyři nepovolené
+URL se odmítnou ještě před další metadata/DNS operací. Pozitivní kontrola stejného hostname
+se scoped balíčkem a střídajícími se povolenými DNS adresami vrátí 200.
+
+Journal pořadí zapisuje DNS pokus a odpověď, snapshot, skutečně předaný `ApprovedDestination`,
+start, serializované request bytes, vrácené response chunks a cancel. Každý DNS a interface
+skript musí být úplně spotřebován; každé spojení musí přečíst všechny odpovědní bytes a být
+zavřeno. Přebytečné nebo chybné pokusy se zapisují před kontrolou a zneplatní spotřebu skriptu,
+i když je handler převede na generickou chybu. Assertions porovnají **celý** observed sled,
+přesné host/port/adresy, request headers/target i fragmenty skutečné HTTP odpovědi.
+Log navíc zachová request bytes v base64 a SHA-256 každého přijatého fragmentu, počítaný z
+pozorovaných bytes. Testový dialer nevytváří socket; veřejné DNS adresy jsou pouze data.
+
+Další kontroly pokrývají šest druhů zakázaných DNS odpovědí a adresu, která se stala lokální,
+čerstvá metadata před cílovým hopem a po jeho fetchi (mladé/chybějící/změněné datum, změněný
+původ a digest), poškozený CDN archiv, redirect seed a cache hit se dvěma reautorizacemi,
+nový cooldown/unknown-date zákaz v obou cache autorizačních bodech a změněný cache digest,
+který vynutí nový fetch a nevydá staré bytes. Audit při odmítnutí nepřibude; dřívější audit
+seedu zůstává nezměněný. Přesné chybové tělo vylučuje i částečné vydání archivu.
+
+Smyčka je ukončena před opakovaným dialem; limity 0, 1 a 3 mají odmítací i úspěšnou kontrolu
+přesně na hranici. Výsledek určuje počet spotřebovaných přechodů, nikoli timeout nebo retries.
+Cizí auth/cookie/range hlavičky skončí před prvním DNS; ostatní klientské hlavičky nejsou
+přeneseny na registry ani CDN. Negativní kontroly seamů odmítnou nevyužitý/chybný skript a
+změna vstupních odpovědních bytes skutečně změní výsledek handleru.
+
+Přímé nové requesty dokládají jen `prepared`; adaptér completion callback nevolá. Původní npm
+loopback regresní testy nadále samostatně dokládají `transportAccepted`. Generická 403/502
+neprozrazuje důvod; pozorování používá `.denied(.other)`. **Původní matice 40 zůstává
+28 matched / 12 incomplete / 0 mismatched**, bez nového tvrzení o plné akceptaci.
+Nový zdrojový commit, běhy, přesné počty a hashe: [VALIDATION-REDIRECT.md](VALIDATION-REDIRECT.md).
+
+D3/OAuth zůstává mock. S5/D7/L5, pf cesta/identity, F0.7, skutečné registry a výkon ≤1,1×
+jsou nadále neověřené. Ani nové lokální redirect testy nejsou verdiktem brány.
