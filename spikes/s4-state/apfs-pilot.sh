@@ -162,11 +162,13 @@ fi
 "$PYTHON" -I -B - \
   "$mode" "$plan" "$out_dir" "${fixture_dir:--}" "${receipt:--}" \
   "$diskutil_bin" "$sysctl_bin" "$mount_bin" <<'PYTHON'
+from datetime import datetime
 import hashlib
 import json
 import os
 import plistlib
 import re
+import stat
 import subprocess
 import sys
 
@@ -190,6 +192,7 @@ FORBIDDEN_ROLES = frozenset(
 FORBIDDEN_MOUNT_PREFIXES = ("/System/Volumes/",)
 
 mode, plan_path, out_dir, fixture_dir, receipt_path, diskutil, sysctl, mount = sys.argv[1:9]
+input_paths = set()
 
 
 def fail(code, message):
@@ -231,6 +234,26 @@ def read_bytes(path, limit):
     if len(data) > limit:
         fail(2, path + ": exceeds " + str(limit) + " bytes")
     return data
+
+
+def check_output_collision(path):
+    if mode != "dry-run":
+        return
+    output = os.path.join(out_dir, OUT_NAME)
+    collision = os.path.realpath(path) == os.path.realpath(output)
+    try:
+        if os.path.exists(path) and os.path.exists(output):
+            collision = collision or os.path.samefile(path, output)
+    except OSError as exc:
+        fail(2, "cannot compare input/output identity: " + str(exc))
+    if collision:
+        fail(2, "output collides with an input file: " + path)
+
+
+def read_input_bytes(path, limit):
+    input_paths.add(path)
+    check_output_collision(path)
+    return read_bytes(path, limit)
 
 
 def require_object(obj, label, required, optional=(), code=2):
@@ -349,17 +372,21 @@ def check_receipt(doc, plan):
     created = require_string(doc, "createdAt", "backup receipt", 32, code=4)
     if not CREATED_AT_RE.match(created):
         fail(4, "refused: backup receipt: createdAt must be UTC YYYY-MM-DDTHH:MM:SSZ")
+    try:
+        datetime.strptime(created, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        fail(4, "refused: backup receipt: createdAt is not a valid UTC calendar timestamp")
     location = require_string(doc, "backupLocation", "backup receipt", 1024, code=4)
     if location.strip() != location:
         fail(4, "refused: backup receipt: backupLocation has surrounding whitespace")
     covers = doc["coversDevices"]
     if not isinstance(covers, list) or not covers:
         fail(4, "refused: backup receipt: coversDevices must be a non-empty array")
-    if len(set(covers)) != len(covers):
-        fail(4, "refused: backup receipt: coversDevices contains duplicates")
     for device in covers:
         if not isinstance(device, str) or not DEVICE_RE.match(device):
             fail(4, "refused: backup receipt: coversDevices entry is not a volume device")
+    if len(set(covers)) != len(covers):
+        fail(4, "refused: backup receipt: coversDevices contains duplicates")
     missing = sorted(set(plan["devices"]) - set(covers))
     if missing:
         fail(4, "refused: backup receipt: does not cover " + ", ".join(missing))
@@ -401,7 +428,7 @@ class Probe(object):
         path = os.path.join(self.directory, name)
         if not os.path.isfile(path) or os.path.islink(path):
             fail(6, "fixture-mock: missing regular fixture " + name)
-        return read_bytes(path, 4 * 1024 * 1024)
+        return read_input_bytes(path, 4 * 1024 * 1024)
 
     def apfs_list(self):
         if self.kind == "fixture-mock":
@@ -449,7 +476,7 @@ def parse_mounts(text):
 
 
 def main():
-    plan_doc = load_json(read_bytes(plan_path, MAX_PLAN_BYTES + 1), "plan", MAX_PLAN_BYTES)
+    plan_doc = load_json(read_input_bytes(plan_path, MAX_PLAN_BYTES + 1), "plan", MAX_PLAN_BYTES)
     plan = check_plan(plan_doc)
     if mode == "apply":
         declared_containers = any(
@@ -479,7 +506,7 @@ def main():
     receipt = None
     if receipt_path != "-":
         receipt_doc = load_json(
-            read_bytes(receipt_path, MAX_RECEIPT_BYTES + 1), "backup receipt", MAX_RECEIPT_BYTES
+            read_input_bytes(receipt_path, MAX_RECEIPT_BYTES + 1), "backup receipt", MAX_RECEIPT_BYTES
         )
         receipt = check_receipt(receipt_doc, plan)
 
@@ -559,13 +586,35 @@ def main():
     for device in gated_devices:
         if device not in volumes:
             continue
-        infos[device] = parse_plist(probe.volume_info(device), "volume info " + device)
+        info = parse_plist(probe.volume_info(device), "volume info " + device)
+        info_device = info.get("DeviceIdentifier")
+        info_uuid = info.get("VolumeUUID")
+        if not isinstance(info_device, str) or not DEVICE_RE.fullmatch(info_device) \
+                or not isinstance(info_uuid, str) or not UUID_RE.fullmatch(info_uuid) \
+                or info.get("FilesystemType") != "apfs":
+            fail(6, "volume info " + device + ": missing or malformed APFS identity metadata")
+        if info_device != device or info_uuid != volumes[device]["volumeUUID"]:
+            fail(5, "volume info " + device + ": identity mismatch with apfs list")
+        infos[device] = info
+
+    def mount_device(entry):
+        device = entry["device"]
+        return device[5:] if device.startswith("/dev/") else device
+
+    def device_mounts(device, include_snapshots=False):
+        return [
+            entry for entry in mounts
+            if mount_device(entry) == device
+            or include_snapshots and mount_device(entry).startswith(device + "s")
+        ]
 
     relevant_mounts = []
     for entry in mounts:
         device = entry["device"]
         bare = device[5:] if device.startswith("/dev/") else device
-        if bare == "disk" or bare in gated_devices or entry["mountpoint"] == "/":
+        if bare == "disk" or any(
+            bare == device or bare.startswith(device + "s") for device in gated_devices
+        ) or entry["mountpoint"] == "/":
             relevant_mounts.append(entry)
 
     gates = []
@@ -704,13 +753,29 @@ def main():
     else:
         gate("distinct-volumes", "pass", "every plan device resolves to a distinct volume UUID")
 
+    inconsistent_mounts = []
     busy_targets = []
     for item in pilot_volumes:
-        if item["side"] != "target" or not item["mountpoint"]:
+        if item["observed"] is None:
             continue
-        if not (item["mountpoint"] == plan["pilotRoot"]
-                or item["mountpoint"].startswith(plan["pilotRoot"] + "/")):
-            busy_targets.append(item["device"] + " is mounted at " + item["mountpoint"])
+        info_mounts = {item["mountpoint"]} if item["mountpoint"] else set()
+        table_mounts = {entry["mountpoint"] for entry in device_mounts(item["device"])}
+        if info_mounts != table_mounts:
+            inconsistent_mounts.append(item["device"])
+        if item["side"] != "target":
+            continue
+        all_mounts = info_mounts | {
+            entry["mountpoint"] for entry in device_mounts(item["device"], include_snapshots=True)
+        }
+        for mountpoint in sorted(all_mounts):
+            if not (mountpoint == plan["pilotRoot"]
+                    or mountpoint.startswith(plan["pilotRoot"] + "/")):
+                busy_targets.append(item["device"] + " is mounted at " + mountpoint)
+    if inconsistent_mounts:
+        gate("mount-consistency", "fail", "diskutil info and mount table disagree: "
+             + ", ".join(inconsistent_mounts))
+    else:
+        gate("mount-consistency", "pass", "diskutil info and mount table agree for every pilot volume")
     if busy_targets:
         gate("target-not-active", "fail", "; ".join(busy_targets))
     else:
@@ -1017,7 +1082,7 @@ def main():
         doc["backupReceipt"] = {
             "createdAt": receipt["createdAt"],
             "sha256": hashlib.sha256(
-                read_bytes(receipt_path, MAX_RECEIPT_BYTES + 1)
+                read_input_bytes(receipt_path, MAX_RECEIPT_BYTES + 1)
             ).hexdigest(),
             "coversDevices": receipt["coversDevices"],
             "backupDigest": receipt["backupDigest"],
@@ -1028,16 +1093,20 @@ def main():
 
     if mode == "dry-run":
         path = os.path.join(out_dir, OUT_NAME)
+        for input_path in sorted(input_paths):
+            check_output_collision(input_path)
         if os.path.lexists(path):
-            if os.path.islink(path) or not os.path.isfile(path):
+            existing = os.lstat(path)
+            if not stat.S_ISREG(existing.st_mode):
                 fail(2, "output exists and is not a regular file: " + path)
+            if existing.st_uid != os.geteuid():
+                fail(2, "output is not owned by the caller: " + path)
+            if stat.S_IMODE(existing.st_mode) != 0o600:
+                fail(2, "output mode must be 0600: " + path)
             current = read_bytes(path, 8 * 1024 * 1024)
             if current == data:
                 sys.stderr.write("apfs-pilot: dry-run output already identical; not rewritten\n")
                 data = None
-            else:
-                if os.stat(path, follow_symlinks=False).st_uid != os.geteuid():
-                    fail(2, "output is not owned by the caller: " + path)
         if data is not None:
             temp = os.path.join(out_dir, "." + OUT_NAME + ".tmp." + str(os.getpid()))
             flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL

@@ -54,7 +54,14 @@ nemá co porovnat: gate je `inconclusive`, `verdict.identityChecked` je `false` 
 Pro `--apply` je `expectedVolumeUUID` povinné u source i target; pokud plán deklaruje alespoň jeden
 `expectedContainerUUID`, je povinné i u obou stran každého páru. `pilotRoot` musí ležet pod
 `/Volumes/…` nebo `/private/tmp/…`. Neznámé klíče, duplicitní JSON klíče a více než dva páry se
-odmítají.
+odmítají. Cílené `diskutil info` musí obsahovat platné APFS `DeviceIdentifier`/`VolumeUUID`
+a souhlasit s `apfs list`; chybějící metadata znamenají exit 6, rozporná identita exit 5.
+Gate `mount-consistency` odmítá rozpor přímých mountů mezi `diskutil info` a mount tabulkou.
+`target-not-active` kontroluje všechny pozorované mounty targetu včetně snapshot mountů.
+
+Výstup nesmí být totožný s plánem, receiptem ani čtenou metadata fixture (ani přes alias nebo
+hardlink). Existující výstup musí být vlastní regular file s přesným mode 0600, i pokud jsou jeho
+bytes shodné. Kolize nebo nebezpečný existující výstup znamenají exit 2 bez přepsání vstupu.
 
 Zálohový receipt `sanjbox.apfs-pilot.backup-receipt.v1` (max 16 KiB), povinný jen pro `--apply`:
 
@@ -72,7 +79,8 @@ Zálohový receipt `sanjbox.apfs-pilot.backup-receipt.v1` (max 16 KiB), povinný
 
 `coversDevices` musí být nadmnožinou všech zařízení z plánu. `backupDigest` je volitelné pole ve tvaru
 `sha256:` + 64 malých hex znaků; jiný tvar je odmítnut exitem 4. Receipt je záznam o záloze, kterou
-uživatel skutečně vytvořil; skript zálohu neověřuje ani ji netvoří.
+uživatel skutečně vytvořil; skript zálohu neověřuje ani ji netvoří. `createdAt` musí být skutečně
+platné kalendářní datum a UTC čas, ne pouze text správného tvaru.
 
 ## Kroky pro uživatele (L3)
 
@@ -116,10 +124,10 @@ uživatel skutečně vytvořil; skript zálohu neověřuje ani ji netvoří.
 | Exit / stav | Význam |
 |---|---|
 | 0 | Metadata a všechny deklarované identity jsou konzistentní; `verdict.gatesPassed: true`. **Žádný** verdikt izolace ani rollbacku. |
-| 2 | Chyba vstupu/argumentů: neznámý argument, plán nebo receipt s neexistujícím souborem, symlinkem, cizím vlastníkem, group/world write nebo neprivátním rodičovským adresářem, out-dir bez 0700, neplatný plán/JSON, I/O chyba; nic se nezapsalo. |
+| 2 | Chyba vstupu/argumentů: neznámý argument, plán nebo receipt s neexistujícím souborem, symlinkem, cizím vlastníkem, group/world write nebo neprivátním rodičovským adresářem, out-dir bez 0700, existující výstup bez vlastnictví/0600, kolize vstupu s výstupem, neplatný plán/JSON, I/O chyba; nic se nezapsalo. |
 | 4 | Odmítnutý apply/backup: chybí ack/receipt, fixture apply, receipt schema/typ/digest/createdAt/pilot/transaction/coverage/size, nebo apply plán bez povinných UUID; nic se nezapsalo. |
-| 5 | `fail`/`inconclusive` gate: neshoda UUID, system/boot/role svazek, aktivní target, neověřená identita. |
-| 6 | Read-only metadata nešla přečíst; výsledek je neplatný, ne úspěch. |
+| 5 | `fail`/`inconclusive` gate: neshoda UUID, system/boot/role svazek, aktivní target, rozpor mountů mezi sondami, neověřená identita. |
+| 6 | Read-only metadata nešla přečíst nebo chybí platná identita v `diskutil info`; výsledek je neplatný, ne úspěch. |
 | `warn` | Otevřený návrh (kterákoli kvóta 0 = unbounded, chybějící receipt v dry-run); exit může být 0. |
 | `manual` | `whole-uid-interlock`: G2 musí doložit uživatel v L3; planner na něm negatuje ani nepředstírá pass. |
 | `inconclusive` | `identity-match` bez deklarovaného UUID: nic se neporovnalo, `verdict.identityChecked` je `false`, exit 5. |
@@ -136,13 +144,17 @@ bash -n spikes/s4-state/apfs-pilot.sh
 /usr/bin/python3 -I -B -m unittest discover -s spikes/s4-state -p 'test*.py' -v
 ```
 
-Syntetické testy v `spikes/s4-state/tools/test_apfs_pilot.py` nikdy nespouštějí apply cestu ani
-mutující příkaz: používají vlastní `/private/tmp/sanjbox-b4-apfs-tests.XXXXXX` fixtures a recording
+Syntetické testy v `spikes/s4-state/tools/test_apfs_pilot.py` zkoušejí dry-run i apply hand-off
+včetně odmítnutí. Apply používá pouze recording shimy; žádný skutečný APFS ani mutující příkaz
+se nespouští. Testy používají vlastní `/private/tmp/sanjbox-b4-apfs-tests.XXXXXX` fixtures a recording
 shimy, které jakýkoli jiný než dokumentovaný read-only argv odmítnou. Ověřují `bash -n`, že dry-run
 vytvoří jen deklarovaný výstupní soubor, schéma JSON, determinismus (druhý běh je byte-identický a
 soubor se nepřepíše), odmítnutí `--apply` bez ack/receiptu, povinné UUID pro apply, inconclusive
 identity v dry-runu, exit kódy vstupu/receiptu, kvóty, mode adresářů, digest receiptu a to, že živá
-sonda volá pouze read-only příkazy. Neověřují skutečné APFS chování, oprávnění ani `asr`.
+sonda volá pouze read-only příkazy. Regrese navíc odmítají rozpornou/chybějící identitu z info,
+rozporné nebo aktivní mounty, kolize vstupu s výstupem, nebezpečný mode shodného výstupu,
+neplatné typy `coversDevices` a neexistující UTC datum. Neověřují skutečné APFS chování,
+oprávnění ani `asr`.
 
 ### Testovací hooky (ne produkční cesta)
 

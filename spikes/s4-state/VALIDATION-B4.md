@@ -179,3 +179,36 @@ warn při kterékoli kvótě 0; přesný mode 0700 out-diru; privátní rodičov
 true` u `delete-snapshot`; explicitní P0 krok `asr-switch-support`; a dokumentaci testovacích hooků
 `APFS_PILOT_DISKUTIL`/`_SYSCTL`/`_MOUNT`. `docs/COVERAGE.md`, `PLAN.md`, `spikes/common/`, `Contracts/`
 ani `.pi/` nebyly v této opravě měněny.
+
+
+## Druhé review APFS planneru — identity, mounty a ochrana vstupů (2026-11-07)
+
+Oprava navazuje na HEAD `77c4621d2103def7a47b27a056be0700fc78c139` v PR #56.
+Uzavírá šest reprodukovaných chyb pouze offline planneru: identity `diskutil info` se křížově
+ověřují proti `apfs list`; mount tabulka a info musejí souhlasit a všechny target mounty
+zůstávají v pilot rootu; výstup nesmí kolidovat s plánem, receiptem ani čtenou fixture;
+i byte-identický existující výstup vyžaduje správného vlastníka a mode 0600; neplatné typy
+`coversDevices` deterministicky vracejí exit 4; `createdAt` musí být platné UTC kalendářní datum.
+TOOLING a popis testů nyní přesně uvádějí také pozitivní apply hand-off nad shimy.
+
+Ověření z kořene tohoto worktree:
+
+```bash
+/usr/bin/python3 -I -B -m unittest discover -s spikes/s4-state -p 'test*.py' -v
+git diff --check
+```
+
+Výsledek: **52 testů, 0 failures, 0 errors**, 26,522 s, včetně `bash -n`, původních 37 testů
+a 15 nových regresních metod. Přesné původní reprodukce jsou v nové `ReviewRegressionTests`:
+rozporné UUID/device a prázdné info; target mimo pilot root pouze v mount tabulce; vstupní plán
+na výstupní cestě; opakování se shodným výstupem 0666; `coversDevices: [{}]`; neexistující
+`2026-99-99T99:99:99Z`. Rozšíření zahrnuje chybějící info pole, chybějící/rozporný mount,
+target snapshot mount, kolizi receiptu, hardlink aliasy všech čtených metadata fixtures,
+nepřestupné datum a pozitivní kontrolu přestupného dne. Identity/mounty/receipty se zkoušejí
+v dry-run i apply přes recording shimy. Výstupní kolize a nebezpečný mode ponechávají původní
+soubor i jeho bytes beze změny.
+
+Všechny fixtures byly vlastní dočasné stromy v `/private/tmp`; Python běžel s `-I -B`.
+Žádná skutečná APFS/snapshot/asr/mount/unmount/sudo operace neproběhla. Swift zdroje ani jejich
+kontrakty se nemění, takže Swift sada se v této rundě znovu nespouštěla. Živý APFS pilot,
+G1–G3, L3 a S4 nadále nejsou ověřené. Starší validační záznamy výše zůstaly zachované.

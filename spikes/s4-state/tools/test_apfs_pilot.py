@@ -1,8 +1,8 @@
-"""WP1.B4 — synthetic tests for spikes/s4-state/apfs-pilot.sh (dry-run only).
+"""WP1.B4 — synthetic tests for spikes/s4-state/apfs-pilot.sh.
 
 The pilot script is a read-only planner. These tests never run a mutating path:
-they exercise `bash -n`, the dry-run plan, the apply *refusals*, and a hermetic
-"live" probe whose documented commands are replaced by recording shims. Every
+they exercise `bash -n`, dry-run, apply refusals and accepted hand-off with a
+hermetic "live" probe whose commands are replaced by recording shims. Every
 fixture is synthetic and lives under its own /private/tmp tree.
 """
 
@@ -846,6 +846,202 @@ class PathSecurityTests(PilotTestCase):
         self.assertEqual(result.returncode, 2, result.stderr.decode())
         self.assertIn(b"parent directory is group/world writable", result.stderr)
         self.assertEqual(self.tree.out_entries(), [])
+
+
+class ReviewRegressionTests(PilotTestCase):
+    """PR 56 review regressions; apply uses only the rejecting recording shims."""
+
+    def both_modes(self, receipt=None):
+        receipt_path = self.tree.receipt_path(receipt)
+        dry = self.dry_run(extra=["--backup-receipt", str(receipt_path)])
+        if not hasattr(self, "review_env"):
+            self.review_env = self.live_env()
+        before_apply = self.tree.out_entries()
+        apply = self.run_script(
+            "--apply", "--i-understand", "--plan", str(self.tree.plan_path),
+            "--out-dir", str(self.tree.out), "--backup-receipt", str(receipt_path),
+            env=self.review_env,
+        )
+        self.assertEqual(self.tree.out_entries(), before_apply)
+        return [("dry-run", dry), ("apply-handoff", apply)]
+
+    def test_info_identity_mismatch_refuses_both_modes(self):
+        for key, value in (("VolumeUUID", uuid(999)), ("DeviceIdentifier", "disk8s1")):
+            info = volume_info("disk9s2", uuid(12), "/Volumes/SanjboxPilot/target")
+            info[key] = value
+            self.tree.write_plist("volume-info-disk9s2.plist", info)
+            for mode, result in self.both_modes():
+                with self.subTest(key=key, mode=mode):
+                    self.assertEqual(result.returncode, 5, result.stderr.decode())
+                    self.assertIn(b"identity mismatch", result.stderr)
+                    self.assertEqual(result.stdout, b"")
+                    self.assertEqual(self.tree.out_entries(), [])
+
+    def test_missing_or_malformed_info_identity_refuses_both_modes(self):
+        cases = [{}]
+        for key in ("DeviceIdentifier", "VolumeUUID", "FilesystemType"):
+            info = volume_info("disk9s2", uuid(12), "/Volumes/SanjboxPilot/target")
+            del info[key]
+            cases.append(info)
+        info = volume_info("disk9s2", "not-a-uuid", "/Volumes/SanjboxPilot/target")
+        cases.append(info)
+        for index, info in enumerate(cases):
+            self.tree.write_plist("volume-info-disk9s2.plist", info)
+            for mode, result in self.both_modes():
+                with self.subTest(case=index, mode=mode):
+                    self.assertEqual(result.returncode, 6, result.stderr.decode())
+                    self.assertIn(b"APFS identity metadata", result.stderr)
+                    self.assertEqual(result.stdout, b"")
+                    self.assertEqual(self.tree.out_entries(), [])
+
+    def assert_mount_refusal(self, expected_busy=True):
+        for mode, result in self.both_modes():
+            with self.subTest(mode=mode):
+                self.assertEqual(result.returncode, 5, result.stderr.decode())
+                doc = json.loads(result.stdout)
+                gates = {item["id"]: item for item in doc["gates"]}
+                self.assertEqual(gates["mount-consistency"]["status"], "fail")
+                self.assertEqual(gates["target-not-active"]["status"],
+                                 "fail" if expected_busy else "pass")
+                self.assertFalse(doc["verdict"]["gatesPassed"])
+
+    def test_target_mount_outside_root_in_table_refuses_both_modes(self):
+        (self.tree.fixtures / "mount.txt").write_text(
+            "/dev/disk9s2 on /Users/synthetic/active (apfs, local)\n"
+        )
+        self.assert_mount_refusal()
+
+    def test_target_info_unmounted_cannot_hide_table_mount(self):
+        self.tree.write_plist("volume-info-disk9s2.plist", volume_info("disk9s2", uuid(12)))
+        (self.tree.fixtures / "mount.txt").write_text(
+            "/dev/disk9s2 on /Users/synthetic/active (apfs, local)\n"
+        )
+        self.assert_mount_refusal()
+
+    def test_mount_disagreement_inside_pilot_root_is_still_refused(self):
+        (self.tree.fixtures / "mount.txt").write_text(
+            "/dev/disk9s2 on /Volumes/SanjboxPilot/other (apfs, local)\n"
+        )
+        self.assert_mount_refusal(expected_busy=False)
+
+    def test_missing_mount_table_entry_is_not_unmounted_evidence(self):
+        (self.tree.fixtures / "mount.txt").write_text("")
+        self.assert_mount_refusal(expected_busy=False)
+
+    def test_target_snapshot_mount_outside_root_refuses_both_modes(self):
+        with (self.tree.fixtures / "mount.txt").open("a") as handle:
+            handle.write("/dev/disk9s2s1 on /Users/synthetic/snapshot (apfs, read-only)\n")
+        for mode, result in self.both_modes():
+            with self.subTest(mode=mode):
+                self.assertEqual(result.returncode, 5, result.stderr.decode())
+                doc = json.loads(result.stdout)
+                gates = {item["id"]: item for item in doc["gates"]}
+                self.assertEqual(gates["mount-consistency"]["status"], "pass")
+                self.assertEqual(gates["target-not-active"]["status"], "fail")
+                self.assertIn("/Users/synthetic/snapshot", gates["target-not-active"]["detail"])
+                self.assertIn("/dev/disk9s2s1", [item["device"] for item in doc["preState"]["mounts"]])
+
+    def test_output_cannot_replace_plan_input(self):
+        self.tree.plan_path = self.tree.out / "apfs-pilot-plan.json"
+        self.tree.write_json(self.tree.plan_path, valid_plan())
+        before = self.tree.plan_path.read_bytes()
+        for attempt in range(2):
+            result = self.dry_run()
+            self.assertEqual(result.returncode, 2, result.stderr.decode())
+            self.assertIn(b"output collides with an input", result.stderr)
+            self.assertEqual(self.tree.plan_path.read_bytes(), before)
+
+    def test_output_cannot_replace_receipt_input(self):
+        path = self.tree.out / "apfs-pilot-plan.json"
+        self.tree.write_json(path, valid_receipt())
+        before = path.read_bytes()
+        result = self.dry_run(extra=["--backup-receipt", str(path)])
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertIn(b"output collides with an input", result.stderr)
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_output_hardlinks_to_plan_or_receipt_are_refused(self):
+        output = self.tree.out / "apfs-pilot-plan.json"
+        receipt = self.tree.receipt_path()
+        for path in (self.tree.plan_path, receipt):
+            with self.subTest(input=path.name):
+                os.link(str(path), str(output))
+                before = path.read_bytes()
+                inode = output.stat().st_ino
+                result = self.dry_run(extra=["--backup-receipt", str(receipt)])
+                self.assertEqual(result.returncode, 2, result.stderr.decode())
+                self.assertIn(b"output collides with an input", result.stderr)
+                self.assertEqual(path.read_bytes(), before)
+                self.assertEqual(output.stat().st_ino, inode)
+                output.unlink()
+
+    def test_output_cannot_alias_any_captured_metadata_input(self):
+        output = self.tree.out / "apfs-pilot-plan.json"
+        for name in ("apfs-list.plist", "bootsessionuuid.txt", "mount.txt",
+                     "volume-info-disk9s1.plist", "volume-info-disk9s2.plist"):
+            with self.subTest(input=name):
+                path = self.tree.fixtures / name
+                os.link(str(path), str(output))
+                before = path.read_bytes()
+                inode = output.stat().st_ino
+                result = self.dry_run()
+                self.assertEqual(result.returncode, 2, result.stderr.decode())
+                self.assertIn(b"output collides with an input", result.stderr)
+                self.assertEqual(path.read_bytes(), before)
+                self.assertEqual(output.stat().st_ino, inode)
+                output.unlink()
+
+    def test_identical_output_with_unsafe_mode_is_refused_without_rewrite(self):
+        first = self.dry_run()
+        self.assertEqual(first.returncode, 0, first.stderr.decode())
+        path = self.tree.out / "apfs-pilot-plan.json"
+        self.assertEqual(path.stat().st_mode & 0o7777, 0o600)
+        before = path.read_bytes()
+        inode = path.stat().st_ino
+        for mode in (0o644, 0o666):
+            with self.subTest(mode=oct(mode)):
+                os.chmod(str(path), mode)
+                result = self.dry_run()
+                self.assertEqual(result.returncode, 2, result.stderr.decode())
+                self.assertIn(b"output mode must be 0600", result.stderr)
+                self.assertEqual(path.read_bytes(), before)
+                self.assertEqual(path.stat().st_ino, inode)
+                self.assertEqual(path.stat().st_mode & 0o7777, mode)
+
+    def test_receipt_cover_types_refuse_without_traceback_in_both_modes(self):
+        for covers in ([{}], [[]], [None], [True], [7], ["disk9s1", {}]):
+            receipt = valid_receipt()
+            receipt["coversDevices"] = covers
+            for mode, result in self.both_modes(receipt):
+                with self.subTest(covers=covers, mode=mode):
+                    self.assertEqual(result.returncode, 4, result.stderr.decode())
+                    self.assertIn(b"coversDevices entry", result.stderr)
+                    self.assertNotIn(b"Traceback", result.stderr)
+                    self.assertEqual(result.stdout, b"")
+                    self.assertEqual(self.tree.out_entries(), [])
+
+    def test_invalid_calendar_timestamp_refuses_both_modes(self):
+        for created in ("2026-99-99T99:99:99Z", "2026-02-29T12:00:00Z",
+                        "0000-01-01T00:00:00Z", "2026-11-07T24:00:00Z"):
+            receipt = valid_receipt()
+            receipt["createdAt"] = created
+            for mode, result in self.both_modes(receipt):
+                with self.subTest(created=created, mode=mode):
+                    self.assertEqual(result.returncode, 4, result.stderr.decode())
+                    self.assertIn(b"valid UTC calendar timestamp", result.stderr)
+                    self.assertNotIn(b"Traceback", result.stderr)
+                    self.assertEqual(result.stdout, b"")
+                    self.assertEqual(self.tree.out_entries(), [])
+
+    def test_valid_leap_day_timestamp_is_accepted_in_both_modes(self):
+        receipt = valid_receipt()
+        receipt["createdAt"] = "2024-02-29T23:59:59Z"
+        for mode, result in self.both_modes(receipt):
+            with self.subTest(mode=mode):
+                self.assertEqual(result.returncode, 0, result.stderr.decode())
+                doc = json.loads(result.stdout)
+                self.assertEqual(doc["backupReceipt"]["createdAt"], receipt["createdAt"])
+                self.assertFalse(doc["verdict"]["diskMutated"])
 
 
 class ToolingDocumentationTests(unittest.TestCase):
