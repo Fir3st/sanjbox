@@ -43,6 +43,7 @@ public struct LoopbackConnection: Sendable {
     }
 
     public func serve(serving service: GatewayService) async throws {
+        defer { channel.close() }
         var decoder = HTTPRequestDecoder(maximumHeaderBytes: maximumHeaderBytes,
                                          maximumBodyBytes: maximumBodyBytes)
         var total = 0
@@ -70,7 +71,6 @@ public struct LoopbackConnection: Sendable {
         case .response(let response): try await write(response)
         case .events(let producer): try await write(events: producer)
         }
-        channel.close()
     }
 
     private func write(_ response: HTTPResponse) async throws {
@@ -78,28 +78,30 @@ public struct LoopbackConnection: Sendable {
         head += "Content-Type: \(response.contentType)\r\n"
         head += "Content-Length: \(response.body.count)\r\n"
         head += "Connection: close\r\n\r\n"
-        try await channel.send(Data(head.utf8) + response.body)
+        do {
+            try await channel.send(Data(head.utf8) + response.body)
+            await response.completeTransport(true)
+        } catch {
+            await response.completeTransport(false)
+            throw error
+        }
     }
 
     /// SSE se posílá po chuncích. Selhání producenta ukončí spojení bez
     /// koncového chunku, takže klient pozná zkrácení místo tichého úspěchu.
     private func write(events: SSEProducer) async throws {
-        var head = "HTTP/1.1 200 OK\r\n"
-        head += "Content-Type: text/event-stream\r\n"
-        head += "Transfer-Encoding: chunked\r\n"
-        head += "Connection: close\r\n\r\n"
-        try await channel.send(Data(head.utf8))
+        let writer = EventWriter(channel: channel, maximumEventBytes: maximumEventBytes)
         do {
-            try await events { event in
-                let payload = try event.encoded(maximumBytes: maximumEventBytes)
-                try await channel.send(Self.chunked(payload))
-            }
-            try await channel.send(Data("0\r\n\r\n".utf8))
+            try await events { try await writer.send($0) }
+            try await writer.finish()
         } catch is CancellationError {
             throw CancellationError()
         } catch {
-            // Záměrně bez koncového chunku: částečný stream není úspěch.
-            return
+            if await !writer.started {
+                // Admission failure before the first event is an ordinary error
+                // response. Never send a second response after partial SSE.
+                try await write(.error(StreamOutcome.failure(error).status))
+            }
         }
     }
 
@@ -117,12 +119,45 @@ public struct LoopbackConnection: Sendable {
         case 400: return "Bad Request"
         case 403: return "Forbidden"
         case 404: return "Not Found"
+        case 409: return "Conflict"
+        case 429: return "Too Many Requests"
         case 413: return "Content Too Large"
         case 500: return "Internal Server Error"
         case 502: return "Bad Gateway"
         case 503: return "Service Unavailable"
         default: return "Unknown"
         }
+    }
+}
+
+/// Keeps header state across asynchronous emits without accumulating the stream.
+private actor EventWriter {
+    let channel: any ByteChannel
+    let maximumEventBytes: Int
+    private(set) var started = false
+
+    init(channel: any ByteChannel, maximumEventBytes: Int) {
+        self.channel = channel
+        self.maximumEventBytes = maximumEventBytes
+    }
+
+    private func start() async throws {
+        guard !started else { return }
+        // Mark before sending: even a failing send may have written partial headers.
+        started = true
+        try await channel.send(Data(("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n"
+            + "Transfer-Encoding: chunked\r\nConnection: close\r\n\r\n").utf8))
+    }
+
+    func send(_ event: SSEEvent) async throws {
+        let payload = try event.encoded(maximumBytes: maximumEventBytes)
+        try await start()
+        try await channel.send(LoopbackConnection.chunked(payload))
+    }
+
+    func finish() async throws {
+        try await start()
+        try await channel.send(Data("0\r\n\r\n".utf8))
     }
 }
 

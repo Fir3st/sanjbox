@@ -79,15 +79,19 @@ public actor GatewayService {
     public nonisolated let policy: GatewayPolicy
     public nonisolated let runtime: GatewayRuntimeConfiguration
     private let router: TypedRouter
+    private let npmGateway: NPMGateway?
+    private let pypiGateway: PyPIGateway?
     private var records: [AuditRecord] = []
     private var reserved = 0
     private var saturationCount: UInt64 = 0
 
     public init(policy: GatewayPolicy, keyProvider: any KeyProvider = MockKeyProvider(),
                 upstream: UpstreamClient = UpstreamClient()) throws {
-        let routes = try Self.makeRoutes(policy: policy, keyProvider: keyProvider, upstream: upstream)
+        let handlers = try Self.makeHandlers(policy: policy, keyProvider: keyProvider, upstream: upstream)
+        npmGateway = handlers.npm
+        pypiGateway = handlers.pypi
         do {
-            router = try TypedRouter(routes: routes)
+            router = try TypedRouter(routes: handlers.routes)
         } catch RouteFailure.duplicateMount {
             throw CompositionError.invalidRouter("duplicate mount")
         } catch RouteFailure.invalidMount {
@@ -130,8 +134,15 @@ public actor GatewayService {
         defer { if !committed { release() } }
         do {
             let reply = try await router.reply(to: request)
-            let status = status(of: reply)
-            if let denial = Self.handlerDenial(for: status) {
+            if case .events(let producer) = reply {
+                let sequence = commit(operation: operation, request: request, decision: .pending,
+                                      reason: "streamPending", status: 0)
+                committed = true
+                return .events(auditedStream(producer, sequence: sequence))
+            }
+            guard case .response(let response) = reply else { preconditionFailure("unexpected reply") }
+            let status = response.status
+            if let denial = Self.handlerDenial(for: response) {
                 // Odmítl handler, ne brána: audit to musí rozlišit a nést důvod.
                 commit(operation: operation, request: request, decision: .deniedByHandler,
                        reason: denial.rawValue, status: status)
@@ -142,11 +153,13 @@ public actor GatewayService {
             committed = true
             return reply
         } catch is CancellationError {
+            commit(operation: operation, request: request, decision: .cancelled, reason: "cancelled", status: 0)
+            committed = true
             throw CancellationError()
         } catch {
             // Chyba handleru se nepřenáší jako "průhledný" přenos: klient dostane
             // deterministickou 502 a rozhodnutí zůstává v auditu.
-            commit(operation: operation, request: request, decision: .routed, reason: "", status: 502)
+            commit(operation: operation, request: request, decision: .failed, reason: "handlerFailed", status: 502)
             committed = true
             return .response(.error(502))
         }
@@ -158,11 +171,27 @@ public actor GatewayService {
 
     public func auditSaturationCount() -> UInt64 { saturationCount }
 
+    /// Artifact audit snapshots are distinct from request decisions. No headers,
+    /// credentials or request bodies are included by the underlying handlers.
+    public func npmDownloadRecords() async -> [NPMDownloadRecord] {
+        await npmGateway?.downloadRecords() ?? []
+    }
+
+    public func pypiDownloadRecords() async -> [RegistryDownloadRecord] {
+        await pypiGateway?.downloadRecords() ?? []
+    }
+
     // MARK: - Sestavení handlerů
 
-    static func makeRoutes(policy: GatewayPolicy, keyProvider: any KeyProvider,
-                           upstream: UpstreamClient) throws -> [TypedRoute] {
+    private struct Handlers {
         var routes: [TypedRoute] = []
+        var npm: NPMGateway?
+        var pypi: PyPIGateway?
+    }
+
+    private static func makeHandlers(policy: GatewayPolicy, keyProvider: any KeyProvider,
+                                     upstream: UpstreamClient) throws -> Handlers {
+        var handlers = Handlers()
         for rule in policy.enabledRules {
             switch rule {
             case .npm(let npm):
@@ -183,7 +212,9 @@ public actor GatewayService {
                 } catch {
                     throw CompositionError.handlerConfiguration(.npm)
                 }
-                routes.append(NPMGateway(configuration: configuration, upstream: upstream).route())
+                let gateway = NPMGateway(configuration: configuration, upstream: upstream)
+                handlers.npm = gateway
+                handlers.routes.append(gateway.route())
             case .pypi(let pypi):
                 let configuration: PyPIConfiguration
                 let limits: RegistryLimits
@@ -211,7 +242,9 @@ public actor GatewayService {
                 } catch {
                     throw CompositionError.handlerConfiguration(.pypi)
                 }
-                routes.append(PyPIGateway(configuration: configuration, upstream: upstream).route())
+                let gateway = PyPIGateway(configuration: configuration, upstream: upstream)
+                handlers.pypi = gateway
+                handlers.routes.append(gateway.route())
             case .git(let git):
                 let configuration: GitConfiguration
                 do {
@@ -233,7 +266,7 @@ public actor GatewayService {
                 } catch {
                     throw CompositionError.handlerConfiguration(.git)
                 }
-                routes.append(GitGateway(configuration: configuration, upstream: upstream).route())
+                handlers.routes.append(GitGateway(configuration: configuration, upstream: upstream).route())
             case .model(let model):
                 guard let key = keyProvider.key(for: .model) else {
                     throw CompositionError.keyUnavailable(.model)
@@ -259,10 +292,10 @@ public actor GatewayService {
                 } catch {
                     throw CompositionError.handlerConfiguration(.model)
                 }
-                routes.append(gateway.route())
+                handlers.routes.append(gateway.route())
             }
         }
-        return routes
+        return handlers
     }
 
     // MARK: - Audit
@@ -273,10 +306,11 @@ public actor GatewayService {
         !value.contains("|") && !value.unicodeScalars.contains { $0.value < 0x20 || $0.value == 0x7F }
     }
 
-    /// Odmítnutí uvnitř handleru podle stavového kódu; `nil` = handler požadavek
-    /// obsloužil (i když odpověděl 5xx, což je chyba upstreamu, ne odmítnutí).
-    static func handlerDenial(for status: Int) -> DenialReason? {
-        switch status {
+    /// Capacity is an explicit local refusal from the handler, not a heuristic
+    /// applied to upstream 503 responses.
+    static func handlerDenial(for response: HTTPResponse) -> DenialReason? {
+        if response.rejection == .capacity { return .handlerCapacity }
+        switch response.status {
         case 403: return .handlerForbidden
         case 400..<500: return .handlerRejected
         default: return nil
@@ -311,8 +345,9 @@ public actor GatewayService {
 
     /// Zapíše záznam do **držené** rezervace a tím ji spotřebuje. Volá se jen po
     /// úspěšném `reserve()`, takže zápis nemůže selhat a nezahodí se.
+    @discardableResult
     private func commit(operation: GatewayOperation?, request: HTTPRequest, decision: AuditDecision,
-                        reason: String, status: Int) {
+                        reason: String, status: Int) -> UInt64 {
         precondition(reserved > 0, "commit without reservation")
         records.append(AuditRecord(
             sequence: UInt64(records.count + 1),
@@ -324,12 +359,31 @@ public actor GatewayService {
             status: status
         ))
         reserved -= 1
+        return UInt64(records.count)
     }
 
-    private func status(of reply: GatewayReply) -> Int {
-        switch reply {
-        case .response(let response): return response.status
-        case .events: return 200
+    private func auditedStream(_ producer: @escaping SSEProducer, sequence: UInt64) -> SSEProducer {
+        let ticket = StreamTicket()
+        return { [self] emit in
+            guard ticket.consume() else { throw ModelAPIFailure.replay }
+            do {
+                try Task.checkCancellation()
+                try await producer(emit)
+                try Task.checkCancellation()
+                await finishStream(sequence, outcome: .completed)
+            } catch {
+                await finishStream(sequence, outcome: .failure(error))
+                throw error
+            }
         }
+    }
+
+    private func finishStream(_ sequence: UInt64, outcome: StreamOutcome) {
+        let index = Int(sequence - 1)
+        let pending = records[index]
+        precondition(pending.decision == .pending, "stream finalized twice")
+        records[index] = AuditRecord(sequence: pending.sequence, operation: pending.operation,
+                                     method: pending.method, path: pending.path,
+                                     decision: outcome.decision, reason: outcome.reason, status: outcome.status)
     }
 }

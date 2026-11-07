@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 public struct HTTPRequest: Sendable {
     public let method: String
@@ -102,23 +103,50 @@ public struct HTTPRequestDecoder: Sendable {
     }
 }
 
+/// A typed local refusal, never inferred from an upstream status code.
+public enum HTTPResponseRejection: Sendable, Equatable {
+    case capacity
+}
+
+private final class ResponseCompletion: Sendable {
+    private let unused = Mutex(true)
+    private let callback: @Sendable (Bool) async -> Void
+    init(_ callback: @escaping @Sendable (Bool) async -> Void) { self.callback = callback }
+    func finish(_ accepted: Bool) async {
+        guard unused.withLock({ value in defer { value = false }; return value }) else { return }
+        await callback(accepted)
+    }
+}
+
 public struct HTTPResponse: Sendable {
     public let status: Int
     public let contentType: String
     public let body: Data
+    public let rejection: HTTPResponseRejection?
     /// Local transport accepted the full response, or sending failed. Not a client receipt.
     let completion: (@Sendable (Bool) async -> Void)?
 
     public init(status: Int = 200, contentType: String = "application/json", body: Data,
+                rejection: HTTPResponseRejection? = nil,
                 completion: (@Sendable (Bool) async -> Void)? = nil) {
         self.status = status
         self.contentType = contentType
         self.body = body
-        self.completion = completion
+        self.rejection = rejection
+        if let completion {
+            let once = ResponseCompletion(completion)
+            self.completion = { await once.finish($0) }
+        } else { self.completion = nil }
     }
 
-    public static func error(_ status: Int) -> HTTPResponse {
-        HTTPResponse(status: status, body: Data("{\"error\":\(status)}\n".utf8))
+    /// Report the local send outcome exactly once, including across response copies.
+    /// `true` means the transport accepted every byte, not that a client received it.
+    public func completeTransport(_ accepted: Bool) async {
+        await completion?(accepted)
+    }
+
+    public static func error(_ status: Int, rejection: HTTPResponseRejection? = nil) -> HTTPResponse {
+        HTTPResponse(status: status, body: Data("{\"error\":\(status)}\n".utf8), rejection: rejection)
     }
 
     func encoded() throws -> Data {

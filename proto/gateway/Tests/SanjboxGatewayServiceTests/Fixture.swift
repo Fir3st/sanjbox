@@ -57,7 +57,7 @@ enum Fixture {
     }
 
     static func pypi(enabled: Bool = true, mount: String = "/pypi") -> GatewayRule {
-        .pypi(PyPIRule(enabled: enabled, mount: mount, publicOrigin: origin, upstreamHostname: "pypi.example"))
+        .pypi(PyPIRule(enabled: enabled, mount: mount, publicOrigin: origin, upstreamHostname: "pypi.example", artifactHostnames: ["files.example"]))
     }
 
     static func git(enabled: Bool = true, mount: String = "/git", allowPush: Bool = false) -> GatewayRule {
@@ -188,11 +188,16 @@ final class MockChannel: ByteChannel, @unchecked Sendable {
         var inbound: Data
         var outbound = Data()
         var closed = false
+        var sendCalls = 0
     }
 
     private let state: Mutex<State>
+    private let failSendAt: Int?
 
-    init(inbound: Data) { state = Mutex(State(inbound: inbound)) }
+    init(inbound: Data, failSendAt: Int? = nil) {
+        state = Mutex(State(inbound: inbound))
+        self.failSendAt = failSendAt
+    }
 
     func receive(maximumBytes: Int) async throws -> Data {
         state.withLock { current in
@@ -205,7 +210,11 @@ final class MockChannel: ByteChannel, @unchecked Sendable {
     }
 
     func send(_ bytes: Data) async throws {
-        state.withLock { $0.outbound.append(bytes) }
+        try state.withLock {
+            $0.sendCalls += 1
+            if $0.sendCalls == failSendAt { throw ConnectionFailure.sendFailed }
+            $0.outbound.append(bytes)
+        }
     }
 
     func close() {

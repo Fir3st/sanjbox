@@ -8,6 +8,12 @@ public enum AuditDecision: String, Sendable, Codable {
     case denied
     /// Handler požadavek přijal a sám ho odmítl; `reason` nese důvod.
     case deniedByHandler
+    /// SSE producer has not finished; the record already consumes audit capacity.
+    case pending
+    /// The handler/stream failed; this is not a successful routed operation.
+    case failed
+    /// The operation was cancelled before a final handler result.
+    case cancelled
 }
 
 /// Důvod odmítnutí. Texty jsou stabilní součást prototypového kontraktu.
@@ -27,6 +33,10 @@ public enum DenialReason: String, Sendable, Codable {
     case handlerForbidden
     /// Handler odpověděl jiným odmítnutím 4xx (neplatný cíl, příliš velký vstup).
     case handlerRejected
+    case handlerCapacity
+    case modelBudget
+    case modelRate
+    case handlerReplay
 }
 
 /// Jeden auditní záznam. Pole jsou typovaná a omezená: záznam nemá volné textové

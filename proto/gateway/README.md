@@ -19,7 +19,7 @@ nejsou součástí prototypu. Ve F2 ho převezme WP2.5.
 | Deterministický audit rozhodnutí | `Sources/SanjboxGatewayService/Audit.swift` | hotovo |
 | In-process dispatch, framing, opt-in listener | `Sources/SanjboxGatewayService/Transport.swift` | hotovo |
 | CLI obálka (`--policy`, `--listen`) | `Sources/SanjboxGatewayService/Command.swift` | hotovo |
-| Testy | `Tests/SanjboxGatewayServiceTests/` | 66 testů, bez sítě a bez portu |
+| Testy | `Tests/SanjboxGatewayServiceTests/` | 76 testů, bez sítě a bez portu |
 
 ### Které handlery jsou skutečně složené
 
@@ -102,14 +102,20 @@ je H1 nepřinese jako kontrakt.
 2. Klasifikuje `request.path` podle **tabulky mountů z politiky** (ne podle sestaveného
    routeru). Neznámý mount = 404 `operationNotConfigured`; vypnutý = 403 `operationDisabled`.
 3. **Rezervuje místo v auditu ještě před handlerem** (fail-closed). Plná kapacita = 503
-   `auditSaturationCount += 1`, **žádný** záznam a handler se **nezavolá**; historie se
-   nezahazuje ani nepřepisuje. Rezervace se po zápisu spotřebuje, takže se záznam po
+   `auditSaturationCount += 1`, **žádný** záznam a handler se **nezavolá**; dokončená
+   historie se nezahazuje ani nepřepisuje. Rezervace se po zápisu spotřebuje, takže se záznam po
    obsloužení požadavku nikdy tiše nezahodí (dřívější chyba: záporné `reserved`).
 4. Předá požadavek `TypedRouter` z WP1.D1, který sám odmítá zakázané hlavičky
    (`authorization`, `cookie`, `x-api-key`, …) a metody.
-5. Zapíše rozhodnutí do auditu: `routed` (handler obsloužil, i když odpověděl 5xx),
-   `denied` (odmítla brána před handlerem) nebo `deniedByHandler` (handler požadavek
-   přijal a sám ho odmítl 4xx — `reason` je `handlerForbidden`/`handlerRejected`).
+5. Zapíše rozhodnutí do auditu: `routed` pro běžnou odpověď handleru,
+   `denied` pro odmítnutí bránou nebo `deniedByHandler` pro odmítnutí handlerem.
+   Lokální kapacitní 503 nese explicitní `HTTPResponse.rejection = .capacity`;
+   samotný status upstreamu se za kapacitní odmítnutí nepovažuje.
+6. SSE nejdřív zapíše jako `pending` a vrátí jednorázového producenta. Po jeho
+   skutečném dokončení finalizuje tentýž auditní slot: `routed`, `deniedByHandler`
+   s důvodem `modelBudget`/`modelRate`/`handlerCapacity`, `failed` nebo `cancelled`.
+   Nepoužitý producent zůstane `pending`; stále spotřebovává kapacitu. Replay
+   nemůže znovu spustit handler ani přepsat konečný výsledek.
 
 Neexistuje větev, která by požadavek předala dál "protože mount nesedí" nebo která by
 mount z požadavku odvodila. Zdroj mountu je výhradně politika.
@@ -117,10 +123,10 @@ mount z požadavku odvodila. Zdroj mountu je výhradně politika.
 ## Audit
 
 `AuditRecord` má pevná typovaná pole (`sequence`, `operation`, `method`, `path`,
-`decision`, `reason`, `status`) a **žádné volné textové pole**, do kterého by mohl
-proniknout klíč, hlavička nebo tělo. Rozhodnutí: `routed`, `denied`, `deniedByHandler`
-(viz výše); důvody: `operationNotConfigured`, `operationDisabled`, `invalidRequestTarget`,
-`handlerForbidden`, `handlerRejected`. Kanonický řádek:
+`decision`, `reason`, `status`). Hlavičky ani tělo požadavku do něj služba nevkládá. Rozhodnutí: `routed`, `denied`, `deniedByHandler`,
+`pending`, `failed`, `cancelled` (viz výše). Důvody jsou stabilní značky, nikdy
+text výjimky nebo zpráva upstreamu. `pending` a `cancelled` mají `status = 0`;
+čekající SSE zatím nemá konečný výsledek. Kanonický řádek:
 
 ```
 1|npm|GET|/npm/library-fixture|denied|operationDisabled|403
@@ -131,8 +137,18 @@ Volná pole (`operation`, `method`, `path`, `reason`) se do řádku escapují (`
 `AuditRecord.parse(line)` ho vrátí na stejný záznam. Běžná cesta zůstává čitelná beze
 změny; round-trip testy pokrývají `%`, `|` i řídicí znak.
 
-Pořadí je pořadí dokončených rozhodnutí, `sequence` roste od 1. Při sériovém dispatchi
-(takto testy postupují) je text bit po bitu stejný mezi běhy; to je i test.
+`sequence` roste od 1 při vložení záznamu. SSE vloží čekající záznam při dispatchi
+před spuštěním producenta a jeho finalizace zachová číslo i ostatní identifikační pole.
+Auditní `status` SSE popisuje výsledek producenta, nikoli již odeslanou hlavičku:
+po prvním eventu může mít klient hlavičku 200, zatímco audit skončí `failed/502`
+a transport je zkrácený. Při sériových bězích je rozhodování deterministické.
+
+**Audit artefaktů je samostatný:** `npmDownloadRecords()` a `pypiDownloadRecords()`
+vracejí metadata z reálných handlerů včetně `prepared`, `transportAccepted` a
+`sendFailed`. Transport volá veřejné `HTTPResponse.completeTransport(true/false)`
+po lokálním sendu; callback se vykoná nejvýše jednou i při kopii odpovědi nebo souběhu.
+`transportAccepted` není potvrzení přijetí klientem. Rozhodnutí `routed` před odesláním
+artefaktu tento transportní stav nenahrazuje.
 
 **Saturace (omezení prototypu):** když je audit plný, brána vrací 503 a `auditSaturationCount()`
 roste, ale nezapisuje záznam — v plném auditu na něj není místo a zahození historie by
@@ -163,9 +179,13 @@ public protocol KeyProvider: Sendable {
 
 - Testy i CLI používají **in-process dispatch** (`GatewayService.dispatch`). Žádný test
   neotevírá port; integrační testy jdou přes skutečné aktéry ze `spikes/s5-gateway`
-  s mock resolverem, který každé volání odmítne — dokazují cestu kódu, ne síť.
-- `LoopbackConnection` je testovaný framing (`ByteChannel` + in-memory mock),
-  včetně chunked SSE a chování při zkráceném streamu.
+  s odmítajícím resolverem i s plně paměťovým upstream dialerem pro úspěšné přenosy.
+  Dokazují cestu kódu, ne skutečnou síť.
+- `LoopbackConnection` je testovaný framing (`ByteChannel` + in-memory mock).
+  SSE hlavičku 200 odešle až s prvním eventem: odmítnutí před začátkem proto vrátí
+  403 (budget), 429 (rate), 503 (kapacita) nebo 502 (chyba streamu/upstreamu).
+  Chyba po začátku ukončí stream bez koncového chunku a bez druhé odpovědi.
+  Kanál se zavře i při chybě nebo zrušení.
 - `LoopbackListener` (reálný POSIX socket na `127.0.0.1:<port>`) se konstruuje **jen**
   na explicitní `--listen 127.0.0.1:<port>`. Bez něj CLI složení jen vypíše a skončí
   s "no socket opened". **Otevřený socket není součástí prototypu** a žádný test ho
@@ -210,15 +230,17 @@ public actor GatewayService {
     func dispatch(_ request: HTTPRequest) async throws -> GatewayReply
     func auditRecords() -> [AuditRecord]; func auditText() -> String
     func auditSaturationCount() -> UInt64
+    func npmDownloadRecords() async -> [NPMDownloadRecord]
+    func pypiDownloadRecords() async -> [RegistryDownloadRecord]
 }
 
 public struct AuditRecord: Codable, Equatable { sequence, operation, method, path, decision, reason, status
     static let fieldCount = 7
     var canonicalLine: String
     static func fieldList(_:) -> [String]; static func parse(_ line: String) -> AuditRecord? }
-public enum AuditDecision { routed, denied, deniedByHandler }
+public enum AuditDecision { routed, denied, deniedByHandler, pending, failed, cancelled }
 public enum DenialReason { operationNotConfigured, operationDisabled, invalidRequestTarget,
-    handlerForbidden, handlerRejected }
+    handlerForbidden, handlerRejected, handlerCapacity, modelBudget, modelRate, handlerReplay }
 
 public protocol KeyProvider; public struct MockKeyProvider   // .unavailable, .defaultModelKey
 public protocol ByteChannel; public struct LoopbackConnection
@@ -245,15 +267,18 @@ swift test  --package-path spikes/s5-gateway -c release   # závislý balík zů
 /usr/bin/python3 -m unittest discover -s tools/tests
 ```
 
-Testy (66) pokrývají: validaci politiky pozitivně i negativně (neznámé pole/operace,
+Testy (76) pokrývají: validaci politiky pozitivně i negativně (neznámé pole/operace,
 verze, mount, origin, limity) a **paritu rozsahů limitů** s `RegistryLimits`/
 `ModelAPIConfiguration` ze `spikes/s5-gateway`, zakázanou operaci a neznámý mount
 (auditované odmítnutí), odmítnutí uvnitř handleru (`deniedByHandler` + důvod), fail-closed
 saturaci auditu (503 před handlerem) a její nevratnost, escapování a round-trip auditu
 (7 polí, `|` v cestě i metodě), chybějící klíč, mock klíč nikdy v logu a jeho výpis v CLI,
 potvrzení listeneru před smyčkou (mock runner, žádný port), framing transportu, a integraci
-přes **skutečné** npm/PyPI/git/model handlery s lokálními fixtures a mock resolverem —
-bez sítě, bez instalace balíčků, bez portu.
+přes **skutečné** npm/PyPI/git/model handlery s lokálními fixtures, mock resolverem
+nebo paměťovým dialerem — bez sítě, bez instalace balíčků, bez portu. Regrese kontrolují
+úspěšný i selhaný artifact send, jednorázové completion, skutečné artifact audity,
+modelový budget/rate/obě kapacity, čekající audit při saturaci, zrušení/replay,
+chyby před i po prvním eventu a rozlišení lokálního npm 503 od chyby upstreamu.
 
 ## Co tento balík nedokazuje
 

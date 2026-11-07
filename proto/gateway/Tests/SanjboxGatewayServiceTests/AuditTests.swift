@@ -37,7 +37,7 @@ final class AuditTests: XCTestCase {
         XCTAssertFalse(text.contains(modelKeyText))
         XCTAssertFalse(text.contains("synthetic prompt"))
         // Modelový požadavek není v auditu "unknown": patří modelové operaci.
-        XCTAssertTrue(text.contains("|model|POST|/model/v1/messages|routed||200"))
+        XCTAssertTrue(text.contains("|model|POST|/model/v1/messages|pending|streamPending|0"))
     }
 
     func testAuditCapacityIsBoundedAndSaturationIsExplicit() async throws {

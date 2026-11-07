@@ -39,7 +39,7 @@ final class TransportTests: XCTestCase {
         }
         let records = await service.auditRecords()
         XCTAssertTrue(records.isEmpty)
-        XCTAssertFalse(channel.isClosed)
+        XCTAssertTrue(channel.isClosed)
     }
 
     func testPlainEOFIsIncompleteRequest() async throws {
@@ -64,9 +64,8 @@ final class TransportTests: XCTestCase {
         }
     }
 
-    func testFailedStreamIsTruncatedInsteadOfCompleted() async throws {
-        // Modelový handler vrátí SSE producenta; mock resolver ho odmítne, takže
-        // přenos skončí bez koncového chunku a klient pozná zkrácení.
+    func testStreamFailureBeforeFirstEventReturns502() async throws {
+        // No event was produced: the transport can still return a truthful 502.
         let resolver = RefusingResolver()
         let service = try GatewayService(policy: try Fixture.policy([Fixture.model()]),
                                          upstream: UpstreamClient(resolver: resolver))
@@ -76,15 +75,16 @@ final class TransportTests: XCTestCase {
         try await LoopbackConnection(channel: channel).serve(serving: service)
 
         let sent = String(decoding: channel.sent, as: UTF8.self)
-        XCTAssertTrue(sent.hasPrefix("HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\n"), sent)
-        XCTAssertTrue(sent.contains("Transfer-Encoding: chunked\r\n"))
+        XCTAssertTrue(sent.hasPrefix("HTTP/1.1 502 Bad Gateway\r\n"), sent)
+        XCTAssertFalse(sent.contains("Transfer-Encoding: chunked\r\n"))
         XCTAssertFalse(sent.hasSuffix("\r\n0\r\n\r\n"), "truncated stream must not be completed")
         XCTAssertEqual(resolver.consulted, ["api.anthropic.com"])
         XCTAssertTrue(channel.isClosed)
 
         let records = await service.auditRecords()
-        XCTAssertEqual(records.first?.decision, .routed)
-        XCTAssertEqual(records.first?.status, 200)
+        XCTAssertEqual(records.first?.decision, .failed)
+        XCTAssertEqual(records.first?.reason, "streamFailed")
+        XCTAssertEqual(records.first?.status, 502)
     }
 
     func testChunkFramingUsesHexLength() {
