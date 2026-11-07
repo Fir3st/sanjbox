@@ -1,0 +1,42 @@
+[
+  {
+    "label": "invalid-utf8-tail",
+    "inputHex": "7b2272756e4944223a22ff",
+    "mode": "0o600",
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 0,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 11,\n  \"inputSHA256\" : \"f464cd2f74a395c03806aca562a40efdcc98c604adfccd02eb7bae8f9f1e0e6e\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n\n  ],\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"tail\" : {\n    \"bytes\" : {\n      \"end\" : 11,\n      \"start\" : 0\n    },\n    \"kind\" : \"unterminated-final-bytes\",\n    \"line\" : 1\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "invalid-surrogate-tail",
+    "inputHex": "7b2272756e4944223a225c7544433030",
+    "mode": "0o600",
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 0,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 16,\n  \"inputSHA256\" : \"3a82351b8d0e1a17733eb715fbb9a9c0bfcd93e3abdd6d8a06b59e8d7d07b0c8\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n\n  ],\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"tail\" : {\n    \"bytes\" : {\n      \"end\" : 16,\n      \"start\" : 0\n    },\n    \"kind\" : \"unterminated-final-bytes\",\n    \"line\" : 1\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "valid-utf8-partial",
+    "inputHex": "7b2272756e4944223a22c3",
+    "mode": "0o600",
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 0,\n  \"diagnostics\" : [\n\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 11,\n  \"inputSHA256\" : \"ad26728038ee708ac017141eb5dba9f3ab8ce011e3c6363d964ef432422c7b68\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n\n  ],\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false,\n  \"tail\" : {\n    \"bytes\" : {\n      \"end\" : 11,\n      \"start\" : 0\n    },\n    \"kind\" : \"unterminated-final-bytes\",\n    \"line\" : 1\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "special-mode",
+    "inputHex": "",
+    "mode": "0o600",
+    "exit": 3,
+    "stdout": "{\n  \"acceptanceVerdict\" : \"not-evaluated\",\n  \"acquisitionComplete\" : false,\n  \"contiguousPrefixBytes\" : 0,\n  \"diagnostics\" : [\n    {\n      \"bytes\" : {\n        \"end\" : 0,\n        \"start\" : 0\n      },\n      \"code\" : \"empty journal; no retained rows\",\n      \"line\" : 1\n    }\n  ],\n  \"identityAuthenticated\" : false,\n  \"inputBytes\" : 0,\n  \"inputSHA256\" : \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n  \"provenanceArtifactsVerified\" : false,\n  \"rows\" : [\n\n  ],\n  \"schemaVersion\" : 1,\n  \"scope\" : \"offline retained claims only; no complete recording, S1\\/P4 verdict, system or cross-process memory total\",\n  \"status\" : \"incomplete-unverified\",\n  \"structuralError\" : false\n}\n",
+    "stderr": ""
+  },
+  {
+    "label": "blocked-stdout",
+    "filledPipeBytes": 65536,
+    "survived33Seconds": true,
+    "exit": -15,
+    "elapsed": 33.00685450001038,
+    "stderr": ""
+  }
+]

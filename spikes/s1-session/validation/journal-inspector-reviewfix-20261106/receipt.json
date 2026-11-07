@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "createdUTC": "2026-11-06T12:16:35.064895+00:00",
+  "author": "Codex/Astra WP1.A2 review fixes",
+  "validatedSourceCommit": "db6622ef2f0abeacd62e71a622579c0550e30253",
+  "earlierSourceCommit": "f77875f01a2692910518e2e664e5f77edb309571",
+  "sourceManifest": "source-manifest.json",
+  "scope": "Offline inspector review fixes and synthetic stdout deadline regression; no new process acquisition, no S1/P4/acceptance verdict",
+  "environment": {
+    "macOS": "27.2",
+    "build": "26B123",
+    "architecture": "arm64",
+    "swift": "Apple Swift 6.4.2",
+    "backend": "native explicit --build-system native",
+    "jobs": 2
+  },
+  "tests": {
+    "nativeRelease": {
+      "passed": 79,
+      "failed": 0,
+      "skipped": 0,
+      "log": "build-native-01.log"
+    },
+    "offlineCLI": {
+      "passed": 41,
+      "failed": 0,
+      "results": "cli-offline-01/results.json"
+    },
+    "legacyCLI": {
+      "passed": 30,
+      "failed": 0,
+      "results": "cli-legacy-01/results.json"
+    },
+    "naturalBlockingStdout": {
+      "rows": 94,
+      "inputBytes": 39508,
+      "inputSHA256": "d95c98ab0022c9f1d71f54b3343ae9809cebb4dadb49bbef7c42b0565965b38c",
+      "referenceExit": 3,
+      "referenceOutputBytes": 65757,
+      "unreadInitiallyEmptyPipe": true,
+      "injectedSIGALRM": false,
+      "survivedDeadline": false,
+      "exit": -14,
+      "elapsedSeconds": 30.022307625011308,
+      "partialOutputBytes": 65536,
+      "scope": "synthetic offline stdout regression; partial stdout is not a completed inspection"
+    }
+  },
+  "signedBinary": {
+    "path": "/private/tmp/sanjbox-a2-journal-inspector-20261106/native-build/arm64-apple-macosx/release/sanjbox-s1-instrument",
+    "sha256": "171102057fda1e7502385bca2e9ff0133556ffd5fe2d66315575bc1243be9460",
+    "signing": "own ad-hoc hardened runtime; no entitlements; strict verify; no Keychain or certificate access",
+    "log": "signing-native.log"
+  },
+  "fixes": [
+    "Synchronous partial-write/EINTR-aware stdout completion; one-shot inspector alarm stays armed through top-level error output and process exit",
+    "Incremental UTF-8 and surrogate escape validation distinguishes possible incomplete prefixes from impossible bytes before closing quote",
+    "Original entire sealed publication restored byte-identical; separately named diagnostic-publication derivative replaces home prefixes in two logs only"
+  ],
+  "originalPublication": {
+    "commit": "a609d3c43eec1f925c85c1ecac43bdd05ec46365",
+    "privateArchive": "/private/tmp/sanjbox-a2-journal-inspector-20261106/private-original-publication-a609d3c",
+    "files": 72,
+    "manifestEntries": 71,
+    "manifestSHA256": "0fab333ff910797223aa6149be9981ecf4ea31e97865d6244c25991ac4352d05",
+    "unchanged": true
+  },
+  "diagnosticDerivative": "../journal-inspector-publication-derivative-20261106/derivation-manifest.json",
+  "reviewBaseline": "review-baseline/provenance.json",
+  "nativeOriginals": "originals-rechecked.json",
+  "retainedScratch": "/private/tmp/sanjbox-a2-journal-inspector-reviewfix-20261106",
+  "limitations": [
+    "Every inspector output remains incomplete-unverified",
+    "No offline authentication of acquisition, identity or provenance",
+    "Partial stdout after timeout is not a completed inspection",
+    "Old source-f77875f 77/38/30 validation remains historical and did not cover these review failures",
+    "New run does not overwrite prior tests, journals or historical measurements"
+  ]
+}

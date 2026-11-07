@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "createdUTC": "2026-11-06T11:55:14.379914+00:00",
+  "author": "Codex/Astra WP1.A2 journal inspector",
+  "sourceCommit": "f77875f01a2692910518e2e664e5f77edb309571",
+  "baseCommit": "dd058d3f4e758ed7fdef7dc64eba1c9a34a66967",
+  "scope": "Offline parser/CLI compatibility, not new acquisition or S1/P4/acceptance evidence",
+  "environment": {
+    "macOS": "27.2",
+    "build": "26B123",
+    "architecture": "arm64",
+    "swift": "Apple Swift 6.4.2",
+    "buildBackend": "native (explicit --build-system native)",
+    "jobs": 2
+  },
+  "nativeTests": {
+    "passed": 77,
+    "failed": 0,
+    "skipped": 0,
+    "existingTests": 63,
+    "newInspectorTests": 14,
+    "log": "build-native-05.log",
+    "warning": "SwiftPM native backend is deprecated; retained verbatim in log"
+  },
+  "offlineCLI": {
+    "passed": 38,
+    "failed": 0,
+    "exit": 0,
+    "nativeJournalCopies": 12,
+    "nativeJournalRows": 54,
+    "log": "cli-offline-native-04.log",
+    "results": "cli-offline-native-04/results.json"
+  },
+  "legacyCLI": {
+    "passed": 30,
+    "failed": 0,
+    "exit": 0,
+    "log": "cli-legacy-native-02.log",
+    "results": "cli-legacy-native-02/results.json"
+  },
+  "signedBinary": {
+    "path": "/private/tmp/sanjbox-a2-journal-inspector-20261106/native-build/arm64-apple-macosx/release/sanjbox-s1-instrument",
+    "sha256": "00d8250ea03da639417af4e73c0ed639da2fbfa4da261e13f6749e7d0c9493bd",
+    "signing": "own ad-hoc hardened runtime, no entitlements; no certificate/Keychain",
+    "log": "signing-native.log"
+  },
+  "sourceManifest": "source-manifest.json",
+  "originalsRechecked": "originals-rechecked.json",
+  "originalsUnchanged": true,
+  "historicalInputProvenance": "native-journals/provenance.json",
+  "retainedScratch": "/private/tmp/sanjbox-a2-journal-inspector-20261106",
+  "retainedAttempts": "retained-attempts.json",
+  "earlierAttempts": [
+    {
+      "log": "build-01.log",
+      "outcome": "failed before compilation: sandbox default module-cache path denied"
+    },
+    {
+      "log": "build-02.log",
+      "outcome": "default XCBuild 75 tests passed before final two tests and hardening; initial Encodable warnings corrected"
+    },
+    {
+      "log": "build-03.log",
+      "outcome": "default XCBuild 77 tests passed, source 82eef94"
+    },
+    {
+      "log": "build-04.log",
+      "outcome": "default XCBuild 77 tests passed, source f77875f"
+    },
+    {
+      "log": "cli-offline-01.log",
+      "outcome": "failed before CLI execution: assumed native output path while default backend was XCBuild"
+    },
+    {
+      "log": "cli-offline-02.log",
+      "outcome": "XCBuild CLI 38 passed before own hardened signing"
+    },
+    {
+      "log": "cli-offline-03.log",
+      "outcome": "XCBuild signed CLI 38 passed"
+    },
+    {
+      "log": "cli-legacy-01.log",
+      "outcome": "XCBuild signed legacy CLI 30 passed"
+    }
+  ],
+  "limitations": [
+    "Every inspector result is incomplete-unverified; no acquisition or acceptance pass",
+    "Historical numeric identity/provenance claims cannot be authenticated offline",
+    "No automatic recovery, repair, sidecar lookup, complete recording reconstruction, or process sampling",
+    "Metrics remain per point and separate; failure omission is not zero",
+    "Original journals remain independent per author/machine/run; imported byte hashes are not authentication"
+  ],
+  "buildCommand": "env CLANG_MODULE_CACHE_PATH=/private/tmp/sanjbox-a2-journal-inspector-20261106/modules SWIFTPM_MODULECACHE_OVERRIDE=/private/tmp/sanjbox-a2-journal-inspector-20261106/modules swift test --package-path spikes/s1-session --build-system native -c release --jobs 2 --scratch-path /private/tmp/sanjbox-a2-journal-inspector-20261106/native-build --cache-path /private/tmp/sanjbox-a2-journal-inspector-20261106/cache --disable-sandbox -Xswiftc -enable-testing -Xswiftc -module-cache-path -Xswiftc /private/tmp/sanjbox-a2-journal-inspector-20261106/modules"
+}

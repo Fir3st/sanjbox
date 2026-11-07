@@ -1,0 +1,26 @@
+PUBLICATION DIAGNOSTIC DERIVATIVE: home-prefix replacement only in original log body; see derivation-manifest.json. Original SHA-256: 826ac1e5260b2d1c372e92aa522e3dd6ecdfd5dd9c21ba2a206a52a11f657072
+Traceback (most recent call last):
+  File "<HOME>/.codex/worktrees/sanjbox-a2-journal-inspector/sanjbox/spikes/s1-session/Tests/journal_inspector_validation.py", line 144, in <module>
+    run(args.binary.resolve(), args.output.resolve())
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<HOME>/.codex/worktrees/sanjbox-a2-journal-inspector/sanjbox/spikes/s1-session/Tests/journal_inspector_validation.py", line 70, in run
+    call('dry-missing', ['inspect-process-journal', '--fixture', namespace + '-missing'], 0)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<HOME>/.codex/worktrees/sanjbox-a2-journal-inspector/sanjbox/spikes/s1-session/Tests/journal_inspector_validation.py", line 30, in call
+    result = subprocess.run([str(binary), *args], capture_output=True, timeout=40)
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/subprocess.py", line 669, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/subprocess.py", line 1213, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/subprocess.py", line 2156, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/private/tmp/sanjbox-a2-journal-inspector-20261106/build/arm64-apple-macosx/release/sanjbox-s1-instrument'

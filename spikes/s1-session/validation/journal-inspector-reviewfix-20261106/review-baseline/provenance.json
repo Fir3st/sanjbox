@@ -1,0 +1,16 @@
+[
+  {
+    "file": "focused.json",
+    "source": "/private/tmp/sanjbox-a2-journal-review-fresh-20261106-81bc/focused.json",
+    "sha256": "d76ab07259e054ad92eff3879cf58b0b6d227a78d585006ca236c96390c5761d",
+    "sourceRevision": "a609d3c43eec1f925c85c1ecac43bdd05ec46365",
+    "derivation": "byte-identical copy of separate independent reviewer evidence; not a new run"
+  },
+  {
+    "file": "watchdog-natural.json",
+    "source": "/private/tmp/sanjbox-a2-journal-review-fresh-20261106-81bc/watchdog-natural.json",
+    "sha256": "f85336f457e35b09f68fed24f7c00766cf23d270ad7ef4dad494a76471c9b002",
+    "sourceRevision": "a609d3c43eec1f925c85c1ecac43bdd05ec46365",
+    "derivation": "byte-identical copy of separate independent reviewer evidence; not a new run"
+  }
+]

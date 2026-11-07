@@ -1,0 +1,9 @@
+{
+  "result.json": "3625ed4011fbd5cd31dd14558b38b3424d89d095058e75655c12f9eb5b4c747e",
+  "synthetic-input.jsonl": "d95c98ab0022c9f1d71f54b3343ae9809cebb4dadb49bbef7c42b0565965b38c",
+  "reference.json": "c84455821950e842461ef92c4b911442a8f749937bfe24fbb9e2c48907ca1cd1",
+  "cleanup.json": "d5b2999a4be603ba346bf7fd363dd52abcb9d5f57c57cb70145eb56868623986",
+  "blocked-stdout.partial.json": "c38619b8375914acc41829565bbc5097777ed3810e9fd3a40738a1fdd6ef995f",
+  "reference-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "blocked-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

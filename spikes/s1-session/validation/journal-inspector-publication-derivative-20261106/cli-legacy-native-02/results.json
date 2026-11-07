@@ -1,0 +1,433 @@
+[
+  {
+    "label": "help",
+    "arguments": [
+      "--help"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "sanjbox-s1-instrument record --plan-json JSON --expect-json JSON [--apply]\nsanjbox-s1-instrument offscreen --run-id ID --expect-json JSON [--apply]\nsanjbox-s1-instrument plan --plan-json JSON\nsanjbox-s1-instrument evaluate --fixture NAME --run-id ID [--apply]\nsanjbox-s1-instrument login-marker --marker-json JSON --expect-json JSON [--apply]\nsanjbox-s1-instrument process-memory --memory-json JSON --expect-json JSON [--apply]\nsanjbox-s1-instrument evaluate-supplement --fixture NAME --run-id ID [--apply]\nsanjbox-s1-instrument process-series --series-json JSON --expect-json JSON [--apply]\nsanjbox-s1-instrument owned-process-series --run-id ID --expect-json JSON [--apply]\nsanjbox-s1-instrument evaluate-process-series --fixture NAME --run-id ID [--apply]\nsanjbox-s1-instrument inspect-process-journal --fixture NAME [--series-json JSON] [--apply]\nDefault is dry-run: no measurements, GUI, files, or fixture reads.\nevaluate reads only /private/tmp/sanjbox-a2-fixture-<your-uid>-<NAME>.json.\ninspect-process-journal reads only staged /private/tmp/sanjbox-a2-journal-<your-uid>-<NAME>.jsonl; stdout only.\nplan/record JSON schema and manual same-Mac coordination: INSTRUMENTATION.md.\n",
+    "stderr": ""
+  },
+  {
+    "label": "extra-help",
+    "arguments": [
+      "--help",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: unsupported command or argument count\n"
+  },
+  {
+    "label": "no-command",
+    "arguments": [],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "sanjbox-s1-instrument record --plan-json JSON --expect-json JSON [--apply]\nsanjbox-s1-instrument offscreen --run-id ID --expect-json JSON [--apply]\nsanjbox-s1-instrument plan --plan-json JSON\nsanjbox-s1-instrument evaluate --fixture NAME --run-id ID [--apply]\nsanjbox-s1-instrument login-marker --marker-json JSON --expect-json JSON [--apply]\nsanjbox-s1-instrument process-memory --memory-json JSON --expect-json JSON [--apply]\nsanjbox-s1-instrument evaluate-supplement --fixture NAME --run-id ID [--apply]\nsanjbox-s1-instrument process-series --series-json JSON --expect-json JSON [--apply]\nsanjbox-s1-instrument owned-process-series --run-id ID --expect-json JSON [--apply]\nsanjbox-s1-instrument evaluate-process-series --fixture NAME --run-id ID [--apply]\nsanjbox-s1-instrument inspect-process-journal --fixture NAME [--series-json JSON] [--apply]\nDefault is dry-run: no measurements, GUI, files, or fixture reads.\nevaluate reads only /private/tmp/sanjbox-a2-fixture-<your-uid>-<NAME>.json.\ninspect-process-journal reads only staged /private/tmp/sanjbox-a2-journal-<your-uid>-<NAME>.jsonl; stdout only.\nplan/record JSON schema and manual same-Mac coordination: INSTRUMENTATION.md.\n",
+    "stderr": ""
+  },
+  {
+    "label": "dry-evaluate",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-missing",
+      "--run-id",
+      "a2-cli-231147cc974e4878"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "dry-run: validate supplementary staged own fixture; no input read\n",
+    "stderr": ""
+  },
+  {
+    "label": "path-fixture",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "../escape",
+      "--run-id",
+      "a2-cli-231147cc974e4878"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: invalid run or fixture ID\n"
+  },
+  {
+    "label": "missing-fixture",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-missing",
+      "--run-id",
+      "a2-cli-231147cc974e4878",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: cannot open explicitly staged own fixture\n"
+  },
+  {
+    "label": "dry-memory",
+    "arguments": [
+      "process-memory",
+      "--memory-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-memory\", \"seconds\": 1, \"fixtureMiB\": 4}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "dry-run: registered own recorder fixture only; no PID inventory; 1.0 seconds, 4 MiB synthetic allocation\n",
+    "stderr": ""
+  },
+  {
+    "label": "no-target-pid",
+    "arguments": [
+      "process-memory",
+      "--memory-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-memory\", \"seconds\": 1, \"fixtureMiB\": 4}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}",
+      "--pid",
+      "7104"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: unknown, missing or duplicate option\n"
+  },
+  {
+    "label": "duplicate-option",
+    "arguments": [
+      "process-memory",
+      "--memory-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-memory\", \"seconds\": 1, \"fixtureMiB\": 4}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}",
+      "--memory-json",
+      "{}"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: unknown, missing or duplicate option\n"
+  },
+  {
+    "label": "duplicate-apply",
+    "arguments": [
+      "process-memory",
+      "--memory-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-memory\", \"seconds\": 1, \"fixtureMiB\": 4}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}",
+      "--apply",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: duplicate --apply\n"
+  },
+  {
+    "label": "unknown-memory-field",
+    "arguments": [
+      "process-memory",
+      "--memory-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-memory\", \"seconds\": 1, \"fixtureMiB\": 4, \"pid\": 7104}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: unknown JSON field or null optional field\n"
+  },
+  {
+    "label": "oversized-allocation",
+    "arguments": [
+      "process-memory",
+      "--memory-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-memory\", \"seconds\": 1, \"fixtureMiB\": 65}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: invalid process-memory plan\n"
+  },
+  {
+    "label": "invalid-identity",
+    "arguments": [
+      "process-memory",
+      "--memory-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-memory\", \"seconds\": 1, \"fixtureMiB\": 4}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-memory-uid501-process-memory\n",
+    "stderr": ""
+  },
+  {
+    "label": "preserve-conflict",
+    "arguments": [
+      "process-memory",
+      "--memory-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-memory\", \"seconds\": 1, \"fixtureMiB\": 4}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: dataset already exists or cannot be created; preserving conflict\n"
+  },
+  {
+    "label": "dry-marker",
+    "arguments": [
+      "login-marker",
+      "--marker-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-marker\", \"attemptID\": \"a2-cli-231147cc974e4878-attempt\", \"configurationSHA256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"mode\": \"warm\", \"event\": \"start\", \"targetUID\": 4501, \"order\": 1, \"activeOtherZones\": 2}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "dry-run: manual login marker only; no login, event observation, or timing acceptance\n",
+    "stderr": ""
+  },
+  {
+    "label": "marker-identity-rejection",
+    "arguments": [
+      "login-marker",
+      "--marker-json",
+      "{\"runID\": \"a2-cli-231147cc974e4878-marker\", \"attemptID\": \"a2-cli-231147cc974e4878-attempt\", \"configurationSHA256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"mode\": \"warm\", \"event\": \"start\", \"targetUID\": 4501, \"order\": 1, \"activeOtherZones\": 2}",
+      "--expect-json",
+      "{\"uid\": 4501, \"gid\": 4500, \"kernelGroups\": [4500], \"requiredGroups\": [4500], \"forbiddenGroups\": [20, 80], \"auditSessionID\": 123, \"onConsole\": false}",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-marker-uid501-login-marker\n",
+    "stderr": ""
+  },
+  {
+    "label": "empty-payload",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-empty-payload",
+      "--run-id",
+      "a2-cli-231147cc974e4878-empty-payload",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: exactly one supplementary payload required\n"
+  },
+  {
+    "label": "duplicate-json",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-duplicate-json",
+      "--run-id",
+      "a2-cli-231147cc974e4878-duplicate-json",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: duplicate JSON key\n"
+  },
+  {
+    "label": "valid-memory",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-valid-memory",
+      "--run-id",
+      "a2-cli-231147cc974e4878-valid-memory",
+      "--apply"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-valid-memory-uid501-report\n",
+    "stderr": ""
+  },
+  {
+    "label": "unreadable-memory",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-unreadable-memory",
+      "--run-id",
+      "a2-cli-231147cc974e4878-unreadable-memory",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-unreadable-memory-uid501-report\n",
+    "stderr": ""
+  },
+  {
+    "label": "unknown-nested",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-unknown-nested",
+      "--run-id",
+      "a2-cli-231147cc974e4878-unknown-nested",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: unknown JSON field or null optional field\n"
+  },
+  {
+    "label": "duplicate-process",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-duplicate-process",
+      "--run-id",
+      "a2-cli-231147cc974e4878-duplicate-process",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: duplicate process instance; no double counting\n"
+  },
+  {
+    "label": "clock-domain",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-clock-domain",
+      "--run-id",
+      "a2-cli-231147cc974e4878-clock-domain",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-clock-domain-uid501-report\n",
+    "stderr": ""
+  },
+  {
+    "label": "empty-samples",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-empty-samples",
+      "--run-id",
+      "a2-cli-231147cc974e4878-empty-samples",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-empty-samples-uid501-report\n",
+    "stderr": ""
+  },
+  {
+    "label": "external-synthetic",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-external-synthetic",
+      "--run-id",
+      "a2-cli-231147cc974e4878-external-synthetic",
+      "--apply"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-external-synthetic-uid501-report\n",
+    "stderr": ""
+  },
+  {
+    "label": "forged-measured",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-forged-measured",
+      "--run-id",
+      "a2-cli-231147cc974e4878-forged-measured",
+      "--apply"
+    ],
+    "expectedExit": 2,
+    "exit": 2,
+    "stdout": "",
+    "stderr": "s1-instrument: unsupported workload schema/source or duplicate run\n"
+  },
+  {
+    "label": "retained-app-failure",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-retained-app-failure",
+      "--run-id",
+      "a2-cli-231147cc974e4878-retained-app-failure",
+      "--apply"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-retained-app-failure-uid501-report\n",
+    "stderr": ""
+  },
+  {
+    "label": "missing-app-output",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-missing-app-output",
+      "--run-id",
+      "a2-cli-231147cc974e4878-missing-app-output",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-missing-app-output-uid501-report\n",
+    "stderr": ""
+  },
+  {
+    "label": "synthetic-login",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-synthetic-login",
+      "--run-id",
+      "a2-cli-231147cc974e4878-synthetic-login",
+      "--apply"
+    ],
+    "expectedExit": 0,
+    "exit": 0,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-synthetic-login-uid501-report\n",
+    "stderr": ""
+  },
+  {
+    "label": "uncalibrated-markers",
+    "arguments": [
+      "evaluate-supplement",
+      "--fixture",
+      "a2-cli-231147cc974e4878-uncalibrated-markers",
+      "--run-id",
+      "a2-cli-231147cc974e4878-uncalibrated-markers",
+      "--apply"
+    ],
+    "expectedExit": 3,
+    "exit": 3,
+    "stdout": "/private/tmp/sanjbox-a2-a2-cli-231147cc974e4878-uncalibrated-markers-uid501-report\n",
+    "stderr": ""
+  }
+]

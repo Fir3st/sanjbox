@@ -241,3 +241,135 @@ vlastní create-exclusive journal fixture. Receipt obsahuje hashe vybraných mal
 **Zůstává neověřeno:** skutečné L1 aplikace/tři souběžné relace, úplnost registru jejich procesů a nových
 dětí, WindowServer/klienti mimo UID, W0/pressure/swap a ostatní LAB důkazy. Žádný součet procesní paměti
 se nepřičítá k systémovému ΔM; F0.8/P4 prahy, původní schémata, brány a 155 případů se nemění.
+
+## 2026-11-06 — offline inspektor zachovaného journalu
+
+Zdrojový commit **`f77875f01a2692910518e2e664e5f77edb309571`** (implementace `82eef94`, následné zpřesnění
+`notRegistered`); základ `dd058d3f4e758ed7fdef7dc64eba1c9a34a66967`. Finální nativní SwiftPM Release
+(`--build-system native`, 2 jobs, vlastní scratch/cache) na macOS **27.2 / 26B123**, arm64, Apple Swift
+**6.4.2**: **77/77 testů**, 0 failures/skips, z toho 14 nových inspektorových testů a 63 původních.
+Nativní backend vypisuje deprecation warning; log jej zachovává. Následně vlastní CLI ad-hoc podpis
+s hardened runtime a bez entitlements, `codesign --verify --strict`, bez certifikátů/Keychain.
+Na této přesné binárce: **nový offline CLI 38/38 + původní syntetický/negativní CLI 30/30**.
+[Receipt, hashe zdrojů/binárky a logy](validation/journal-inspector-publication-derivative-20261106/receipt.json),
+[manifest publikovaných bytů](validation/journal-inspector-publication-derivative-20261106/manifest.json).
+
+Nový [runbook](JOURNAL-INSPECTOR.md) popisuje jediný staged vstup, volitelný explicitní plán, readonly
+FD kontroly, 30s watchdog, přesnou JSONL hranici a exit 3/2. Žádný report inspektoru nemá acquisition
+nebo acceptance pass; i zdánlivě perfektní vstup vrací `incomplete-unverified`.
+
+Testy používají skutečný `ProcessSeriesJournal` encoder/writer a **12 byte-identických historických
+journalů / 54 řádků**: dvě nezávislé předchozí sady autora implementace a review, každá positive,
+wrong-start, SIGTERM, SIGALRM, exited a lifecycle. Neproběhl nový aktivní `process-series` ani nový
+memory workload. Přesný [původ kopií](validation/journal-inspector-publication-derivative-20261106/native-journals/provenance.json)
+a [kontrola nezměněných originálů po testech](validation/journal-inspector-publication-derivative-20261106/originals-rechecked.json)
+zůstávají oddělené per autor/run; šest originálů implementace navíc souhlasilo s již zachovaným
+historickým dataset manifestem. Ostatní kopie mají současný byte hash a vazbu na původní dataset index,
+ne tvrzení o nezávisle autentizovaném původu. Dva dodané plány jsou přesné UTF-8 argumenty z předchozích
+CLI výsledků, nikoli automaticky načtené intent/registry sidecary.
+
+Odvozené truncation/missing-LF a malformed middle/final vstupy jsou označené `derived-*` a nemění
+originály. Pokryto: zachování validního prefixu i failure diagnostik, omitted metric versus zero,
+oddělení footprint/resident, foreign/root/real-UID drift při failure, expected-instance a PID binding,
+chronologie, cross-run/window/sequence, duplicitní/escaped klíče, unknown/null/bool/čísla, depth/byte/row
+limity včetně celého 32×602 prefixu, explicitní plan mismatch, dry-run bez čtení a odmítnutí symlink,
+hardlink, FIFO, directory a cizího mode. Každý dokončený CLI výsledek kontroluje přesný input hash,
+byte count, neúplný stav a nezměněné staged byty/inode/mode/mtime/ctime. Stage cleanup odstraňuje jen
+vlastní jmenované inode, původní journals ani vytvořené legacy report datasety nemaže.
+
+### Reprodukce poslední ověřené sady
+
+V novém vlastním scratch (žádné opětovné použití output adresářů), z kořene repozitáře:
+
+```bash
+CLANG_MODULE_CACHE_PATH="$TASK_SCRATCH/modules" \
+SWIFTPM_MODULECACHE_OVERRIDE="$TASK_SCRATCH/modules" \
+swift test --package-path spikes/s1-session --build-system native -c release --jobs 2 \
+  --scratch-path "$TASK_SCRATCH/native-build" --cache-path "$TASK_SCRATCH/cache" \
+  --disable-sandbox -Xswiftc -enable-testing \
+  -Xswiftc -module-cache-path -Xswiftc "$TASK_SCRATCH/modules"
+```
+
+Poslední ověřená binárka je `native-build/arm64-apple-macosx/release/sanjbox-s1-instrument`.
+Po posledním buildu vlastní ad-hoc hardened podpis bez entitlements a strict verify; potom:
+
+```bash
+python3 spikes/s1-session/Tests/journal_inspector_validation.py \
+  --binary "$RELEASE_OUTPUT/sanjbox-s1-instrument" --output "$TASK_SCRATCH/cli-offline-new"
+python3 spikes/s1-session/Tests/cli_validation.py \
+  --binary "$RELEASE_OUTPUT/sanjbox-s1-instrument" --output "$TASK_SCRATCH/cli-legacy-new" --apply
+```
+
+Nový validační Python script je explicitní test runner: vytváří pouze vlastní staged kopie a
+nový zadaný output adresář, spouští pouze offline CLI; nemá režim měření. Originální zdroje již
+nepotřebuje: používá původní malé byte-identické kopie ze zdrojového commitu v `validation/journal-inspector-20261106/native-journals`.
+Publikovaná finální evidence obsahuje raw vstupy/výstupy a cleanup, nikoli jen souhrn.
+
+Předchozí pokusy zůstávají v `/private/tmp/sanjbox-a2-journal-inspector-20261106` a jsou hashované
+v [retained-attempts.json](validation/journal-inspector-publication-derivative-20261106/retained-attempts.json). `build-01`
+selhal před kompilací kvůli sandboxem odmítnuté implicitní module cache; opravené cache byly vlastní.
+`build-02/03/04` použily výchozí **XCBuild**, postupně 75/77/77 úspěšných testů. `cli-offline-01`
+selhal před spuštěním CLI: wrapper předpokládal jiný output layout. `cli-offline-02/03` pak prošly
+38/38 a `cli-legacy-01` 30/30 na XCBuild artefaktu. Poslední `build-native-05`,
+`cli-offline-native-04`, `cli-legacy-native-02` jsou samostatné finální nativní výsledky výše;
+předchozí selhání ani backend nebyly přepsány na úspěch.
+
+**Hranice důkazu:** test parseru a compatibility původních bytů není obnovená acquisition, autentizace
+historické identity/provenance ani S1/P4 verdikt. A2/L1, skutečné aplikace/tři relace, úplná procesní
+atribuce, LAB/F0.8 a všechny dřívější otevřené body zůstávají beze změny. Velké vlastní build/cache
+může implementátor odstranit až po předání review; malé důkazy a všechny historické originály zůstávají.
+
+## 2026-11-06 — opravy nezávislého review offline inspektoru
+
+Nezávislé review zdroje `f77875f` / předání `a609d3c` našlo tři P2, které dřívější úspěšná sada
+77/38/30 nepokrývala: buffered `print` dokončoval stdout až po zrušení alarmu; nedokončený string
+s nemožným UTF-8 či low surrogate se chybně označil jako přípustné přerušení; dva publikované
+compiler/wrapper logy obsahovaly lokální home cesty. [Původní review repro](validation/journal-inspector-reviewfix-20261106/review-baseline/provenance.json)
+zůstává oddělené od nových výsledků. Na původním zdroji 94 validních řádků dávalo 65 757 bytů stdout;
+při přirozeně zablokované prázdné pipe proces přežil 33 s a reviewer jej musel ukončit SIGTERM.
+
+Opravy `bdd5a17` a **`db6622ef2f0abeacd62e71a622579c0550e30253`** používají synchronní `Darwin.write`
+s partial-write/EINTR smyčkou; 30s alarm jednorázového inspektoru zůstává aktivní až do skutečného
+ukončení procesu, včetně top-level chybového stderr. Větve ostatních příkazů se nemění. Syntax scanner
+ověřuje každý dostupný UTF-8 continuation byte, hranice overlong/surrogate/max scalar a `\u` surrogate
+páry již před closing quote; možné neúplné vícebytové prefixy uchová jako přerušení, nemožné prefixy
+jako strukturální chybu. Předchozí validní řádky, jejich byte pozice/hash i failure diagnostika zůstávají.
+
+Nové samostatné [finální evidence](validation/journal-inspector-reviewfix-20261106/receipt.json),
+[manifest](validation/journal-inspector-reviewfix-20261106/manifest.json) a
+[34 source/test hashů](validation/journal-inspector-reviewfix-20261106/source-manifest.json): explicitní
+native SwiftPM Release, 2 jobs, vlastní cache, macOS 27.2 / 26B123, arm64, Apple Swift 6.4.2:
+**79/79 testů**, 0 failures/skips (přibyly 2 Unicode-prefix testy); po vlastním ad-hoc hardened podpisu
+bez entitlements a strict verify **offline CLI 41/41** (přibyly 3 cílené případy) a **legacy CLI 30/30**.
+Nativní backend nadále vypisuje zachované deprecation warning. Neproběhl nový aktivní procesní sběr.
+
+Skutečný [natural blocking-pipe test](Tests/journal_watchdog_validation.py) používá vlastní `Popen`,
+94 syntetických řádků a nejprve ověří kompletní referenční stdout s exit 3. Druhý proces píše do
+**zpočátku prázdné, nečtené vlastní pipe**, bez jejího předplnění a bez ručního SIGALRM:
+**65 757 bytů reference, 65 536 bytů částečného výstupu, vlastní SIGALRM / exit −14 za 30,0223 s**.
+[Raw výsledek](validation/journal-inspector-reviewfix-20261106/watchdog-natural-01/result.json), reference,
+syntetický vstup, partial stdout a cleanup jsou uchované. Partial stdout není dokončený inspekční JSON.
+Po nativním buildu/podpisu se k předchozím dvěma CLI příkazům přidá:
+
+```bash
+python3 spikes/s1-session/Tests/journal_watchdog_validation.py \
+  --binary "$RELEASE_OUTPUT/sanjbox-s1-instrument" --output "$TASK_SCRATCH/watchdog-natural-new"
+```
+
+Úplná původní publikace **72 souborů = 71 manifest entries + manifest** byla uchována byte-identicky
+v `/private/tmp/sanjbox-a2-journal-inspector-20261106/private-original-publication-a609d3c`;
+SHA-256 původního manifestu `0fab333ff910797223aa6149be9981ecf4ea31e97865d6244c25991ac4352d05`.
+Původní uzavřený record ani manifest se nepřepisují. Veřejná
+[oddělená publikační odvozenina](validation/journal-inspector-publication-derivative-20261106/derivation-manifest.json)
+má vlastní manifest a výslovně označené kopie pouze dvou diagnostických logů s home-prefixem
+nahrazeným `<HOME>/`. Jejich původní/publikované hashe, počty náhrad, přidané označení a generická
+replacement map jsou zveřejněné; přesná privátní mapa je mimo neměnný archiv. Dřívější raw/test výstupy,
+validace zdroje `f77875f` a všech 12 původních nativních journalů zůstávají zachované, nikoli přepsané
+na nové úspěšné běhy. [Nová kontrola originálů](validation/journal-inspector-reviewfix-20261106/originals-rechecked.json)
+ověřila stejné hashe všech 12 skutečných historických journalů.
+
+Samostatný private scratch nových výsledků je `/private/tmp/sanjbox-a2-journal-inspector-reviewfix-20261106`;
+velké vlastní native-build/cache z předchozího scratch byly pro build znovu použity. Receipt uvádí přesný
+validovaný zdrojový commit a hash finální podepsané binárky. Při zabalení publikace do jiné větve rozhoduje
+shoda uvedených source/test bytů; nový veřejný commit není vydáván za revizi původního měření. Kód i data
+stále neposkytují autentizaci historické identity/provenance, úplnou acquisition ani S1/P4 verdict.

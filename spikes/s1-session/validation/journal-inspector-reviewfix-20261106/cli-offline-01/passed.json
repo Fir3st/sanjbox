@@ -1,0 +1,6 @@
+{
+  "checks": 41,
+  "nativeJournals": 12,
+  "nativeRows": 54,
+  "scope": "offline retained copies and explicitly derived mutations; no acquisition; no S1/P4 verdict"
+}

@@ -1,0 +1,14 @@
+{
+  "rows": 94,
+  "inputBytes": 39508,
+  "inputSHA256": "d95c98ab0022c9f1d71f54b3343ae9809cebb4dadb49bbef7c42b0565965b38c",
+  "referenceExit": 3,
+  "referenceOutputBytes": 65757,
+  "unreadInitiallyEmptyPipe": true,
+  "injectedSIGALRM": false,
+  "survivedDeadline": false,
+  "exit": -14,
+  "elapsedSeconds": 30.022307625011308,
+  "partialOutputBytes": 65536,
+  "scope": "synthetic offline stdout regression; partial stdout is not a completed inspection"
+}
