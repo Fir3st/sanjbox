@@ -1,5 +1,6 @@
 /// An offline, bounded RFB 3.8 protocol experiment, not an Apple session client.
-/// There is deliberately no transport, credential callback, input, or clipboard API.
+/// There is deliberately no transport, credential implementation, input, or clipboard API.
+/// The Apple security/selection subset is a synthetic fixture framing; see AppleSubset.swift.
 public struct RFBClient: Sendable {
     public enum AuthenticationPolicy: Sendable {
         /// Default: stop at the authentication boundary without selecting a type.
@@ -7,10 +8,20 @@ public struct RFBClient: Sendable {
         /// ONLY for owned synthetic fixtures offering exactly one type: None (1).
         /// This is not a policy for a live server, even on localhost.
         case syntheticNoneOnly
+        /// ONLY for owned synthetic fixtures offering exactly one type: ARD (30), per S4.
+        /// Accepts the candidate Apple banner and the fixture selection framing; contains no
+        /// cryptography and is not a policy for a live server.
+        case syntheticAppleSubset
     }
 
     public enum Phase: String, Sendable {
         case version, security, securityResult, serverInit, ready, update, failed, closed
+        /// S4 type-30 DH challenge is being consumed.
+        case appleChallenge
+        /// Fixture SessionInfo / choice / SessionResult exchange.
+        case session
+        /// S5 pending state: waiting for a later SessionResult, never polling or retrying.
+        case sessionPending
     }
 
     public enum Failure: String, Error, Equatable, Sendable {
@@ -19,6 +30,16 @@ public struct RFBClient: Sendable {
         case invalidDimensions, invalidRectangle, unsupportedEncoding, unsupportedMessage
         case clipboardDisabled, unsolicitedUpdate, resourceLimit, truncated, deadlineExceeded
         case terminal, invalidState
+        /// S4 challenge framing is out of range (generator, key length, payload).
+        case invalidAppleChallenge
+        /// The virtual desktop was absent or offered as unavailable: no fallback exists.
+        case sessionUnavailable
+        /// SessionResult denied the virtual desktop choice: terminal, never the console.
+        case sessionDenied
+        /// Only the host console was offered. Selecting it automatically is forbidden (S5).
+        case consoleFallbackForbidden
+        /// Unknown message kind/command/state, duplicate offer or bad selection length.
+        case invalidSelectionMessage
     }
 
     public enum Event: Equatable, Sendable {
@@ -43,11 +64,19 @@ public struct RFBClient: Sendable {
         public static let serverMessages = 1_024
         public static let updateRequests = 64
         public static let bufferedBytes = framebufferBytes + chunkBytes
+        // Package-local research bounds, NOT values taken from S4/S5: those sources pin no
+        // lengths for the Apple exchange. They bound work before any allocation.
+        public static let appleKeyBytes = 512
+        public static let appleCredentialBytes = 4_096
+        public static let appleSessionChoices = 8
     }
 
     private enum State: Sendable {
         case version, securityCount, securityTypes(Int), securityResult
+        case appleChallengeHeader, appleModulus(keyLength: Int, generator: Int)
+        case appleServerKey(keyLength: Int, generator: Int, modulus: [UInt8])
         case rejectionLength, rejectionBody(Int), serverInitHeader, serverName(Int)
+        case sessionInfoHeader, sessionInfoEntries(Int), sessionResult, sessionPending
         case ready, updateHeader, rectangleHeader, pixels(Rectangle), failed, closed
     }
 
@@ -57,6 +86,7 @@ public struct RFBClient: Sendable {
     }
 
     private let authenticationPolicy: AuthenticationPolicy
+    private let appleCredentialProvider: (any AppleCredentialProvider)?
     private var state: State = .version
     private var buffer: [UInt8] = []
     private var cursor = 0
@@ -71,10 +101,20 @@ public struct RFBClient: Sendable {
     private var updateBytes = 0
     private var completedUpdate = false
     public private(set) var failure: Failure?
+    /// Last selection outcome. Survives failure/close so `denied`/`unavailable`/`consoleOnly`
+    /// stay observable; none of them is ever retried against the console.
+    public private(set) var session: AppleSession = .notOffered
 
-    public init(authenticationPolicy: AuthenticationPolicy = .rejectAll) {
+    /// `appleCredentialProvider` is the only seam where S4's DH/AES exchange could live.
+    /// This package ships no implementation; without a provider the Apple handshake stops
+    /// before sending anything. See AppleSubset.swift.
+    public init(authenticationPolicy: AuthenticationPolicy = .rejectAll,
+                appleCredentialProvider: (any AppleCredentialProvider)? = nil) {
         self.authenticationPolicy = authenticationPolicy
+        self.appleCredentialProvider = appleCredentialProvider
     }
+
+    private var apple: Bool { authenticationPolicy == .syntheticAppleSubset }
 
     public var phase: Phase {
         switch state {
@@ -82,6 +122,9 @@ public struct RFBClient: Sendable {
         case .securityCount, .securityTypes: .security
         case .securityResult, .rejectionLength, .rejectionBody: .securityResult
         case .serverInitHeader, .serverName: .serverInit
+        case .appleChallengeHeader, .appleModulus, .appleServerKey: .appleChallenge
+        case .sessionInfoHeader, .sessionInfoEntries, .sessionResult: .session
+        case .sessionPending: .sessionPending
         case .ready: .ready
         case .updateHeader, .rectangleHeader, .pixels: .update
         case .failed: .failed
@@ -173,11 +216,14 @@ public struct RFBClient: Sendable {
         switch state {
         case .version:
             guard available(12) else { return false }
-            guard Array(buffer[cursor..<(cursor + 12)]) == Array("RFB 003.008\n".utf8) else {
+            // S1: the client echoes the version it negotiated. The Apple banner is accepted
+            // only under the fixture policy and only as the package-local candidate constant.
+            let expected = apple ? AppleFixtureFraming.appleBanner : Self.standardBanner
+            guard Array(buffer[cursor..<(cursor + 12)]) == expected else {
                 throw Failure.unsupportedVersion
             }
             cursor += 12
-            events.append(.send(Array("RFB 003.008\n".utf8)))
+            events.append(.send(expected))
             state = .securityCount
         case .securityCount:
             guard available(1) else { return false }
@@ -185,19 +231,64 @@ public struct RFBClient: Sendable {
             state = count == 0 ? .rejectionLength : .securityTypes(count)
         case .securityTypes(let count):
             guard available(count) else { return false }
-            guard authenticationPolicy == .syntheticNoneOnly else {
+            switch authenticationPolicy {
+            case .rejectAll:
+                throw Failure.authenticationNotImplemented
+            case .syntheticNoneOnly:
+                // A mixed list is NOT a reason to fall back from Apple/VNC/TLS to None.
+                guard count == 1, buffer[cursor] == 1 else { throw Failure.unexpectedSecurityOffer }
+                cursor += count
+                events.append(.send([1]))
+                state = .securityResult
+            case .syntheticAppleSubset:
+                // S4: type 30 is the ARD DH/credential exchange. Exactly one offer, no
+                // fallback to None/VNC/TLS and no type-33 tunnel (left unimplemented).
+                guard count == 1, buffer[cursor] == AppleFixtureFraming.ardSecurityType else {
+                    throw Failure.unexpectedSecurityOffer
+                }
+                cursor += 1
+                events.append(.send([AppleFixtureFraming.ardSecurityType]))
+                state = .appleChallengeHeader
+            }
+        case .appleChallengeHeader:
+            // S4: two-byte generator, two-byte key length, then equal-length modulus and
+            // server public key. Bounds are checked before any payload is buffered.
+            guard available(4) else { return false }
+            let generator = read16()
+            let keyLength = read16()
+            guard generator > 1, keyLength > 0, keyLength <= Limits.appleKeyBytes else {
+                throw Failure.invalidAppleChallenge
+            }
+            state = .appleModulus(keyLength: keyLength, generator: generator)
+        case .appleModulus(let keyLength, let generator):
+            guard available(keyLength) else { return false }
+            let modulus = Array(buffer[cursor..<(cursor + keyLength)])
+            cursor += keyLength
+            state = .appleServerKey(keyLength: keyLength, generator: generator, modulus: modulus)
+        case .appleServerKey(let keyLength, let generator, let modulus):
+            guard available(keyLength) else { return false }
+            let challenge = AppleDHChallenge(
+                generator: UInt16(generator), modulus: modulus,
+                serverPublicKey: Array(buffer[cursor..<(cursor + keyLength)]))
+            cursor += keyLength
+            // Fail-closed seam: with no injected provider there is no DH, no AES and no
+            // credential block, so nothing is sent and no ClientInit/selection happens.
+            guard let provider = appleCredentialProvider else {
                 throw Failure.authenticationNotImplemented
             }
-            // A mixed list is NOT a reason to fall back from Apple/VNC/TLS to None.
-            guard count == 1, buffer[cursor] == 1 else { throw Failure.unexpectedSecurityOffer }
-            cursor += count
-            events.append(.send([1]))
+            let response: [UInt8]
+            do { response = try provider.credentialResponse(for: challenge) }
+            catch { throw Failure.authenticationNotImplemented }
+            guard !response.isEmpty else { throw Failure.authenticationNotImplemented }
+            guard response.count <= Limits.appleCredentialBytes else { throw Failure.resourceLimit }
+            events.append(.send(response))
             state = .securityResult
         case .securityResult:
             guard available(4) else { return false }
             switch read32() {
             case 0:
-                events.append(.send([1])) // shared ClientInit, never exclusive
+                // S5: the Apple path answers with ClientInit 0xC1 instead of shared=1.
+                events.append(.send([apple ? AppleFixtureFraming.appleClientInit : 1]))
                 state = .serverInitHeader
             case 1: state = .rejectionLength
             default: throw Failure.invalidSecurityResult
@@ -232,11 +323,87 @@ public struct RFBClient: Sendable {
         case .serverName(let length):
             guard available(length) else { return false }
             cursor += length
+            if apple {
+                // Only the standard ServerInit is modeled. S5's "extended ServerInit
+                // metadata" has no pinned layout in SOURCES.md, so it is not invented here:
+                // any additional bytes are read as the fixture selection message and an
+                // unknown kind terminates. Nothing is allocated or published before grant.
+                state = .sessionInfoHeader
+                break
+            }
             storage = Array(repeating: 0, count: width * height * 4)
             events.append(.send([0, 0, 0, 0] + Self.pixelFormat))
             events.append(.send([2, 0, 0, 1, 0, 0, 0, 0])) // advertise Raw only
             events.append(.initialized(width: width, height: height))
             state = .ready
+        case .sessionInfoHeader:
+            // Package-local fixture framing: kind 1, then u16 count (AppleSubset.swift).
+            guard available(3) else { return false }
+            guard read8() == Int(AppleFixtureFraming.sessionInfoKind) else {
+                throw Failure.invalidSelectionMessage
+            }
+            let count = read16()
+            guard count > 0, count <= Limits.appleSessionChoices else {
+                throw Failure.invalidSelectionMessage
+            }
+            state = .sessionInfoEntries(count)
+        case .sessionInfoEntries(let count):
+            guard available(count * 2) else { return false }
+            var offeredConsole = false
+            var virtualState: Int?
+            for _ in 0..<count {
+                let command = read8()
+                let availability = read8()
+                guard availability <= Int(AppleFixtureFraming.availableState) else {
+                    throw Failure.invalidSelectionMessage
+                }
+                switch command {
+                case Int(AppleFixtureFraming.consoleCommand):
+                    guard !offeredConsole else { throw Failure.invalidSelectionMessage }
+                    offeredConsole = true
+                case Int(AppleFixtureFraming.virtualDesktopCommand):
+                    guard virtualState == nil else { throw Failure.invalidSelectionMessage }
+                    virtualState = availability
+                default:
+                    throw Failure.invalidSelectionMessage
+                }
+            }
+            guard let availability = virtualState else {
+                // S5 assigns command 1 to the console. Choosing it automatically is forbidden
+                // by this package: an offer without the virtual desktop is terminal.
+                session = offeredConsole ? .consoleOnly : .unavailable
+                throw offeredConsole ? Failure.consoleFallbackForbidden : Failure.sessionUnavailable
+            }
+            guard availability == Int(AppleFixtureFraming.availableState) else {
+                session = .unavailable
+                throw Failure.sessionUnavailable
+            }
+            session = .virtualReady
+            // Only the virtual desktop may be chosen; there is no API to ask for command 1.
+            events.append(.send([AppleFixtureFraming.sessionInfoChoiceKind,
+                                 AppleFixtureFraming.virtualDesktopCommand]))
+            state = .sessionResult
+        case .sessionResult, .sessionPending:
+            guard available(2) else { return false }
+            guard read8() == Int(AppleFixtureFraming.sessionResultKind) else {
+                throw Failure.invalidSelectionMessage
+            }
+            switch read8() {
+            case Int(AppleFixtureFraming.outcomeGranted):
+                grantSession(events: &events)
+            case Int(AppleFixtureFraming.outcomeDenied):
+                session = .denied
+                throw Failure.sessionDenied
+            case Int(AppleFixtureFraming.outcomePending):
+                // S5 pending state. No polling, no retry, no console: the transport owns the
+                // deadline and must call expire(). The message budget still applies.
+                guard messages < Limits.serverMessages else { throw Failure.resourceLimit }
+                messages += 1
+                session = .pending
+                state = .sessionPending
+            default:
+                throw Failure.invalidSelectionMessage
+            }
         case .ready:
             guard available(1) else { return false }
             guard messages < Limits.serverMessages else { throw Failure.resourceLimit }
@@ -294,6 +461,16 @@ public struct RFBClient: Sendable {
         events.append(.framebufferUpdated)
     }
 
+    /// Selection granted: only now are pixel format/encodings sent and the surface published.
+    private mutating func grantSession(events: inout [Event]) {
+        session = .granted
+        storage = Array(repeating: 0, count: width * height * 4)
+        events.append(.send([0, 0, 0, 0] + Self.pixelFormat))
+        events.append(.send([2, 0, 0, 1, 0, 0, 0, 0])) // advertise Raw only
+        events.append(.initialized(width: width, height: height))
+        state = .ready
+    }
+
     private mutating func fail(_ error: Failure) {
         erase()
         failure = error
@@ -321,4 +498,5 @@ public struct RFBClient: Sendable {
 
     // 32-bit BGRX, 24 significant bits, little endian, true colour.
     private static let pixelFormat: [UInt8] = [32, 24, 0, 1, 0, 255, 0, 255, 0, 255, 16, 8, 0, 0, 0, 0]
+    private static let standardBanner = Array("RFB 003.008\n".utf8)
 }
