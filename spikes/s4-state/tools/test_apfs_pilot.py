@@ -28,6 +28,7 @@ def uuid(index):
 PLAN_SCHEMA = "sanjbox.apfs-pilot.plan.v1"
 OUT_SCHEMA = "sanjbox.apfs-pilot.dry-run.v1"
 RECEIPT_SCHEMA = "sanjbox.apfs-pilot.backup-receipt.v1"
+BACKUP_DIGEST = "sha256:" + "a" * 64
 
 
 def valid_plan():
@@ -55,8 +56,8 @@ def valid_plan():
     }
 
 
-def valid_receipt():
-    return {
+def valid_receipt(backup_digest=None):
+    document = {
         "schema": RECEIPT_SCHEMA,
         "pilotId": "wp1-b4-p0",
         "transactionLabel": "T-20261107-01",
@@ -64,6 +65,9 @@ def valid_receipt():
         "backupLocation": "/Volumes/Backup/synthetic-pilot-receipt",
         "coversDevices": ["disk9s1", "disk9s2"],
     }
+    if backup_digest is not None:
+        document["backupDigest"] = backup_digest
+    return document
 
 
 def volume_entry(device, volume_uuid, name, quota=0, reserve=0, roles=None):
@@ -114,7 +118,10 @@ def volume_info(device, volume_uuid, mountpoint="", sealed="No", bootable=False,
 class PilotTree(object):
     """Synthetic plan + captured probe fixtures + a private output directory."""
 
-    def __init__(self, system_source=False, mounted_target=True, quota=0):
+    def __init__(self, system_source=False, mounted_target=True, quota=0, source_quota=None,
+                 target_quota=None):
+        source_quota = quota if source_quota is None else source_quota
+        target_quota = quota if target_quota is None else target_quota
         self.root = Path(tempfile.mkdtemp(prefix="sanjbox-b4-apfs-tests.", dir="/private/tmp"))
         os.chmod(str(self.root), 0o700)
         self.fixtures = self.root / "fixtures"
@@ -131,9 +138,10 @@ class PilotTree(object):
                         "disk9s0",
                         [
                             volume_entry(
-                                "disk9s1", uuid(11), "PilotSource", quota=quota, roles=source_roles
+                                "disk9s1", uuid(11), "PilotSource", quota=source_quota,
+                                roles=source_roles
                             ),
-                            volume_entry("disk9s2", uuid(12), "PilotTarget", quota=quota),
+                            volume_entry("disk9s2", uuid(12), "PilotTarget", quota=target_quota),
                         ],
                     ),
                     (
@@ -297,6 +305,12 @@ class SourceTests(unittest.TestCase):
         # The only generated asr form is the replication restore template.
         self.assertIn('"asr",\n                    "restore"', text)
 
+    def test_forbidden_mount_prefix_has_no_dead_root_entry(self):
+        text = SCRIPT.read_text()
+        self.assertNotIn("FORBIDDEN_MOUNTS", text)
+        self.assertIn('FORBIDDEN_MOUNT_PREFIXES = ("/System/Volumes/",)', text)
+        self.assertEqual(text.count("FORBIDDEN_MOUNT_PREFIXES"), 2)
+
 
 class DryRunTests(PilotTestCase):
     def test_dry_run_writes_only_its_declared_output(self):
@@ -393,6 +407,7 @@ class DryRunTests(PilotTestCase):
             "not-implemented",
         )
         delete = [step for step in doc["cleanup"]["steps"] if step["id"] == "delete-snapshot-A"][0]
+        self.assertTrue(delete["rootRequired"])
         self.assertEqual(
             delete["argv"],
             [
@@ -426,7 +441,15 @@ class DryRunTests(PilotTestCase):
         self.assertFalse(doc["verdict"]["privilegedCommandExecuted"])
         self.assertFalse(doc["verdict"]["operatorCommandExecuted"])
         self.assertFalse(doc["verdict"]["realStartAllowed"])
+        self.assertTrue(doc["verdict"]["identityChecked"])
+        self.assertEqual(doc["verdict"]["inconclusiveGates"], [])
         self.assertEqual(doc["verdict"]["manualGates"], ["whole-uid-interlock"])
+        support = [step for step in doc["steps"] if step["id"] == "asr-switch-support"][0]
+        self.assertEqual(support["phase"], "P0")
+        self.assertIsNone(support["argv"])
+        for switch in ("--toSnapshot", "--useReplication", "--erase"):
+            self.assertIn(switch, support["reason"])
+        self.assertIn("asr help", support["reason"])
 
     def test_second_dry_run_is_byte_identical(self):
         first = self.dry_run()
@@ -599,7 +622,7 @@ class ApplyRefusalTests(PilotTestCase):
 
     def test_apply_with_valid_receipt_is_handoff_only(self):
         marker = self.tree.root / "tool-invoked.log"
-        receipt = self.tree.receipt_path()
+        receipt = self.tree.receipt_path(valid_receipt(BACKUP_DIGEST))
         result = self.run_script(
             "--apply",
             "--i-understand",
@@ -619,12 +642,219 @@ class ApplyRefusalTests(PilotTestCase):
         self.assertFalse(doc["verdict"]["operatorCommandExecuted"])
         self.assertFalse(doc["verdict"]["diskMutated"])
         self.assertEqual(doc["backupReceipt"]["coversDevices"], ["disk9s1", "disk9s2"])
+        self.assertEqual(doc["backupReceipt"]["backupDigest"], BACKUP_DIGEST)
         self.assertEqual(len(doc["backupReceipt"]["sha256"]), 64)
         self.assertEqual(self.tree.out_entries(), [])
         invoked = sorted(marker.read_text().splitlines())
         self.assertEqual(
             [line for line in invoked if line.startswith("asr") or "restore" in line], []
         )
+
+
+class ReceiptDigestTests(PilotTestCase):
+    def test_receipt_with_sha256_digest_is_accepted(self):
+        receipt = valid_receipt(BACKUP_DIGEST)
+        result = self.dry_run(
+            extra=["--backup-receipt", str(self.tree.receipt_path(receipt))]
+        )
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        doc = json.loads(result.stdout.decode())
+        self.assertEqual(doc["backupReceipt"]["backupDigest"], BACKUP_DIGEST)
+
+    def test_receipt_with_malformed_digest_is_refused(self):
+        for digest in (
+            "sha256:" + "A" * 64,
+            "sha256:" + "a" * 63,
+            "md5:" + "a" * 64,
+            "sha256:xyz",
+            "",
+        ):
+            with self.subTest(digest=digest):
+                receipt = valid_receipt(digest)
+                result = self.dry_run(
+                    extra=["--backup-receipt", str(self.tree.receipt_path(receipt))]
+                )
+                self.assertEqual(result.returncode, 4, result.stderr.decode())
+                self.assertIn(b"backupDigest", result.stderr)
+                self.assertEqual(self.tree.out_entries(), [])
+
+
+class ExitCodeContractTests(PilotTestCase):
+    """The TOOLING exit-code table is executable: one case per documented class."""
+
+    def dry_run_with_receipt(self, receipt):
+        return self.dry_run(
+            extra=["--backup-receipt", str(self.tree.receipt_path(receipt))]
+        )
+
+    def test_missing_receipt_key_is_a_receipt_refusal(self):
+        receipt = valid_receipt()
+        del receipt["backupLocation"]
+        result = self.dry_run_with_receipt(receipt)
+        self.assertEqual(result.returncode, 4, result.stderr.decode())
+        self.assertIn(b"missing key(s)", result.stderr)
+        self.assertIn(b"backupLocation", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+    def test_unknown_receipt_key_is_a_receipt_refusal(self):
+        receipt = valid_receipt()
+        receipt["force"] = True
+        result = self.dry_run_with_receipt(receipt)
+        self.assertEqual(result.returncode, 4, result.stderr.decode())
+        self.assertIn(b"unknown key(s)", result.stderr)
+        self.assertIn(b"force", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+    def test_wrong_receipt_type_is_a_receipt_refusal(self):
+        receipt = valid_receipt()
+        receipt["createdAt"] = 5
+        result = self.dry_run_with_receipt(receipt)
+        self.assertEqual(result.returncode, 4, result.stderr.decode())
+        self.assertIn(b"createdAt", result.stderr)
+        self.assertIn(b"non-empty string", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+    def test_nonexistent_receipt_file_is_an_input_error(self):
+        result = self.dry_run(
+            extra=["--backup-receipt", str(self.tree.root / "does-not-exist.json")]
+        )
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertIn(b"no such file", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+    def test_symlink_receipt_is_an_input_error(self):
+        real = self.tree.receipt_path()
+        link = self.tree.root / "receipt-link.json"
+        os.symlink(str(real), str(link))
+        result = self.dry_run(extra=["--backup-receipt", str(link)])
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertIn(b"symlink refused", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+    def test_world_writable_receipt_is_an_input_error(self):
+        receipt = self.tree.receipt_path()
+        os.chmod(str(receipt), 0o666)
+        result = self.dry_run(extra=["--backup-receipt", str(receipt)])
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertIn(b"group/world writable refused", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+
+class IdentityTests(PilotTestCase):
+    def apply(self, *extra, **kwargs):
+        args = [
+            "--apply",
+            "--plan",
+            str(self.tree.plan_path),
+            "--out-dir",
+            str(self.tree.out),
+        ]
+        return self.run_script(*(args + list(extra)), env=kwargs.get("env", {}))
+
+    def plan_without_uuids(self):
+        plan = valid_plan()
+        for pair in plan["pairs"]:
+            for side in ("source", "target"):
+                pair[side].pop("expectedVolumeUUID", None)
+                pair[side].pop("expectedContainerUUID", None)
+        return plan
+
+    def test_apply_without_declared_uuids_is_refused(self):
+        self.tree.plan_path = self.tree.plan_file(self.plan_without_uuids())
+        result = self.apply(
+            "--i-understand",
+            "--backup-receipt",
+            str(self.tree.receipt_path()),
+            env=self.live_env(),
+        )
+        self.assertEqual(result.returncode, 4, result.stderr.decode())
+        self.assertIn(b"expectedVolumeUUID", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+    def test_apply_with_partial_container_identity_is_refused(self):
+        plan = valid_plan()
+        del plan["pairs"][0]["target"]["expectedContainerUUID"]
+        self.tree.plan_path = self.tree.plan_file(plan)
+        result = self.apply(
+            "--i-understand",
+            "--backup-receipt",
+            str(self.tree.receipt_path()),
+            env=self.live_env(),
+        )
+        self.assertEqual(result.returncode, 4, result.stderr.decode())
+        self.assertIn(b"expectedContainerUUID", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+    def test_dry_run_without_declared_uuids_is_inconclusive(self):
+        self.tree.plan_path = self.tree.plan_file(self.plan_without_uuids())
+        result = self.dry_run()
+        self.assertEqual(result.returncode, 5, result.stderr.decode())
+        doc = json.loads(result.stdout.decode())
+        gate = [item for item in doc["gates"] if item["id"] == "identity-match"][0]
+        self.assertEqual(gate["status"], "inconclusive")
+        self.assertIn("nothing was compared", gate["detail"])
+        self.assertFalse(doc["verdict"]["identityChecked"])
+        self.assertFalse(doc["verdict"]["gatesPassed"])
+        self.assertEqual(doc["verdict"]["inconclusiveGates"], ["identity-match"])
+        # The plan is still written so the operator can see the refusal reason.
+        self.assertEqual(self.tree.out_entries(), ["apfs-pilot-plan.json"])
+
+
+class QuotaTests(PilotTestCase):
+    def test_single_zero_quota_volume_warns(self):
+        tree = PilotTree(source_quota=4096, target_quota=0)
+        self.addCleanup(tree.cleanup)
+        result = self.dry_run(tree=tree)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        doc = json.loads(result.stdout.decode())
+        gate = [item for item in doc["gates"] if item["id"] == "quota-declared"][0]
+        self.assertEqual(gate["status"], "warn")
+        self.assertIn("disk9s2", gate["detail"])
+
+    def test_all_nonzero_quotas_pass(self):
+        tree = PilotTree(source_quota=4096, target_quota=8192)
+        self.addCleanup(tree.cleanup)
+        result = self.dry_run(tree=tree)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        doc = json.loads(result.stdout.decode())
+        gate = [item for item in doc["gates"] if item["id"] == "quota-declared"][0]
+        self.assertEqual(gate["status"], "pass")
+
+
+class PathSecurityTests(PilotTestCase):
+    def test_out_dir_not_mode_0700_is_refused(self):
+        os.chmod(str(self.tree.out), 0o755)
+        result = self.dry_run()
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertIn(b"mode must be 0700", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+    def test_plan_in_world_writable_parent_is_refused(self):
+        shared = self.tree.root / "shared"
+        shared.mkdir(mode=0o700)
+        os.chmod(str(shared), 0o777)
+        plan_path = shared / "plan.json"
+        self.tree.write_json(plan_path, valid_plan())
+        result = self.run_script(
+            "--plan",
+            str(plan_path),
+            "--out-dir",
+            str(self.tree.out),
+            "--fixture-dir",
+            str(self.tree.fixtures),
+        )
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertIn(b"parent directory is group/world writable", result.stderr)
+        self.assertEqual(self.tree.out_entries(), [])
+
+
+class ToolingDocumentationTests(unittest.TestCase):
+    def test_test_hooks_and_exit_codes_are_documented(self):
+        text = (BASE / "TOOLING.md").read_text()
+        for hook in ("APFS_PILOT_DISKUTIL", "APFS_PILOT_SYSCTL", "APFS_PILOT_MOUNT"):
+            self.assertIn(hook, text)
+        for code in ("| 0 |", "| 2 |", "| 4 |", "| 5 |", "| 6 |"):
+            self.assertIn(code, text)
 
 
 class UsageTests(PilotTestCase):

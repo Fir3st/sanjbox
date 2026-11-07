@@ -52,9 +52,25 @@ die() {
   exit "$code"
 }
 
+# Parent directory must be a caller-owned, non-symlink directory that group/world
+# cannot write, so the checked file cannot be swapped before Python opens it.
+require_private_parent() {
+  local path=$1 label=$2 parent mode
+  parent=$(dirname -- "$path")
+  [[ -e $parent ]] || die 2 "$label: parent directory missing: $parent"
+  [[ ! -L $parent ]] || die 2 "$label: parent directory is a symlink: $parent"
+  [[ -d $parent ]] || die 2 "$label: parent is not a directory: $parent"
+  [[ $("$STAT" -f '%u' -- "$parent") == "${EUID:?}" ]] ||
+    die 2 "$label: parent directory not owned by the caller: $parent"
+  mode=$("$STAT" -f '%Lp' -- "$parent")
+  (( (8#$mode & 8#022) == 0 )) ||
+    die 2 "$label: parent directory is group/world writable: $parent"
+}
+
 # Own regular file: exists, not a symlink, owned by the caller, not group/world writable.
 require_own_file() {
   local path=$1 label=$2
+  require_private_parent "$path" "$label"
   [[ -e $path ]] || die 2 "$label: no such file: $path"
   [[ ! -L $path ]] || die 2 "$label: symlink refused: $path"
   [[ -f $path ]] || die 2 "$label: not a regular file: $path"
@@ -64,6 +80,7 @@ require_own_file() {
   (( (8#$mode & 8#022) == 0 )) || die 2 "$label: group/world writable refused: $path"
 }
 
+# Private directory: caller-owned, not a symlink, exactly mode 0700.
 require_own_dir() {
   local path=$1 label=$2
   [[ -e $path ]] || die 2 "$label: no such directory: $path"
@@ -72,7 +89,8 @@ require_own_dir() {
   [[ $("$STAT" -f '%u' -- "$path") == "${EUID:?}" ]] || die 2 "$label: not owned by the caller: $path"
   local mode
   mode=$("$STAT" -f '%Lp' -- "$path")
-  (( (8#$mode & 8#022) == 0 )) || die 2 "$label: group/world writable refused: $path"
+  (( (8#$mode & 8#077) == 0 && (8#$mode & 8#700) == 8#700 )) ||
+    die 2 "$label: mode must be 0700: $path (got $mode)"
 }
 
 mode=dry-run
@@ -156,6 +174,7 @@ PLAN_SCHEMA = "sanjbox.apfs-pilot.plan.v1"
 OUT_SCHEMA = "sanjbox.apfs-pilot.dry-run.v1"
 RECEIPT_SCHEMA = "sanjbox.apfs-pilot.backup-receipt.v1"
 OUT_NAME = "apfs-pilot-plan.json"
+BACKUP_DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 MAX_PLAN_BYTES = 64 * 1024
 MAX_RECEIPT_BYTES = 16 * 1024
 
@@ -168,7 +187,7 @@ MOUNT_PREFIXES = ("/Volumes/", "/private/tmp/")
 FORBIDDEN_ROLES = frozenset(
     ["System", "Data", "Preboot", "Recovery", "VM", "Update", "xART", "Hardware", "Baseband"]
 )
-FORBIDDEN_MOUNTS = ("/", "/System/Volumes/")
+FORBIDDEN_MOUNT_PREFIXES = ("/System/Volumes/",)
 
 mode, plan_path, out_dir, fixture_dir, receipt_path, diskutil, sysctl, mount = sys.argv[1:9]
 
@@ -214,25 +233,25 @@ def read_bytes(path, limit):
     return data
 
 
-def require_object(obj, label, required, optional=()):
+def require_object(obj, label, required, optional=(), code=2):
     if not isinstance(obj, dict):
-        fail(2, label + ": must be a JSON object")
+        fail(code, label + ": must be a JSON object")
     missing = sorted(set(required) - set(obj))
     unknown = sorted(set(obj) - set(required) - set(optional))
     if missing:
-        fail(2, label + ": missing key(s) " + ", ".join(missing))
+        fail(code, label + ": missing key(s) " + ", ".join(missing))
     if unknown:
-        fail(2, label + ": unknown key(s) " + ", ".join(unknown))
+        fail(code, label + ": unknown key(s) " + ", ".join(unknown))
 
 
-def require_string(obj, key, label, limit=1024):
+def require_string(obj, key, label, limit=1024, code=2):
     value = obj.get(key)
     if not isinstance(value, str) or not value:
-        fail(2, label + "." + key + ": must be a non-empty string")
+        fail(code, label + "." + key + ": must be a non-empty string")
     if len(value.encode("utf-8")) > limit:
-        fail(2, label + "." + key + ": exceeds " + str(limit) + " bytes")
+        fail(code, label + "." + key + ": exceeds " + str(limit) + " bytes")
     if any(ch in value for ch in ("\x00", "\n", "\r")):
-        fail(2, label + "." + key + ": control characters refused")
+        fail(code, label + "." + key + ": control characters refused")
     return value
 
 
@@ -318,6 +337,8 @@ def check_receipt(doc, plan):
         doc,
         "backup receipt",
         ["schema", "pilotId", "transactionLabel", "createdAt", "backupLocation", "coversDevices"],
+        ["backupDigest"],
+        code=4,
     )
     if doc["schema"] != RECEIPT_SCHEMA:
         fail(4, "refused: backup receipt: expected schema " + RECEIPT_SCHEMA)
@@ -325,10 +346,10 @@ def check_receipt(doc, plan):
         fail(4, "refused: backup receipt: pilotId does not match the plan")
     if doc["transactionLabel"] != plan["transactionLabel"]:
         fail(4, "refused: backup receipt: transactionLabel does not match the plan")
-    created = require_string(doc, "createdAt", "backup receipt", 32)
+    created = require_string(doc, "createdAt", "backup receipt", 32, code=4)
     if not CREATED_AT_RE.match(created):
         fail(4, "refused: backup receipt: createdAt must be UTC YYYY-MM-DDTHH:MM:SSZ")
-    location = require_string(doc, "backupLocation", "backup receipt", 1024)
+    location = require_string(doc, "backupLocation", "backup receipt", 1024, code=4)
     if location.strip() != location:
         fail(4, "refused: backup receipt: backupLocation has surrounding whitespace")
     covers = doc["coversDevices"]
@@ -342,10 +363,18 @@ def check_receipt(doc, plan):
     missing = sorted(set(plan["devices"]) - set(covers))
     if missing:
         fail(4, "refused: backup receipt: does not cover " + ", ".join(missing))
+    digest = doc.get("backupDigest")
+    if digest is not None:
+        if not isinstance(digest, str) or not BACKUP_DIGEST_RE.match(digest):
+            fail(
+                4,
+                "refused: backup receipt: backupDigest must be sha256:<64 lowercase hex characters>",
+            )
     return {
         "createdAt": created,
         "backupLocation": location,
         "coversDevices": sorted(covers),
+        "backupDigest": digest,
     }
 
 
@@ -422,6 +451,27 @@ def parse_mounts(text):
 def main():
     plan_doc = load_json(read_bytes(plan_path, MAX_PLAN_BYTES + 1), "plan", MAX_PLAN_BYTES)
     plan = check_plan(plan_doc)
+    if mode == "apply":
+        declared_containers = any(
+            pair[side]["expectedContainerUUID"] is not None
+            for pair in plan["pairs"]
+            for side in ("source", "target")
+        )
+        missing_identity = []
+        for pair in plan["pairs"]:
+            for side in ("source", "target"):
+                item = pair[side]
+                if item["expectedVolumeUUID"] is None:
+                    missing_identity.append(pair["id"] + "." + side + ".expectedVolumeUUID")
+                if declared_containers and item["expectedContainerUUID"] is None:
+                    missing_identity.append(pair["id"] + "." + side + ".expectedContainerUUID")
+        if missing_identity:
+            fail(
+                4,
+                "refused: --apply requires declared identity; missing "
+                + ", ".join(missing_identity)
+                + " (expectedVolumeUUID always, expectedContainerUUID when the plan declares any)",
+            )
     plan_digest = hashlib.sha256(
         json.dumps(plan_doc, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
@@ -602,10 +652,27 @@ def main():
         if item["matchesExpectedVolumeUUID"] is False
         or item["matchesExpectedContainerUUID"] is False
     ]
+    compared = sum(
+        1
+        for item in pilot_volumes
+        for key in ("matchesExpectedVolumeUUID", "matchesExpectedContainerUUID")
+        if item[key] is not None
+    )
     if mismatched:
         gate("identity-match", "fail", "declared UUID does not match observation: " + ", ".join(mismatched))
+    elif compared == 0:
+        gate(
+            "identity-match",
+            "inconclusive",
+            "no expectedVolumeUUID/expectedContainerUUID was declared; nothing was compared, "
+            "so identity is not verified",
+        )
     else:
-        gate("identity-match", "pass", "every declared UUID that was checked matches the observation")
+        gate(
+            "identity-match",
+            "pass",
+            str(compared) + " declared UUID(s) compared and all match the observation",
+        )
 
     forbidden = []
     for item in pilot_volumes:
@@ -624,7 +691,7 @@ def main():
             if bare != item["device"] and not bare.startswith(item["device"] + "s"):
                 continue
             mountpoint = entry["mountpoint"]
-            if mountpoint == "/" or mountpoint.startswith(FORBIDDEN_MOUNTS[1]):
+            if mountpoint == "/" or mountpoint.startswith(FORBIDDEN_MOUNT_PREFIXES):
                 forbidden.append(item["device"] + " is mounted at " + mountpoint)
     if forbidden:
         gate("non-system-volume", "fail", "; ".join(sorted(set(forbidden))))
@@ -649,15 +716,17 @@ def main():
     else:
         gate("target-not-active", "pass", "no target is mounted outside the declared pilot root")
 
-    quotas = [item for item in pilot_volumes if item["observed"] and item["observed"]["capacityQuotaBytes"] == 0]
-    if len(quotas) == len([item for item in pilot_volumes if item["observed"]]):
-        gate(
-            "quota-declared",
-            "warn",
-            "no pilot volume has an APFS quota; quota 0 means unbounded, not reserved space",
+    observed_volumes = [item for item in pilot_volumes if item["observed"]]
+    zero_quota = [item for item in observed_volumes if item["observed"]["capacityQuotaBytes"] == 0]
+    if zero_quota:
+        detail = "quota 0 means unbounded, not reserved space: " + ", ".join(
+            item["device"] for item in zero_quota
         )
+        if len(zero_quota) == len(observed_volumes):
+            detail = "no pilot volume has an APFS quota; " + detail
+        gate("quota-declared", "warn", detail)
     else:
-        gate("quota-declared", "pass", "at least one pilot volume declares an APFS quota")
+        gate("quota-declared", "pass", "every observed pilot volume declares a non-zero APFS quota")
 
     if receipt is not None:
         gate("backup-receipt", "pass", "receipt covers every plan device and matches pilot/transaction")
@@ -687,7 +756,21 @@ def main():
             "decision": "P0-G1",
             "reason": "No documented general snapshot-create CLI path is assumed. Decide and record "
             "the permitted signed/entitled path for this build before P1; no argv is guessed here.",
-        }
+        },
+        {
+            "phase": "P0",
+            "id": "asr-switch-support",
+            "argv": None,
+            "argvTemplate": False,
+            "readOnly": False,
+            "rootRequired": False,
+            "executed": False,
+            "decision": "P0-G3",
+            "reason": "Before the P2 template is used, verify that this build's asr accepts "
+            "--toSnapshot, --useReplication and --erase. `asr help` does not list them, so compare "
+            "the shipped binary/version with a non-destructive check the operator records. If any "
+            "switch is unsupported, do not use this template and record the gap.",
+        },
     ]
     for pair in plan["pairs"]:
         source = pair["source"]["device"]
@@ -817,7 +900,7 @@ def main():
                 ],
                 "argvTemplate": False,
                 "readOnly": False,
-                "rootRequired": False,
+                "rootRequired": True,
                 "executed": False,
                 "reason": "Only after P2/P3 are closed and the snapshot is provably unused; -wait "
                 "because deletion can continue after the command returns.",
@@ -917,9 +1000,15 @@ def main():
             "diskMutated": False,
             "privilegedCommandExecuted": False,
             "operatorCommandExecuted": False,
-            "gatesPassed": all(item["status"] != "fail" for item in gates),
+            "gatesPassed": all(
+                item["status"] in ("pass", "warn", "manual") for item in gates
+            ),
+            "identityChecked": compared > 0 and not mismatched,
             "manualGates": sorted(
                 item["id"] for item in gates if item["status"] == "manual"
+            ),
+            "inconclusiveGates": sorted(
+                item["id"] for item in gates if item["status"] == "inconclusive"
             ),
             "realStartAllowed": False,
         },
@@ -931,6 +1020,7 @@ def main():
                 read_bytes(receipt_path, MAX_RECEIPT_BYTES + 1)
             ).hexdigest(),
             "coversDevices": receipt["coversDevices"],
+            "backupDigest": receipt["backupDigest"],
         }
 
     data = (json.dumps(doc, sort_keys=True, indent=2, ensure_ascii=True) + "\n").encode("utf-8")

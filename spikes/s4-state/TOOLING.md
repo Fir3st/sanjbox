@@ -28,8 +28,8 @@ deterministické: exit 4, jednoznačná zpráva na stderr, žádný výstupní s
 ## Vstupy
 
 Plán `sanjbox.apfs-pilot.plan.v1` (max 64 KiB, vlastní soubor bez symlinku, group/world write
-odmítnuto). Musí být 1–2 páry podle pilotního budgetu; všechny cesty a UUID jsou vlastní, ne
-nalezené v cizím stromu.
+odmítnuto, stejně jako jeho rodičovský adresář). Musí být 1–2 páry podle pilotního budgetu; všechny
+cesty a UUID jsou vlastní, ne nalezené v cizím stromu.
 
 ```json
 {
@@ -48,9 +48,13 @@ nalezené v cizím stromu.
 }
 ```
 
-`expectedVolumeUUID`/`expectedContainerUUID` jsou volitelné, ale pokud jsou uvedené, musí sedět na
-pozorování, jinak je gate `identity-match` `fail`. `pilotRoot` musí ležet pod `/Volumes/…` nebo
-`/private/tmp/…`. Neznámé klíče, duplicitní JSON klíče a více než dva páry se odmítají.
+`expectedVolumeUUID`/`expectedContainerUUID` jsou v dry-run volitelné, ale pokud jsou uvedené, musí
+sedět na pozorování, jinak je gate `identity-match` `fail`. Dry-run bez jediného deklarovaného UUID
+nemá co porovnat: gate je `inconclusive`, `verdict.identityChecked` je `false` a běh skončí exit 5.
+Pro `--apply` je `expectedVolumeUUID` povinné u source i target; pokud plán deklaruje alespoň jeden
+`expectedContainerUUID`, je povinné i u obou stran každého páru. `pilotRoot` musí ležet pod
+`/Volumes/…` nebo `/private/tmp/…`. Neznámé klíče, duplicitní JSON klíče a více než dva páry se
+odmítají.
 
 Zálohový receipt `sanjbox.apfs-pilot.backup-receipt.v1` (max 16 KiB), povinný jen pro `--apply`:
 
@@ -61,11 +65,13 @@ Zálohový receipt `sanjbox.apfs-pilot.backup-receipt.v1` (max 16 KiB), povinný
   "transactionLabel": "T-20261107-01",
   "createdAt": "2026-11-07T12:00:00Z",
   "backupLocation": "/Volumes/Backup/synthetic-pilot",
+  "backupDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "coversDevices": ["disk9s1", "disk9s2"]
 }
 ```
 
-`coversDevices` musí být nadmnožinou všech zařízení z plánu. Receipt je záznam o záloze, kterou
+`coversDevices` musí být nadmnožinou všech zařízení z plánu. `backupDigest` je volitelné pole ve tvaru
+`sha256:` + 64 malých hex znaků; jiný tvar je odmítnut exitem 4. Receipt je záznam o záloze, kterou
 uživatel skutečně vytvořil; skript zálohu neověřuje ani ji netvoří.
 
 ## Kroky pro uživatele (L3)
@@ -75,7 +81,7 @@ uživatel skutečně vytvořil; skript zálohu neověřuje ani ji netvoří.
    B3 a oracle. Skript slot nerezervuje ani neověřuje; bez slotu pilot nezačínej.
 2. **Připrav zálohu a receipt.** Zazálohuj vše, co bude `--erase` na targetu měnit, a vytvoř receipt
    s digestem/umístěním zálohy. Bez receiptu `--apply` odmítne.
-3. **Dry-run.** Vlastní `--out-dir` (mode 0700, bez group/world write) a plán:
+3. **Dry-run.** Vlastní `--out-dir` musí mít přesně mode 0700 (skript jiný mode odmítne) a plán:
 
    ```bash
    spikes/s4-state/apfs-pilot.sh \
@@ -84,11 +90,15 @@ uživatel skutečně vytvořil; skript zálohu neověřuje ani ji netvoří.
    ```
 
    Zkontroluj `preState` (boot UUID, container UUID, volume UUID/role, kvóty, mountpointy),
-   `gates` a `steps`. Exit 0 = gates prošly. Exit 5 = některý gate `fail`, nic nespouštěj.
-   Exit 6 = metadata nešla přečíst. Exit 2 = chyba vstupu/argumentů.
+   `gates` a `steps`. Exit 0 = gates prošly. Exit 5 = některý gate `fail` nebo `inconclusive`
+   (např. plán bez deklarovaných UUID), nic nespouštěj. Exit 6 = metadata nešla přečíst.
+   Exit 2 = chyba vstupu/argumentů. Exit 4 = odmítnutý apply/backup.
 4. **Ověř G1 a G2.** Snapshot creation path (`P0-G1`) a whole-UID interlock (`G2`) musí být doložené
    v P0/S0. Plánovač pro ně schválně negeneruje žádné argv; `snapshot-create`, `snapshot-mount`,
-   `switch-writable-state` mají `argv: null` s důvodem v `decision`/`reason`.
+   `switch-writable-state` mají `argv: null` s důvodem v `decision`/`reason`. Krok
+   `asr-switch-support` (`P0-G3`) výslovně vyžaduje ověřit, že tvůj `asr` zná `--toSnapshot`,
+   `--useReplication` a `--erase`; `asr help` je neuvádí, takže nestačí ho pouze přečíst.
+
 5. **Hand-off.** Po kontrole spusť stejný příkaz s `--apply --i-understand --backup-receipt …`.
    Výstup `mode: apply-handoff` znamená jen „runbook je schválený k ručnímu provedení“.
 6. **Proveď P1/P2 ručně.** Každý vypsaný příkaz spouštěj sám, po jednom, po opětovné kontrole
@@ -96,23 +106,28 @@ uživatel skutečně vytvořil; skript zálohu neověřuje ani ji netvoří.
    před potvrzením erase promptu znovu ověř target. Žádný `--noprompt` ani force-unmount.
 7. **Úklid.** Teprve po uzavření P2/P3 a kontrole „nic neběží, oblast je fully-off, snapshoty nejsou
    mounted“ použij `cleanup.steps` v opačném pořadí závislostí: vlastní snapshot mount → vlastní
-   `deleteSnapshot … -wait` (`-wait` proto, že mazání může pokračovat po návratu) → finální
-   `diskutil apfs list -plist`. Target bez doložené completion zůstává v karanténě, nemaže se.
+   `deleteSnapshot … -wait` (`-wait` proto, že mazání může pokračovat po návratu; `rootRequired` je
+   `true`, protože tento systém ownership vyžaduje) → finální `diskutil apfs list -plist`. Target bez
+   doložené completion zůstává v karanténě, nemaže se.
 8. **Publikuj běh** jako nový `docs/evidence/…` podle GUIDE §7; uzavřené běhy jsou neměnné.
 
 ## Význam výsledku
 
-| Pozorování | Význam |
+| Exit / stav | Význam |
 |---|---|
-| exit 0, `verdict.gatesPassed: true` | Metadata a deklarované identity jsou konzistentní; **žádný** verdikt izolace ani rollbacku |
-| `gates[*].status: warn` | Otevřený návrh (kvóta 0 = unbounded, chybějící receipt v dry-run) |
-| `gates[*].status: manual` | `whole-uid-interlock`: G2 musí doložit uživatel v L3; planner na něm negatuje ani nepředstírá pass |
-| exit 5 | `fail` gate: neshoda UUID, system/boot/role svazek, aktivní target, chybějící receipt |
-| exit 4 | Odmítnutý apply/backup; nic se nezapsalo |
-| exit 6 | Read-only metadata nešla přečíst; výsledek je neplatný, ne úspěch |
+| 0 | Metadata a všechny deklarované identity jsou konzistentní; `verdict.gatesPassed: true`. **Žádný** verdikt izolace ani rollbacku. |
+| 2 | Chyba vstupu/argumentů: neznámý argument, plán nebo receipt s neexistujícím souborem, symlinkem, cizím vlastníkem, group/world write nebo neprivátním rodičovským adresářem, out-dir bez 0700, neplatný plán/JSON, I/O chyba; nic se nezapsalo. |
+| 4 | Odmítnutý apply/backup: chybí ack/receipt, fixture apply, receipt schema/typ/digest/createdAt/pilot/transaction/coverage/size, nebo apply plán bez povinných UUID; nic se nezapsalo. |
+| 5 | `fail`/`inconclusive` gate: neshoda UUID, system/boot/role svazek, aktivní target, neověřená identita. |
+| 6 | Read-only metadata nešla přečíst; výsledek je neplatný, ne úspěch. |
+| `warn` | Otevřený návrh (kterákoli kvóta 0 = unbounded, chybějící receipt v dry-run); exit může být 0. |
+| `manual` | `whole-uid-interlock`: G2 musí doložit uživatel v L3; planner na něm negatuje ani nepředstírá pass. |
+| `inconclusive` | `identity-match` bez deklarovaného UUID: nic se neporovnalo, `verdict.identityChecked` je `false`, exit 5. |
 
-`verdict.realStartAllowed` je vždy `false`, `diskMutated` vždy `false`. Skript nedokazuje APFS
-snapshot, writable restore, mount switch, crash/reboot recovery ani úklid skutečných objektů.
+Tabulka exit kódů je závazná a testovaná v `ExitCodeContractTests`: chybějící/neznámý klíč receiptu
+nebo špatný typ = 4; neexistující soubor, symlink a 0666 = 2. `verdict.realStartAllowed` je vždy
+`false`, `diskMutated` vždy `false`. Skript nedokazuje APFS snapshot, writable restore, mount switch,
+crash/reboot recovery ani úklid skutečných objektů.
 
 ## Testy a hranice
 
@@ -125,5 +140,15 @@ Syntetické testy v `spikes/s4-state/tools/test_apfs_pilot.py` nikdy nespouště
 mutující příkaz: používají vlastní `/private/tmp/sanjbox-b4-apfs-tests.XXXXXX` fixtures a recording
 shimy, které jakýkoli jiný než dokumentovaný read-only argv odmítnou. Ověřují `bash -n`, že dry-run
 vytvoří jen deklarovaný výstupní soubor, schéma JSON, determinismus (druhý běh je byte-identický a
-soubor se nepřepíše), odmítnutí `--apply` bez ack/receiptu a to, že živá sonda volá pouze read-only
-příkazy. Neověřují skutečné APFS chování, oprávnění ani `asr`.
+soubor se nepřepíše), odmítnutí `--apply` bez ack/receiptu, povinné UUID pro apply, inconclusive
+identity v dry-runu, exit kódy vstupu/receiptu, kvóty, mode adresářů, digest receiptu a to, že živá
+sonda volá pouze read-only příkazy. Neověřují skutečné APFS chování, oprávnění ani `asr`.
+
+### Testovací hooky (ne produkční cesta)
+
+Skript lze v testech izolovat od hosta třemi proměnnými: `APFS_PILOT_DISKUTIL`,
+`APFS_PILOT_SYSCTL` a `APFS_PILOT_MOUNT`. Každá musí být absolutní cesta k existujícímu spustitelnému
+regular file bez symlinku; nahrazuje pouze read-only příkaz (`diskutil`, `sysctl`, `mount`). Testy je
+používají pro recording shimy, které odmítnou jakýkoli jiný argv. Hooky rozhodují, co brány vidí, a
+proto **nejsou produkční cestou**: reálný pilot je nikdy nenastavuje a `--apply` s `--fixture-dir`
+odmítá. Fixture režim navíc označí `probe.source` jako `fixture-mock`, nikoli host evidence.
