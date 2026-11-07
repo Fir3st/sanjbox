@@ -13,8 +13,8 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-07 (revize plánu: diagnostický běh L1-D, proud H prototypů jádra
-WP1.H1–H6 a podmínky dokončení přípravy; viz [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál-revize-2026-11-07)).
+Poslední aktualizace: 2026-11-07 (rozhodnutí F0.7 a F0.8, změna kontraktu C-003, LAB-v1 přijato;
+viz [DECISIONS](DECISIONS.md) a [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál-revize-2026-11-07)).
 
 **Rozsah MVP (F2):** CLI + jedno okno s plochou oblasti, bez Dockeru, data ven jen řízeným exportem.
 R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
@@ -26,11 +26,11 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Požadavky R1–R8 | 8 | 0 | 0 | 0 | 8 |
 | Brány F1 (S0–S8 vč. S3b) | 10 | 0 | 0 | 0 | 10 |
 | Testové případy | 155 | 0 | 0 | 0 | 155 |
-| Rozhodnutí F0 | 8 | — | — | — | 6 rozhodnuto, 2 částečně (F0.7, F0.8) |
+| Rozhodnutí F0 | 8 | — | — | — | 8 rozhodnuto; Docker start/stop (F0.8) otevřený do S7 |
 
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
-| F0 | 5 | 3 | 2 | 0 | 0 |
+| F0 | 5 | 5 | 0 | 0 | 0 |
 | F1 | 36 | 12 | 9 | 15 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
@@ -42,7 +42,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 |---|---|---|---|
 | R1 X oblastí, agenti, nástroje, Xcode, Android, Docker | S1, S6, S7, F2 | GUI-01…13, HB, DK, POS | Neověřeno |
 | R2 Žádný přístup k host datům, identitě, jiným oblastem; nepřežije vypnutí | S0, S4, S8, F2 | FS, ID, LC, RB, SG | Neověřeno; blokátory otevřené |
-| R3 Žádný nekontrolovaný únik do sítě | S3, S3b, S5, F2 | NET, GW | Neověřeno; blokátory otevřené |
+| R3 Žádný nekontrolovaný únik do sítě | S3, S3b, S5, F2 | NET, GW | Neověřeno; blokátory otevřené; oblasti s předplatným/OAuth omezeny změnou C-003 |
 | R4 Docker bez únikové cesty | S7, F4 | DK | Neověřeno; mimo MVP (C-002) |
 | R5 Nativní výkon, bez desktopové VM, rychlé zapnutí/vypnutí | S1, S2, F2 | GUI-12, GUI-17, PERF | Neověřeno |
 | R6 Jednotlivá okna v Docku, rozlišitelná oblast | S2, F3 | GUI-14…24 | Neověřeno; mimo MVP (C-001), MVP: POS-08 |
@@ -53,7 +53,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 
 | Brána | Rozsah | Testy | Závisí na | Stav | Verdikt |
 |---|---|---|---|---|---|
-| F0 | Rozhodnutí 1–8 | — | — | 6 rozhodnuto, F0.7 a F0.8 částečně | [DECISIONS.md](DECISIONS.md) |
+| F0 | Rozhodnutí 1–8 | — | — | 8 rozhodnuto; Docker start/stop do S7 | [DECISIONS.md](DECISIONS.md) |
 | S1 | Neviditelné relace | GUI-01…13 | F0, WP0.3 | Neověřeno | — |
 | S0 | Hranice a attack surface | FS-01…09, ID-01…11, LC-01…11 | S1 | Neověřeno | — |
 | S8 | Signing, TCC, broker | SG-01…11 | S1 | Neověřeno | — |
@@ -290,11 +290,11 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 
 | ID | Balík | Vlastník | Stav | Poznámka |
 |---|---|---|---|---|
-| WP0.1 | Rozhodnutí F0 | uživatel | 🟨 | 6/8 rozhodnuto; otevřené F0.7 (rozsah integrací), F0.8 (min. konfigurace, výkonové cíle) |
+| WP0.1 | Rozhodnutí F0 | uživatel | ✅ | 8/8 rozhodnuto 2026-11-07; F0.7 přináší změnu kontraktu C-003. Docker start/stop (F0.8) se rozhodne před S7 |
 | WP0.2 | Repo, dokumentace, coverage | — | ✅ | první commit |
 | WP0.3 | Společná sada sond | — | ✅ | `spikes/common`: `sanjbox-whoami`, `sanjbox-canary`, formát protokolu; 16 testů |
 | WP0.4 | Nezávislá protistrana | — | ✅ | `sanjbox-counterpart`: TCP/UDP listener, log událostí, raw záchyt, kanárky vč. DNS labelů, `report` (neúplný běh = neplatné měření); 7 testů + 2 v sadě sond. ICMP a TLS obsah mimo rozsah (pcap na hostu) |
-| WP0.5 | Metodika a laboratoř | janfiedler / Codex + Astra | 🟨 | [LAB-v1](LAB.md): registr, sloty, předregistrace, návrhy prahů/statistik a šablony; neměnná historie běhů více autorů/strojů. Doplněn [M1 host protokol 3×5 s](evidence/s1/20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb/verdict.md). Čeká na P1–P6/F0.8; A2 vyžaduje další instrumentaci. S1 ani jiná brána tím neprošly. 2026-11-04: Codex/Astra dodal [read-only validátor publikovaných důkazů](../tools/lab_evidence/README.md) a syntetické testy bezpečného čtení, manifestů, odkazů a historie. Strukturální shoda není akceptace; metodika, historické běhy a F0.8 beze změny |
+| WP0.5 | Metodika a laboratoř | janfiedler / Codex + Astra | ✅ | [LAB-v1](LAB.md): registr, sloty, předregistrace, návrhy prahů/statistik a šablony; neměnná historie běhů více autorů/strojů. Doplněn [M1 host protokol 3×5 s](evidence/s1/20261103T134131Z-janfiedler-LAB-janfiedler-01-r1-a8a26eeb/verdict.md). LAB-v1 přijato v F0.8 2026-11-07 (změny P4, P5). A2 vyžaduje další instrumentaci. S1 ani jiná brána tím neprošly. 2026-11-04: Codex/Astra dodal [read-only validátor publikovaných důkazů](../tools/lab_evidence/README.md) a syntetické testy bezpečného čtení, manifestů, odkazů a historie. Strukturální shoda není akceptace; metodika, historické běhy a F0.8 beze změny |
 | WP1.A1 | S1 příprava | — | ✅ | `spikes/s1-session`: skripty s dry-runem a úklidem, sonda relace (credentials, displeje, Metal, offscreen render s ověřením, prezentace, RAM, Screen Recording), loopback forwarder místo SSH, WebGL stránka; 6 testů. Části s `--apply` (root) ověří až běh L1 |
 | WP1.A2 | S1 běh (L1) | janfiedler / Codex + Astra (offline inspektor journalu; převzato 2026-11-06) | 🟨 rozpracováno | Dodána [přípravná instrumentace](../spikes/s1-session/INSTRUMENTATION.md): presentation/RAM časové řady, přesné identity, fixed-window vyhodnocení a 17 fixture testů; [validace](../spikes/s1-session/VALIDATION.md): Release 23/23, CLI 25/25 a krátká host diagnostika. Navazující [doplněk](../spikes/s1-session/SUPPLEMENTARY.md): login markery, self-only procesní RAM, externí syntetický workload intake; native Release 43/43 + CLI 30/30 (2026-11-04), bez pozitivního živého nového collector běhu. Nový [registr procesních řad](../spikes/s1-session/PROCESS-SERIES.md): bounded metadata-only sběr explicitních same-UID testovacích instancí, before/after kontrola PID/UID/start, pozitivní signed native child validace alokace/birth/exit; finální native Release 63/63 + nový signed CLI 17/17 + původní CLI 30/30 (2026-11-06); per-point journal uchová SIGTERM/SIGALRM prefix jako neúplný, [receipt](../spikes/s1-session/validation/process-series-20261106-345cbff8fc5c/receipt.json). Nový [offline inspektor journalu](../spikes/s1-session/JOURNAL-INSPECTOR.md) kontroluje explicitně staged prefix/read-only framing, přesné schéma a identitu vůči volitelnému plánu bez recovery/verdict; finální native Release 77/77, offline CLI 38/38 (12 původních journalů / 54 řádků obou autorů), legacy CLI 30/30, [nový receipt](../spikes/s1-session/validation/journal-inspector-publication-derivative-20261106/receipt.json); vždy incomplete-unverified, originály nezměněné. Nezávislé review doplnilo opravy stdout deadline/Unicode prefixů a oddělenou sanitizovanou publikační odvozeninu; [nová validace](../spikes/s1-session/validation/journal-inspector-reviewfix-20261106/receipt.json): native 79/79, offline CLI 41/41, legacy 30/30 a skutečný natural blocking-pipe SIGALRM za 30,0223 s; staré důkazy zachované. A2/L1 zůstává rozpracované; automatické kalibrované login události, úplná procesní atribuce, skutečné aplikace/tři relace a další LAB důkazy chybí, bez verdiktu S1. |
 | WP1.A3 | Průzkum RFB výběru relace | janfiedler / Codex + Astra | 🟨 rozpracováno | Částečně: `spikes/s1-rfb` — primární zdroje k Apple auth/výběru relace, omezený offline Swift 6 RFB 3.8/Raw prototyp a mock testy. Apple auth, výběr relace a živý klient nejsou implementované/ověřené; zůstává uživatelská cesta Screen Sharing.app. Žádná změna bran. |

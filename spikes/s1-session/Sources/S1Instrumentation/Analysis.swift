@@ -243,7 +243,7 @@ public enum Analyzer {
                 result.deltaBytes = Distribution(delta); result.negativeDeltaCount = delta.filter { $0 < 0 }.count
                 if abs(b0 - b1) > 512 * 1024 * 1024 { issues.append("RAM baseline drift exceeds 512 MiB") }
                 if delta.contains(where: { $0 < 0 }) { issues.append("negative RAM delta requires investigation") }
-                result.conditionalTargetsMet = plan.profile == .labV1Draft ? result.deltaBytes!.p95 <= 4.5 * 1024 * 1024 * 1024 : nil
+                result.conditionalTargetsMet = plan.profile == .labV1Draft ? result.deltaBytes!.p95 <= 7.5 * 1024 * 1024 * 1024 : nil
             }
         } else if plan.profile == .labV1Draft {
             result.conditionalTargetsMet = result.pressureNormal && (result.swapGrowthBytes ?? .infinity) <= 1024 * 1024 * 1024

@@ -31,8 +31,8 @@ co převzít.
 | # | Co | Proč | Odblokuje |
 |---|---|---|---|
 | U1 | Spustit **L1-D** podle [s1-session README](../spikes/s1-session/README.md#běh-l1-wp1a2), kroky 0–4 a úklid 8 | Go/no-go celé architektury: souběžné relace, přežití bez klienta, tři relace, akcelerované renderování | L1, A3 živý klient, celý proud A |
-| U2 | Schválit nebo upravit [LAB-v1 P1–P6](LAB.md#1-návrh-rozhodnutí-f08) a zapsat do [DECISIONS F0.8](DECISIONS.md) | Bez schválené metodiky nejde žádný akceptační běh | L1 a všechny další sloty |
-| U3 | Doplnit [F0.7](DECISIONS.md#otevřené-podotázky): typ údaje a rozsah pro OpenCode, Claude, Codex, GitHub, Xcode | Bez toho zůstávají integrace mocky | GW-13, POS-03, WP2.5 |
+| ~~U2~~ | ✅ 2026-11-07: [LAB-v1](LAB.md#1-návrh-rozhodnutí-f08) přijato v [DECISIONS F0.8](DECISIONS.md#rozhodnuté-podotázky) se změnami P4 a P5 | — | L1 a všechny další sloty |
+| ~~U3~~ | ✅ 2026-11-07: [F0.7](DECISIONS.md#rozhodnuté-podotázky) rozhodnuto, předplatné a OAuth v oblasti jsou změna kontraktu C-003 | — | GW-13, POS-03, WP2.5 |
 
 ### Paralelní práce bez laboratoře (k převzetí hned)
 
@@ -56,7 +56,6 @@ Každý řádek je samostatný adresář, takže se větve nepřekrývají. Pře
 
 | Balík | Hotovo, až | Už nepatří do přípravy |
 |---|---|---|
-| WP0.5 | Uživatel rozhodne U2 | Další rozšiřování metodiky bez požadavku konkrétní brány |
 | WP1.A4 | Každý případ FS-01…09, ID-01…11, LC-01…11 má sondu nebo ruční krok s oraclem | Cross-session a TCC důkazy: patří do L2 |
 | WP1.B2 | ACL hardening v dry-run s deníkem a úklidem | Kompatibilita host nástrojů: L3 |
 | WP1.C3 | Návrh bind policy je zapsaný | Další offline provenance; zbytek je L4 |

@@ -10,7 +10,7 @@ nebo agentů mohlo pracovat paralelně bez kolizí. Co dělat a v jakém pořad�
 3. [IMPLEMENTATION.md](IMPLEMENTATION.md): fáze, pracovní balíky, laboratorní sloty.
 4. [COVERAGE.md](COVERAGE.md): co je hotovo, co prošlo, co ne.
 5. Tento průvodce: pravidla, postupy, šablony.
-6. [LAB.md](LAB.md): registr strojů, rezervace, předregistrace a metodika (návrh čekající na F0.8).
+6. [LAB.md](LAB.md): registr strojů, rezervace, předregistrace a metodika (LAB-v1, přijato v F0.8).
 
 ## 2. Prerekvizity
 
