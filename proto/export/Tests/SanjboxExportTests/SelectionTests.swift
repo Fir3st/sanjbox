@@ -29,6 +29,7 @@ final class SelectionTests: XCTestCase {
         XCTAssertEqual(candidate.snapshot?.size, 18)
         XCTAssertEqual(candidate.snapshot?.mode, 0o640)
         XCTAssertEqual(candidate.snapshot?.linkCount, 1)
+        XCTAssertEqual(candidate.snapshot?.contentHash.count, 64, "preview nese SHA-256 obsahu")
         XCTAssertTrue(result.isClean)
     }
 
@@ -141,6 +142,91 @@ final class SelectionTests: XCTestCase {
         _ = try plan(["a.txt"])
         XCTAssertEqual(tree.structure(), structureBefore, "preview nesmí změnit strom")
         XCTAssertEqual(tree.contents(), contentsBefore, "preview nesmí změnit obsah")
+    }
+
+    /// Case varianty téhož souboru jsou na case-insensitive APFS stejná identita.
+    /// Plán musí být deterministický i při opačném pořadí argumentů.
+    func testCaseVariantPathsDeduplicateByIdentity() throws {
+        try tree.writeFile("CI.txt", contents: "kanarek")
+        var first = stat()
+        var second = stat()
+        guard lstat(tree.path("CI.txt"), &first) == 0,
+              lstat(tree.path("ci.txt"), &second) == 0,
+              first.st_dev == second.st_dev,
+              first.st_ino == second.st_ino else {
+            throw XCTSkip("filesystem nerozlišuje case; test identity dedupu nelze sestrojit")
+        }
+
+        let planA = try plan(["CI.txt", "ci.txt"])
+        let planB = try plan(["ci.txt", "CI.txt"])
+        XCTAssertEqual(planA.candidates.count, 1)
+        XCTAssertEqual(planA.candidates.first?.relativePath, "CI.txt", "UTF-8 pořadí rozhoduje")
+        XCTAssertTrue(planA.isClean)
+        XCTAssertEqual(planA, planB)
+        XCTAssertEqual(try planA.jsonData(), try planB.jsonData())
+    }
+
+    /// NFC a NFD zápis téhož jména je na APFS stejná identita; dedup je podle inode.
+    func testUnicodeNormalizedPathsDeduplicateByIdentity() throws {
+        let nfc = "kav\u{e1}.txt"
+        let nfd = "kava\u{301}.txt"
+        try tree.writeFile(nfc, contents: "kanarek")
+        var first = stat()
+        var second = stat()
+        guard lstat(tree.path(nfc), &first) == 0,
+              lstat(tree.path(nfd), &second) == 0,
+              first.st_dev == second.st_dev,
+              first.st_ino == second.st_ino else {
+            throw XCTSkip("filesystem nerozlišuje Unicode normalizaci; test identity dedupu nelze sestrojit")
+        }
+
+        let planA = try plan([nfd, nfc])
+        let planB = try plan([nfc, nfd])
+        XCTAssertEqual(planA.candidates.count, 1)
+        XCTAssertTrue(planA.isClean)
+        XCTAssertEqual(planA, planB)
+        XCTAssertEqual(try planA.jsonData(), try planB.jsonData())
+    }
+
+    /// Kolize cílových jmen různých identit se odmítne v plánu.
+    func testTargetCollisionRejectsBothCandidates() {
+        let first = FileSnapshot(
+            device: 1, inode: 1, size: 1, mode: 0o644, linkCount: 1, contentHash: "aa"
+        )
+        let second = FileSnapshot(
+            device: 1, inode: 2, size: 1, mode: 0o644, linkCount: 1, contentHash: "bb"
+        )
+        let candidates = [
+            Candidate(relativePath: "A.txt", accepted: true, reason: .accepted, snapshot: first),
+            Candidate(relativePath: "a.txt", accepted: true, reason: .accepted, snapshot: second),
+        ]
+        let rejected = TargetNames.rejectCollisions(candidates)
+        XCTAssertEqual(rejected.map(\.reason), [.destinationCollision, .destinationCollision])
+        XCTAssertFalse(rejected.contains { $0.accepted })
+    }
+
+    /// Meziadresář klasifikovaný `fstatat` a otevřený `openat` musí být stejný inode.
+    func testOpenedDirectoryIdentityGuardFailsWhenOpenatReturnsAnotherDirectory() throws {
+        try tree.makeDirectory("a")
+        try tree.makeDirectory("b")
+        let rootFD = open(tree.root, O_RDONLY | O_DIRECTORY | O_CLOEXEC)
+        XCTAssertGreaterThanOrEqual(rootFD, 0)
+        defer { close(rootFD) }
+
+        let result = SafePath.openDirectoryChain(
+            rootFD: rootFD,
+            components: ["a", "file.txt"],
+            openDirectory: { _, _ in
+                open(self.tree.path("b"), O_RDONLY | O_DIRECTORY | O_CLOEXEC)
+            }
+        )
+        switch result {
+        case .success:
+            XCTFail("guard nesmí přijmout jiný inode, než klasifikoval fstatat")
+        case let .failure(rejection):
+            XCTAssertEqual(rejection.reason, .ioError)
+            XCTAssertTrue(rejection.detail?.contains("changed between fstatat and openat") == true)
+        }
     }
 
     func testInvalidRootFails() throws {

@@ -39,7 +39,8 @@ enum SafePath {
     /// (volající je zavírá) plus jméno poslední komponenty.
     static func openDirectoryChain(
         rootFD: Int32,
-        components: [String]
+        components: [String],
+        openDirectory: ((Int32, String) -> Int32)? = nil
     ) -> Result<(opened: [Int32], name: String), Rejection> {
         guard let name = components.last else {
             return .failure(Rejection(reason: .ioError, detail: "empty relative path"))
@@ -60,16 +61,34 @@ enum SafePath {
                 for openedFD in opened.reversed() { close(openedFD) }
                 return .failure(rejection(kind: incoming, component: component))
             }
-            let fd = component.withCString { openat(currentFD, $0, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC) }
+            let fd = openDirectory?(currentFD, component)
+                ?? component.withCString { openat(currentFD, $0, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC) }
             guard fd >= 0 else {
                 let code = errno
                 for openedFD in opened.reversed() { close(openedFD) }
                 return .failure(rejection(errno: code, component: component, operation: "openat"))
             }
+            // `fstatat` klasifikoval jeden inode, ale `openat` mohl otevřít jiný
+            // (záměna mezi voláními). Rozhoduje fd, proto se dev/ino musí shodovat.
+            guard openedDirectoryMatches(classified: status, openedFD: fd) else {
+                close(fd)
+                for openedFD in opened.reversed() { close(openedFD) }
+                return .failure(Rejection(
+                    reason: .ioError,
+                    detail: "directory '\(component)' changed between fstatat and openat"
+                ))
+            }
             opened.append(fd)
             currentFD = fd
         }
         return .success((opened, name))
+    }
+
+    /// Ověří, že otevřený fd je skutečně inode, který klasifikoval `fstatat`.
+    static func openedDirectoryMatches(classified: stat, openedFD: Int32) -> Bool {
+        var openedStatus = stat()
+        guard fstat(openedFD, &openedStatus) == 0 else { return false }
+        return openedStatus.st_dev == classified.st_dev && openedStatus.st_ino == classified.st_ino
     }
 
     /// Metadata poslední komponenty bez otevření souboru (`AT_SYMLINK_NOFOLLOW`).
@@ -87,6 +106,34 @@ enum SafePath {
             return .failure(Rejection(reason: .hardlink, detail: "nlink=\(status.st_nlink) at \(name)"))
         }
         return .success(FileSnapshot(fromStat: status))
+    }
+
+    /// Preview otevře soubor a spočítá SHA-256. Metadata se porovnají před i po
+    /// čtení, takže snapshot popisuje právě ta bajty, které preview vidělo.
+    static func inspectAndHash(parentFD: Int32, name: String) -> Result<FileSnapshot, Rejection> {
+        switch openForCopy(parentFD: parentFD, name: name) {
+        case let .failure(rejection):
+            return .failure(rejection)
+        case let .success(opened):
+            defer { close(opened.fd) }
+            let hash: String
+            switch ContentHash.sha256(fileDescriptor: opened.fd) {
+            case let .success(value): hash = value
+            case let .failure(rejection): return .failure(rejection)
+            }
+            var after = stat()
+            guard fstat(opened.fd, &after) == 0 else {
+                return .failure(rejection(errno: errno, component: name, operation: "fstat"))
+            }
+            let afterSnapshot = FileSnapshot(fromStat: after, contentHash: hash)
+            guard afterSnapshot.matchesMetadata(opened.snapshot) else {
+                return .failure(Rejection(
+                    reason: .ioError,
+                    detail: "source changed while hashing at \(name)"
+                ))
+            }
+            return .success(afterSnapshot)
+        }
     }
 
     /// Otevře soubor pro kopii: klasifikace předem, `O_NOFOLLOW`, autoritativní `fstat` na fd.
@@ -118,7 +165,7 @@ enum SafePath {
                 close(fd)
                 return .failure(Rejection(reason: .hardlink, detail: "nlink=\(snapshot.linkCount) at \(name)"))
             }
-            guard snapshot.matchesIdentity(expected) else {
+            guard snapshot.matchesMetadata(expected) else {
                 close(fd)
                 return .failure(
                     Rejection(

@@ -13,27 +13,45 @@ public struct FileSnapshot: Codable, Sendable, Equatable {
     /// Přístupová práva včetně setuid/setgid/sticky (`st_mode & 0o7777`).
     public let mode: UInt16
     public let linkCount: UInt64
+    /// Hex SHA-256 obsahu. Preview ho spočítá a kopie ho přepočítá během čtení zdroje.
+    /// Prázdný řetězec znamená „hash ještě není spočítaný“ (např. metadata z `fstat`).
+    public let contentHash: String
 
-    public init(device: UInt64, inode: UInt64, size: Int64, mode: UInt16, linkCount: UInt64) {
+    public init(
+        device: UInt64,
+        inode: UInt64,
+        size: Int64,
+        mode: UInt16,
+        linkCount: UInt64,
+        contentHash: String
+    ) {
         self.device = device
         self.inode = inode
         self.size = size
         self.mode = mode
         self.linkCount = linkCount
+        self.contentHash = contentHash
     }
 
-    init(fromStat status: stat) {
+    init(fromStat status: stat, contentHash: String = "") {
         self.device = UInt64(bitPattern: Int64(status.st_dev))
         self.inode = UInt64(status.st_ino)
         self.size = Int64(status.st_size)
         self.mode = UInt16(status.st_mode & 0o7777)
         self.linkCount = UInt64(status.st_nlink)
+        self.contentHash = contentHash
     }
 
-    /// Porovnává jen to, co určuje identitu a velikost souboru — ne práva.
-    /// Změna práv mezi preview a kopií není výměna inode; kopie práva stejně bere z fd.
-    public func matchesIdentity(_ other: FileSnapshot) -> Bool {
+    /// Porovnává metadata identity a velikosti bez obsahu. Používá se mezi dvěma
+    /// `fstat` voláními, kde se hash počítá až následně.
+    public func matchesMetadata(_ other: FileSnapshot) -> Bool {
         device == other.device && inode == other.inode && size == other.size && linkCount == other.linkCount
+    }
+
+    /// Porovnává identitu, velikost i obsah. Změna práv mezi preview a kopií není
+    /// výměna inode; kopie práva stejně bere z fd. Jiný hash je jiný obsah.
+    public func matchesIdentity(_ other: FileSnapshot) -> Bool {
+        matchesMetadata(other) && contentHash == other.contentHash
     }
 }
 

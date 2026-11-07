@@ -112,7 +112,9 @@ public struct ExportCLI: Sendable {
 
         Fáze 1–2 (selekce a preview) běží vždy a nic nezapisují. `--apply` navíc
         zkopíruje přijaté soubory do nového cílového stromu a nastaví
-        com.apple.quarantine. Bez `--apply` jde o dry-run.
+        com.apple.quarantine. Bez `--apply` jde o dry-run. `--audit` zapisuje
+        append-only JSONL jen s `--apply`; v dry-runu jde jen na stdout.
+        `--dest` nesmí ležet uvnitř `--root`.
 
         exit 0  plán je čistý; u --apply vše zkopírováno a zkaranténěno
         exit 1  I/O chyba, TOCTOU (soubor se změnil), karanténu nelze nastavit
@@ -140,16 +142,38 @@ public struct ExportCLI: Sendable {
             return ExportExitCode.usage.rawValue
         }
 
-        let auditSink = RecordingAuditSink()
+        // Cíl uvnitř zdroje by zapisoval do právě exportovaného stromu. Odmítáme
+        // ještě před vytvořením auditního souboru, aby dry-run nic nevedl jako side effect.
+        if let destination = parsed.destinationRoot,
+           ExportPathPolicy.isDestination(destination, insideRoot: parsed.rootPath) {
+            stderr("sanjbox-export: --dest \(destination) is inside --root \(parsed.rootPath)\n\n\(ExportCLI.usage)\n")
+            return ExportExitCode.usage.rawValue
+        }
+
+        let recording = RecordingAuditSink()
         do {
+            // U apply+--audit jde audit na disk append-only hned od prvního záznamu.
+            // Dry-run nikdy nezapisuje: audit jde jen na stdout.
+            let auditSink: any AuditSink
+            if parsed.apply, let auditPath = parsed.auditPath {
+                auditSink = try FileAuditSink(path: auditPath)
+            } else {
+                auditSink = recording
+            }
+
             let plan = try ExportPreparer(rootPath: parsed.rootPath)
                 .prepare(relativePaths: parsed.relativePaths, audit: auditSink)
             stdout(try plan.jsonString() + "\n")
 
+            if !parsed.apply, parsed.auditPath != nil {
+                // Dry-run --audit: dokument existuje jen na stdout, na disku nic nevzniká.
+                stdout(try recording.documentString())
+            }
+
             if parsed.apply {
                 guard plan.isClean else {
                     stderr("sanjbox-export: selection rejected \(plan.rejectedPaths.joined(separator: ", ")); refusing to copy\n")
-                    return try finish(exitCode: .policyRejection, arguments: parsed, audit: auditSink)
+                    return ExportExitCode.policyRejection.rawValue
                 }
                 guard let destination = parsed.destinationRoot else {
                     throw ExportArgumentError.applyWithoutDestination
@@ -159,34 +183,15 @@ public struct ExportCLI: Sendable {
                     stdout(String(decoding: try exported.jsonData(), as: UTF8.self) + "\n")
                 } catch {
                     stderr("sanjbox-export: export failed: \(error)\n")
-                    // Audit se zapisuje i po selhání: záznam o tom, co se stihlo, je důkaz,
-                    // ne úspěch. Chyba zápisu auditu sama skončí jako failure.
-                    return try finish(exitCode: .failure, arguments: parsed, audit: auditSink)
+                    // Záznamy už jsou v append-only auditu; úspěch to není.
+                    return ExportExitCode.failure.rawValue
                 }
             }
 
-            let code: ExportExitCode = plan.isClean ? .ok : .policyRejection
-            return try finish(exitCode: code, arguments: parsed, audit: auditSink)
+            return (plan.isClean ? ExportExitCode.ok : .policyRejection).rawValue
         } catch {
             stderr("sanjbox-export: \(error)\n")
             return ExportExitCode.failure.rawValue
         }
-    }
-
-    /// Zapíše auditní dokument, pokud byl požadovaný. Cíl auditu se nikdy nepřepisuje:
-    /// existující soubor = chyba, aby starý záznam omylem nezmizel.
-    private func finish(
-        exitCode: ExportExitCode,
-        arguments: ExportArguments,
-        audit: RecordingAuditSink
-    ) throws -> Int32 {
-        guard let auditPath = arguments.auditPath else { return exitCode.rawValue }
-        let data = try audit.document()
-        do {
-            try data.write(to: URL(fileURLWithPath: auditPath), options: .withoutOverwriting)
-        } catch {
-            throw ExportError.io(path: auditPath, operation: "write-audit", errno: EEXIST)
-        }
-        return exitCode.rawValue
     }
 }

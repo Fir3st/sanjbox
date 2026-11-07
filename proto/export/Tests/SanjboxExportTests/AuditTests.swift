@@ -4,9 +4,11 @@ import XCTest
 /// Audit: deterministický JSON se stabilním pořadím záznamů.
 final class AuditTests: XCTestCase {
     private var tree: TempTree!
+    private var destTree: TempTree!
 
     override func setUpWithError() throws {
         tree = try TempTree(label: "audit")
+        destTree = try TempTree(label: "audit-dest")
         try tree.writeFile("b.txt", contents: "bbb")
         try tree.writeFile("a.txt", contents: "aa")
         try tree.writeFile("sub/c.txt", contents: "c")
@@ -15,7 +17,9 @@ final class AuditTests: XCTestCase {
 
     override func tearDown() {
         tree?.remove()
+        destTree?.remove()
         tree = nil
+        destTree = nil
     }
 
     func testPreviewAuditIsByteIdenticalAcrossRuns() throws {
@@ -72,7 +76,7 @@ final class AuditTests: XCTestCase {
     }
 
     func testCopyAuditAppendsAfterPreviewInDeterministicOrder() throws {
-        let destination = tree.path("out-alpha")
+        let destination = destTree.path("out-alpha")
         let first = RecordingAuditSink()
         let second = RecordingAuditSink()
         let paths = ["b.txt", "sub/c.txt", "a.txt"]
@@ -80,7 +84,7 @@ final class AuditTests: XCTestCase {
         let planA = try ExportPreparer(rootPath: tree.root).prepare(relativePaths: paths, audit: first)
         _ = try ExportCopier().apply(planA, destinationRoot: destination, audit: first)
 
-        let destinationB = tree.path("out-beta")
+        let destinationB = destTree.path("out-beta")
         let planB = try ExportPreparer(rootPath: tree.root).prepare(relativePaths: paths, audit: second)
         _ = try ExportCopier().apply(planB, destinationRoot: destinationB, audit: second)
 
@@ -88,12 +92,30 @@ final class AuditTests: XCTestCase {
         XCTAssertEqual(recordsA.map(\.phase), [.preview, .preview, .preview, .copy, .copy, .copy])
         XCTAssertEqual(recordsA.map(\.relativePath), ["a.txt", "b.txt", "sub/c.txt", "a.txt", "b.txt", "sub/c.txt"])
         XCTAssertEqual(recordsA.filter { $0.phase == .copy }.map(\.bytesCopied), [2, 3, 1])
-        XCTAssertEqual(recordsA.filter { $0.phase == .copy }.map(\.destination).count, 3)
+        XCTAssertEqual(
+            recordsA.filter { $0.phase == .copy }.map(\.destination),
+            ["a.txt", "b.txt", "sub/c.txt"],
+            "copy audit nese cestu relativně k cílovému kořeni"
+        )
 
-        // Cílové cesty se liší, takže se dokumenty liší jen v nich.
-        let textA = try first.documentString().replacingOccurrences(of: destination, with: "<DEST>")
-        let textB = try second.documentString().replacingOccurrences(of: destinationB, with: "<DEST>")
-        XCTAssertEqual(textA, textB)
+        // Cílové kořeny se liší, ale audit je na nich nezávislý.
+        XCTAssertEqual(try first.document(), try second.document())
+    }
+
+    func testApplyAuditContainsNoAbsolutePaths() throws {
+        let destination = destTree.path("out-no-abs")
+        let sink = RecordingAuditSink()
+        let plan = try ExportPreparer(rootPath: tree.root)
+            .prepare(relativePaths: ["a.txt", "sub/c.txt"], audit: sink)
+        _ = try ExportCopier().apply(plan, destinationRoot: destination, audit: sink)
+
+        let text = try sink.documentString()
+        XCTAssertFalse(text.contains(tree.root), "audit nesmí nést absolutní zdrojový kořen")
+        XCTAssertFalse(text.contains(destination), "audit nesmí nést absolutní cílový kořen")
+        XCTAssertEqual(
+            sink.records.filter { $0.phase == .copy }.map(\.destination),
+            ["a.txt", "sub/c.txt"]
+        )
     }
 
     func testRejectedRecordCarriesReasonAndNoSnapshot() throws {
@@ -110,7 +132,9 @@ final class AuditTests: XCTestCase {
     }
 
     func testDocumentSortsRecordsByPhaseThenSequenceThenPath() throws {
-        let snapshot = FileSnapshot(device: 1, inode: 2, size: 3, mode: 0o644, linkCount: 1)
+        let snapshot = FileSnapshot(
+            device: 1, inode: 2, size: 3, mode: 0o644, linkCount: 1, contentHash: "aa"
+        )
         let records = [
             AuditRecord(phase: .copy, sequence: 0, relativePath: "z.txt", decision: .accept, reason: .accepted, snapshot: snapshot),
             AuditRecord(phase: .preview, sequence: 1, relativePath: "b.txt", decision: .accept, reason: .accepted, snapshot: snapshot),

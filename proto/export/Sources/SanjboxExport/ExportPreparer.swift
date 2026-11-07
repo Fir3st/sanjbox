@@ -28,12 +28,14 @@ public struct ExportPreparer: Sendable {
         // Duplicitní vstupy se sloučí podle normalizované cesty, takže pořadí argumentů
         // na příkazové řádce neovlivní plán ani audit. Neplatné vstupy zůstávají
         // v plánu jako odmítnuté, aby odmítnutí nikdy nezmizelo.
-        var validPaths: [String: RelativePath] = [:]
-        var invalidPaths: [String: PathParseError] = [:]
+        // Klíč je bajtová podoba cesty, ne `String`: Swift `String` považuje NFC a NFD
+        // za stejné, což by u neplatného pořadí argumentů měnilo vybranou cestu.
+        var validPaths: [Data: RelativePath] = [:]
+        var invalidPaths: [Data: (raw: String, reason: PathParseError)] = [:]
         for raw in relativePaths {
             switch RelativePath.parse(raw) {
-            case let .success(parsed): validPaths[parsed.path] = parsed
-            case let .failure(reason): invalidPaths[raw] = reason
+            case let .success(parsed): validPaths[Data(parsed.path.utf8)] = parsed
+            case let .failure(reason): invalidPaths[Data(raw.utf8)] = (raw, reason)
             }
         }
 
@@ -42,7 +44,8 @@ public struct ExportPreparer: Sendable {
         for parsed in validPaths.values {
             candidates.append(decide(parsed: parsed, rootFD: rootFD))
         }
-        for (raw, reason) in invalidPaths {
+        for value in invalidPaths.values {
+            let (raw, reason) = value
             candidates.append(Candidate(
                 relativePath: raw,
                 accepted: false,
@@ -50,7 +53,11 @@ public struct ExportPreparer: Sendable {
                 detail: reason.detail
             ))
         }
-        let plan = ExportPlan(root: rootPath, candidates: candidates)
+        // Nejdřív sloučit stejnou identitu (např. case varianty téhož jména na
+        // case-insensitive APFS), pak odmítnout skutečné kolize různých identit.
+        let deduplicated = TargetNames.deduplicateByIdentity(candidates)
+        let validated = TargetNames.rejectCollisions(deduplicated)
+        let plan = ExportPlan(root: rootPath, candidates: validated, preparedForCopy: true)
 
         if let audit {
             for (index, candidate) in plan.candidates.enumerated() {
@@ -71,7 +78,7 @@ public struct ExportPreparer: Sendable {
             )
         case let .success(chain):
             defer { for fd in chain.opened.reversed() { close(fd) } }
-            switch SafePath.inspect(parentFD: chain.opened.last ?? rootFD, name: chain.name) {
+            switch SafePath.inspectAndHash(parentFD: chain.opened.last ?? rootFD, name: chain.name) {
             case let .failure(rejection):
                 return Candidate(
                     relativePath: parsed.path,

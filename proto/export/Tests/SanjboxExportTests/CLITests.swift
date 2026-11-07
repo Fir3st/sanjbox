@@ -7,16 +7,20 @@ import SanjboxExport
 /// tenký `main.swift`.
 final class CLITests: XCTestCase {
     private var tree: TempTree!
+    private var destTree: TempTree!
 
     override func setUpWithError() throws {
         tree = try TempTree(label: "cli")
+        destTree = try TempTree(label: "cli-dest")
         try tree.writeFile("notes/a.txt", contents: "kanarek")
         try tree.writeFile("notes/b.bin", contents: "druhy")
     }
 
     override func tearDown() {
         tree?.remove()
+        destTree?.remove()
         tree = nil
+        destTree = nil
     }
 
     private struct Run {
@@ -36,7 +40,7 @@ final class CLITests: XCTestCase {
     }
 
     func testDryRunIsDefaultAndWritesNothing() throws {
-        let destination = tree.path("out")
+        let destination = destTree.path("out")
         let structureBefore = tree.structure()
         let contentsBefore = tree.contents()
 
@@ -51,8 +55,8 @@ final class CLITests: XCTestCase {
     }
 
     func testApplyCopiesQuarantinesAndWritesAudit() throws {
-        let destination = tree.path("out")
-        let audit = tree.path("audit.json")
+        let destination = destTree.path("out")
+        let audit = destTree.path("audit.json")
         let result = run([
             "--root", tree.root,
             "--file", "notes/a.txt",
@@ -69,14 +73,15 @@ final class CLITests: XCTestCase {
         XCTAssertEqual(quarantine(ofFile: destination + "/notes/a.txt"), Quarantine.defaultValue)
 
         let auditText = try String(contentsOfFile: audit, encoding: .utf8)
-        XCTAssertTrue(auditText.contains("\"phase\" : \"preview\""))
-        XCTAssertTrue(auditText.contains("\"phase\" : \"copy\""))
-        XCTAssertTrue(auditText.contains("\"scheme\" : \"sanjbox.export.audit.v0\""))
+        XCTAssertTrue(auditText.contains("\"phase\":\"preview\""))
+        XCTAssertTrue(auditText.contains("\"phase\":\"copy\""))
+        XCTAssertTrue(auditText.contains("\"scheme\":\"sanjbox.export.audit.v0\""))
+        XCTAssertEqual(auditText.split(separator: "\n").count, 2, "jeden záznam na řádek")
     }
 
     func testPolicyRejectionExitCodeThreeAndNoCopy() throws {
         try tree.makeSymlink("notes/link.txt", target: "a.txt")
-        let destination = tree.path("out")
+        let destination = destTree.path("out")
         let result = run(["--root", tree.root, "--file", "notes/link.txt", "--dest", destination, "--apply"])
 
         XCTAssertEqual(result.code, ExportExitCode.policyRejection.rawValue)
@@ -110,9 +115,9 @@ final class CLITests: XCTestCase {
     }
 
     func testExistingAuditFileIsNotOverwritten() throws {
-        let audit = tree.path("audit.json")
-        try tree.writeFile("audit.json", contents: "stary zaznam")
-        let destination = tree.path("out")
+        let audit = destTree.path("audit.json")
+        try destTree.writeFile("audit.json", contents: "stary zaznam")
+        let destination = destTree.path("out")
         let result = run([
             "--root", tree.root,
             "--file", "notes/a.txt",
@@ -126,11 +131,11 @@ final class CLITests: XCTestCase {
 
     func testApplyFailureReturnsOneAndReportsReason() throws {
         // Cílový kořen existuje → export nesmí pokračovat.
-        try tree.makeDirectory("out")
+        try destTree.makeDirectory("out")
         let result = run([
             "--root", tree.root,
             "--file", "notes/a.txt",
-            "--dest", tree.path("out"),
+            "--dest", destTree.path("out"),
             "--apply",
         ])
         XCTAssertEqual(result.code, ExportExitCode.failure.rawValue)
@@ -139,19 +144,74 @@ final class CLITests: XCTestCase {
 
     func testAuditIsWrittenEvenWhenApplyFails() throws {
         // Cílový kořen existuje → apply skončí exit 1, ale záznam o rozhodnutích musí zůstat.
-        try tree.makeDirectory("out")
-        let audit = tree.path("audit-failure.json")
+        try destTree.makeDirectory("out")
+        let audit = destTree.path("audit-failure.json")
         let result = run([
             "--root", tree.root,
             "--file", "notes/a.txt",
-            "--dest", tree.path("out"),
+            "--dest", destTree.path("out"),
             "--audit", audit,
             "--apply",
         ])
         XCTAssertEqual(result.code, ExportExitCode.failure.rawValue)
         let text = try String(contentsOfFile: audit, encoding: .utf8)
-        XCTAssertTrue(text.contains("\"phase\" : \"preview\""))
-        XCTAssertFalse(text.contains("\"phase\" : \"copy\""))
+        XCTAssertTrue(text.contains("\"phase\":\"preview\""))
+        XCTAssertFalse(text.contains("\"phase\":\"copy\""))
+    }
+
+    /// Dry-run s --audit nesmí na disk zapsat nic; audit jde jen na stdout.
+    func testDryRunAuditNeverCreatesFile() throws {
+        let audit = destTree.path("dry-audit.json")
+        let structureBefore = tree.structure()
+        let result = run([
+            "--root", tree.root,
+            "--file", "notes/a.txt",
+            "--audit", audit,
+        ])
+        XCTAssertEqual(result.code, ExportExitCode.ok.rawValue, "stderr: \(result.stderr)")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: audit), "dry-run nesmí vytvořit audit")
+        XCTAssertEqual(tree.structure(), structureBefore)
+        XCTAssertTrue(result.stdout.contains("\"scheme\" : \"sanjbox.export.audit.v0\""))
+    }
+
+    func testDestinationInsideRootIsUsageError() throws {
+        let inside = tree.path("out")
+        let result = run([
+            "--root", tree.root,
+            "--file", "notes/a.txt",
+            "--dest", inside,
+            "--apply",
+        ])
+        XCTAssertEqual(result.code, ExportExitCode.usage.rawValue)
+        XCTAssertTrue(result.stderr.contains("is inside --root"))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: inside))
+    }
+
+    func testAuditWriteErrorReportsActualErrnoForDirectory() throws {
+        try destTree.makeDirectory("audit-dir")
+        let result = run([
+            "--root", tree.root,
+            "--file", "notes/a.txt",
+            "--dest", destTree.path("out"),
+            "--audit", destTree.path("audit-dir"),
+            "--apply",
+        ])
+        XCTAssertEqual(result.code, ExportExitCode.failure.rawValue)
+        XCTAssertTrue(result.stderr.contains("errno 21"), "skutečné EISDIR, ne vždy EEXIST: \(result.stderr)")
+        XCTAssertTrue(result.stderr.contains("Is a directory"))
+    }
+
+    func testAuditWriteErrorReportsActualErrnoForMissingParent() throws {
+        let result = run([
+            "--root", tree.root,
+            "--file", "notes/a.txt",
+            "--dest", destTree.path("out"),
+            "--audit", destTree.path("missing/audit.json"),
+            "--apply",
+        ])
+        XCTAssertEqual(result.code, ExportExitCode.failure.rawValue)
+        XCTAssertTrue(result.stderr.contains("errno 2"), "skutečné ENOENT, ne vždy EEXIST: \(result.stderr)")
+        XCTAssertTrue(result.stderr.contains("No such file or directory"))
     }
 
     func testArgumentOrderDoesNotAffectOutput() throws {

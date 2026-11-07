@@ -1,3 +1,4 @@
+import CryptoKit
 import Darwin
 import Foundation
 
@@ -42,12 +43,15 @@ public struct ExportResult: Codable, Sendable, Equatable {
 /// Fáze 3 a 4: kopie do nového cílového stromu a karanténa.
 ///
 /// Vlastnosti, které se nemění:
-/// - plán musí být čistý (`planNotClean`), jinak se nezkopíruje nic,
-/// - cílový kořen musí být nový; existující cíl se nikdy nepoužije (`destinationExists`),
-/// - každý soubor se otevře znovu přes `openat(O_NOFOLLOW)` a `fstat` se porovná se snapshotem
-///   z preview (`identityMismatch`),
+/// - plán musí být připravený v tomto procesu (`planNotPrepared`) a čistý (`planNotClean`),
+/// - cílový kořen musí být nový a mimo zdrojový kořen (`destinationExists`,
+///   `destinationInsideRoot`); kolize cílových jmen se odmítne před kopií,
+/// - každý soubor se otevře znovu přes `openat(O_NOFOLLOW)`, porovná se `fstat`
+///   a SHA-256 proti preview (`identityMismatch`),
 /// - cílový soubor vzniká `O_CREAT|O_EXCL`, takže nikdy nepřepíše existující soubor,
-/// - karanténa se nastavuje na fd a hned se ověřuje; selhání = `quarantineFailed`.
+/// - karanténa se nastaví na fd prázdného souboru hned po vytvoření, obsah se pak zapíše
+///   a na konci se karanténa jen znovu ověří; selhání = `quarantineFailed`,
+/// - selhání uprostřed kopie odstraní částečný cílový soubor.
 ///
 /// Co prototyp **nedělá**: nekopíruje ACL, rozšířené atributy kromě karantény, vlastníka ani
 /// časové značky. Neuklízí částečný cílový strom po chybě (volající ho smaže sám, protože
@@ -56,16 +60,20 @@ public struct ExportCopier: Sendable {
     public struct Configuration: Sendable {
         public var quarantineValue: String
         public var quarantineWriter: any QuarantineWriter
+        /// Zapisovač obsahu. Testy přes něj injektují selhání uprostřed kopie.
+        public var contentWriter: any ContentWriter
         /// Velikost bloku pro `read`/`write`.
         public var bufferSize: Int
 
         public init(
             quarantineValue: String = Quarantine.defaultValue,
             quarantineWriter: any QuarantineWriter = SystemQuarantineWriter(),
+            contentWriter: any ContentWriter = SystemContentWriter(),
             bufferSize: Int = 64 * 1024
         ) {
             self.quarantineValue = quarantineValue
             self.quarantineWriter = quarantineWriter
+            self.contentWriter = contentWriter
             self.bufferSize = bufferSize
         }
     }
@@ -85,8 +93,18 @@ public struct ExportCopier: Sendable {
         destinationRoot: String,
         audit: (any AuditSink)?
     ) throws -> ExportResult {
+        guard plan.isAuthorizedForCopy else {
+            throw ExportError.planNotPrepared
+        }
         guard plan.isClean else {
             throw ExportError.planNotClean(paths: plan.rejectedPaths)
+        }
+        guard !ExportPathPolicy.isDestination(destinationRoot, insideRoot: plan.root) else {
+            throw ExportError.destinationInsideRoot(destination: destinationRoot, root: plan.root)
+        }
+        let collisionDetails = TargetNames.collisionDetails(for: plan.candidates)
+        if !collisionDetails.isEmpty {
+            throw ExportError.destinationNameCollision(paths: collisionDetails.keys.sorted(by: TargetNames.compare))
         }
         guard !plan.accepted.isEmpty else {
             return ExportResult(destinationRoot: destinationRoot, copied: [])
@@ -126,7 +144,7 @@ public struct ExportCopier: Sendable {
                     phase: .copy,
                     sequence: index,
                     candidate: candidate,
-                    destination: file.destination,
+                    destination: file.relativePath,
                     bytesCopied: file.bytesCopied
                 )
             )
@@ -192,8 +210,9 @@ public struct ExportCopier: Sendable {
         }
         defer { close(sourceFD) }
 
-        // TOCTOU: soubor mezi preview a kopií musí být tentýž a stejně velký.
-        guard actual.matchesIdentity(expected) else {
+        // TOCTOU: soubor mezi preview a kopií musí být tentýž a stejně velký;
+        // obsah se ověří hashem až při čtení.
+        guard actual.matchesMetadata(expected) else {
             throw ExportError.identityMismatch(path: candidate.relativePath, expected: expected, actual: actual)
         }
 
@@ -224,32 +243,46 @@ public struct ExportCopier: Sendable {
             throw ExportError.io(path: destinationPath, operation: "fchmod", errno: errno)
         }
 
-        let written = try copyBytes(from: sourceFD, to: destFD, path: candidate.relativePath)
-        guard written == expected.size else {
+        // Karanténa patří na fd prázdného souboru hned po `O_CREAT|O_EXCL`.
+        // Kdyby proces spadl během zápisu, v cíli nezůstane nekaranténovaný částečný soubor.
+        try applyQuarantine(fileDescriptor: destFD, destinationPath: destinationPath)
+
+        var completed = false
+        defer {
+            if !completed {
+                // Selhání uprostřed kopie nesmí nechat částečný soubor v cíli.
+                _ = chain.name.withCString { unlinkat(destParentFD, $0, 0) }
+            }
+        }
+
+        let copy = try copyBytes(from: sourceFD, to: destFD, path: candidate.relativePath)
+        guard copy.bytes == expected.size, copy.hash == expected.contentHash else {
             throw ExportError.identityMismatch(
                 path: candidate.relativePath,
                 expected: expected,
                 actual: FileSnapshot(
                     device: actual.device,
                     inode: actual.inode,
-                    size: written,
+                    size: copy.bytes,
                     mode: actual.mode,
-                    linkCount: actual.linkCount
+                    linkCount: actual.linkCount,
+                    contentHash: copy.hash
                 )
             )
         }
 
-        // Zdroj se nesmí změnit ani během kopie.
+        // Zdroj se nesmí změnit ani během kopie; hash pokrývá i přepis na místě.
         var after = stat()
         guard fstat(sourceFD, &after) == 0 else {
             throw ExportError.io(path: candidate.relativePath, operation: "fstat-after-copy", errno: errno)
         }
-        let afterSnapshot = FileSnapshot(fromStat: after)
+        let afterSnapshot = FileSnapshot(fromStat: after, contentHash: copy.hash)
         guard afterSnapshot.matchesIdentity(expected) else {
             throw ExportError.identityMismatch(path: candidate.relativePath, expected: expected, actual: afterSnapshot)
         }
 
-        try applyQuarantine(fileDescriptor: destFD, destinationPath: destinationPath)
+        // Obsah je zapsaný; karanténa se jen znovu ověří.
+        try verifyQuarantine(fileDescriptor: destFD, destinationPath: destinationPath)
 
         var destStatus = stat()
         guard fstat(destFD, &destStatus) == 0 else {
@@ -262,10 +295,11 @@ public struct ExportCopier: Sendable {
             throw ExportError.io(path: destinationPath, operation: "verify-destination-size", errno: EINVAL)
         }
 
+        completed = true
         return CopiedFile(
             relativePath: candidate.relativePath,
             destination: destinationPath,
-            bytesCopied: written,
+            bytesCopied: copy.bytes,
             snapshot: expected,
             quarantineValue: configuration.quarantineValue
         )
@@ -310,7 +344,18 @@ public struct ExportCopier: Sendable {
         }
     }
 
-    private func copyBytes(from sourceFD: Int32, to destFD: Int32, path: String) throws -> Int64 {
+    private func verifyQuarantine(fileDescriptor fd: Int32, destinationPath: String) throws {
+        do {
+            try configuration.quarantineWriter.verifyQuarantine(value: configuration.quarantineValue, fileDescriptor: fd)
+        } catch let error as QuarantineWriteError {
+            throw ExportError.quarantineFailed(path: destinationPath, errno: error.code)
+        }
+    }
+
+    /// Zkopíruje bajty a současně počítá SHA-256 zdroje. Vrací i počet zapsaných
+    /// bajtů, aby se neshoda velikosti nebo obsahu hlásila jako `identityMismatch`.
+    private func copyBytes(from sourceFD: Int32, to destFD: Int32, path: String) throws -> (bytes: Int64, hash: String) {
+        var hasher = SHA256()
         var buffer = [UInt8](repeating: 0, count: max(configuration.bufferSize, 4096))
         var total: Int64 = 0
         while true {
@@ -324,17 +369,27 @@ public struct ExportCopier: Sendable {
             }
             var offset = 0
             while offset < readCount {
-                let written = buffer.withUnsafeBytes { raw in
-                    write(destFD, raw.baseAddress!.advanced(by: offset), readCount - offset)
+                let slice = buffer.withUnsafeBytes { raw in
+                    UnsafeRawBufferPointer(rebasing: raw[offset..<readCount])
                 }
-                if written < 0 {
-                    if errno == EINTR { continue }
-                    throw ExportError.io(path: path, operation: "write", errno: errno)
+                let written: Int
+                do {
+                    written = try configuration.contentWriter.write(fileDescriptor: destFD, buffer: slice)
+                } catch let error as POSIXWriteError {
+                    if error.code == EINTR { continue }
+                    throw ExportError.io(path: path, operation: "write", errno: error.code)
+                } catch {
+                    throw ExportError.io(path: path, operation: "write", errno: EIO)
+                }
+                guard written > 0 else {
+                    throw ExportError.io(path: path, operation: "write", errno: EIO)
                 }
                 offset += written
             }
+            hasher.update(data: Data(buffer[0..<readCount]))
             total += Int64(readCount)
         }
-        return total
+        let hash = hasher.finalize().map { String(format: "%02x", $0) }.joined()
+        return (total, hash)
     }
 }

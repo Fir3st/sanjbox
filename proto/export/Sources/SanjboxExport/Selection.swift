@@ -20,6 +20,8 @@ public enum SelectionReason: String, Codable, Sendable, CaseIterable {
     case notRegularFile
     /// Jiná I/O chyba (práva, neplatná komponenta, neklasifikovaný `errno`).
     case ioError
+    /// Dvě různé identity by v cíli skončily na stejném jméně (case/Unicode kolize).
+    case destinationCollision
 }
 
 /// Jedno rozhodnutí o jedné cestě. `snapshot` je vyplněný jen tam, kde ho preview skutečně vidělo.
@@ -52,11 +54,43 @@ public struct ExportPlan: Codable, Sendable, Equatable {
     /// Kandidáti seřazení podle UTF-8 bajtů cesty. Pořadí je součástí kontraktu auditu.
     public let candidates: [Candidate]
 
+    /// `false` pro plán, který prošel sériovým zápisem a čtením (JSON round-trip).
+    /// Kopie přijímá jen plán připravený v tomto procesu, aby snapshot nebyl jen
+    /// důvěřivě převzatý z cizího souboru.
+    public let isAuthorizedForCopy: Bool
+
     public init(root: String, candidates: [Candidate]) {
+        self.init(root: root, candidates: candidates, preparedForCopy: false)
+    }
+
+    init(root: String, candidates: [Candidate], preparedForCopy: Bool) {
         self.root = root
         self.candidates = candidates.sorted { lhs, rhs in
             lhs.relativePath.utf8.lexicographicallyPrecedes(rhs.relativePath.utf8)
         }
+        self.isAuthorizedForCopy = preparedForCopy
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case root
+        case candidates
+    }
+
+    /// Dekódovaný plán nikdy není autorizovaný pro kopii, i kdyby JSON obsahoval
+    /// jakýkoli příznak. Autorizace vzniká jen konstruktorem z `ExportPreparer`.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            root: try container.decode(String.self, forKey: .root),
+            candidates: try container.decode([Candidate].self, forKey: .candidates),
+            preparedForCopy: false
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(root, forKey: .root)
+        try container.encode(candidates, forKey: .candidates)
     }
 
     public var accepted: [Candidate] { candidates.filter(\.accepted) }
