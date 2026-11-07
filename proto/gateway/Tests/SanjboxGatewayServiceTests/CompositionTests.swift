@@ -45,14 +45,42 @@ final class CompositionTests: XCTestCase {
         XCTAssertEqual(records.map(\.sequence), [1, 2, 3, 4])
 
         // Mount z politiky není "neznámá" cesta: dorazí do handleru a ten ho
-        // odmítne vlastní politikou (chybějící cíl = 400), audit je routed.
+        // odmítne vlastní politikou (chybějící cíl = 400). Audit to musí
+        // rozlišit od "brána pustila": rozhodnutí je `deniedByHandler`.
         for path in ["/npm", "/npm/"] {
             let reply = try await service.dispatch(request("GET", path))
             XCTAssertEqual(status(of: reply), 400, path)
         }
-        let routed = await service.auditRecords()
-        XCTAssertEqual(routed.suffix(2).map(\.decision), [.routed, .routed])
-        XCTAssertEqual(routed.suffix(2).map(\.operation), ["npm", "npm"])
+        let handled = await service.auditRecords()
+        XCTAssertEqual(handled.suffix(2).map(\.decision), [.deniedByHandler, .deniedByHandler])
+        XCTAssertEqual(handled.suffix(2).map(\.reason), ["handlerRejected", "handlerRejected"])
+        XCTAssertEqual(handled.suffix(2).map(\.operation), ["npm", "npm"])
+    }
+
+    /// MAJOR: odmítnutí uvnitř brány nesmí vypadat jako `routed` s prázdným
+    /// důvodem; jinak audit nerozliší "pustili jsme" od "my jsme odmítli".
+    func testHandlerRefusalIsAuditedAsDeniedByHandlerWithReason() async throws {
+        let resolver = RefusingResolver()
+        let service = try GatewayService(policy: try Fixture.policy([Fixture.npm(), Fixture.git()]),
+                                         upstream: UpstreamClient(resolver: resolver))
+        // npm povoluje jen GET, POST odmítne sám handler.
+        let forbidden = try await service.dispatch(request("POST", "/npm/library-fixture",
+                                                           body: Data("x".utf8)))
+        XCTAssertEqual(status(of: forbidden), 403)
+        // Git odmítne push vlastní politikou (allowPush=false).
+        let push = try await service.dispatch(
+            request("POST", "/git/project.git/git-receive-pack",
+                    headers: ["content-type": "application/x-git-receive-pack-request"],
+                    body: Data("0000".utf8)))
+        XCTAssertEqual(status(of: push), 403)
+        XCTAssertEqual(resolver.consulted, [], "obě odmítnutí jsou před upstreamem")
+
+        let records = await service.auditRecords()
+        XCTAssertEqual(records.map(\.decision), [.deniedByHandler, .deniedByHandler])
+        XCTAssertEqual(records.map(\.reason), ["handlerForbidden", "handlerForbidden"])
+        XCTAssertEqual(records.map(\.status), [403, 403])
+        XCTAssertTrue(records.allSatisfy { !$0.reason.isEmpty })
+        XCTAssertFalse(records.contains { $0.decision == .routed })
     }
 
     func testPolicyThatHandlerRejectsFailsComposition() async throws {

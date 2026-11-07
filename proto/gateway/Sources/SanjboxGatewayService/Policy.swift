@@ -62,11 +62,24 @@ public struct RegistryRuleLimits: Sendable, Equatable {
     public let auditRecords: Int
     public let lifetimeSeconds: Int
 
+    /// Výchozí limity shodné s `RegistryLimits` (D5). Statická konstanta drží
+    /// validní literály, takže výchozí argumenty nepotřebují `try!`.
+    public static let standard = RegistryRuleLimits(
+        uncheckedMetadataBytes: 4_194_304, artifactBytes: 4_194_304, files: 10_000,
+        operations: 4, auditRecords: 1_024, lifetimeSeconds: 90)
+
     public init(metadataBytes: Int = 4_194_304, artifactBytes: Int = 4_194_304, files: Int = 10_000,
                 operations: Int = 4, auditRecords: Int = 1_024, lifetimeSeconds: Int = 90) throws {
         try Self.validate(metadataBytes: metadataBytes, artifactBytes: artifactBytes, files: files,
                           operations: operations, auditRecords: auditRecords,
                           lifetimeSeconds: lifetimeSeconds, path: "limits")
+        self.init(uncheckedMetadataBytes: metadataBytes, artifactBytes: artifactBytes, files: files,
+                  operations: operations, auditRecords: auditRecords, lifetimeSeconds: lifetimeSeconds)
+    }
+
+    /// Bez validace: jediný volající je `standard` s ručně ověřenými literály.
+    private init(uncheckedMetadataBytes metadataBytes: Int, artifactBytes: Int, files: Int,
+                 operations: Int, auditRecords: Int, lifetimeSeconds: Int) {
         self.metadataBytes = metadataBytes
         self.artifactBytes = artifactBytes
         self.files = files
@@ -133,7 +146,7 @@ public struct NPMRule: Sendable, Equatable {
 
     public init(enabled: Bool = true, mount: String = "/npm", publicOrigin: String,
                 upstreamHostname: String = "registry.npmjs.org", artifactHostnames: [String] = [],
-                cooldownSeconds: Double = 3_600, limits: RegistryRuleLimits = try! RegistryRuleLimits()) {
+                cooldownSeconds: Double = 3_600, limits: RegistryRuleLimits = .standard) {
         self.enabled = enabled
         self.mount = mount
         self.publicOrigin = publicOrigin
@@ -183,7 +196,7 @@ public struct PyPIRule: Sendable, Equatable {
 
     public init(enabled: Bool = true, mount: String = "/pypi", publicOrigin: String,
                 upstreamHostname: String = "pypi.org", artifactHostnames: [String] = ["files.pythonhosted.org"],
-                cooldownSeconds: Double = 3_600, limits: RegistryRuleLimits = try! RegistryRuleLimits()) {
+                cooldownSeconds: Double = 3_600, limits: RegistryRuleLimits = .standard) {
         self.enabled = enabled
         self.mount = mount
         self.publicOrigin = publicOrigin
@@ -237,7 +250,7 @@ public struct GitRule: Sendable, Equatable {
 
     public init(enabled: Bool = true, mount: String = "/git", upstreamHostname: String,
                 repositoryPath: String = GitRule.supportedRepositoryPath, allowPush: Bool = false,
-                maximumRequestBytes: Int = 1_048_576, limits: RegistryRuleLimits = try! RegistryRuleLimits()) {
+                maximumRequestBytes: Int = 1_048_576, limits: RegistryRuleLimits = .standard) {
         self.enabled = enabled
         self.mount = mount
         self.upstreamHostname = upstreamHostname
@@ -514,12 +527,16 @@ public struct GatewayPolicy: Sendable, Equatable, Codable {
         gateways.filter { $0.isEnabled }.sorted { $0.mount < $1.mount }
     }
 
+    /// Pravidlo, které brána **skutečně obsluhuje** (`enabled: true`). Vypnutá
+    /// deklarace se sem záměrně nepropíše, aby se "deklarováno" nepletlo
+    /// s "obsluhováno"; pro ni je tu `declaredRule(for:)`.
     public func rule(for operation: GatewayOperation) -> GatewayRule? {
-        gateways.first { $0.operation == operation }
+        gateways.first { $0.operation == operation && $0.isEnabled }
     }
 
-    public func rule(forMount mount: String) -> GatewayRule? {
-        gateways.first { $0.mount == mount }
+    /// Pravidlo tak, jak je deklarované v politice, i když je vypnuté.
+    public func declaredRule(for operation: GatewayOperation) -> GatewayRule? {
+        gateways.first { $0.operation == operation }
     }
 
     static func validate(schemaVersion: Int, zoneID: String, auditCapacity: Int,

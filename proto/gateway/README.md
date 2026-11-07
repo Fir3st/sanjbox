@@ -19,7 +19,7 @@ nejsou součástí prototypu. Ve F2 ho převezme WP2.5.
 | Deterministický audit rozhodnutí | `Sources/SanjboxGatewayService/Audit.swift` | hotovo |
 | In-process dispatch, framing, opt-in listener | `Sources/SanjboxGatewayService/Transport.swift` | hotovo |
 | CLI obálka (`--policy`, `--listen`) | `Sources/SanjboxGatewayService/Command.swift` | hotovo |
-| Testy | `Tests/SanjboxGatewayServiceTests/` | 54 testů, bez sítě a bez portu |
+| Testy | `Tests/SanjboxGatewayServiceTests/` | 66 testů, bez sítě a bez portu |
 
 ### Které handlery jsou skutečně složené
 
@@ -94,15 +94,22 @@ je H1 nepřinese jako kontrakt.
 
 ## Skládání a odmítání
 
-`GatewayService.dispatch` dělá tři věci **před** handlerem a jednu po něm:
+`GatewayService.dispatch` dělá **před** handlerem tohle (a jednu věc po něm):
 
-1. Klasifikuje `request.path` podle **tabulky mountů z politiky** (ne podle sestaveného
+1. **Hraniční kontrola tvaru:** `path` i `method` nesmí obsahovat `|` ani řídicí znaky.
+   Takový požadavek = 400 `invalidRequestTarget`, auditovaný, ale handler se nezavolá;
+   hodnota z požadavku tak nemůže podvrhnout pole auditního řádku (viz Audit).
+2. Klasifikuje `request.path` podle **tabulky mountů z politiky** (ne podle sestaveného
    routeru). Neznámý mount = 404 `operationNotConfigured`; vypnutý = 403 `operationDisabled`.
-2. Zkontroluje kapacitu auditu; plná kapacita = 503 `auditSaturated` **bez** zahození
-   historie (žádné tiché přepisování).
-3. Předá požadavek `TypedRouter` z WP1.D1, který sám odmítá zakázané hlavičky
+3. **Rezervuje místo v auditu ještě před handlerem** (fail-closed). Plná kapacita = 503
+   `auditSaturationCount += 1`, **žádný** záznam a handler se **nezavolá**; historie se
+   nezahazuje ani nepřepisuje. Rezervace se po zápisu spotřebuje, takže se záznam po
+   obsloužení požadavku nikdy tiše nezahodí (dřívější chyba: záporné `reserved`).
+4. Předá požadavek `TypedRouter` z WP1.D1, který sám odmítá zakázané hlavičky
    (`authorization`, `cookie`, `x-api-key`, …) a metody.
-4. Zapíše rozhodnutí do auditu (i to odmítnuté handlerem).
+5. Zapíše rozhodnutí do auditu: `routed` (handler obsloužil, i když odpověděl 5xx),
+   `denied` (odmítla brána před handlerem) nebo `deniedByHandler` (handler požadavek
+   přijal a sám ho odmítl 4xx — `reason` je `handlerForbidden`/`handlerRejected`).
 
 Neexistuje větev, která by požadavek předala dál "protože mount nesedí" nebo která by
 mount z požadavku odvodila. Zdroj mountu je výhradně politika.
@@ -111,14 +118,27 @@ mount z požadavku odvodila. Zdroj mountu je výhradně politika.
 
 `AuditRecord` má pevná typovaná pole (`sequence`, `operation`, `method`, `path`,
 `decision`, `reason`, `status`) a **žádné volné textové pole**, do kterého by mohl
-proniknout klíč, hlavička nebo tělo. Kanonický řádek:
+proniknout klíč, hlavička nebo tělo. Rozhodnutí: `routed`, `denied`, `deniedByHandler`
+(viz výše); důvody: `operationNotConfigured`, `operationDisabled`, `invalidRequestTarget`,
+`handlerForbidden`, `handlerRejected`. Kanonický řádek:
 
 ```
 1|npm|GET|/npm/library-fixture|denied|operationDisabled|403
 ```
 
+Volná pole (`operation`, `method`, `path`, `reason`) se do řádku escapují (`%` → `%25`,
+`|` → `%7C`, řídicí znaky → `%XX`), takže řádek má **vždy právě 7 polí** a
+`AuditRecord.parse(line)` ho vrátí na stejný záznam. Běžná cesta zůstává čitelná beze
+změny; round-trip testy pokrývají `%`, `|` i řídicí znak.
+
 Pořadí je pořadí dokončených rozhodnutí, `sequence` roste od 1. Při sériovém dispatchi
-( takto testy postupují) je text bit po bitu stejný mezi běhy; to je i test.
+(takto testy postupují) je text bit po bitu stejný mezi běhy; to je i test.
+
+**Saturace (omezení prototypu):** když je audit plný, brána vrací 503 a `auditSaturationCount()`
+roste, ale nezapisuje záznam — v plném auditu na něj není místo a zahození historie by
+bylo tiché přepisování. Saturace je proto **nevratná do konce života služby**; rotace =
+nová služba (nový proces) nad stejnou politikou, což test pinuje. Produkční řešení
+(segmentace/rotace s markerem a limitem `lifetime` auditu) je věc WP2.5, ne prototypu.
 
 ## Poskytovatel klíčů
 
@@ -131,6 +151,9 @@ public protocol KeyProvider: Sendable {
 - `MockKeyProvider` vrací jen syntetický `ModelAPITestKey` z WP1.D3
   (`"sanjbox-test-…"`). `description`/`debugDescription` jsou redigované a testy
   ověřují, že se text klíče neobjeví v auditu ani v popisu služby.
+- CLI to říká nahlas: když je modelový mount složený, vypíše
+  `model key source: <mock key provider: synthetic model key>; real Keychain is not implemented (GUIDE §3)`.
+  Bez modelu se řádek nevypisuje. `state=enabled` tedy nikdy neznamená Klíčenku.
 - **Skutečná Klíčenka je mimo rozsah.** GUIDE §3 zakazuje čtení tajemství; prototyp
   neumí číst Klíčenku, scopes ani revokace a nesmí se k tomu "domyslet".
 - Chybí-li klíč pro zapnutou modelovou operaci, **složení selže** (`keyUnavailable`),
@@ -147,6 +170,9 @@ public protocol KeyProvider: Sendable {
   na explicitní `--listen 127.0.0.1:<port>`. Bez něj CLI složení jen vypíše a skončí
   s "no socket opened". **Otevřený socket není součástí prototypu** a žádný test ho
   nespouští; IMPLEMENTATION §3 zakazuje sestavit běžící celek.
+- S `--listen` CLI vypíše potvrzení `listener ready: 127.0.0.1:<port> …` **před** vstupem
+  do accept smyčky (přes `emit`), takže operátor vidí, že listener naběhl; selhání bind
+  vrátí exit 4 a řádek `listener stopped: …`. Pořadí ověřuje test s mock `ListenerRunner`.
 
 ## Rozhraní (pro H2, H3, H5, H6 a WP2.5)
 
@@ -159,8 +185,8 @@ public struct GatewayPolicy {                  // Codable, draft v1
     let gateways: [GatewayRule]
     static func decode(_ data: Data) throws -> GatewayPolicy
     var enabledRules: [GatewayRule]
-    func rule(for: GatewayOperation) -> GatewayRule?
-    func rule(forMount: String) -> GatewayRule?
+    func rule(for: GatewayOperation) -> GatewayRule?          // jen enabled
+    func declaredRule(for: GatewayOperation) -> GatewayRule?  // i vypnuté
 }
 
 public enum GatewayRule { case npm(NPMRule), pypi(PyPIRule), git(GitRule), model(ModelRule) }
@@ -187,15 +213,20 @@ public actor GatewayService {
 }
 
 public struct AuditRecord: Codable, Equatable { sequence, operation, method, path, decision, reason, status
-    var canonicalLine: String }
-public enum AuditDecision { routed, denied }; public enum DenialReason { operationNotConfigured,
-    operationDisabled, auditSaturated }
+    static let fieldCount = 7
+    var canonicalLine: String
+    static func fieldList(_:) -> [String]; static func parse(_ line: String) -> AuditRecord? }
+public enum AuditDecision { routed, denied, deniedByHandler }
+public enum DenialReason { operationNotConfigured, operationDisabled, invalidRequestTarget,
+    handlerForbidden, handlerRejected }
 
 public protocol KeyProvider; public struct MockKeyProvider   // .unavailable, .defaultModelKey
 public protocol ByteChannel; public struct LoopbackConnection
-public struct LoopbackListener { struct Address { init?(text: "127.0.0.1:<port>") }; func run(serving:) }
+public protocol ListenerRunner { func run(serving: GatewayService) async throws }
+public struct LoopbackListener: ListenerRunner { struct Address { init?(text: "127.0.0.1:<port>") } }
 public enum GatewayCommand { enum Invocation; static func parse([String]) throws -> Invocation
-    static func run([String]) async -> CommandResult }   // exit 0/2/3/4
+    static func run([String], emit: @Sendable (String) -> Void = { _ in },
+                    listener: (@Sendable (Address) -> any ListenerRunner)? = nil) async -> CommandResult }   // exit 0/2/3/4
 ```
 
 CLI:
@@ -214,11 +245,15 @@ swift test  --package-path spikes/s5-gateway -c release   # závislý balík zů
 /usr/bin/python3 -m unittest discover -s tools/tests
 ```
 
-Testy (54) pokrývají: validaci politiky pozitivně i negativně (neznámé pole/operace,
-verze, mount, origin, limity), zakázanou operaci a neznámý mount (auditované odmítnutí),
-chybějící klíč, mock klíč nikdy v logu, deterministický audit a jeho kapacitu, framing
-transportu, a integraci přes **skutečné** npm/PyPI/git/model handlery s lokálními fixtures
-a mock resolverem — bez sítě, bez instalace balíčků, bez portu.
+Testy (66) pokrývají: validaci politiky pozitivně i negativně (neznámé pole/operace,
+verze, mount, origin, limity) a **paritu rozsahů limitů** s `RegistryLimits`/
+`ModelAPIConfiguration` ze `spikes/s5-gateway`, zakázanou operaci a neznámý mount
+(auditované odmítnutí), odmítnutí uvnitř handleru (`deniedByHandler` + důvod), fail-closed
+saturaci auditu (503 před handlerem) a její nevratnost, escapování a round-trip auditu
+(7 polí, `|` v cestě i metodě), chybějící klíč, mock klíč nikdy v logu a jeho výpis v CLI,
+potvrzení listeneru před smyčkou (mock runner, žádný port), framing transportu, a integraci
+přes **skutečné** npm/PyPI/git/model handlery s lokálními fixtures a mock resolverem —
+bez sítě, bez instalace balíčků, bez portu.
 
 ## Co tento balík nedokazuje
 
@@ -234,4 +269,6 @@ a mock resolverem — bez sítě, bez instalace balíčků, bez portu.
 2. `model` mount je pevně `/model` (`ModelAPIGateway.route()`); politika jiný mount odmítne.
 3. Politika nevystavuje všechny voliče handlerů (cache, redirecty, `maximumVersions`);
    dokud nejsou v H1, platí konzervativní výchozí hodnoty handleru.
-4. Homebrew chybí záměrně (viz výše) — do H1 je třeba rozhodnout, zda mount vůbec existuje.
+4. Saturace auditu je nevratná do konce života služby (viz Audit); rotace je nový proces.
+   Test `testAuditSaturationIsIrreversibleUntilServiceIsRecreated` to chování pinuje.
+5. Homebrew chybí záměrně (viz výše) — do H1 je třeba rozhodnout, zda mount vůbec existuje.

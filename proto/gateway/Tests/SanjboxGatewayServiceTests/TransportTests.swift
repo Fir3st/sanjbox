@@ -97,11 +97,21 @@ final class TransportTests: XCTestCase {
 
     func testListenerAddressOnlyAcceptsExplicitLoopback() {
         XCTAssertEqual(LoopbackListener.Address(text: "127.0.0.1:18765")?.text, "127.0.0.1:18765")
+        XCTAssertEqual(LoopbackListener.Address(text: "127.0.0.1:1")?.port, 1)
+        XCTAssertEqual(LoopbackListener.Address(text: "127.0.0.1:65535")?.port, 65_535)
         XCTAssertNil(LoopbackListener.Address(text: "0.0.0.0:18765"))
         XCTAssertNil(LoopbackListener.Address(text: "localhost:18765"))
         XCTAssertNil(LoopbackListener.Address(text: "127.0.0.1:0"))
         XCTAssertNil(LoopbackListener.Address(text: "127.0.0.1:65536"))
         XCTAssertNil(LoopbackListener.Address(text: "[::1]:18765"))
         XCTAssertNil(LoopbackListener.Address(port: 0))
+        // NIT: parser nesmí přijmout znaménko ani úvodní nulu; "+80" a "080"
+        // nejsou kanonický tvar portu 80.
+        XCTAssertNil(LoopbackListener.Address(text: "127.0.0.1:+80"))
+        XCTAssertNil(LoopbackListener.Address(text: "127.0.0.1:080"))
+        XCTAssertNil(LoopbackListener.Address(text: "127.0.0.1:018765"))
+        XCTAssertNil(LoopbackListener.Address(text: "127.0.0.1: 80"))
+        XCTAssertNil(LoopbackListener.Address(text: "127.0.0.1:80abc"))
+        XCTAssertNil(LoopbackListener.Address(text: "127.0.0.1:"))
     }
 }

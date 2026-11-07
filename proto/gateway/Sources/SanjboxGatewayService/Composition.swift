@@ -106,7 +106,16 @@ public actor GatewayService {
     }
 
     /// In-process dispatch. Neotevírá port; vrací odpověď nebo SSE producenta.
+    ///
+    /// Kapacita auditu je tvrdá brána: rezervace místa proběhne **před**
+    /// handlerem a když není místo, požadavek dostane 503 a handler se nezavolá.
+    /// Záznam se tak nikdy nezahodí poté, co už klient dostal odpověď.
     public func dispatch(_ request: HTTPRequest) async throws -> GatewayReply {
+        // `path` a `method` jdou do `|`-odděleného auditu; cokoli, co by rozbilo
+        // sedmipolí řádek, se odmítne dřív, než vznikne záznam nebo se zavolá handler.
+        guard Self.isAuditSafe(request.method), Self.isAuditSafe(request.path) else {
+            return deny(.invalidRequestTarget, request: request, status: 400)
+        }
         let operation: GatewayOperation
         switch runtime.classify(path: request.path) {
         case .unknown:
@@ -116,23 +125,29 @@ public actor GatewayService {
         case .active(let active):
             operation = active
         }
-        guard reserve() else {
-            saturationCount += 1
-            return .response(.error(503))
-        }
-        defer { reserved -= 1 }
+        guard reserve() else { return .response(.error(503)) }
+        var committed = false
+        defer { if !committed { release() } }
         do {
             let reply = try await router.reply(to: request)
-            append(operation: operation, request: request, decision: .routed, reason: "",
-                   status: status(of: reply))
+            let status = status(of: reply)
+            if let denial = Self.handlerDenial(for: status) {
+                // Odmítl handler, ne brána: audit to musí rozlišit a nést důvod.
+                commit(operation: operation, request: request, decision: .deniedByHandler,
+                       reason: denial.rawValue, status: status)
+            } else {
+                commit(operation: operation, request: request, decision: .routed, reason: "",
+                       status: status)
+            }
+            committed = true
             return reply
         } catch is CancellationError {
             throw CancellationError()
         } catch {
             // Chyba handleru se nepřenáší jako "průhledný" přenos: klient dostane
             // deterministickou 502 a rozhodnutí zůstává v auditu.
-            append(operation: operation, request: request, decision: .routed,
-                   reason: "", status: 502)
+            commit(operation: operation, request: request, decision: .routed, reason: "", status: 502)
+            committed = true
             return .response(.error(502))
         }
     }
@@ -252,27 +267,53 @@ public actor GatewayService {
 
     // MARK: - Audit
 
-    private func reserve() -> Bool { records.count + reserved < runtime.auditCapacity }
+    /// `path`/`method` nesmí obsahovat `|` ani řídicí znaky. Kanonický řádek je
+    /// navíc escapuje, tohle je ale hranice: takový požadavek se vůbec neobslouží.
+    static func isAuditSafe(_ value: String) -> Bool {
+        !value.contains("|") && !value.unicodeScalars.contains { $0.value < 0x20 || $0.value == 0x7F }
+    }
+
+    /// Odmítnutí uvnitř handleru podle stavového kódu; `nil` = handler požadavek
+    /// obsloužil (i když odpověděl 5xx, což je chyba upstreamu, ne odmítnutí).
+    static func handlerDenial(for status: Int) -> DenialReason? {
+        switch status {
+        case 403: return .handlerForbidden
+        case 400..<500: return .handlerRejected
+        default: return nil
+        }
+    }
+
+    /// Rezervace místa v auditu. Jediné místo, které rozhoduje o kapacitě:
+    /// když není místo, spočítá se saturace a požadavek se neobslouží.
+    private func reserve() -> Bool {
+        guard records.count + reserved < runtime.auditCapacity else {
+            saturationCount += 1
+            return false
+        }
+        reserved += 1
+        return true
+    }
+
+    private func release() {
+        precondition(reserved > 0, "releasing a slot that was never reserved")
+        reserved -= 1
+    }
 
     private func deny(_ reason: DenialReason, request: HTTPRequest, status: Int,
                       operation: GatewayOperation? = nil) -> GatewayReply {
         // Odmítnutí musí být v auditu, pokud je místo; zaplněná kapacita se
         // nezahazuje, jen se odmítne další požadavek.
-        guard reserve() else {
-            saturationCount += 1
-            return .response(.error(503))
-        }
-        append(operation: operation, request: request, decision: .denied,
+        guard reserve() else { return .response(.error(503)) }
+        commit(operation: operation, request: request, decision: .denied,
                reason: reason.rawValue, status: status)
         return .response(.error(status))
     }
 
-    private func append(operation: GatewayOperation?, request: HTTPRequest, decision: AuditDecision,
+    /// Zapíše záznam do **držené** rezervace a tím ji spotřebuje. Volá se jen po
+    /// úspěšném `reserve()`, takže zápis nemůže selhat a nezahodí se.
+    private func commit(operation: GatewayOperation?, request: HTTPRequest, decision: AuditDecision,
                         reason: String, status: Int) {
-        guard records.count < runtime.auditCapacity else {
-            saturationCount += 1
-            return
-        }
+        precondition(reserved > 0, "commit without reservation")
         records.append(AuditRecord(
             sequence: UInt64(records.count + 1),
             operation: operation?.rawValue ?? "unknown",
@@ -282,6 +323,7 @@ public actor GatewayService {
             reason: reason,
             status: status
         ))
+        reserved -= 1
     }
 
     private func status(of reply: GatewayReply) -> Int {

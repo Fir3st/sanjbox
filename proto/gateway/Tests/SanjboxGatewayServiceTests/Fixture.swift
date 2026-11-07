@@ -172,6 +172,16 @@ final class RefusingResolver: DestinationResolver, @unchecked Sendable {
     }
 }
 
+/// Mock listeneru pro CLI testy: jen ohlásí, že se smyčka spustila, a vrátí se.
+/// Žádný socket se neotevírá.
+final class MockListenerRunner: ListenerRunner, @unchecked Sendable {
+    private let onRun: @Sendable () -> Void
+
+    init(onRun: @escaping @Sendable () -> Void) { self.onRun = onRun }
+
+    func run(serving service: GatewayService) async throws { onRun() }
+}
+
 /// In-memory mock byte kanálu pro transportní testy. Žádný socket.
 final class MockChannel: ByteChannel, @unchecked Sendable {
     private struct State {

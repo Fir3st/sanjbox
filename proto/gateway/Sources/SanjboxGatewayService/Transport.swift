@@ -126,9 +126,15 @@ public struct LoopbackConnection: Sendable {
     }
 }
 
+/// Rozhraní listeneru, aby CLI šlo otestovat bez otevření portu: testy podsunou
+/// mock, který jen zaznamená, že se smyčka spustila.
+public protocol ListenerRunner: Sendable {
+    func run(serving service: GatewayService) async throws
+}
+
 /// Reálný loopback listener. Není součástí prototypu: konstruuje se jen na
 /// explicitní `--listen 127.0.0.1:<port>` a žádný test ho nespouští.
-public struct LoopbackListener: Sendable {
+public struct LoopbackListener: ListenerRunner {
     public struct Address: Sendable, Equatable, CustomStringConvertible {
         public let port: UInt16
 
@@ -137,12 +143,15 @@ public struct LoopbackListener: Sendable {
             self.port = port
         }
 
-        /// Přijímá jen přesný tvar `127.0.0.1:<port>`; žádný wildcard ani hostname.
+        /// Přijímá jen kanonický tvar `127.0.0.1:<port>`: ASCII číslice, žádné
+        /// znaménko, žádná úvodní nula a port 1...65535. `127.0.0.1:+80` ani
+        /// `127.0.0.1:080` nejsou totéž co `127.0.0.1:80`.
         public init?(text: String) {
             let prefix = "127.0.0.1:"
-            guard text.hasPrefix(prefix), let port = UInt16(text.dropFirst(prefix.count)), port > 0 else {
-                return nil
-            }
+            guard text.hasPrefix(prefix) else { return nil }
+            let digits = text.dropFirst(prefix.count)
+            guard !digits.isEmpty, digits.utf8.allSatisfy({ (48...57).contains($0) }),
+                  digits.first != "0", let port = UInt16(digits), port > 0 else { return nil }
             self.port = port
         }
 

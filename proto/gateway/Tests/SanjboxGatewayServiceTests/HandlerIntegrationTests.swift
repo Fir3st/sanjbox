@@ -35,8 +35,9 @@ final class HandlerIntegrationTests: XCTestCase {
                                                        headers: ["authorization": "Bearer \(canary)"]))
         XCTAssertEqual(status(of: reply), 403)
         XCTAssertEqual(resolver.consulted, [], "handler must refuse before any DNS/dial policy")
+        // Odmítl handler, ne brána: audit to musí říct i s důvodem.
         let text = await service.auditText()
-        XCTAssertEqual(text, "1|npm|GET|/npm/library-fixture|routed||403")
+        XCTAssertEqual(text, "1|npm|GET|/npm/library-fixture|deniedByHandler|handlerForbidden|403")
     }
 
     func testPyPIHandlerRunsThroughComposedPolicy() async throws {
@@ -68,7 +69,9 @@ final class HandlerIntegrationTests: XCTestCase {
         XCTAssertEqual(status(of: otherRepository), 400)
 
         let records = await service.auditRecords()
-        XCTAssertEqual(records.map(\.decision), [.routed, .routed, .routed])
+        // Fetch došel k upstreamu (routed), push a cizí projekt odmítl handler.
+        XCTAssertEqual(records.map(\.decision), [.routed, .deniedByHandler, .deniedByHandler])
+        XCTAssertEqual(records.map(\.reason), ["", "handlerForbidden", "handlerRejected"])
         XCTAssertEqual(records.map(\.status), [502, 403, 400])
     }
 
@@ -115,5 +118,7 @@ final class HandlerIntegrationTests: XCTestCase {
         XCTAssertEqual(resolver.consulted, [])
         let records = await service.auditRecords()
         XCTAssertEqual(records.map(\.operation), ["npm"])
+        XCTAssertEqual(records.map(\.decision), [.deniedByHandler])
+        XCTAssertEqual(records.map(\.reason), [DenialReason.handlerForbidden.rawValue])
     }
 }

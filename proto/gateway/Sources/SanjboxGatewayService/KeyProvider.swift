@@ -15,7 +15,15 @@ public protocol KeyProvider: Sendable {
 public struct MockKeyProvider: KeyProvider, Sendable {
     /// Syntetická hodnota pro testy; splňuje `ModelAPITestKey` a nikam se neposílá.
     public static let defaultModelKeyText = "sanjbox-test-mock000000000000"
-    public static let defaultModelKey = try! ModelAPITestKey(MockKeyProvider.defaultModelKeyText)
+    public static let defaultModelKey: ModelAPITestKey = {
+        do {
+            return try ModelAPITestKey(defaultModelKeyText)
+        } catch {
+            // Text je konstanta knihovny: když ho `ModelAPITestKey` odmítne, je to
+            // chyba kódu, ne konfigurace. Tichý mock bez klíče by vypnul model.
+            preconditionFailure("synthetic mock key text must satisfy ModelAPITestKey")
+        }
+    }()
 
     private let modelKey: ModelAPITestKey?
 

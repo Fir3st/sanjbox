@@ -74,7 +74,19 @@ public enum GatewayCommand {
     }
 
     /// Vrací výstup a kód, nikdy netiskne sám (testy tak nepotřebují stdout).
-    public static func run(_ arguments: [String]) async -> CommandResult {
+    ///
+    /// `emit` dostane řádky, které musí operátor vidět **před** tím, než se
+    /// spustí listener: potvrzení, že listener naběhl. Návratová hodnota se
+    /// u úspěšného listeneru nikdy nevrátí (accept smyčka), takže potvrzení
+    /// patří do `emit`, ne do `output`.
+    ///
+    /// `listener` je injektovatelný jen kvůli testům: mock runner neotevře
+    /// socket a hned se vrátí, takže test ověří pořadí bez portu.
+    public static func run(
+        _ arguments: [String],
+        emit: @Sendable (String) -> Void = { _ in },
+        listener: (@Sendable (LoopbackListener.Address) -> any ListenerRunner)? = nil
+    ) async -> CommandResult {
         let invocation: Invocation
         do {
             invocation = try parse(arguments)
@@ -87,13 +99,17 @@ public enum GatewayCommand {
         case .help:
             return CommandResult(exitCode: 0, output: usageLines)
         case .compose(let path):
-            return await compose(policyPath: path, address: nil)
+            return await compose(policyPath: path, address: nil, emit: emit, listener: listener)
         case .serve(let path, let address):
-            return await compose(policyPath: path, address: address)
+            return await compose(policyPath: path, address: address, emit: emit, listener: listener)
         }
     }
 
-    private static func compose(policyPath: String, address: LoopbackListener.Address?) async -> CommandResult {
+    private static func compose(
+        policyPath: String, address: LoopbackListener.Address?,
+        emit: @Sendable (String) -> Void,
+        listener: (@Sendable (LoopbackListener.Address) -> any ListenerRunner)?
+    ) async -> CommandResult {
         let data: Data
         do {
             data = try Data(contentsOf: URL(fileURLWithPath: policyPath))
@@ -118,18 +134,29 @@ public enum GatewayCommand {
         }
         var lines = service.runtime.summaryLines
         lines.append("active: " + service.runtime.activeOperations.map(\.rawValue).joined(separator: ","))
+        if service.runtime.activeOperations.contains(.model) {
+            // Modelový mount se skládá s mockem; CLI to musí říct nahlas, aby
+            // "state=enabled" nevypadalo jako skutečná Klíčenka.
+            lines.append("model key source: \(String(describing: MockKeyProvider()))"
+                         + "; real Keychain is not implemented (GUIDE §3)")
+        }
         guard let address else {
             lines.append("listener disabled: no socket opened; pass --listen 127.0.0.1:<port> to enable one")
             return CommandResult(exitCode: 0, output: lines)
         }
-        lines.append("prototype listener opt-in: \(address.text) (out of prototype scope, IMPLEMENTATION §3)")
-        let listener = LoopbackListener(address: address)
+        lines.append("listener ready: \(address.text)"
+                     + " (prototype opt-in; no production use, IMPLEMENTATION §3)")
+        for line in lines { emit(line) }
+        let runner = listener?(address) ?? LoopbackListener(address: address)
         do {
-            try await listener.run(serving: service)
+            try await runner.run(serving: service)
         } catch {
-            lines.append("listener stopped: \(String(describing: error))")
-            return CommandResult(exitCode: 4, output: lines)
+            let stopped = "listener stopped: \(String(describing: error))"
+            emit(stopped)
+            return CommandResult(exitCode: 4, output: [stopped])
         }
-        return CommandResult(exitCode: 0, output: lines)
+        // Reálný `LoopbackListener` se z accept smyčky nevrací; sem se dostane
+        // jen injektovaný runner, takže není co hlásit.
+        return CommandResult(exitCode: 0, output: [])
     }
 }
