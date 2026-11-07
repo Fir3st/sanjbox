@@ -1,13 +1,14 @@
 import Darwin
 import Foundation
 
-func hardenStamp(_ fd: Int32) throws -> HardenStamp {
+func hardenStamp(_ fd: Int32, allowACL: Bool = false) throws -> HardenStamp {
     var before = stat()
     guard fstat(fd, &before) == 0 else { throw HardenConflict("descriptor stat unavailable") }
     let acl = readACL(fd)
-    guard emptyACL(acl), let mount = readMount(fd), mount.local,
+    guard (allowACL ? supportedACL(acl) : emptyACL(acl)), let mount = readMount(fd), mount.local,
           !mount.ignoresOwnership, mount.filesystemType == "apfs"
-    else { throw HardenConflict("unsupported ACL or mount; only empty ACL on writable local ownership-enforcing APFS is supported") }
+    else { throw HardenConflict("unsupported ACL or mount; require supported ACL and local ownership-enforcing APFS") }
+    if allowACL { try requireLosslessACL(fd, acl) }
     var after = stat()
     guard fstat(fd, &after) == 0, metadata(before) == metadata(after), before.st_birthtimespec.tv_sec == after.st_birthtimespec.tv_sec, before.st_birthtimespec.tv_nsec == after.st_birthtimespec.tv_nsec,
           before.st_gen == after.st_gen else { throw HardenConflict("metadata changed during observation") }
@@ -19,29 +20,32 @@ func hardenStamp(_ fd: Int32) throws -> HardenStamp {
 /// there is intentionally no claim that these non-atomic checks lock the namespace.
 final class HardenPath {
     let path: String
+    private let allowTargetACL: Bool
     private var fds: [Int32] = []
     private var names: [String] = []
     let initial: [HardenStamp]
     var fd: Int32 { fds.last! }
     var ancestors: [HardenStamp] { initial.dropLast().map(\.ancestorGuard) }
 
-    init(_ path: String) throws {
+    init(_ path: String, allowTargetACL: Bool = false) throws {
         guard validAbsolutePath(path), path != "/", !restrictedPath(path),
               path.split(separator: "/").count <= 64 else { throw HardenConflict("invalid, restricted or excessively deep path") }
         self.path = path
+        self.allowTargetACL = allowTargetACL
         var opened: [Int32] = []
         do {
             let root = open("/", O_EVTONLY | O_DIRECTORY | O_NOFOLLOW_ANY | O_CLOEXEC)
             guard root >= 0 else { throw HardenConflict("cannot pin filesystem root") }
             opened.append(root)
             var observed = [try hardenStamp(root)]
-            for component in path.dropFirst().split(separator: "/") {
+            let components = path.dropFirst().split(separator: "/")
+            for (index, component) in components.enumerated() {
                 let name = String(component)
                 let child = openat(opened.last!, name, O_EVTONLY | O_DIRECTORY | O_NOFOLLOW_ANY | O_CLOEXEC)
                 guard child >= 0 else { throw HardenConflict("cannot pin directory component (errno \(errno)); missing, symlink or inaccessible path") }
                 opened.append(child)
                 names.append(name)
-                observed.append(try hardenStamp(child))
+                observed.append(try hardenStamp(child, allowACL: allowTargetACL && index == components.count - 1))
             }
             initial = observed
             fds = opened
@@ -80,7 +84,7 @@ final class HardenPath {
 
     func requireTarget(_ expected: HardenStamp? = nil) throws -> HardenStamp {
         try verify()
-        let current = try hardenStamp(fd)
+        let current = try hardenStamp(fd, allowACL: allowTargetACL)
         guard !current.mount.readOnly, current.stat.kind == "directory", current.stat.uid == geteuid(), current.stat.flags == 0,
               current.stat.mode & 0o7000 == 0, current.stat.mode & 0o700 == 0o700,
               expected == nil || current == expected else { throw HardenConflict("target metadata differs, owner is foreign or mode/flags are unsupported") }

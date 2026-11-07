@@ -6,7 +6,8 @@ public enum HostHardeningCommand {
     public static let usage = """
     usage: sanjbox-host-harden harden --expect ABS.s4-expect.json --baseline ABS.s4-report.json --plan ABS.s4-harden.json --state ABS/state [--dry-run | --apply --acknowledge-quiescent]
            sanjbox-host-harden uninstall --expect ABS.s4-expect.json --state ABS/state [--dry-run | --apply --acknowledge-quiescent]
-    Default: dry-run, no filesystem writes. Only explicit owned directories, empty ACL, local APFS, mode 0700.
+    Default: dry-run, no filesystem writes. Explicit owned local APFS directories only.
+    v1: empty ACL, mode 0700. v2: prepend non-inheritable deny ACEs, preserve mode and existing ACL.
     Real protected host roots: user-only reviewed invocation in a quiescent namespace. No sudo or recursive changes.
     Exit 0: completed preview/operation; 3: identity mismatch; 4: conflict/refusal; 2: usage/schema/I/O error.
     Preserve state on every error. Pending intent is ambiguous and never automatically restored.
@@ -52,6 +53,7 @@ public enum HostHardeningCommand {
             if operation == "harden" {
                 let plan = try JSONDecoder().decode(HardeningPlan.self, from: readOwnedInput(options["--plan"]!, suffix: ".s4-harden.json", limit: 65536))
                 try plan.validate()
+                if let deny = plan.deny { try protectCallerAccess(deny.map(\.entry)) }
                 let baseline = try JSONDecoder().decode(Snapshot.self, from: readOwnedInput(options["--baseline"]!, suffix: ".s4-report.json", limit: maximumReportBytes))
                 try baseline.validateBaseline()
                 guard baseline.identity.context.realUID == context.realUID, baseline.identity.context.effectiveUID == context.effectiveUID,
@@ -62,20 +64,22 @@ public enum HostHardeningCommand {
                     guard let root = baseline.roots.first(where: { $0.root.id == id }),
                           let entry = root.entries.first(where: { $0.path == "." }), entry.status == "observed",
                           let expected = entry.stat, let acl = entry.acl, let mount = entry.mount,
-                          emptyACL(acl), expected.kind == "directory"
+                          (plan.deny != nil ? supportedACL(acl) : emptyACL(acl)), expected.kind == "directory"
                     else { throw HardenConflict("selected audit root lacks supported directory metadata") }
                     guard !result.changes.contains(where: { overlap($0.path, root.root.path) }) else { throw HardenConflict("overlapping roots are unsupported") }
-                    let handle = try HardenPath(root.root.path)
+                    let handle = try HardenPath(root.root.path, allowTargetACL: plan.deny != nil)
                     let current = try handle.requireTarget()
                     guard current.stat == expected, current.acl == acl, current.mount == mount,
-                          current.stat.mode != 0o700 else { throw HardenConflict("audit metadata is stale or root already has mode 0700; no change to claim") }
-                    result.changes.append(.init(rootID: id, path: root.root.path, before: current, ancestors: handle.ancestors))
+                          plan.deny != nil || current.stat.mode != 0o700 else { throw HardenConflict("audit metadata is stale or root already has mode 0700; no change to claim") }
+                    let desiredACL = try plan.deny.map { try prepending($0, to: current.acl) }
+                    result.changes.append(.init(rootID: id, path: root.root.path, before: current, ancestors: handle.ancestors,
+                                                mode: plan.mode ?? current.stat.mode, acl: desiredACL))
                     handles.append(handle)
                 }
                 try HardenJournal.checkDestination(statePath, targets: result.changes.map(\.path), creating: true)
                 if apply { try install(result.changes, handles: handles, statePath: statePath, hooks: hooks) }
                 result.status = apply ? "applied" : "would-apply"
-                result.detail = apply ? "All selected mode changes have durable before/after records. Retain state for uninstall." : "No writes. Each listed before.stat.mode would become mode 448 (0700); state would be exclusively created."
+                result.detail = apply ? "All selected changes have durable before/after records. Retain state for uninstall." : "No writes. Each listed mode and optional acl is the exact proposed result; before contains originals. State would be exclusively created."
             } else {
                 // Existing private journal is locked during preview too, but is never created/modified.
                 let journal = try HardenJournal(statePath, create: false)
@@ -91,7 +95,7 @@ public enum HostHardeningCommand {
                         continue // No intent => this invocation did not mutate this root.
                     }
                     guard state.restoreIntent == nil else { throw HardenConflict("operation \(index): interrupted restore intent is ambiguous; manual review required") }
-                    let handle = try HardenPath(manifest.changes[index].path)
+                    let handle = try HardenPath(manifest.changes[index].path, allowTargetACL: manifest.changes[index].acl != nil)
                     try handle.verify(ancestors: manifest.changes[index].ancestors)
                     _ = try handle.requireTarget(applied.after!)
                     handles[index] = handle
@@ -104,10 +108,10 @@ public enum HostHardeningCommand {
                         try journal.verify()
                         try handle.verify(ancestors: change.ancestors)
                         _ = try handle.requireTarget(expected)
-                        guard fchmod(handle.fd, change.before.stat.mode) == 0 else { throw HardenConflict("restore chmod failed; intent retained") }
+                        try mutate(change, fd: handle.fd, restoring: true)
                         try hooks.afterMutation(index, "restore")
                         let after = try handle.requireTarget()
-                        guard after == expected.replacingMode(change.before.stat.mode, change: after.stat)
+                        guard after == change.result(from: expected, restoring: true, observed: after.stat)
                         else { throw HardenConflict("metadata changed after restore; intent retained") }
                         try handle.verify(ancestors: change.ancestors)
                         guard fsync(handle.fd) == 0 else { throw HardenConflict("restore metadata flush failed; intent retained") }
@@ -115,7 +119,7 @@ public enum HostHardeningCommand {
                     }
                 }
                 result.status = handles.isEmpty ? "already-restored-or-unmodified" : (apply ? "restored" : "would-restore")
-                result.detail = "Only \(handles.count) completed, unchanged own changes \(apply ? "restored" : "would be restored"); before.stat.mode lists the exact original modes. Journal retained; no files, users, volumes or settings removed."
+                result.detail = "Only \(handles.count) completed, unchanged own changes \(apply ? "restored" : "would be restored"); before contains the exact original mode and ACL. Journal retained; no files, users, volumes or settings removed."
             }
             return .init(output: try encode(result), exitCode: 0)
         } catch let conflict as HardenConflict {
@@ -128,7 +132,8 @@ public enum HostHardeningCommand {
 
 private func install(_ changes: [HardenChange], handles: [HardenPath], statePath: String, hooks: HardenHooks) throws {
     let journal = try HardenJournal(statePath, create: true)
-    let manifest = HardenManifest(transaction: UUID().uuidString, bootSession: try bootSession(), ownerUID: geteuid(),
+    let manifest = HardenManifest(schema: changes.contains(where: { $0.acl != nil }) ? "sanjbox.host-harden.journal.v2" : "sanjbox.host-harden.journal.v1",
+                                  transaction: UUID().uuidString, bootSession: try bootSession(), ownerUID: geteuid(),
                                   statePath: statePath, stateIdentity: try journal.directory.requireTarget(),
                                   stateAncestors: journal.directory.ancestors, changes: changes)
     try journal.write(manifest, name: "manifest.json")
@@ -138,14 +143,17 @@ private func install(_ changes: [HardenChange], handles: [HardenPath], statePath
         try handle.verify(ancestors: change.ancestors)
         _ = try handle.requireTarget(change.before)
         try journal.write(HardenEvent(transaction: manifest.transaction, index: index, phase: "intent", before: change.before), name: eventName(index, "intent"))
+        if let acl = change.acl {
+            try protectCallerAccess(Array(acl.entries.prefix(acl.entries.count - change.before.acl.entries.count)))
+        }
         try hooks.beforeFinalCheck(index, "apply")
         try journal.verify()
         try handle.verify(ancestors: change.ancestors)
         _ = try handle.requireTarget(change.before)
-        guard fchmod(handle.fd, change.mode) == 0 else { throw HardenConflict("hardening chmod failed; intent retained") }
+        try mutate(change, fd: handle.fd)
         try hooks.afterMutation(index, "apply")
         let after = try handle.requireTarget()
-        guard after == change.before.replacingMode(change.mode, change: after.stat)
+        guard after == change.result(from: change.before, observed: after.stat)
         else { throw HardenConflict("metadata changed after apply; intent retained") }
         try handle.verify(ancestors: change.ancestors)
         guard fsync(handle.fd) == 0 else { throw HardenConflict("hardening metadata flush failed; intent retained") }
@@ -153,8 +161,16 @@ private func install(_ changes: [HardenChange], handles: [HardenPath], statePath
     }
 }
 
+private func mutate(_ change: HardenChange, fd: Int32, restoring: Bool = false) throws {
+    if let acl = change.acl {
+        try setHardenACL(fd, restoring ? change.before.acl : acl)
+    } else {
+        guard fchmod(fd, restoring ? change.before.stat.mode : change.mode) == 0 else { throw HardenConflict("chmod failed; intent retained") }
+    }
+}
+
 private func validate(_ manifest: HardenManifest, journal: HardenJournal) throws {
-    guard manifest.schema == "sanjbox.host-harden.journal.v1", UUID(uuidString: manifest.transaction) != nil,
+    guard ["sanjbox.host-harden.journal.v1", "sanjbox.host-harden.journal.v2"].contains(manifest.schema), UUID(uuidString: manifest.transaction) != nil,
           manifest.ownerUID == geteuid(), manifest.bootSession == (try bootSession()), manifest.statePath == journal.path,
           (1...16).contains(manifest.changes.count),
           Set(manifest.changes.map(\.rootID)).count == manifest.changes.count,
@@ -163,12 +179,29 @@ private func validate(_ manifest: HardenManifest, journal: HardenJournal) throws
     try journal.directory.verify(ancestors: manifest.stateAncestors)
     try HardenJournal.checkDestination(journal.path, targets: manifest.changes.map(\.path), creating: false)
     for (index, change) in manifest.changes.enumerated() {
-        guard validAbsolutePath(change.path), !restrictedPath(change.path), change.mode == 0o700,
+        guard validAbsolutePath(change.path), !restrictedPath(change.path),
               change.before.stat.kind == "directory", change.before.stat.uid == geteuid(), change.before.stat.flags == 0,
               change.before.stat.mode & 0o7000 == 0, change.before.stat.mode & 0o700 == 0o700,
-              change.before.stat.mode != 0o700, emptyACL(change.before.acl),
               !manifest.changes.prefix(index).contains(where: { overlap($0.path, change.path) })
         else { throw HardenConflict("unsupported or overlapping journal operation") }
+        if let acl = change.acl {
+            let added = acl.entries.count - change.before.acl.entries.count
+            guard manifest.schema == "sanjbox.host-harden.journal.v2", change.mode == change.before.stat.mode,
+                  supportedACL(change.before.acl), supportedACL(acl), acl.status == "observed",
+                  acl.flags == change.before.acl.flags, (1...16).contains(added),
+                  Array(acl.entries.dropFirst(added)) == change.before.acl.entries else {
+                throw HardenConflict("journal ACL change is not an exact bounded prepend")
+            }
+            let prefix = Array(acl.entries.prefix(added))
+            let denies = prefix.map { entry in ACLDeny(principalUUID: entry.principalUUID,
+                permissions: denyPermissions.keys.sorted().filter { entry.permissions & denyPermissions[$0]! != 0 }) }
+            guard prefix == denies.map(\.entry), (try? prepending(denies, to: change.before.acl)) == acl
+            else { throw HardenConflict("journal ACL prefix is not supported non-inheritable deny") }
+        } else {
+            guard manifest.schema == "sanjbox.host-harden.journal.v1", change.mode == 0o700,
+                  change.before.stat.mode != 0o700, emptyACL(change.before.acl)
+            else { throw HardenConflict("unsupported legacy mode change") }
+        }
     }
 }
 
@@ -201,11 +234,11 @@ private func loadEvents(_ manifest: HardenManifest, journal: HardenJournal) thro
               state.restoreIntent == nil || (state.applied != nil && state.restoreIntent!.before == state.applied!.after && state.restoreIntent!.after == nil),
               state.restored == nil || (state.restoreIntent != nil && state.restored!.before == state.applied!.after && state.restored!.after != nil)
         else { throw HardenConflict("journal transition is incomplete or inconsistent") }
-        if let after = state.applied?.after, after != change.before.replacingMode(change.mode, change: after.stat) {
+        if let after = state.applied?.after, after != change.result(from: change.before, observed: after.stat) {
             throw HardenConflict("applied journal contains changes outside the supported operation")
         }
         if let after = state.restored?.after, let applied = state.applied?.after,
-           after != applied.replacingMode(change.before.stat.mode, change: after.stat) {
+           after != change.result(from: applied, restoring: true, observed: after.stat) {
             throw HardenConflict("restored journal contains changes outside the supported operation")
         }
         states.append(state)
