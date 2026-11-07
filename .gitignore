@@ -18,3 +18,7 @@ __pycache__/
 *.key
 *.p12
 *.p8
+
+# Osobní nastavení Pi (agenti, prompty, rozšíření) — není součást projektu
+# Drží se mimo repo: viz README "Zákaz atribuce", CI a docs/GUIDE.md
+/.pi/
