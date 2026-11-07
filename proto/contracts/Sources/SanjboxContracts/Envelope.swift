@@ -63,7 +63,13 @@ public struct XPCEnvelope: Codable, Equatable, Sendable {
     public func encoded() throws -> Data {
         if let problem = headerProblem() { throw problem }
         let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]
-        return try encoder.encode(self)
+        // Base64 can contain many slashes. Escaping each one would invalidate the 4/3 wire
+        // budget even when the raw body fits. Still verify the actual final envelope size.
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        let data = try encoder.encode(self)
+        guard data.count <= Self.maxBytes else {
+            throw ContractError.inputTooLarge("envelope \(data.count) > \(Self.maxBytes)")
+        }
+        return data
     }
 }

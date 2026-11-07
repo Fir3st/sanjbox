@@ -130,12 +130,20 @@ Množina zpráv v0 (`HelperMessageKind`): `helper.capabilities` (tělo musí bý
 `zone.create`, `zone.start`, `zone.pause`, `zone.stop`, `zone.status`, `policy.apply`. Tělo bez
 deklarovaných klíčů je odmítnuto; neznámý `kind` se odmítá **před** čtením těla. Číselné rozsahy:
 `uid`/`gid` 501…`UInt32.max` (nula i přetečení jsou chyba), limity velikostí 1…8 MiB / 16 MiB.
-Kanonické kódování (`sortedKeys`) je deterministické, takže `decode(encode(x)) == x` i bajtově.
+Celočíselná JSON pole přijímají pouze desetinné číslice bez znaménka, tečky a exponentu
+(`0` nebo `[1-9][0-9]*`). To platí i pro verze, limity, audit a manifest. Hodnoty se kontrolují
+z původního lexému přes přesný převod na `UInt64`, nikdy přes `Double`: například
+`501.00000000000000001`, `4294967295.0000001`, ale i `501.0` a `501e0` jsou `invalid-range`.
+Neplatná JSON gramatika (např. `01`) zůstává `invalid-json`.
+Kanonické kódování (`sortedKeys`) je deterministické; platné typované hodnoty se při round-tripu
+nezmění a opakované zakódování dává stejné bajty.
 
 Tělo se na drátě kóduje jako base64, takže jeho text má až 4/3 surových bajtů. Preflight proto pro
 `body` používá strop obálky, ale surový limit 48 KiB vynucuje `headerProblem()` až po dekódování.
 Hraniční testy ověřují tělo na `48 KiB − 1`, `48 KiB` a `48 KiB + 1`: první dvě se round-tripují,
-třetí je odmítnuto. Strop celé obálky (72 KiB) je dost velký i pro base64 plného těla.
+třetí je odmítnuto. Encoder obálky používá `withoutEscapingSlashes`, aby `/` v base64
+nezdvojnásobovalo počet bajtů, a před návratem ověřuje i konečný limit 72 KiB. Hraniční testy
+zahrnují také JSON s opakovaným U+FFFF, jehož base64 obsahuje mnoho lomítek.
 
 ## Broker `broker-v0`
 
@@ -222,8 +230,10 @@ Politika nenese žádný klíč, schválení ani credential a **není** důkaz v
   duplicita i dvě oblasti v jednom dokumentu jsou `sequence-violation`. `subjectID` je plánovací
   identifikátor, `detail` ≤ 512 B bez kontrolních znaků. `actorUID = 0` označuje hostitelskou řídicí
   rovinu.
-- Limity: 1 MiB **a** 4 096 záznamů na dokument, oba vynucené při dekódování. Bajtový a početní
-  strop mají samostatné hraniční testy: přesně 1 MiB / 1 MiB + 1 B a přesně 4 096 / 4 097 záznamů.
+- Limity: 1 MiB **a** 4 096 záznamů na dokument, oba vynucené při kódování i dekódování.
+  Encoder kontroluje konečné bajty JSON včetně escapování; strukturální `validate` samotný počet
+  zakódovaných bajtů nepočítá. Hraniční testy pokrývají přesně 1 MiB / 1 MiB + 1 B při encode i decode,
+  přesně 4 096 / 4 097 záznamů a odmítnutí 4 096 validních záznamů s 512 B `detail`.
 
 ## Manifest stavu — duplikace schématu
 
@@ -239,6 +249,10 @@ Decoding je striktní (uzavřené klíče, duplicitní klíč, přetečení čí
 podmnožina** B3 validátoru ve spiku: kontroluje jen offline strukturální pravidla (schema/intent/phase,
 tvary identifikátorů, kolekce, kvóty a rezervy, role kořenů, prefix layout, rollback jednotku, host
 control, read-only vstupy, přetečení součtů). Nic nemountuje, nic neměří a nevydává se za deployment.
+Kapacity `planningBudgetBytes`, `limitBytes` a `reserveBytes` zachovávají celý rozsah `UInt64`
+ze zdrojového schématu B3, včetně hodnot nad `2^53` a `UInt64.max`; kladnost/null pravidla zůstávají
+stejná. Validace, encode a decode mají shodné rozsahy. Součty rezerv i konečných kvót se kontrolují
+proti přetečení `UInt64` bez zaokrouhlení, saturace nebo wrapu.
 
 Z B3 validátoru jsou navíc převzatá tato pravidla a mají negativní testy:
 

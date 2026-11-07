@@ -114,4 +114,22 @@ struct HelperMessageTests {
             _ = try HelperMessage.decode(envelopeJSON(kind: "zone.status", body: "{\"zoneID\":\"\(filler)\"}"))
         }
     }
+
+    @Test func rejectsRoundedFractionsAndNonIntegerNotation() {
+        for uid in ["501.00000000000000001", "4294967295.0000001", "500.99999999999999999",
+                    "501.0", "501e0", "5.01e2"] {
+            let body = jsonObject([("zoneID", "\"a1b2\""), ("uid", uid), ("gid", "4500")])
+            rejection("invalid-range") {
+                _ = try HelperMessage.decode(envelopeJSON(kind: "zone.create", body: body))
+            }
+        }
+    }
+
+    @Test func exactUIDBoundsRoundTrip() throws {
+        for uid in [CreateZoneRequest.minUID, UInt32.max] {
+            let message = HelperMessage.createZone(.init(zoneID: "a1b2", uid: uid, gid: UInt32.max))
+            #expect(try HelperMessage.decode(message.encoded()) == message)
+        }
+    }
+
 }

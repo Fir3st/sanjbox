@@ -239,4 +239,50 @@ struct StateManifestTests {
                 "\"purpose\":\"\(String(repeating: "p", count: 257))\"")]))
         }
     }
+
+    @Test func fullUInt64CapacityRangeRoundTrips() throws {
+        for capacity in [UInt64(9_007_199_254_740_992), 9_007_199_254_740_993, UInt64.max] {
+            var manifest = try StateManifestSchema.decode(document())
+            manifest.containers[0].planningBudgetBytes = capacity
+            manifest.volumes[0].quota = ManifestQuota(mode: "limited", limitBytes: capacity, reserveBytes: capacity)
+            manifest.volumes[1].quota = ManifestQuota(mode: "unbounded", reserveBytes: 0)
+            try StateManifestSchema.validate(manifest)
+            let wire = try StateManifestSchema.encode(manifest)
+            #expect(try StateManifestSchema.decode(wire) == manifest)
+        }
+    }
+
+    @Test func rejectsUInt64OverflowAndFractionsInEveryCapacityField() {
+        for token in ["18446744073709551616", "18446744073709551615.0000001", "1073741824.00000000001",
+                      "1073741824.0", "1073741824e0"] {
+            for (old, new) in [
+                ("\"planningBudgetBytes\":1073741824", "\"planningBudgetBytes\":\(token)"),
+                ("\"limitBytes\":1073741824", "\"limitBytes\":\(token)"),
+                ("\"reserveBytes\":0", "\"reserveBytes\":\(token)"),
+            ] {
+                expectInvalid([(old, new)], code: "invalid-range")
+            }
+        }
+    }
+
+    @Test func rejectsCapacitySumOverflowWithoutWrapping() throws {
+        var manifest = try StateManifestSchema.decode(document())
+        manifest.containers[0].planningBudgetBytes = UInt64.max
+        manifest.volumes[0].quota = ManifestQuota(mode: "limited", limitBytes: UInt64.max, reserveBytes: UInt64.max)
+        manifest.volumes[1].quota = ManifestQuota(mode: "unbounded", reserveBytes: 1)
+        rejection("invalid-range") { try StateManifestSchema.validate(manifest) }
+        rejection("invalid-range") { _ = try StateManifestSchema.encode(manifest) }
+        let encoder = JSONEncoder()
+        let wire = try encoder.encode(manifest)
+        rejection("invalid-range") { _ = try StateManifestSchema.decode(wire) }
+
+        // The original B3 contract also rejects overflow of finite quota sums, even without reserves.
+        manifest.volumes[0].quota.reserveBytes = 0
+        manifest.volumes[1].quota = ManifestQuota(mode: "limited", limitBytes: 1, reserveBytes: 0)
+        rejection("invalid-range") { try StateManifestSchema.validate(manifest) }
+        rejection("invalid-range") { _ = try StateManifestSchema.encode(manifest) }
+        let quotaWire = try encoder.encode(manifest)
+        rejection("invalid-range") { _ = try StateManifestSchema.decode(quotaWire) }
+    }
+
 }

@@ -59,7 +59,7 @@ public struct AuditRecord: Codable, Equatable, Sendable {
 
     static let shape = Shape.object([
         "schema": .scalar(maxBytes: 64),
-        "sequence": .integer(minimum: 1, maximum: 9_007_199_254_740_991),
+        "sequence": .integer(minimum: 1, maximum: UInt64.max),
         "timestampUTC": .scalar(maxBytes: 24),
         "zoneID": .scalar(maxBytes: 8),
         "actorUID": .integer(minimum: 0, maximum: UInt64(UInt32.max)),
@@ -130,7 +130,11 @@ public enum AuditLog {
         try validate(records)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
-        return try encoder.encode(records)
+        let data = try encoder.encode(records)
+        guard data.count <= maxBytes else {
+            throw ContractError.inputTooLarge("audit log \(data.count) > \(maxBytes)")
+        }
+        return data
     }
 
     public static func validate(_ records: [AuditRecord]) throws {

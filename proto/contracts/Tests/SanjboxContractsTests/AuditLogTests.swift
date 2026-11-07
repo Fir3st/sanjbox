@@ -138,4 +138,35 @@ struct AuditLogTests {
     @Test func rejectsNonArrayDocument() {
         rejection("invalid-value") { _ = try AuditLog.decode(Data("{}".utf8)) }
     }
+
+    @Test func encoderRejectsOversizedValidRecords() throws {
+        let records = (1...AuditLog.maxRecords).map {
+            auditRecord(sequence: UInt64($0), detail: String(repeating: "d", count: AuditRecord.maxDetailBytes))
+        }
+        try AuditLog.validate(records)
+        rejection("input-too-large") { _ = try AuditLog.encode(records) }
+        // JSON escaping counts too: the decoded detail is 512 bytes but its wire string is larger.
+        let escaped = (1...1024).map {
+            auditRecord(sequence: UInt64($0), detail: String(repeating: "\\", count: AuditRecord.maxDetailBytes))
+        }
+        rejection("input-too-large") { _ = try AuditLog.encode(escaped) }
+    }
+
+    @Test func encoderAcceptsExactByteBudgetAndRejectsOneMore() throws {
+        var records = (1...2048).map { auditRecord(sequence: UInt64($0), detail: "") }
+        var remaining = AuditLog.maxBytes - (try AuditLog.encode(records)).count
+        for index in records.indices {
+            let size = min(remaining, AuditRecord.maxDetailBytes)
+            records[index].detail = String(repeating: "d", count: size)
+            remaining -= size
+        }
+        #expect(remaining == 0)
+        let wire = try AuditLog.encode(records)
+        #expect(wire.count == AuditLog.maxBytes)
+        #expect(try AuditLog.decode(wire) == records)
+        let index = try #require(records.firstIndex { ($0.detail?.utf8.count ?? 0) < AuditRecord.maxDetailBytes })
+        records[index].detail! += "d"
+        rejection("input-too-large") { _ = try AuditLog.encode(records) }
+    }
+
 }

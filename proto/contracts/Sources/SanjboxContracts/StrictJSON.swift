@@ -1,8 +1,45 @@
 import Foundation
 
+private struct JSONNumber {
+    let token: String
+
+    /// JSON number grammar only; no numeric conversion or bounded exponent intermediate.
+    var hasValidGrammar: Bool {
+        let bytes = Array(token.utf8)
+        var index = 0
+        func consume(_ byte: UInt8) -> Bool {
+            guard index < bytes.count, bytes[index] == byte else { return false }
+            index += 1
+            return true
+        }
+        func digits() -> Bool {
+            let start = index
+            while index < bytes.count, (48...57).contains(bytes[index]) { index += 1 }
+            return index > start
+        }
+        _ = consume(45) // optional minus
+        if !consume(48) {
+            guard index < bytes.count, (49...57).contains(bytes[index]), digits() else { return false }
+        }
+        if consume(46), !digits() { return false }
+        if consume(101) || consume(69) {
+            if !consume(43) { _ = consume(45) }
+            guard digits() else { return false }
+        }
+        return index == bytes.count
+    }
+
+    /// Integer fields use decimal digits only. Never pass a fraction or exponent through a
+    /// floating-point intermediate, even when Foundation would round it to an accepted integer.
+    var unsignedInteger: UInt64? {
+        guard !token.isEmpty, token.utf8.allSatisfy({ (48...57).contains($0) }) else { return nil }
+        return UInt64(token)
+    }
+}
+
 /// Bounded JSON preflight: rejects duplicate decoded object keys, excessive nesting/arrays and
-/// trailing bytes before either Foundation decoder can pick a value. It does not replace the
-/// grammar/type checks of `JSONDecoder`; it closes the gaps `JSONDecoder` leaves open.
+/// trailing bytes. Preserves numeric lexemes and checks their grammar without a floating-point
+/// conversion; JSONDecoder validates escaped strings and performs the final typed decode.
 struct JSONPreflight {
     private let bytes: [UInt8]
     private let limit: Int
@@ -25,13 +62,15 @@ struct JSONPreflight {
         self.objectLimit = objectLimit
     }
 
-    mutating func check() throws {
-        try value(depth: 0)
+    @discardableResult
+    mutating func check() throws -> Any {
+        let result = try value(depth: 0)
         whitespace()
         guard offset == bytes.count else { throw ContractError("trailing-input", "\(bytes.count - offset) trailing bytes") }
+        return result
     }
 
-    private mutating func value(depth: Int) throws {
+    private mutating func value(depth: Int) throws -> Any {
         guard depth <= 16 else { throw ContractError("nesting-limit", "depth \(depth)") }
         whitespace()
         guard offset < bytes.count else { throw ContractError.invalidJSON("unexpected end") }
@@ -39,7 +78,8 @@ struct JSONPreflight {
         case 123: // {
             offset += 1
             whitespace()
-            if consume(125) { return }
+            if consume(125) { return [String: Any]() }
+            var object: [String: Any] = [:]
             var keys = Set<String>()
             while true {
                 whitespace()
@@ -48,34 +88,39 @@ struct JSONPreflight {
                 guard keys.count <= objectLimit else { throw ContractError("collection-limit", "object field count") }
                 whitespace()
                 guard consume(58) else { throw ContractError.invalidJSON("missing colon") }
-                try value(depth: depth + 1)
+                object[key] = try value(depth: depth + 1)
                 whitespace()
-                if consume(125) { return }
+                if consume(125) { return object }
                 guard consume(44) else { throw ContractError.invalidJSON("missing object separator") }
             }
         case 91: // [
             offset += 1
             whitespace()
-            if consume(93) { return }
+            if consume(93) { return [Any]() }
+            var array: [Any] = []
             var count = 0
             while true {
                 count += 1
                 guard count <= arrayLimit else { throw ContractError("collection-limit", "array element count") }
-                try value(depth: depth + 1)
+                array.append(try value(depth: depth + 1))
                 whitespace()
-                if consume(93) { return }
+                if consume(93) { return array }
                 guard consume(44) else { throw ContractError.invalidJSON("missing array separator") }
             }
-        case 34: _ = try string()
-        case 116: try literal("true")
-        case 102: try literal("false")
-        case 110: try literal("null")
+        case 34: return try string()
+        case 116: try literal("true"); return true
+        case 102: try literal("false"); return false
+        case 110: try literal("null"); return NSNull()
         case 45, 48...57:
-            // Number grammar and integer width are checked by JSONDecoder afterwards; the shape
-            // check bounds declared byte counts before that.
+            // Preserve the original lexeme for exact shape/range validation, including values
+            // Foundation cannot represent or would silently round.
+            let start = offset
             while offset < bytes.count, [43, 45, 46, 69, 101].contains(bytes[offset]) || (48...57).contains(bytes[offset]) {
                 offset += 1
             }
+            let number = JSONNumber(token: String(decoding: bytes[start..<offset], as: UTF8.self))
+            guard number.hasValidGrammar else { throw ContractError.invalidJSON("number grammar") }
+            return number
         default: throw ContractError.invalidJSON("invalid value at byte \(offset)")
         }
     }
@@ -183,13 +228,7 @@ indirect enum Shape: Sendable {
     }
 
     private static func checkInteger(_ value: Any, minimum: UInt64, maximum: UInt64) -> Bool {
-        guard let number = value as? NSNumber else { return false }
-        let double = number.doubleValue
-        guard double.isFinite, double == double.rounded() else { return false }
-        guard double >= 0, double <= Double(maximum) else { return false }
-        // Doubles are exact up to 2^53; every documented range in this contract is below that.
-        guard maximum < (1 << 53) else { return false }
-        let integer = UInt64(double)
+        guard let number = value as? JSONNumber, let integer = number.unsignedInteger else { return false }
         return integer >= minimum && integer <= maximum
     }
 }
@@ -200,14 +239,8 @@ enum StrictJSON {
                                      arrayLimit: Int = 128, as type: T.Type) throws -> T {
         var preflight = try JSONPreflight(data, limit: limit, stringLimit: stringLimit,
                                           arrayLimit: arrayLimit)
-        try preflight.check()
-        let any: Any
-        do {
-            any = try JSONSerialization.jsonObject(with: data, options: [])
-        } catch {
-            throw ContractError.invalidJSON("grammar")
-        }
-        try shape.check(any, path: "$")
+        let exactValues = try preflight.check()
+        try shape.check(exactValues, path: "$")
         do {
             return try JSONDecoder().decode(T.self, from: data)
         } catch let error as DecodingError {

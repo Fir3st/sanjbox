@@ -243,10 +243,16 @@ public enum StateManifestSchema {
 
         for container in document.containers {
             var reserves: UInt64 = 0
+            var finiteQuotas: UInt64 = 0
             for volume in document.volumes where volume.containerID == container.id {
                 let sum = reserves.addingReportingOverflow(volume.quota.reserveBytes)
                 guard !sum.overflow else { throw ContractError.invalidRange("reserves of \(container.id)") }
                 reserves = sum.partialValue
+                if let limit = volume.quota.limitBytes {
+                    let quotaSum = finiteQuotas.addingReportingOverflow(limit)
+                    guard !quotaSum.overflow else { throw ContractError.invalidRange("quotas of \(container.id)") }
+                    finiteQuotas = quotaSum.partialValue
+                }
             }
             if let budget = container.planningBudgetBytes, reserves > budget {
                 throw ContractError("invalid-value", "reserves of \(container.id) exceed planningBudgetBytes")
@@ -359,7 +365,7 @@ public struct ManifestContainer: Codable, Equatable, Sendable {
     static let shape = Shape.object([
         "id": .scalar(maxBytes: 32),
         "declaredUUID": .optionalScalar(maxBytes: 36),
-        "planningBudgetBytes": .optionalInteger(minimum: 1, maximum: 9_007_199_254_740_991),
+        "planningBudgetBytes": .optionalInteger(minimum: 1, maximum: UInt64.max),
     ])
 }
 
@@ -376,8 +382,8 @@ public struct ManifestQuota: Codable, Equatable, Sendable {
 
     static let shape = Shape.object([
         "mode": .scalar(maxBytes: 16),
-        "limitBytes": .optionalInteger(minimum: 1, maximum: 9_007_199_254_740_991),
-        "reserveBytes": .integer(minimum: 0, maximum: 9_007_199_254_740_991),
+        "limitBytes": .optionalInteger(minimum: 1, maximum: UInt64.max),
+        "reserveBytes": .integer(minimum: 0, maximum: UInt64.max),
     ])
 }
 

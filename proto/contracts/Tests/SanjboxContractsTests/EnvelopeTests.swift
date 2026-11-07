@@ -101,4 +101,19 @@ struct EnvelopeTests {
                 body: String(repeating: "b", count: XPCEnvelope.maxBodyBytes + 1)))
         }
     }
+
+    @Test func slashHeavyBase64FitsTheWireBudget() throws {
+        // Valid JSON with U+FFFF produces enough '/' in base64 to exceed maxBytes when JSON
+        // escapes slashes. Exercise both documented raw-body boundaries, not only ASCII bodies.
+        let json = Data(("{\"padding\":\"" + String(repeating: "\u{ffff}", count: 16_379) + "\"}").utf8)
+        #expect(json.count == XPCEnvelope.maxBodyBytes - 1)
+        for size in [XPCEnvelope.maxBodyBytes - 1, XPCEnvelope.maxBodyBytes] {
+            let body = json + Data(repeating: 0x20, count: size - json.count)
+            let envelope = XPCEnvelope(kind: "helper.capabilities", body: body)
+            let wire = try envelope.encoded()
+            #expect(wire.count <= XPCEnvelope.maxBytes)
+            #expect(try XPCEnvelope.decode(wire) == envelope)
+        }
+    }
+
 }
