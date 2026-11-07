@@ -6,13 +6,23 @@ import Foundation
 struct JSONPreflight {
     private let bytes: [UInt8]
     private let limit: Int
+    private let stringLimit: Int
+    private let arrayLimit: Int
+    private let objectLimit: Int
     private var offset = 0
 
-    init(_ data: Data, limit: Int) throws {
+    /// Defaults are the package-wide preflight guards. A document whose declared format admits
+    /// larger values (an envelope body, the audit-log record array) raises only the guard it needs,
+    /// so `decode(encode(x)) == x` holds across the whole declared range.
+    init(_ data: Data, limit: Int, stringLimit: Int = 4096, arrayLimit: Int = 128,
+         objectLimit: Int = 128) throws {
         guard !data.isEmpty else { throw ContractError.invalidJSON("empty input") }
         guard data.count <= limit else { throw ContractError.inputTooLarge("\(data.count) > \(limit)") }
         bytes = Array(data)
         self.limit = limit
+        self.stringLimit = stringLimit
+        self.arrayLimit = arrayLimit
+        self.objectLimit = objectLimit
     }
 
     mutating func check() throws {
@@ -35,7 +45,7 @@ struct JSONPreflight {
                 whitespace()
                 let key = try string()
                 guard keys.insert(key).inserted else { throw ContractError("duplicate-key", key) }
-                guard keys.count <= 128 else { throw ContractError("collection-limit", "object field count") }
+                guard keys.count <= objectLimit else { throw ContractError("collection-limit", "object field count") }
                 whitespace()
                 guard consume(58) else { throw ContractError.invalidJSON("missing colon") }
                 try value(depth: depth + 1)
@@ -50,7 +60,7 @@ struct JSONPreflight {
             var count = 0
             while true {
                 count += 1
-                guard count <= 128 else { throw ContractError("collection-limit", "array element count") }
+                guard count <= arrayLimit else { throw ContractError("collection-limit", "array element count") }
                 try value(depth: depth + 1)
                 whitespace()
                 if consume(93) { return }
@@ -83,7 +93,9 @@ struct JSONPreflight {
                 let decoded: String
                 do { decoded = try JSONDecoder().decode(String.self, from: Data(bytes[start..<offset])) }
                 catch { throw ContractError.invalidJSON("invalid string") }
-                guard decoded.utf8.count <= 4096 else { throw ContractError("string-limit", "\(decoded.utf8.count) > 4096") }
+                guard decoded.utf8.count <= stringLimit else {
+                    throw ContractError("string-limit", "\(decoded.utf8.count) > \(stringLimit)")
+                }
                 return decoded
             }
         }
@@ -184,8 +196,10 @@ indirect enum Shape: Sendable {
 
 enum StrictJSON {
     /// Preflight (duplicate keys, size, nesting) → closed key set → typed `Decodable`.
-    static func decode<T: Decodable>(_ data: Data, shape: Shape, limit: Int, as type: T.Type) throws -> T {
-        var preflight = try JSONPreflight(data, limit: limit)
+    static func decode<T: Decodable>(_ data: Data, shape: Shape, limit: Int, stringLimit: Int = 4096,
+                                     arrayLimit: Int = 128, as type: T.Type) throws -> T {
+        var preflight = try JSONPreflight(data, limit: limit, stringLimit: stringLimit,
+                                          arrayLimit: arrayLimit)
         try preflight.check()
         let any: Any
         do {

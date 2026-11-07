@@ -193,25 +193,31 @@ public struct ZoneStateMachine: Equatable, Sendable {
         guard let target = Self.target(from: state, on: event) else {
             throw ContractError("forbidden-transition", "\(state.rawValue) --\(event.rawValue)-->")
         }
+        // Compute the candidate state (including the identity release) first, verify its invariants,
+        // and only then commit. A refused event must leave both the state and the identity untouched.
+        var nextUID = uid
+        var nextGID = gid
         switch event {
-        case .start:
-            // A start without a bound identity would arm protections for a UID that is not the
-            // zone's; the contract refuses it instead of inventing one.
-            guard uid != nil else { throw ContractError("state-invariant", "start without identity") }
         case .cleaned:
             // Release happens only here, at the end of cleanup, never on `stop`.
             guard state == .cleaning else { throw ContractError("state-invariant", "release before cleanup") }
-            uid = nil
-            gid = nil
+            nextUID = nil
+            nextGID = nil
         default:
             break
         }
+        try Self.checkInvariants(state: target, uid: nextUID, gid: nextGID)
+        uid = nextUID
+        gid = nextGID
         state = target
-        try assertInvariants()
     }
 
     /// Invariants checked after every transition and available to callers/tests directly.
     public func assertInvariants() throws {
+        try Self.checkInvariants(state: state, uid: uid, gid: gid)
+    }
+
+    private static func checkInvariants(state: ZoneState, uid: UInt32?, gid: UInt32?) throws {
         if state.requiresIdentity, uid == nil {
             throw ContractError("state-invariant", "\(state.rawValue) requires a bound identity")
         }

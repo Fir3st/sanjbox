@@ -79,4 +79,26 @@ struct EnvelopeTests {
             _ = try XPCEnvelope.decode(envelopeJSON(kind: longKind, body: "{}"))
         }
     }
+
+    /// The body budget is declared on the *raw* body, not on its base64 wire text. A body one byte
+    /// below and exactly at the declared limit must survive `decode(encode(x)) == x`.
+    @Test func bodyBudgetBoundaryRoundTrips() throws {
+        for size in [XPCEnvelope.maxBodyBytes - 1, XPCEnvelope.maxBodyBytes] {
+            let envelope = XPCEnvelope(kind: "helper.capabilities",
+                                       body: Data(repeating: 0x62, count: size))
+            let wire = try envelope.encoded()
+            #expect(wire.count <= XPCEnvelope.maxBytes, "body \(size) wire \(wire.count)")
+            #expect(try XPCEnvelope.decode(wire) == envelope)
+        }
+    }
+
+    @Test func bodyOneByteOverBudgetIsRejected() {
+        let over = XPCEnvelope(kind: "helper.capabilities",
+                               body: Data(repeating: 0x62, count: XPCEnvelope.maxBodyBytes + 1))
+        rejection("input-too-large") { _ = try over.encoded() }
+        rejection("input-too-large") {
+            _ = try XPCEnvelope.decode(envelopeJSON(kind: "helper.capabilities",
+                body: String(repeating: "b", count: XPCEnvelope.maxBodyBytes + 1)))
+        }
+    }
 }

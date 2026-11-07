@@ -48,6 +48,8 @@ struct AuditLogTests {
 
     @Test func rejectsMalformedTimestamp() {
         for timestamp in ["2026-11-07T12:34:56Z", "2026-11-07 12:34:56.789Z", "2026-13-07T12:34:56.789Z",
+                          "2026-02-31T12:34:56.789Z", "2025-02-29T12:34:56.789Z", "2026-04-31T12:34:56.789Z",
+                          "2026-00-10T12:34:56.789Z", "2026-01-00T12:34:56.789Z",
                           "2026-11-07T24:00:00.000Z", "2026-11-07T12:34:56.789+01:00", "2026-11-07T12:34:56.789"] {
             do {
                 _ = try AuditLog.decode(Data("[\(recordJSON(timestamp: timestamp))]".utf8))
@@ -61,16 +63,39 @@ struct AuditLogTests {
         }
     }
 
+    @Test func acceptsCalendarLeapDay() throws {
+        let decoded = try AuditLog.decode(Data("[\(recordJSON(timestamp: "2024-02-29T12:34:56.789Z"))]".utf8))
+        #expect(decoded.count == 1)
+    }
+
     @Test func rejectsWrongZoneIDAndZeroSequence() {
         rejection("invalid-identifier") { _ = try AuditLog.decode(Data("[\(recordJSON(zoneID: "A1B2"))]".utf8)) }
         rejection("invalid-range") { _ = try AuditLog.decode(Data("[\(recordJSON(sequence: "0"))]".utf8)) }
     }
 
-    @Test func rejectsNonIncreasingSequence() {
-        let records = [auditRecord(sequence: 2), auditRecord(sequence: 2)]
-        rejection("sequence-violation") { _ = try AuditLog.encode(records) }
-        let decreasing = [auditRecord(sequence: 3), auditRecord(sequence: 1)]
-        rejection("sequence-violation") { _ = try AuditLog.encode(decreasing) }
+    @Test func rejectsLogThatDoesNotStartAtOne() {
+        rejection("sequence-violation") { _ = try AuditLog.encode([auditRecord(sequence: 2)]) }
+        rejection("sequence-violation") { _ = try AuditLog.encode([auditRecord(sequence: 7), auditRecord(sequence: 8)]) }
+    }
+
+    @Test func rejectsSequenceGap() {
+        // 1 is accepted, 3 is not 2: a missing record is a failure, not a warning.
+        rejection("sequence-violation") {
+            _ = try AuditLog.encode([auditRecord(sequence: 1), auditRecord(sequence: 3)])
+        }
+    }
+
+    @Test func rejectsSequenceDecrease() {
+        // The first two records are valid; the third goes backwards instead of to 3.
+        rejection("sequence-violation") {
+            _ = try AuditLog.encode([auditRecord(sequence: 1), auditRecord(sequence: 2), auditRecord(sequence: 1)])
+        }
+    }
+
+    @Test func rejectsDuplicateSequence() {
+        rejection("sequence-violation") {
+            _ = try AuditLog.encode([auditRecord(sequence: 1), auditRecord(sequence: 1)])
+        }
     }
 
     @Test func rejectsMixedZonesInOneDocument() {
@@ -89,11 +114,25 @@ struct AuditLogTests {
         rejection("invalid-value") { _ = try AuditLog.encode([record]) }
     }
 
-    @Test func rejectsOversizedLogAndRecordCollection() {
+    @Test func acceptsExactlyTheByteBudgetAndRejectsOneByteMore() throws {
         let record = Data("[\(recordJSON())]".utf8)
-        rejection("input-too-large") { _ = try AuditLog.decode(record + Data(String(repeating: " ", count: AuditLog.maxBytes).utf8)) }
-        let many = "[" + Array(repeating: recordJSON(sequence: "1"), count: AuditLog.maxRecords + 1).joined(separator: ",") + "]"
-        rejection("collection-limit") { _ = try AuditLog.decode(Data(many.utf8)) }
+        let atLimit = record + Data(repeating: 0x20, count: AuditLog.maxBytes - record.count)
+        #expect(atLimit.count == AuditLog.maxBytes)
+        let decoded = try AuditLog.decode(atLimit)
+        #expect(decoded.count == 1)
+        rejection("input-too-large") { _ = try AuditLog.decode(atLimit + Data(" ".utf8)) }
+    }
+
+    @Test func acceptsExactlyMaxRecordsAndRejectsOneMore() throws {
+        let atLimit = "[" + Array(1...AuditLog.maxRecords).map { recordJSON(sequence: String($0)) }
+            .joined(separator: ",") + "]"
+        let decoded = try AuditLog.decode(Data(atLimit.utf8))
+        #expect(decoded.count == AuditLog.maxRecords)
+        #expect(decoded.last?.sequence == UInt64(AuditLog.maxRecords))
+
+        let overLimit = "[" + Array(1...(AuditLog.maxRecords + 1)).map { recordJSON(sequence: String($0)) }
+            .joined(separator: ",") + "]"
+        rejection("collection-limit") { _ = try AuditLog.decode(Data(overLimit.utf8)) }
     }
 
     @Test func rejectsNonArrayDocument() {

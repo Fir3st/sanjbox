@@ -10,11 +10,14 @@ struct StateManifestTests {
     {"schema":"sanjbox.state-manifest.v1","intent":"design-only","phase":"mvp",
      "zone":{"id":"t1ab","uid":4501,"gid":4500},
      "containers":[{"id":"state","planningBudgetBytes":1073741824}],
-     "volumes":[{"id":"state","containerID":"state","mountPoint":"/opt/snj/t1ab","filesystem":"apfs",
+     "volumes":[{"id":"state","containerID":"state","mountPoint":"/Volumes/Sanjbox/t1ab/state","filesystem":"apfs",
+                 "caseSensitive":false,"ownership":"required",
+                 "quota":{"mode":"limited","limitBytes":1073741824,"reserveBytes":0}},
+                {"id":"prefix","containerID":"state","mountPoint":"/opt/snj/t1ab","filesystem":"apfs",
                  "caseSensitive":false,"ownership":"required",
                  "quota":{"mode":"limited","limitBytes":1073741824,"reserveBytes":0}}],
      "roots":[
-       {"id":"prefix","role":"prefix","volumeID":"state","relativePath":".","ownerUID":4501,
+       {"id":"prefix","role":"prefix","volumeID":"prefix","relativePath":".","ownerUID":4501,
         "rollback":"whole-volume","purpose":"tools prefix"},
        {"id":"home","role":"home","volumeID":"state","relativePath":"home","ownerUID":4501,
         "rollback":"whole-volume","purpose":"zone home"},
@@ -25,10 +28,10 @@ struct StateManifestTests {
        {"id":"tmp","role":"tmp","volumeID":"state","relativePath":"tmp","ownerUID":4501,
         "rollback":"whole-volume","purpose":"zone temporary"}],
      "runtimePolicy":"deferred-f4",
-     "rollback":{"unitID":"t1ab-full-state","volumeIDs":["state"],
+     "rollback":{"unitID":"t1ab-full-state","volumeIDs":["state","prefix"],
                  "strategy":"rebuild-writable-state-then-switch","quiescence":"whole-uid-required",
                  "recoveryRequired":true,"startPolicy":"deny-until-verified"},
-     "hostControl":{"directoryPath":"/var/db/sanjbox","ownerUID":0,"directoryMode":"0700",
+     "hostControl":{"directoryPath":"/Library/Application Support/Sanjbox/control","ownerUID":0,"directoryMode":"0700",
                     "policyFile":"policy.json","recoveryFile":"recovery.json","rollback":"excluded"},
      "readOnlyInputs":[],
      "outsideWrites":"forbidden-unverified","hostAccess":"controlled-export-only"}
@@ -129,6 +132,39 @@ struct StateManifestTests {
         expectInvalid([("\"ownership\":\"required\"", "\"ownership\":\"optional\"")], code: "invalid-value")
     }
 
+    @Test func rejectsPairwiseVolumeOverlap() {
+        // An unused third volume is declared on the state volume's mountpoint. No root reaches it,
+        // so only the pairwise volume check can reject this document.
+        expectInvalid([
+            ("\"quota\":{\"mode\":\"limited\",\"limitBytes\":1073741824,\"reserveBytes\":0}}],",
+             "\"quota\":{\"mode\":\"limited\",\"limitBytes\":1073741824,\"reserveBytes\":0}}," +
+             "{\"id\":\"state2\",\"containerID\":\"state\",\"mountPoint\":\"/Volumes/Sanjbox/t1ab/state\"," +
+             "\"filesystem\":\"apfs\",\"caseSensitive\":false,\"ownership\":\"required\"," +
+             "\"quota\":{\"mode\":\"limited\",\"limitBytes\":1073741824,\"reserveBytes\":0}}],"),
+            ("\"volumeIDs\":[\"state\",\"prefix\"]", "\"volumeIDs\":[\"state\",\"prefix\",\"state2\"]"),
+        ], code: "invalid-value")
+    }
+
+    @Test func rejectsOverlappingRoots() {
+        // `home` and `project` are now the same path on the state volume.
+        expectInvalid([("\"id\":\"home\",\"role\":\"home\",\"volumeID\":\"state\",\"relativePath\":\"home\"",
+                       "\"id\":\"home\",\"role\":\"home\",\"volumeID\":\"state\",\"relativePath\":\"project\"")],
+                      code: "invalid-value")
+    }
+
+    @Test func rejectsAbsoluteHostPathAliases() {
+        expectInvalid([("\"mountPoint\":\"/opt/snj/t1ab\"", "\"mountPoint\":\"/tmp/t1ab\"")], code: "invalid-value")
+        expectInvalid([("\"directoryPath\":\"/Library/Application Support/Sanjbox/control\"", "\"directoryPath\":\"/System/Volumes/Data/sanjbox\"")],
+                      code: "invalid-value")
+    }
+
+    @Test func rejectsCaseAndUnicodeAliasedPaths() {
+        expectInvalid([("\"readOnlyInputs\":[]", "\"readOnlyInputs\":[{\"id\":\"a\",\"path\":\"/srv/Data\",\"purpose\":\"p\"},{\"id\":\"b\",\"path\":\"/srv/data\",\"purpose\":\"p\"}]")],
+                      code: "invalid-value")
+        expectInvalid([("\"readOnlyInputs\":[]", "\"readOnlyInputs\":[{\"id\":\"a\",\"path\":\"/srv/Caf\u{00e9}\",\"purpose\":\"p\"},{\"id\":\"b\",\"path\":\"/srv/cafe\u{0301}\",\"purpose\":\"p\"}]")],
+                      code: "invalid-value")
+    }
+
     @Test func rejectsQuotaProblems() {
         expectInvalid([("\"mode\":\"limited\",\"limitBytes\":1073741824,", "\"mode\":\"limited\",")], code: "invalid-range")
         expectInvalid([("\"mode\":\"limited\"", "\"mode\":\"unbounded\"")], code: "invalid-value")
@@ -164,8 +200,8 @@ struct StateManifestTests {
     }
 
     @Test func rejectsRollbackProblems() {
-        expectInvalid([("\"volumeIDs\":[\"state\"]", "\"volumeIDs\":[]")], code: "invalid-value")
-        expectInvalid([("\"volumeIDs\":[\"state\"]", "\"volumeIDs\":[\"state\",\"state\"]")], code: "invalid-value")
+        expectInvalid([("\"volumeIDs\":[\"state\",\"prefix\"]", "\"volumeIDs\":[]")], code: "invalid-value")
+        expectInvalid([("\"volumeIDs\":[\"state\",\"prefix\"]", "\"volumeIDs\":[\"state\",\"prefix\",\"state\"]")], code: "invalid-value")
         expectInvalid([("\"strategy\":\"rebuild-writable-state-then-switch\"", "\"strategy\":\"rename-swap\"")], code: "invalid-value")
         expectInvalid([("\"quiescence\":\"whole-uid-required\"", "\"quiescence\":\"best-effort\"")], code: "invalid-value")
         expectInvalid([("\"recoveryRequired\":true", "\"recoveryRequired\":false")], code: "invalid-value")
@@ -177,8 +213,8 @@ struct StateManifestTests {
         expectInvalid([("\"directoryMode\":\"0700\"", "\"directoryMode\":\"0755\"")], code: "invalid-value")
         expectInvalid([("\"policyFile\":\"policy.json\"", "\"policyFile\":\"sub/policy.json\"")], code: "invalid-value")
         expectInvalid([("\"recoveryFile\":\"recovery.json\"", "\"recoveryFile\":\"policy.json\"")], code: "invalid-value")
-        expectInvalid([("\"directoryPath\":\"/var/db/sanjbox\"", "\"directoryPath\":\"/opt/snj/t1ab/control\"")], code: "invalid-value")
-        expectInvalid([("\"directoryPath\":\"/var/db/sanjbox\"", "\"directoryPath\":\"var/db/sanjbox\"")], code: "invalid-value")
+        expectInvalid([("\"directoryPath\":\"/Library/Application Support/Sanjbox/control\"", "\"directoryPath\":\"/opt/snj/t1ab/control\"")], code: "invalid-value")
+        expectInvalid([("\"directoryPath\":\"/Library/Application Support/Sanjbox/control\"", "\"directoryPath\":\"var/db/sanjbox\"")], code: "invalid-value")
     }
 
     @Test func rejectsReadOnlyInputProblems() {
@@ -186,7 +222,7 @@ struct StateManifestTests {
                       code: "invalid-value")
         expectInvalid([("\"readOnlyInputs\":[]", "\"readOnlyInputs\":[{\"id\":\"fixtures\",\"path\":\"/opt/snj/t1ab/ro\",\"purpose\":\"p\"}]")],
                       code: "invalid-value")
-        expectInvalid([("\"readOnlyInputs\":[]", "\"readOnlyInputs\":[{\"id\":\"fixtures\",\"path\":\"/var/db/sanjbox/ro\",\"purpose\":\"p\"}]")],
+        expectInvalid([("\"readOnlyInputs\":[]", "\"readOnlyInputs\":[{\"id\":\"fixtures\",\"path\":\"/Library/Application Support/Sanjbox/control/ro\",\"purpose\":\"p\"}]")],
                       code: "invalid-value")
         expectInvalid([("\"readOnlyInputs\":[]", "\"readOnlyInputs\":[{\"id\":\"fixtures\",\"path\":\"/srv/ro\",\"purpose\":\"p\"},{\"id\":\"f2\",\"path\":\"/srv/ro\",\"purpose\":\"p\"}]")],
                       code: "invalid-value")

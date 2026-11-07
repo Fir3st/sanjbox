@@ -106,7 +106,7 @@ public enum StateManifestSchema {
                 throw ContractError("invalid-value", "volume:\(volume.id) references an undeclared container")
             }
             guard Self.isNormalizedPath(volume.mountPoint, absolute: true),
-                  !Self.forbiddenMountPoints.contains(volume.mountPoint.lowercased()) else {
+                  !Self.forbiddenMountPoints.contains(Self.foldedPath(volume.mountPoint)) else {
                 throw ContractError("invalid-value", "volume:\(volume.id).mountPoint")
             }
             guard volume.filesystem == "apfs", volume.ownership == "required" else {
@@ -126,6 +126,16 @@ public enum StateManifestSchema {
                 }
             default:
                 throw ContractError("invalid-value", "volume:\(volume.id).quota.mode")
+            }
+        }
+        // Pairwise mountpoint overlap: equal, case/normalization-aliased or nested mountpoints would
+        // make two logical volumes restore the same bytes. Mirrors spikes/s4-state `mount-overlap`.
+        for i in document.volumes.indices {
+            for j in document.volumes.indices where j > i {
+                if Self.overlaps(document.volumes[i].mountPoint, document.volumes[j].mountPoint) {
+                    throw ContractError("invalid-value",
+                        "volumes \(document.volumes[i].id) and \(document.volumes[j].id) overlap")
+                }
             }
         }
 
@@ -170,6 +180,21 @@ public enum StateManifestSchema {
                 }
             }
         }
+        // Write-root roles must be disjoint after joining mountpoint and relative path. Mirrors
+        // spikes/s4-state `root-overlap`; the comparison folds case and Unicode normalization.
+        let plannedRoots = document.roots.compactMap { root -> (String, String)? in
+            guard let volume = document.volumes.first(where: { $0.id == root.volumeID }) else { return nil }
+            let path = volume.mountPoint + (root.relativePath == "." ? "" : "/" + root.relativePath)
+            return (root.id, path)
+        }
+        for i in plannedRoots.indices {
+            for j in plannedRoots.indices where j > i {
+                if Self.overlaps(plannedRoots[i].1, plannedRoots[j].1) {
+                    throw ContractError("invalid-value",
+                        "roots \(plannedRoots[i].0) and \(plannedRoots[j].0) overlap")
+                }
+            }
+        }
 
         let restore = document.rollback
         guard Identifier.isValidPlanID(restore.unitID), Set(restore.volumeIDs).count == restore.volumeIDs.count,
@@ -190,7 +215,7 @@ public enum StateManifestSchema {
         for name in [control.policyFile, control.recoveryFile] where !Identifier.isValidFileName(name) {
             throw ContractError("invalid-value", "hostControl file name")
         }
-        guard control.policyFile.lowercased() != control.recoveryFile.lowercased() else {
+        guard Self.foldedPath(control.policyFile) != Self.foldedPath(control.recoveryFile) else {
             throw ContractError("invalid-value", "hostControl file names alias")
         }
         for volume in document.volumes where Self.overlaps(control.directoryPath, volume.mountPoint) {
@@ -233,7 +258,9 @@ public enum StateManifestSchema {
         "/", "/users", "/volumes", "/opt", "/opt/snj", "/applications", "/library", "/system", "/private", "/usr",
     ]
 
-    /// Lexical path check only: no filesystem call, no symlink or alias resolution.
+    /// Lexical path check only: no filesystem call, no symlink or alias resolution. Absolute paths
+    /// that name a common host alias (`/tmp`, `/var`, `/etc`, `/System/Volumes/Data`) are refused so
+    /// a design cannot claim separation from a path the host folds onto the same location.
     static func isNormalizedPath(_ value: String, absolute: Bool) -> Bool {
         guard !value.isEmpty, value.utf8.count <= 1024, !value.contains("\\") else { return false }
         guard !value.unicodeScalars.contains(where: { $0.value < 0x20 || $0.value == 0x7f }) else { return false }
@@ -243,14 +270,25 @@ public enum StateManifestSchema {
         var body = value
         if absolute { body.removeFirst() }
         let components = body.split(separator: "/", omittingEmptySubsequences: false)
-        return !components.isEmpty && components.allSatisfy { !$0.isEmpty && $0 != "." && $0 != ".." }
+        guard !components.isEmpty, components.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." }) else { return false }
+        if absolute {
+            let folded = foldedPath(value)
+            for alias in ["/tmp", "/var", "/etc", "/System/Volumes/Data"] {
+                let foldedAlias = foldedPath(alias)
+                if folded == foldedAlias || folded.hasPrefix(foldedAlias + "/") { return false }
+            }
+        }
+        return true
+    }
+
+    /// Case- and Unicode-normalization-folded path, matching spikes/s4-state `foldedPath`.
+    static func foldedPath(_ path: String) -> String {
+        path.precomposedStringWithCanonicalMapping.lowercased(with: Locale(identifier: "en_US_POSIX"))
     }
 
     static func overlaps(_ lhs: String, _ rhs: String) -> Bool {
-        let a = lhs.split(separator: "/").map(String.init)
-        let b = rhs.split(separator: "/").map(String.init)
-        let shortest = min(a.count, b.count)
-        return Array(a.prefix(shortest)) == Array(b.prefix(shortest))
+        let a = foldedPath(lhs), b = foldedPath(rhs)
+        return a == b || a.hasPrefix(b + "/") || b.hasPrefix(a + "/")
     }
 }
 

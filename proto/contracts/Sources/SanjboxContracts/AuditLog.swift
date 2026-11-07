@@ -102,11 +102,14 @@ public struct AuditRecord: Codable, Equatable, Sendable {
         }
         guard bytes[4] == 45, bytes[7] == 45, bytes[10] == 84, bytes[13] == 58, bytes[16] == 58,
               bytes[19] == 46, bytes[23] == 90,
-              let month = digits(5..<7), let day = digits(8..<10),
+              let year = digits(0..<4), let month = digits(5..<7), let day = digits(8..<10),
               let hour = digits(11..<13), let minute = digits(14..<16), let second = digits(17..<19),
-              digits(0..<4) != nil, digits(20..<23) != nil else { return false }
-        return (1...12).contains(month) && (1...31).contains(day)
-            && (0...23).contains(hour) && (0...59).contains(minute) && (0...59).contains(second)
+              digits(20..<23) != nil else { return false }
+        guard (1...12).contains(month), (0...23).contains(hour), (0...59).contains(minute),
+              (0...59).contains(second) else { return false }
+        let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+        let monthLengths = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        return (1...monthLengths[month - 1]).contains(day)
     }
 }
 
@@ -118,7 +121,7 @@ public enum AuditLog {
 
     public static func decode(_ data: Data) throws -> [AuditRecord] {
         let records = try StrictJSON.decode(data, shape: .array(AuditRecord.shape, max: maxRecords),
-                                            limit: maxBytes, as: [AuditRecord].self)
+                                            limit: maxBytes, arrayLimit: maxRecords, as: [AuditRecord].self)
         try validate(records)
         return records
     }
@@ -138,8 +141,11 @@ public enum AuditLog {
         var zoneID: String?
         for record in records {
             try record.validate()
-            guard record.sequence > previousSequence else {
-                throw ContractError("sequence-violation", "sequence \(record.sequence) after \(previousSequence)")
+            // Not merely monotonic: the first record is 1 and every later record is exactly the
+            // previous sequence plus one. A gap, a start above 1 and a decrease are all failures.
+            let expected = previousSequence + 1
+            guard record.sequence == expected else {
+                throw ContractError("sequence-violation", "sequence \(record.sequence), expected \(expected)")
             }
             previousSequence = record.sequence
             if let zoneID, zoneID != record.zoneID {

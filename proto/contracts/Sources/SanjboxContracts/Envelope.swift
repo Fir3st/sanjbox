@@ -7,8 +7,9 @@ import Foundation
 public struct XPCEnvelope: Codable, Equatable, Sendable {
     /// Helper protocol version. Any other value is rejected, including newer and older ones.
     public static let helperProtocolVersion: UInt32 = 1
-    /// Absolute wire limit for one helper message (header + body).
-    public static let maxBytes = 64 * 1024
+    /// Absolute wire limit for one helper message (header + base64 body). It must leave room for
+    /// the base64 expansion of a full `maxBodyBytes` body: 48 KiB becomes 64 KiB of base64 text.
+    public static let maxBytes = 72 * 1024
     /// Body limit; the body is decoded as JSON after base64 unescaping.
     public static let maxBodyBytes = 48 * 1024
 
@@ -25,13 +26,20 @@ public struct XPCEnvelope: Codable, Equatable, Sendable {
     static let shape = Shape.object([
         "version": .integer(minimum: 0, maximum: UInt64(UInt32.max)),
         "kind": .scalar(maxBytes: 64),
-        "body": .scalar(maxBytes: XPCEnvelope.maxBodyBytes),
+        // `Data` is a base64 string on the wire, so its textual length is 4/3 of the raw body.
+        // The authoritative raw-byte budget is checked in `headerProblem()` after decoding;
+        // bounding the string by the envelope limit keeps that check (and its error code) first.
+        "body": .scalar(maxBytes: XPCEnvelope.maxBytes),
     ])
 
     /// Validates the wire form and returns the header. Unknown kinds are *not* judged here; the
     /// message set of a receiver decides that (`HelperMessage.decode`, `BrokerContract.decode`).
     public static func decode(_ data: Data) throws -> XPCEnvelope {
-        let envelope = try StrictJSON.decode(data, shape: shape, limit: maxBytes, as: XPCEnvelope.self)
+        // The body is a base64 string: its textual form is up to 4/3 of `maxBodyBytes`. Raising the
+        // preflight string guard to the envelope limit keeps a full-size body decodable; the raw
+        // byte budget is then enforced by `headerProblem()` after base64 decoding.
+        let envelope = try StrictJSON.decode(data, shape: shape, limit: maxBytes, stringLimit: maxBytes,
+                                             as: XPCEnvelope.self)
         if let problem = envelope.headerProblem() {
             throw problem
         }

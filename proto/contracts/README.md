@@ -39,8 +39,8 @@ public enum Identifier {
 // Obálka a zprávy helperu (protokol verze 1).
 public struct XPCEnvelope: Codable, Equatable, Sendable {
     static let helperProtocolVersion: UInt32   // 1
-    static let maxBytes: Int                   // 65 536
-    static let maxBodyBytes: Int               // 49 152
+    static let maxBytes: Int                   // 73 728 (72 KiB)
+    static let maxBodyBytes: Int               // 49 152 (48 KiB, surové tělo)
     var version: UInt32; var kind: String; var body: Data
     static func decode(_:) throws -> XPCEnvelope
     func headerProblem() -> ContractError?
@@ -115,9 +115,10 @@ public struct ManifestZone, ManifestContainer, ManifestQuota, ManifestVolume,
 Obálka je jeden JSON objekt s **uzavřenou množinou klíčů** `version`, `kind`, `body`. `body` je
 base64 JSON dokument, který se dekóduje až podle `kind`. Pořadí kontrol je pevné:
 
-1. velikost vstupu (`input-too-large`, limit 64 KiB; tělo 48 KiB),
+1. velikost vstupu (`input-too-large`, limit 72 KiB; surové tělo 48 KiB),
 2. JSON preflight: prázdný vstup, gramatika, trailing bytes, duplicitní klíč, hloubka > 16,
-   pole > 128 prvků, řetězec > 4096 B,
+   pole > 128 prvků (audit log si explicitně zvedá strop na `maxRecords`), řetězec > 4096 B
+   (base64 `body` obálky si zvedá strop na limit obálky),
 3. uzavřená množina klíčů obálky (`unknown-field`, `missing-field`),
 4. verze protokolu (`invalid-version`; jiná verze se neinterpretuje „best effort"),
 5. syntaxe `kind` a členství v množině zpráv (`unknown-message-kind`),
@@ -130,6 +131,11 @@ Množina zpráv v0 (`HelperMessageKind`): `helper.capabilities` (tělo musí bý
 deklarovaných klíčů je odmítnuto; neznámý `kind` se odmítá **před** čtením těla. Číselné rozsahy:
 `uid`/`gid` 501…`UInt32.max` (nula i přetečení jsou chyba), limity velikostí 1…8 MiB / 16 MiB.
 Kanonické kódování (`sortedKeys`) je deterministické, takže `decode(encode(x)) == x` i bajtově.
+
+Tělo se na drátě kóduje jako base64, takže jeho text má až 4/3 surových bajtů. Preflight proto pro
+`body` používá strop obálky, ale surový limit 48 KiB vynucuje `headerProblem()` až po dekódování.
+Hraniční testy ověřují tělo na `48 KiB − 1`, `48 KiB` a `48 KiB + 1`: první dvě se round-tripují,
+třetí je odmítnuto. Strop celé obálky (72 KiB) je dost velký i pro base64 plného těla.
 
 ## Broker `broker-v0`
 
@@ -159,9 +165,10 @@ Povolené přechody (`ZoneStateMachine.allowedTransitions`, celkem 10):
 | `stopped` | `cleanup` | `cleaning` |
 | `cleaning` | `cleaned` | `cleaned` |
 
-Všech 54 ostatních dvojic (stav, událost) je zakázaných; `forbiddenTransitions` je vyčísluje a test
-pro každou z nich ověří `forbidden-transition` **a** že se stav nezměnil. Odmítnutá událost nesmí
-mít částečný efekt.
+Všech 54 ostatních dvojic (stav, událost) je zakázaných. Testy drží **pinovaný literál** tabulky
+nezávislý na implementaci: 10 povolených dvojic a všech 54 zakázaných se počítá z tohoto literálu,
+ne z `forbiddenTransitions`. Pro každou zakázanou dvojici test ověří `forbidden-transition` **a** že
+se stav ani identita nezměnily. Odmítnutá událost nesmí mít částečný efekt.
 
 Invarianty (`assertInvariants`, volané po každém přechodu):
 
@@ -210,10 +217,13 @@ Politika nenese žádný klíč, schválení ani credential a **není** důkaz v
   `zone.stopped`, `zone.cleaned`, `policy.applied`, `gate.request.denied`, `export.completed`),
   `outcome` z `allowed|denied|failed`; neznámá hodnota je chyba dekódování.
 - `timestampUTC` je přesně `YYYY-MM-DDTHH:MM:SS.sssZ` (24 B, UTC, milisekundy, bez offsetu a přestupné
-  sekundy). `sequence` roste striktně od 1; díra, pokles i dvě oblasti v jednom dokumentu jsou
-  `sequence-violation`. `subjectID` je plánovací identifikátor, `detail` ≤ 512 B bez kontrolních
-  znaků. `actorUID = 0` označuje hostitelskou řídicí rovinu.
-- Limity: 1 MiB a 4 096 záznamů na dokument.
+  sekundy) a datum musí existovat v kalendáři (`2026-02-31` je chyba, `2024-02-29` projde).
+  `sequence` začíná na 1 a každý další záznam je přesně `previous + 1`; díra, start ≠ 1, pokles,
+  duplicita i dvě oblasti v jednom dokumentu jsou `sequence-violation`. `subjectID` je plánovací
+  identifikátor, `detail` ≤ 512 B bez kontrolních znaků. `actorUID = 0` označuje hostitelskou řídicí
+  rovinu.
+- Limity: 1 MiB **a** 4 096 záznamů na dokument, oba vynucené při dekódování. Bajtový a početní
+  strop mají samostatné hraniční testy: přesně 1 MiB / 1 MiB + 1 B a přesně 4 096 / 4 097 záznamů.
 
 ## Manifest stavu — duplikace schématu
 
@@ -230,12 +240,27 @@ podmnožina** B3 validátoru ve spiku: kontroluje jen offline strukturální pra
 tvary identifikátorů, kolekce, kvóty a rezervy, role kořenů, prefix layout, rollback jednotku, host
 control, read-only vstupy, přetečení součtů). Nic nemountuje, nic neměří a nevydává se za deployment.
 
+Z B3 validátoru jsou navíc převzatá tato pravidla a mají negativní testy:
+
+- párový překryv `volumes[].mountPoint` (rovnost, case/Unicode alias i vnoření),
+- disjunktnost plánovaných cest `roots` (`mountPoint` + `relativePath`, case/Unicode folded),
+- case/Unicode folding všech porovnávaných cest,
+- odmítnutí absolutních hostitelských aliasů `/tmp`, `/var`, `/etc`, `/System/Volumes/Data`
+  (a jejich podcest) jako mountpointu, control adresáře nebo read-only vstupu.
+
+Záměrně vynechaná pravidla B3 (proto je tento balík **nevynucuje**; doplnění patří do konsolidačního
+balíku s review): `unused-container` a `unused-volume`, `hostControl.ownerUID != zone.uid`,
+kombinovaný limit 1024 B pro `mountPoint` + `relativePath`, varování `quota-unverified`,
+`container-budget-unresolved`, `quotas-oversubscribed` a `multi-volume-recovery`, plnění
+`plannedRoots`/`plannedVolumes` a rozlišení severity error/warning. Duplicitní UUID se nadále
+odmítá bez ohledu na case (kanonická podoba `UUID`).
+
 ## Co tento balík nedokazuje
 
 - Žádnou bránu (S0–S8) a žádný požadavek R1–R8. Kontrakty v0 se mohou po F1 změnit.
 - Žádné skutečné XPC, podpis, audit token, sandbox, `pf`, APFS ani síťové vynucení.
 - Žádnou ochranu proti útočníkovi, který umí obejít volající kód; to je práce WP2.1 a WP2.4.
-- Duplicitní schéma manifestu není náhrada `spikes/s4-state` a jeho 21 testů.
+- Duplicitní schéma manifestu není náhrada `spikes/s4-state` ani jeho testovací sady.
 
 ## Brány balíku
 

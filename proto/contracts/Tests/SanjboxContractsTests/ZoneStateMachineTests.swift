@@ -13,22 +13,42 @@ struct ZoneStateMachineTests {
         return machine
     }
 
-    @Test func allowedTableIsExplicitAndExhaustive() {
-        #expect(ZoneStateMachine.allowedTransitions.count == 10)
-        #expect(ZoneStateMachine.forbiddenTransitions.count
-            == ZoneState.allCases.count * ZoneEvent.allCases.count - ZoneStateMachine.allowedTransitions.count)
-        for transition in ZoneStateMachine.allowedTransitions {
-            #expect(ZoneStateMachine.target(from: transition.from, on: transition.event) == transition.to)
-        }
+    /// Pinned literal copy of the transition table. It is deliberately not derived from
+    /// `ZoneStateMachine.allowedTransitions`: an accidental edit to the implementation must fail
+    /// here, not update the expectation with it.
+    private static let pinnedAllowed: [ZoneTransition] = [
+        .init(from: .created, event: .start, to: .starting),
+        .init(from: .starting, event: .launched, to: .running),
+        .init(from: .starting, event: .stop, to: .stopping),
+        .init(from: .running, event: .pause, to: .paused),
+        .init(from: .running, event: .stop, to: .stopping),
+        .init(from: .paused, event: .resume, to: .running),
+        .init(from: .paused, event: .stop, to: .stopping),
+        .init(from: .stopping, event: .quiesced, to: .stopped),
+        .init(from: .stopped, event: .cleanup, to: .cleaning),
+        .init(from: .cleaning, event: .cleaned, to: .cleaned),
+    ]
+
+    @Test func implementationMatchesThePinnedTransitionTable() {
+        #expect(ZoneStateMachine.allowedTransitions == Self.pinnedAllowed)
+        #expect(Self.pinnedAllowed.count == 10)
     }
 
-    /// One negative test per forbidden (state, event) pair: 64 pairs, 10 allowed, 54 refused.
-    @Test func everyForbiddenTransitionIsRefused() throws {
-        #expect(ZoneStateMachine.forbiddenTransitions.count == 54)
-        for forbidden in ZoneStateMachine.forbiddenTransitions {
-            var machine = try machine(in: forbidden.from)
-            rejection("forbidden-transition") { try machine.apply(forbidden.event) }
-            #expect(machine.state == forbidden.from, "a refused event must not change state")
+    /// One negative test per forbidden (state, event) pair. The forbidden set is computed from the
+    /// pinned literal table, not from `forbiddenTransitions`: 64 pairs, 10 allowed, 54 refused.
+    @Test func everyForbiddenPairOutsideThePinnedTableIsRefused() throws {
+        let allowedKeys = Set(Self.pinnedAllowed.map { "\($0.from.rawValue)/\($0.event.rawValue)" })
+        let allPairs = ZoneState.allCases.flatMap { state in
+            ZoneEvent.allCases.map { (state, $0) }
+        }
+        let forbidden = allPairs.filter {
+            !allowedKeys.contains("\($0.0.rawValue)/\($0.1.rawValue)")
+        }
+        #expect(forbidden.count == 54)
+        for (state, event) in forbidden {
+            var machine = try machine(in: state)
+            rejection("forbidden-transition") { try machine.apply(event) }
+            #expect(machine.state == state, "a refused event must not change state")
         }
     }
 
@@ -82,6 +102,17 @@ struct ZoneStateMachineTests {
         #expect(machine.state == .created)
     }
 
+    /// The refused start is the reachable case where the candidate target state (`starting`)
+    /// violates the identity invariant. The machine must commit neither the state nor the identity
+    /// before the invariant check passes.
+    @Test func rejectedStartLeavesStateAndIdentityUntouched() throws {
+        var machine = try ZoneStateMachine(zoneID: "a1b2")
+        rejection("state-invariant") { try machine.apply(.start) }
+        #expect(machine.state == .created)
+        #expect(machine.uid == nil)
+        #expect(machine.gid == nil)
+    }
+
     @Test func cleanupIsOnlyReachableFromStopped() throws {
         var machine = try ZoneStateMachine(zoneID: "a1b2")
         try machine.assignIdentity(uid: 4501, gid: 4500)
@@ -119,6 +150,11 @@ struct ZoneStateMachineTests {
             // LC-11: the UID is reusable only after the cleanup commit is durable.
             #expect(action.permitsUIDReuse == (point == .afterCleanupCommit), "\(point.rawValue) permitsUIDReuse")
         }
+    }
+
+    @Test func everyCrashPointIsReachableFromSomeEvent() {
+        let reachable = Set(ZoneEvent.allCases.flatMap { $0.crashPoints })
+        #expect(reachable == Set(ZoneCrashPoint.allCases))
     }
 
     @Test func everyEventDeclaresItsCrashPoints() {
