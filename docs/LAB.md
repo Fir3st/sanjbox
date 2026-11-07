@@ -1,8 +1,8 @@
 # Sanďbox — laboratoř a metodika měření (WP0.5)
 
-**Stav: návrh LAB-v1 k potvrzení F0.8; žádný běh ani brána tímto dokumentem neprošly.**
+**Stav: LAB-v1 přijato v [DECISIONS F0.8](DECISIONS.md) 2026-11-07 se změnami P4 a P5; žádný běh ani brána tímto dokumentem neprošly.**
 Autoritativní je [PLAN.md](../PLAN.md), přijaté změny jsou v [DECISIONS.md](DECISIONS.md).
-WP0.5 dodává metodiku; zůstává rozpracované do potvrzení minimální konfigurace a cílů uživatelem.
+WP0.5 dodalo metodiku a uživatel ji přijal.
 WP1.A1 je příprava, skutečné ověření S1 je [WP1.A2 / L1](../spikes/s1-session/README.md).
 
 Publikované sanitizované protokoly lze pouze pro čtení zkontrolovat [validátorem důkazů](../tools/lab_evidence/README.md).
@@ -10,22 +10,22 @@ Kontrola struktury, hashů a odkazů nenahrazuje review, platnost měření ani 
 
 ## 1. Návrh rozhodnutí F0.8
 
-Všechny nové číselné meze v tomto dokumentu jsou **návrhy**, nikoli již přijatá akceptace.
-Před ostrým během uživatel zaznamená přijetí nebo změny LAB-v1 v DECISIONS.md s datem a commitem.
+Uživatel LAB-v1 přijal 2026-11-07 (DECISIONS F0.8); tabulka je v přijatém znění včetně změn P4 a P5.
+Další změna prahů je nové rozhodnutí v DECISIONS.md a platí jen pro nové běhy.
 Rozhodnutí neuděluje souhlas s konkrétními systémovými zásahy, granty ani stahováním.
 
-| ID návrhu | K potvrzení | Důvod a rozsah |
+| ID | Přijaté znění | Důvod a rozsah |
 |---|---|---|
-| P1 | Minimum: Apple Silicon M1 nebo novější, 16 GiB RAM, macOS 27.x. Referenční běh na minimálním M1/16 GiB; další stroje samostatně. | Navazuje na dosud nepotvrzený návrh F0.8. Měření na rychlejším stroji nedokazuje minimum. Přesný model, build a displeje omezují platnost každého výsledku. |
+| P1 | Minimum: Apple Silicon M1 nebo novější, 16 GiB RAM, macOS 27.x. Referenční běh na minimálním M1/16 GiB; další stroje samostatně. | Měření na rychlejším stroji nedokazuje minimum. Přesný model, build a displeje omezují platnost každého výsledku. |
 | P2 | S1: tři oblasti + funkční host konzole; standardní Sdílení obrazovky. Každá virtuální plocha 1280 × 800 bodů, 2560 × 1600 pixelů (2×), cílová kadence 60 Hz. Host displej alespoň 60 Hz, pevná konfigurace. | Reprodukovatelný základ Retina; není to velikost okna sondy (960 × 600 bodů) ani důkaz podpory všech monitorů. Nemožnost nastavit profil se zaznamená, před měřením se navrhne jiný profil. |
 | P3 | Cold login připraveného profilu: medián ≤ 20 s a p95 ≤ 30 s. Warm opětovný login: p95 < 2 s. Resume: zvlášť p95 < 2 s, až existuje příslušná konstrukce. | Zpřesnění cílů PLAN 10–30 s / < 2 s. Rychleji než 10 s není chyba; first-run se měří zvlášť. Viz §5. |
-| P4 | Holé tři relace: p95 systémového přírůstku RAM ≤ 4,5 GiB, včetně WindowServeru a nutného klienta/keeperu. Zátěž: žádný vzorek varovného/kritického memory pressure a růst použitého swapu ≤ 1 GiB za každých 10 min. | 4,5 GiB je nový budget (1,5 GiB amortizovaně na relaci), ponechává na 16 GiB prostor aplikacím. Odhad PLAN 0,5–1 GB **není** závazný limit. Nejde o per-UID hard limit ani ochranu před DoS. Účtování §6. |
-| P5 | GPU: 0 neshod pixelů; medián poměrů vůči host referenci ≤ 1,25, p95 ≤ 1,50. Prezentace: v každém 60s bloku ≥ 57 snímků/s, p95 intervalu ≤ 25 ms, nejdelší mezera ≤ 100 ms, vynechané 60Hz sloty ≤ 5 %. | Návrh tolerance měřitelné režie a krátkých výpadků; není odvozen z neprovedeného S1. 120 Hz není gate. Přesný výpočet a omezení §7. |
+| P4 | Holé tři relace: p95 systémového přírůstku RAM ≤ 7,5 GiB, včetně WindowServeru a nutného klienta/keeperu. Zátěž: žádný vzorek varovného/kritického memory pressure a růst použitého swapu ≤ 1 GiB za každých 10 min. | 7,5 GiB (2,5 GiB na relaci) je odvozený odhad, ne měření: každá relace má vlastní WindowServer, loginwindow, Dock, Finder, Control Center, Spotlight, uživatelské démony a framebuffery virtuálního displeje 2560 × 1600. Na 16 GiB zbývá aplikacím málo; rozhodují podmínky zátěže. Odhad PLAN 0,5–1 GB **není** závazný limit. Nejde o per-UID hard limit ani ochranu před DoS. Účtování §6. |
+| P5 | GPU: 0 neshod pixelů; medián poměrů vůči host referenci ≤ 2,0, p95 ≤ 2,4. Prezentace: v každém 60s bloku ≥ 57 snímků/s, p95 intervalu ≤ 25 ms, nejdelší mezera ≤ 100 ms, vynechané 60Hz sloty ≤ 5 %. | Návrh tolerance měřitelné režie a krátkých výpadků; není odvozen z neprovedeného S1. 120 Hz není gate. Přesný výpočet a omezení §7. |
 | P6 | Workloady, počty opakování, délky, způsob souběhu a rozhodování podle §3–8. | Platí nejhorší povinný případ/oblast, ne průměr tří relací. S2/S5/S7 vyžadují vlastní doplnění předregistrace (§9). |
 
 Možný výsledek je, že M1/16 GiB tyto cíle nesplní. Pak se zaznamená Neprošlo, případně se uživatel
 rozhodne pro nové minimum/cíl a **nový** běh. Prahy se nezměkčují zpětně podle výsledků.
-Docker start/stop zůstává otevřený před S7; F0.7 není tímto návrhem uzavřené.
+Docker start/stop zůstává otevřený před S7; F0.7 je rozhodnuté zvlášť v DECISIONS.md.
 
 ## 2. Registr strojů a rezervace
 
@@ -240,7 +240,7 @@ Pro W0: 5 min host baseline bez oblastí, klientů a keeperů → 5 min ustálen
 → úklid relací/klientů → 5 min host baseline. Referenční host aplikace/recorder zůstávají stejné.
 `B = min(medián M před, medián M po)`; `ΔM(t) = M(t) − B`. Záporné hodnoty se zachovají a vyšetří,
 neberou se jako úspora. Liší-li se baseline mediány o více než 512 MiB nebo chybí vzorek déle než 2 s,
-RAM série je Nejasné (drift/záznam), ne automaticky úspěšná. Platí `p95(ΔM) ≤ 4,5 GiB` pro každou
+RAM série je Nejasné (drift/záznam), ne automaticky úspěšná. Platí `p95(ΔM) ≤ 7,5 GiB` pro každou
 ze tří sérií. `ΔM / 3` se smí popsat pouze jako **amortizovaný** náklad; není to přesná paměť každé relace.
 
 Diagnosticky zaznamenat `phys_footprint` všech procesů jednotlivých UID a relevantních WindowServerů,
@@ -262,7 +262,7 @@ posledního snímku proti CPU referenci. Všechny časy musí být konečné a k
 Deset párových bloků pro každý UID: host před → oblast → host po. Jedna těžká offscreen práce najednou,
 všechny tři relace po celou dobu aktivní se stejnou lehkou zátěží, pořadí UID rotuje. Poměr bloku =
 medián GPU času oblasti / průměr mediánů host před a po. Rozdíl host referencí > 10 % jejich průměru
-zneplatní pár pro nestabilní baseline, s raw a limitem náhrad dle §3. Vyhodnotit medián ≤ 1,25 a p95 ≤ 1,50
+zneplatní pár pro nestabilní baseline, s raw a limitem náhrad dle §3. Vyhodnotit medián ≤ 2,0 a p95 ≤ 2,4
 z 10 poměrů **každé** oblasti. Uvést i p95 GPU časů a wall time. Nesrovnávat tři zatížené oblasti
 s jedinou nezatíženou host úlohou; souběžná prezentace je jiný profil W1.
 

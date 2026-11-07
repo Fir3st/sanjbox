@@ -9,7 +9,7 @@ souběžné relace nebo akcelerované renderování nedovolí, vývoj se zastav�
 Pokrývá případy GUI-01 až GUI-13 v [COVERAGE.md](../../docs/COVERAGE.md#31-gui--relace-a-coherence-s1-s2).
 Běh a verdikt jsou WP1.A2 (slot L1).
 Metodika, navržené prahy a známé chybějící důkazy pro A2 jsou v [LAB.md](../../docs/LAB.md).
-F0.8 je otevřené; tento návod dodává dílčí kroky, sám není úplnou akceptační sérií LAB-v1.
+LAB-v1 je přijaté (DECISIONS F0.8); tento návod dodává dílčí kroky, sám není úplnou akceptační sérií LAB-v1.
 
 ## Instrumentace připravená ve WP1.A2
 

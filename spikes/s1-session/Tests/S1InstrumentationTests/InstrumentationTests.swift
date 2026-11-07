@@ -187,6 +187,21 @@ private func memory() throws -> Recording {
     #expect(!result.evidenceComplete && result.ram?.negativeDeltaCount == 1)
     #expect(result.ram!.deltaBytes!.minimum < 0)
 }
+@Test func RAMBudgetIsSevenAndHalfGiBAtP95() throws {
+    // DECISIONS F0.8 / LAB P4: three bare sessions may add at most 7.5 GiB (p95).
+    func delta(_ gib: Double) throws -> Bool? {
+        var record = try memory()
+        let window = record.plan.window("measurement")!
+        let used = UInt64((8 + gib) * 1024 * 1024 * 1024)
+        for i in record.ram!.samples.indices where window.contains(record.ram!.samples[i].time) {
+            record.ram!.samples[i].freePages = (16 * 1024 * 1024 * 1024 - used) / 16384
+        }
+        return try Analyzer.evaluate(record).ram?.conditionalTargetsMet
+    }
+    #expect(try delta(7) == true)
+    #expect(try delta(7.5) == true)
+    #expect(try delta(7.75) == false)
+}
 @Test func RAMGapsDriftUnknownPressureAndEndpointsAreIncomplete() throws {
     var record = try memory()
     record.ram!.samples.removeSubrange(150...153)
