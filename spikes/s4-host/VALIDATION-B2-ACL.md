@@ -25,6 +25,7 @@ for configuration in debug release; do
     --scratch-path "$s4_b2_build/build" --cache-path "$s4_b2_build/cache" --disable-sandbox
 done
 bash -n spikes/s4-host/audit-host.sh spikes/s4-host/harden-host.sh spikes/s4-host/uninstall.sh
+python3 -B -m unittest discover -s tools/tests -v
 git diff --check
 ```
 
@@ -40,6 +41,7 @@ Nevyužily root ani zvýšení UID. Build cache je samostatná od fixtures a chr
 | Wrappery | V1 i v2 skutečné CLI: default preview → apply → uninstall preview → restore → idempotentní restore, v obou konfiguracích |
 | Crash | Dva mode a dva ACL child procesy na konfiguraci skončily `_exit(77)` po mutaci a před completion. Uninstall odmítl nejednoznačný stav. Harness metoda je zahrnuta v 52; children nejsou další prošlé XCTest metody. |
 | Shell syntax / whitespace | Všechny tři wrappery a `git diff --check`: exit 0 |
+| Python tools / progress | 63 testů, 0 failures, 0 skips; agregace z detailních řádků: F1 13 hotovo / 8 rozpracováno / 15 nezahájeno, 0 z 10 bran prošlo |
 
 Native ACL scénáře: přesný dry-run bez deníku, zachování mode, návrat úplné původní ACL včetně
 absence, odmítnutí přesné duplicity, pořadí allow/deny a native `access(W_OK)` oracle, skutečně
