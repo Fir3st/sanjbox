@@ -60,6 +60,7 @@ spikes/
   common/               sdílené sondy a protistrana                      (WP0.3, WP0.4)
   s0-boundary/ s1-session/ s2-coherence/ s3-pf/ s4-host/
   s5-gateway/ s6-brew/ s7-docker/ s8-signing/
+proto/                  izolované prototypy jádra proti mockům (proud H, IMPLEMENTATION §3)
 Contracts/              XPC schémata, stavový automat, formát politiky   (F2, WP2.0)
 Helper/ Broker/ SessionAgent/ Gateway/ Docker/ Sanjbox/                 (F2–F4)
 Tests/Escape/           únikový test suite                               (WP2.8)
@@ -153,3 +154,18 @@ Pravidla:
 2. Stav testu: COVERAGE.md §3 (`Neověřeno` → `Prošlo` / `Neprošlo` / `Nejasné`) vždy s odkazem na protokol.
 3. Stav brány: COVERAGE.md §2 se mění až po verdiktu v spikes.md a review.
 4. Stav požadavku: COVERAGE.md §1 se odvozuje z bran; nikdy se nemění přímo.
+5. Poznámka balíku v COVERAGE.md §4 má nejvýš dvě věty a odkaz. Podrobnosti patří do dokumentace balíku.
+
+## 11. Kdy přípravu ukončit
+
+1. **Přípravný balík končí podmínkou dokončení** z [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál-revize-2026-11-07)
+   nebo ze svého výstupu v §3. Po jejím splnění je balík ✅. Další práce je nový balík s důvodem
+   z laboratorního běhu nebo review, ne pokračování přípravy.
+2. **Neměnné záznamy podle §7 patří k laboratorním během** (L1-D až L8) a k host diagnostice, ze které se
+   odvozuje brána. Patří k nim i publikační kopie, sanitizované odvozeniny a nezávislé review. Offline
+   příprava (kód, fixtures, mocky, prototypy) se dokládá testy v CI a krátkou poznámkou ve VALIDATION:
+   co bylo ověřeno, kolik testů a na jakém commitu.
+3. **Čekání se nevyplňuje náhražkou.** Když další krok potřebuje laboratoř nebo rozhodnutí uživatele,
+   zapiš to do COVERAGE (`⛔` s důvodem, nebo „čeká na L…/U…“) a vezmi jiný balík z IMPLEMENTATION §0.
+   Offline důkaz nenahrazuje měření, které chybí.
+4. **Dva PR bez posunu k podmínce dokončení = stop.** Napiš do COVERAGE, co balík blokuje, a nepokračuj.
