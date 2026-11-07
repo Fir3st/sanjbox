@@ -13,8 +13,8 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-03 (WP0.3, WP0.4, WP1.A1 a WP1.D1 hotovo; WP0.5: dodán návrh LAB-v1,
-čeká na F0.8; rozhodnutí F0, změny rozsahu MVP C-001 a C-002).
+Poslední aktualizace: 2026-11-07 (revize plánu: diagnostický běh L1-D, proud H prototypů jádra
+WP1.H1–H6 a podmínky dokončení přípravy; viz [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál-revize-2026-11-07)).
 
 **Rozsah MVP (F2):** CLI + jedno okno s plochou oblasti, bez Dockeru, data ven jen řízeným exportem.
 R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 3 | 2 | 0 | 0 |
-| F1 | 30 | 12 | 9 | 9 | 0 |
+| F1 | 36 | 12 | 9 | 15 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -325,6 +325,12 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.G1 | Rešerše Docker runtime | Codex / Astra | ✅ | [Připnutá rešerše runtime](../spikes/s7-docker/research/wp1-g1-runtime/README.md), manifest primárních zdrojů a G2/L8 plán DK-01…10; žádný stock kandidát neprokazuje celý kontrakt. Bez runtime měření; S7/DK Neověřeno, F0.8 budget otevřený, mimo MVP (C-002) |
 | WP1.G2 | S7 příprava | janfiedler / Codex + Astra | 🟨 | [Částečná offline příprava](../spikes/s7-docker/README.md): bounded manifest/planner, 64 scénářů × 3 oblasti, syntetické oracle, registry/toy-frame mocky a vlastní fixture cleanup; 63 native Python tests. Runtime/VM/Engine/bridge a S5 integrace chybí; F0.8 otevřeno, S7/DK-01…10 Neověřeno, Docker mimo MVP. [Validace](../spikes/s7-docker/VALIDATION.md). |
 | WP1.G3 | S7 běh (L8) | uživatel + impl. | ⬜ | |
+| WP1.H1 | Kontrakty v0 (prototyp) | | ⬜ | `proto/contracts/`; k převzetí, IMPLEMENTATION §0 |
+| WP1.H2 | Životní cyklus (prototyp) | | ⬜ | `proto/lifecycle/`; po H1 |
+| WP1.H3 | CLI (prototyp) | | ⬜ | `proto/cli/`; po H1 |
+| WP1.H4 | Brána jako služba (prototyp) | | ⬜ | `proto/gateway/` |
+| WP1.H5 | Řízený export (prototyp) | | ⬜ | `proto/export/`; k převzetí |
+| WP1.H6 | Harness únikových testů (prototyp) | | ⬜ | `proto/escape/`; po H1 |
 | WP2.0 | Kontrakty | | ⬜ | čeká na vstup F2 |
 | WP2.1 | Helper | | ⬜ | |
 | WP2.2 | Životní cyklus | | ⬜ | |
