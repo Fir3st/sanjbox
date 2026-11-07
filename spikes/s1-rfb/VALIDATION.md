@@ -93,6 +93,12 @@ The Apple bytes in this package are synthetic fixtures; the selection layout is 
 documented as such in `Sources/RFBProtocol/AppleSubset.swift`. The 2026-11-03 section above is left
 intact as the historical record of the earlier revision; its hash table describes the pre-change files.
 
+- Commit: `31f80c9` (branch head at the time of this run; the hash table at the end of this section is
+  that commit's files).
+- Toolchain, reported by `swift --version`: `swift-driver version: 1.168.6 Apple Swift version 6.4.2
+  (swiftlang-6.4.2.1.9 clang-2100.4.1.1)`, `Target: arm64-apple-macosx27.2.0`. This is the developer
+  compiler target, not a registered lab configuration or a Screen Sharing compatibility claim.
+
 Reproduced from the repository root (`spikes/s1-rfb` relative paths):
 
 ```bash
@@ -156,3 +162,78 @@ interoperability, the binding of the returned surface to an exact audit session,
 GPU, latency/RAM, disconnect persistence and three concurrent areas. `AppleFixtureFraming.appleBanner`
 is an un-re-verified fixture constant. This run changes no R1–R8 requirement, GUI test, POS-08 or gate
 status, and it is not a statement that the Apple path works against a real Mac.
+
+## Fix round for PR #57 review — 2026-11-07
+
+**Mock/unit validation only**, same boundaries as the section above: no transport, socket, TLS,
+credential, capture, TCC prompt or system change. The sections above stay as the historical record of
+the pre-fix revision; this section supersedes only the counts, the corpus oracle and the selection
+classification.
+
+- Commit: `4b4d0120c891f236486b6e66e5b51fff3aea6d96` — the tree every command below was run on. This
+  record is added by a follow-up commit on the same branch, so the hashes at the end are that commit's
+  files; base commit of the round was `31f80c9`.
+- Changed sources: `RFBClient.swift` (session classification), `AppleSubsetTests.swift` (two new tests,
+  tightened corpus oracle), `SOURCES.md` (implemented / not-implemented boundary), `README.md` (test
+  counts and the `consoleOnly` / `unavailable` classification rows).
+- Toolchain, `swift --version`: `swift-driver version: 1.168.6 Apple Swift version 6.4.2
+  (swiftlang-6.4.2.1.9 clang-2100.4.1.1)`, `Target: arm64-apple-macosx27.2.0`.
+- `git diff --check`: passed; no compiler warnings.
+
+Commands, observed output:
+
+- `swift build -c release --package-path spikes/s1-rfb --scratch-path /private/tmp/fix-a3`:
+  `Build complete! (1,75 secs)`, no compiler warnings.
+- `swift test -c release --package-path spikes/s1-rfb --scratch-path /private/tmp/fix-a3`:
+  `Executed 19 tests, with 0 failures (0 unexpected)` for `AppleSubsetTests`, `Executed 21 tests, with
+  0 failures (0 unexpected)` for `RFBClientTests`, `Executed 40 tests, with 0 failures (0 unexpected)`
+  in total. The separate Swift Testing “0 tests” line is the second framework's empty suite.
+- `swift run --package-path spikes/s1-rfb --scratch-path /private/tmp/fix-a3/run
+  sanjbox-rfb-fixture --demo` (exit 0): the same six lines as above — 16/16 expected pixel bytes,
+  52 generated protocol bytes, granted virtual desktop, 180 generated protocol bytes, console-only
+  refusal `consoleFallbackForbidden`, and `network bytes sent: 0` in both scenarios.
+- `/usr/bin/python3 -m unittest discover -s tools/tests`: `Ran 63 tests` / `OK`.
+
+### Changes the review asked for
+
+| Finding | Change | Test that fails without it |
+|---|---|---|
+| `SOURCES.md` claimed no Apple messages are implemented | New “Implementation boundary” section: (a) package-local synthetic framing (message kinds 1/2/3, banner constant, bounds 512/4096/8) versus (b) not implemented (real Apple wire format and extended ServerInit metadata, DH/MD5/AES, type-33, transport, identity) | documentation only |
+| Pending `SessionResult` message budget was untested | Charged to the shared `messages` counter and driven to exhaustion | `testPendingSessionResultConsumesTheServerMessageBudget` |
+| An unavailable console offer was classified as `consoleOnly` | Only an *available* console counts as a console offer; an offer naming only an unavailable console is `unavailable` / `sessionUnavailable` | `testSessionInfoClassificationIsIndependentOfCommandAndAvailability` (cartesian product of command 1/2 × available/unavailable, single and paired offers in both wire orders) |
+| Corpus oracle `phase == .closed \|\| .failed` is always true after `finish()` | Terminal state must agree with `failure` (`failure == nil` iff `closed`), `session == .granted` iff `closed`, `bufferedByteCount == 0`, and no `send([2, 1])` console choice in any emitted event | mutated `testDeterministicAppleCorpusStaysBounded` (see mutations 3 and 4) |
+
+### Mutations used to show these tests can fail
+
+Each mutation was applied to `Sources/RFBProtocol/RFBClient.swift`, the failing test was run alone,
+and the file was restored (`cmp` against a saved copy succeeded, nothing was committed):
+
+1. Removed `guard messages < Limits.serverMessages` from the pending branch →
+   `XCTAssertThrowsError failed: did not throw an error`, `("sessionPending") is not equal to
+   ("failed")`, `("nil") is not equal to ("Optional(…resourceLimit)")`.
+2. Restored the pre-fix classification (`availableConsole = consoleState != nil`) →
+   `("Optional(…consoleFallbackForbidden)") is not equal to ("Optional(…sessionUnavailable)")` twice and
+   `("consoleOnly") is not equal to ("unavailable") - console/unavailable`.
+3. Sent the session choice as `[sessionInfoChoiceKind, consoleCommand]` →
+   `XCTAssertNotEqual failed: ("send([2, 1])") is equal to ("send([2, 1])")` in the corpus test.
+4. Removed `session = .granted` from `grantSession` →
+   `XCTAssertEqual failed: ("false") is not equal to ("true")` on the corpus' `granted ⇔ closed`
+   invariant.
+
+### Source hashes for this run
+
+| File | SHA-256 |
+|---|---|
+| `Package.swift` | `d026d1d90c2dee4f97aadb14399db6eeb63a0ca6cdb6a0a482299e43fbf8de0d` |
+| `Sources/RFBProtocol/RFBClient.swift` | `2b2241103d47702f0580a6362156aebf1c8b5338831d89f209a5616e54e46555` |
+| `Sources/RFBProtocol/AppleSubset.swift` | `26096ef6b1c59433e20053abaae3a472cb160abe0b0ae1a47aaf3a828939e9c3` |
+| `Sources/sanjbox-rfb-fixture/main.swift` | `9185530c17882e24c9275619d911354a9d1b7cc03e80290c9f13585d44899097` |
+| `Tests/RFBProtocolTests/RFBClientTests.swift` | `01e34a824449400cef29cce337fc319ce62c5972481cc58ef65cb38684893ce3` |
+| `Tests/RFBProtocolTests/AppleSubsetTests.swift` | `0f8742b646dfcceb1da05e82fc2a44583fce96f5674540ed4e6168b0c3af27ce` |
+
+### What this round does not prove
+
+It proves neither the Apple wire format, the selection semantics of a real macOS server, the crypto
+seam, nor any gate. The classification fix is a package policy statement: a console that a server
+marks unavailable is now reported as `unavailable`, which is still not evidence that the offered
+virtual desktop belongs to the intended user. All R1–R8, GUI, POS-08 and S1 statuses are unchanged.
