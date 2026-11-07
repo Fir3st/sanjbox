@@ -154,3 +154,28 @@ consistency, skutečné fd/mappings, nové mounty ani současné tři oblasti. P
 nebo check/unlink interval vyžaduje důvěryhodný výlučný namespace; nejde o atomický CAS.
 Pending intent vyžaduje ruční posouzení; automatická oprava všech přerušení není prokázána.
 Detailní kontrakt a zbývající RB-02…08 jsou v [RECOVERY.md](RECOVERY.md).
+
+## Oprava review APFS pilotu — offline příprava (2026-11-07)
+
+Tato poznámka dokládá offline opravu `apfs-pilot.sh`, `TOOLING.md` a syntetických testů podle
+review PR #56. Nejde o laboratorní běh, APFS důkaz ani verdikt S4: apply cesta se v testech nikdy
+nespouští reálně, žádný `asr`, `diskutil` mutace, mount ani sudo neproběhly. Fixtures jsou syntetické
+a živá sonda používá recording shimy.
+
+Ověřeno na commitu `6f0eb0a5a1b9eed49246bc123d056913f840d00b` (větev
+`wp1/b4-apfs-pilot-dryrun`):
+
+- `bash -n spikes/s4-state/apfs-pilot.sh`: exit 0.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s4-state -p 'test*.py' -v`:
+  **37 testů, 0 failures, 0 errors**.
+- `swift test -c release --package-path spikes/s4-state --scratch-path /private/tmp/fix-b4`:
+  **42 testů, 0 failures** (21 B4 + 21 zachovaných B3).
+- `/usr/bin/python3 -m unittest discover -s tools/tests`: **63 testů, OK**.
+
+Nové regrese pokrývají: `backupDigest` (`sha256:` + 64 malých hex) přijatý i odmítnutý; povinné
+`expectedVolumeUUID` pro apply a `inconclusive` identity gate v dry-runu bez UUID; exit kódy pro
+chybějící/neznámý klíč receiptu a špatný typ (4) versus neexistující soubor, symlink a 0666 (2);
+warn při kterékoli kvótě 0; přesný mode 0700 out-diru; privátní rodičovský adresář plánu; `rootRequired:
+true` u `delete-snapshot`; explicitní P0 krok `asr-switch-support`; a dokumentaci testovacích hooků
+`APFS_PILOT_DISKUTIL`/`_SYSCTL`/`_MOUNT`. `docs/COVERAGE.md`, `PLAN.md`, `spikes/common/`, `Contracts/`
+ani `.pi/` nebyly v této opravě měněny.
