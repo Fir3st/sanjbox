@@ -81,7 +81,9 @@ RSA tunnel path; type 30 is not necessarily the whole Apple authentication surfa
 These are **client-side implementation claims**, not a verified server contract. Validation of framing,
 capability bits, allowed commands, encryption, cancel/retry semantics, failure behavior and version
 compatibility remains open. Do not copy this client's automatic choice policy into Sanďbox: an unavailable
-virtual choice must fail, not choose the console. This prototype implements none of these messages.
+virtual choice must fail, not choose the console. This prototype implements **none of these messages in
+Apple's wire form**; the only selection bytes it produces are the package-local fixture framing listed
+under “Implementation boundary” below, which no real endpoint may ever receive.
 The lead narrows future investigation; it does not establish a working or safe Apple client.
 
 Raw SHA-256 values:
@@ -90,6 +92,40 @@ Raw SHA-256 values:
 |---|---|
 | `ard/ard-patch.js` | `bef0c7b6c88639d555815487e48dcecdcd8362dcee20eb258f70ad397c7164d5` |
 | `ard/ard-constants.js` | `8c107d8939f74867c84d5708a9706c2226654cf0ceb59c5633bf4f87a03f9474` |
+
+## Implementation boundary
+
+The package separates two layers so that no fixture byte is read as an Apple claim. The code side of this
+boundary is `Sources/RFBProtocol/AppleSubset.swift`; the behaviour side is `RFBClient` under
+`AuthenticationPolicy.syntheticAppleSubset`, which is a fixture policy and not an authentication mode.
+
+### (a) Implemented as package-local synthetic framing
+
+Everything below is reachable only under the fixture policy. Items marked S4/S5 carry cited *semantics*,
+not cited bytes.
+
+| Element | Constant / state | Basis |
+|---|---|---|
+| Message kinds `1` SessionInfo, `2` SessionInfoChoice, `3` SessionResult | `sessionInfoKind`, `sessionInfoChoiceKind`, `sessionResultKind` | package-local; no reviewed source pins a layout |
+| Availability flag `0` unavailable, `1` available | `unavailableState`, `availableState` | package-local; S5 pins no codepoint |
+| SessionResult outcomes `0` granted, `1` denied, `2` pending | `outcomeGranted`, `outcomeDenied`, `outcomePending` | package-local encoding of S5's granted/pending states and its failure case |
+| Candidate Apple banner `RFB 003.889\n` | `appleBanner` | package-local and **not re-verified**; the default policy rejects it |
+| Bounds 512-byte key length, 4096-byte credential response, 8 SessionInfo entries | `Limits.appleKeyBytes`, `appleCredentialBytes`, `appleSessionChoices` | package-local research budgets, NOT values from S4/S5 |
+| Console command `1`, virtual-desktop command `2`; ClientInit `0xC1` | `consoleCommand`, `virtualDesktopCommand`, `appleClientInit` | S5 semantics only |
+| Type-30 challenge framing: u16 generator, u16 key length, modulus, server public key; the answer is the injected provider's bytes | parser states `appleChallengeHeader` / `appleModulus` / `appleServerKey` | S4 framing only; no key agreement, hash or cipher exists |
+| The rule that only an *available* virtual desktop may be chosen, that a pending result never retries, and that no message ever selects the console | client state machine | package policy derived from S5's failure leads, not an Apple guarantee |
+
+### (b) Not implemented and not claimed
+
+- The actual Apple wire format of SessionInfo / choice / SessionResult and of S5's “extended ServerInit
+  metadata”. No reviewed source pins those bytes, so nothing is invented; the fixture layout above is not
+  a substitute.
+- The S4 DH / MD5 / AES credential exchange, the 128-byte encrypted block and the client public key. Only
+  the empty `AppleCredentialProvider` seam exists: with no provider the handshake stops before anything is
+  sent, and the provider used by the tests and the demo is a labelled mock with constant bytes.
+- The type-33 RSA tunnel, type-30 key agreement, server identity, transport confidentiality, any socket,
+  TLS, network I/O, live macOS-server interoperability and the binding of a surface to an exact audit
+  session.
 
 ## Research outcome
 
@@ -100,5 +136,7 @@ scoped finding, not a claim that none exists anywhere. There is enough evidence 
 standard shared=1 or successful auth selects the right user. There is not enough local evidence to
 enable Apple credentials, the proprietary selection path or a live viewer in this package.
 
-Implementation work is consequently restricted to synthetic standard RFB. Follow-up requires the
-separate identity, crypto/transport, capability/failure and laboratory work in [LAB-NEXT.md](LAB-NEXT.md).
+Implementation work is consequently restricted to synthetic standard RFB framing plus the package-local
+Apple fixture framing in (a); no Apple message is implemented as Apple's wire format. Follow-up requires
+the separate identity, crypto/transport, capability/failure and laboratory work in
+[LAB-NEXT.md](LAB-NEXT.md).

@@ -272,6 +272,61 @@ final class AppleSubsetTests: XCTestCase {
         XCTAssertEqual(client.session, .consoleOnly)
     }
 
+    func testSessionInfoClassificationIsIndependentOfCommandAndAvailability() throws {
+        // Cartesian product of (command 1/2) × (available/unavailable). Neither the console
+        // command nor an unavailable entry may be classified as "console offer"; only an
+        // *available* console is a console-only offer, and an unavailable virtual desktop is
+        // always `unavailable` — never the console.
+        let console = AppleFixtureFraming.consoleCommand
+        let virtual = AppleFixtureFraming.virtualDesktopCommand
+        let up = AppleFixtureFraming.availableState
+        let down = AppleFixtureFraming.unavailableState
+        let consoleOnly: RFBClient.Failure? = .consoleFallbackForbidden
+        let unavailable: RFBClient.Failure? = .sessionUnavailable
+        let singles: [(String, (UInt8, UInt8), AppleSession, RFBClient.Failure?)] = [
+            ("console/available", (console, up), .consoleOnly, consoleOnly),
+            ("console/unavailable", (console, down), .unavailable, unavailable),
+            ("virtual/available", (virtual, up), .virtualReady, nil),
+            ("virtual/unavailable", (virtual, down), .unavailable, unavailable),
+        ]
+        for (label, offer, expectedSession, expectedFailure) in singles {
+            var client = try preSelection()
+            if let expectedFailure {
+                assertFailure(expectedFailure, client: &client,
+                              bytes: AppleFixtures.sessionInfo([offer]))
+            } else {
+                XCTAssertEqual(try client.receive(AppleFixtures.sessionInfo([offer])),
+                               [.send([AppleFixtureFraming.sessionInfoChoiceKind, virtual])], label)
+                XCTAssertNil(client.failure, label)
+                XCTAssertEqual(client.phase, .session, label)
+            }
+            XCTAssertEqual(client.session, expectedSession, label)
+        }
+        // Both commands present, in both wire orders: `consoleOnly` must not appear unless the
+        // console really is available and the virtual desktop really is absent.
+        let pairs: [(String, [(UInt8, UInt8)], AppleSession, RFBClient.Failure?)] = [
+            ("console up, virtual up", [(console, up), (virtual, up)], .virtualReady, nil),
+            ("virtual up, console up", [(virtual, up), (console, up)], .virtualReady, nil),
+            ("console down, virtual up", [(console, down), (virtual, up)], .virtualReady, nil),
+            ("console up, virtual down", [(console, up), (virtual, down)], .unavailable, unavailable),
+            ("virtual down, console up", [(virtual, down), (console, up)], .unavailable, unavailable),
+            ("console down, virtual down", [(console, down), (virtual, down)], .unavailable,
+             unavailable),
+        ]
+        for (label, offers, expectedSession, expectedFailure) in pairs {
+            var client = try preSelection()
+            if let expectedFailure {
+                assertFailure(expectedFailure, client: &client,
+                              bytes: AppleFixtures.sessionInfo(offers))
+            } else {
+                XCTAssertEqual(try client.receive(AppleFixtures.sessionInfo(offers)),
+                               [.send([AppleFixtureFraming.sessionInfoChoiceKind, virtual])], label)
+                XCTAssertNil(client.failure, label)
+            }
+            XCTAssertEqual(client.session, expectedSession, label)
+        }
+    }
+
     func testUnavailableVirtualDesktopIsTerminalNotConsole() throws {
         for offers: [(UInt8, UInt8)] in [
             [(AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.unavailableState)],
@@ -340,6 +395,28 @@ final class AppleSubsetTests: XCTestCase {
         var unexpected = try preSelection()
         _ = try unexpected.receive(offers + AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending))
         assertFailure(.invalidSelectionMessage, client: &unexpected, bytes: [0, 0])
+    }
+
+    func testPendingSessionResultConsumesTheServerMessageBudget() throws {
+        // The pending branch must charge the shared server-message budget, otherwise a peer can
+        // keep the parser in `sessionPending` forever without any other message being counted.
+        let offers = AppleFixtures.sessionInfo([
+            (AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.availableState)])
+        let pending = AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending)
+        var client = try preSelection()
+        _ = try client.receive(offers + pending)
+        XCTAssertEqual(client.session, .pending)
+        XCTAssertEqual(client.phase, .sessionPending)
+        // One message is already charged; the remaining budget is served one message per call.
+        for _ in 0..<(RFBClient.Limits.serverMessages - 1) {
+            XCTAssertEqual(try client.receive(pending), [])
+            XCTAssertEqual(client.phase, .sessionPending)
+        }
+        XCTAssertEqual(client.session, .pending)
+        // The next SessionResult exceeds `messages < Limits.serverMessages` and is terminal.
+        assertFailure(.resourceLimit, client: &client, bytes: pending)
+        XCTAssertEqual(client.session, .pending)
+        XCTAssertNil(client.framebuffer)
     }
 
     func testUnknownSelectionKindsCommandsAndStatesAreRejected() throws {
@@ -446,12 +523,24 @@ final class AppleSubsetTests: XCTestCase {
             var mutated = baseline
             mutated[Int(seed % UInt64(mutated.count))] = UInt8(truncatingIfNeeded: seed >> 24)
             var client = client()
+            var sent: [RFBClient.Event] = []
             do {
-                for byte in mutated { _ = try client.receive([byte]) }
+                for byte in mutated { sent += try client.receive([byte]) }
                 try client.finish()
             } catch { XCTAssertTrue(error is RFBClient.Failure) }
-            XCTAssertLessThanOrEqual(client.bufferedByteCount, RFBClient.Limits.bufferedBytes)
+            // Tightened oracle: a terminal state that agrees with `failure`, an empty buffer, and
+            // no forbidden console choice. `closed` is only reachable through a granted
+            // selection, so a clean close without `granted` is a defect, not a tolerated outcome.
             XCTAssertTrue(client.phase == .closed || client.phase == .failed)
+            XCTAssertEqual(client.failure == nil, client.phase == .closed)
+            XCTAssertEqual(client.session == .granted, client.phase == .closed)
+            XCTAssertEqual(client.bufferedByteCount, 0)
+            // No forbidden console choice is ever emitted, even for a mutation that leaves only
+            // the console on offer.
+            for event in sent {
+                XCTAssertNotEqual(event, .send([AppleFixtureFraming.sessionInfoChoiceKind,
+                                                AppleFixtureFraming.consoleCommand]))
+            }
         }
     }
 }

@@ -22,7 +22,7 @@ Všech 155 případů, požadavků a bran v COVERAGE má nezměněný stav.
 | `Sources/RFBProtocol/AppleSubset.swift` | Apple fixture rámování, `AppleSession`, seam `AppleCredentialProvider`; každá konstanta s citací nebo označením „package-local“. |
 | `Sources/sanjbox-rfb-fixture/main.swift` | Vestavěný mock 2×2, Apple fixture scénář a odmítnutí konzole; vše v paměti. |
 | `Tests/RFBProtocolTests/RFBClientTests.swift` | Standardní RFB 3.8: negativní případy, fragmentace, EOF a rozpočty (21 testů). |
-| `Tests/RFBProtocolTests/AppleSubsetTests.swift` | Apple fixture transkripty a mock provider; 17 testů (celkem 38). |
+| `Tests/RFBProtocolTests/AppleSubsetTests.swift` | Apple fixture transkripty a mock provider; 19 testů (celkem 40). |
 | [SOURCES.md](SOURCES.md) | Primární zdroje, připnuté revize, hranice jejich tvrzení. |
 | [LAB-NEXT.md](LAB-NEXT.md) | Budoucí uživatelský postup s cestou přes Screen Sharing.app a seznam toho, co zůstává na L1-D. |
 | [VALIDATION.md](VALIDATION.md) | Výsledek místních mock testů a reprodukce. |
@@ -45,7 +45,7 @@ obecný interoperabilní VNC klient. Neznámé varianty se nepřekládají odhad
 | SessionInfo (fixture) | kind 1, u16 počet, dvojice (příkaz, dostupnost); nejvýš 8 položek. Příkaz 1 = konzole, 2 = virtuální plocha (S5); dostupnost 0/1. |
 | SessionInfoChoice (fixture) | Jediná možná volba je `[2, 2]` = virtuální plocha. API neumožňuje zvolit konzoli. |
 | SessionResult (fixture) | kind 3 + výsledek: 0 granted, 1 denied (terminální), 2 pending (čeká na další výsledek, deadline vlastní transport). |
-| Výběr relace | Nabídka jen konzole = `consoleFallbackForbidden`; virtuální plocha chybí nebo je nedostupná = `sessionUnavailable`. Automatický přechod na konzoli/host relaci **neexistuje**. |
+| Výběr relace | Nabídka jen **dostupné** konzole = `consoleFallbackForbidden`; nedostupná konzole bez virtuální plochy se hlásí jako `sessionUnavailable` (nedostupná položka nic nenabízí); virtuální plocha chybí nebo je nedostupná = `sessionUnavailable`. Automatický přechod na konzoli/host relaci **neexistuje**. |
 | Zobrazení | BGRX bajty v paměti, Raw encoding 0; SetPixelFormat + SetEncodings se pošlou až po granted výběru. |
 | Žádost | Volající výslovně požádá o celý rozměr; nejvýše jedna žádost čeká na odpověď. Incremental až po prvním dokončeném update. |
 | Update | Obdélníky v hranicích framebufferu, aplikované v pořadí; prázdný update je platná dokončená zpráva. |
@@ -85,8 +85,8 @@ Konečné stavy výběru (`AppleSession`) a jejich význam:
 | `pending` | S5 pending stav. | Fáze `sessionPending`; žádné pollování, retry ani konzole. Deadline vynutí transport přes `expire()`. |
 | `granted` | SessionResult udělil virtuální plochu. | Teprve nyní SetPixelFormat/SetEncodings a `.initialized`. |
 | `denied` | Server volbu odmítl. | Terminální `sessionDenied`; žádný další pokus. |
-| `unavailable` | Virtuální plocha chybí nebo je nedostupná. | Terminální `sessionUnavailable`; **žádný** přechod na konzoli. |
-| `consoleOnly` | Nabídnuta byla jen konzole (příkaz 1). | Terminální `consoleFallbackForbidden`; zakázaný přechod je explicitně testovaný. |
+| `unavailable` | Virtuální plocha chybí nebo je nedostupná, nebo nabídka obsahuje jen nedostupnou konzoli. | Terminální `sessionUnavailable`; **žádný** přechod na konzoli. |
+| `consoleOnly` | Nabídnuta byla jen **dostupná** konzole (příkaz 1, dostupnost 1). | Terminální `consoleFallbackForbidden`; zakázaný přechod je explicitně testovaný. |
 
 ## Stav, chyby a pevné limity
 

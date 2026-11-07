@@ -349,7 +349,7 @@ public struct RFBClient: Sendable {
             state = .sessionInfoEntries(count)
         case .sessionInfoEntries(let count):
             guard available(count * 2) else { return false }
-            var offeredConsole = false
+            var consoleState: Int?
             var virtualState: Int?
             for _ in 0..<count {
                 let command = read8()
@@ -359,8 +359,8 @@ public struct RFBClient: Sendable {
                 }
                 switch command {
                 case Int(AppleFixtureFraming.consoleCommand):
-                    guard !offeredConsole else { throw Failure.invalidSelectionMessage }
-                    offeredConsole = true
+                    guard consoleState == nil else { throw Failure.invalidSelectionMessage }
+                    consoleState = availability
                 case Int(AppleFixtureFraming.virtualDesktopCommand):
                     guard virtualState == nil else { throw Failure.invalidSelectionMessage }
                     virtualState = availability
@@ -371,8 +371,13 @@ public struct RFBClient: Sendable {
             guard let availability = virtualState else {
                 // S5 assigns command 1 to the console. Choosing it automatically is forbidden
                 // by this package: an offer without the virtual desktop is terminal.
-                session = offeredConsole ? .consoleOnly : .unavailable
-                throw offeredConsole ? Failure.consoleFallbackForbidden : Failure.sessionUnavailable
+                // Only an *available* console offer is a console-only offer (S5 availability
+                // flag is package-local): a named-but-unavailable console offers nothing, so it
+                // is reported as unavailable instead of claiming a console alternative exists.
+                let availableConsole = consoleState == Int(AppleFixtureFraming.availableState)
+                session = availableConsole ? .consoleOnly : .unavailable
+                throw availableConsole ? Failure.consoleFallbackForbidden
+                    : Failure.sessionUnavailable
             }
             guard availability == Int(AppleFixtureFraming.availableState) else {
                 session = .unavailable
