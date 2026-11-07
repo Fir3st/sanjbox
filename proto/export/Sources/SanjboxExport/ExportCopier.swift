@@ -237,6 +237,14 @@ public struct ExportCopier: Sendable {
         }
         defer { close(destFD) }
 
+        var completed = false
+        defer {
+            if !completed {
+                // Selhání kteréhokoli kroku po vytvoření nesmí nechat částečný soubor v cíli.
+                _ = chain.name.withCString { unlinkat(destParentFD, $0, 0) }
+            }
+        }
+
         // `openat` mode je maskované umaskem; prototyp práva srovnává explicitně.
         // setuid/setgid/sticky se na výsledek nepřenáší — export nikdy nevyrábí privilegovaný soubor.
         guard fchmod(destFD, mode_t(expected.mode & 0o777)) == 0 else {
@@ -247,15 +255,7 @@ public struct ExportCopier: Sendable {
         // Kdyby proces spadl během zápisu, v cíli nezůstane nekaranténovaný částečný soubor.
         try applyQuarantine(fileDescriptor: destFD, destinationPath: destinationPath)
 
-        var completed = false
-        defer {
-            if !completed {
-                // Selhání uprostřed kopie nesmí nechat částečný soubor v cíli.
-                _ = chain.name.withCString { unlinkat(destParentFD, $0, 0) }
-            }
-        }
-
-        let copy = try copyBytes(from: sourceFD, to: destFD, path: candidate.relativePath)
+        let copy = try copyBytes(from: sourceFD, to: destFD, path: candidate.relativePath, maximumBytes: expected.size)
         guard copy.bytes == expected.size, copy.hash == expected.contentHash else {
             throw ExportError.identityMismatch(
                 path: candidate.relativePath,
@@ -352,20 +352,34 @@ public struct ExportCopier: Sendable {
         }
     }
 
-    /// Zkopíruje bajty a současně počítá SHA-256 zdroje. Vrací i počet zapsaných
-    /// bajtů, aby se neshoda velikosti nebo obsahu hlásila jako `identityMismatch`.
-    private func copyBytes(from sourceFD: Int32, to destFD: Int32, path: String) throws -> (bytes: Int64, hash: String) {
+    /// Zkopíruje nejvýše schválené bajty a současně počítá SHA-256 zdroje.
+    /// Počet přečtených bajtů zahrnuje při růstu i nezapsaný kontrolní bajt,
+    /// aby volající neshodu ohlásil jako `identityMismatch`.
+    private func copyBytes(
+        from sourceFD: Int32, to destFD: Int32, path: String, maximumBytes: Int64
+    ) throws -> (bytes: Int64, hash: String) {
         var hasher = SHA256()
         var buffer = [UInt8](repeating: 0, count: max(configuration.bufferSize, 4096))
         var total: Int64 = 0
         while true {
+            // Nejvýše schválené bajty a jeden kontrolní bajt pro detekci růstu.
+            // Rostoucí (i řídký) zdroj nesmí neomezeně plnit cílový disk.
+            let remaining = maximumBytes - total
+            let readLimit = remaining >= Int64(buffer.count) ? buffer.count : Int(remaining) + 1
             let readCount = buffer.withUnsafeMutableBytes { raw in
-                read(sourceFD, raw.baseAddress, raw.count)
+                read(sourceFD, raw.baseAddress, readLimit)
             }
             if readCount == 0 { break }
             if readCount < 0 {
                 if errno == EINTR { continue }
                 throw ExportError.io(path: path, operation: "read", errno: errno)
+            }
+            if Int64(readCount) > remaining {
+                // Kontrolní bajt nikdy nezapisujeme. Volající ohlásí identityMismatch
+                // a odstraní soubor stejně jako při jiné neshodě obsahu.
+                hasher.update(data: Data(buffer[0..<readCount]))
+                let hash = hasher.finalize().map { String(format: "%02x", $0) }.joined()
+                return (total + Int64(readCount), hash)
             }
             var offset = 0
             while offset < readCount {

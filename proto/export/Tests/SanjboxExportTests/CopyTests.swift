@@ -188,6 +188,8 @@ final class CopyTests: XCTestCase {
             XCTAssertEqual(code, EPERM)
         }
         XCTAssertEqual(mock.writeCount, 1)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination + "/a.txt"),
+                       "selhání prvního zápisu karantény musí odstranit i prázdný cíl")
     }
 
     /// Mock: zápis projde, ale ověření xattr selže (někdo ji hned odstranil).
@@ -203,6 +205,8 @@ final class CopyTests: XCTestCase {
             }
         }
         XCTAssertEqual(mock.verifyCount, 1)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination + "/a.txt"),
+                       "selhání prvního readbacku karantény musí odstranit cíl")
     }
 
     /// Stejně velký přepis na místě nesmí projít: metadata jsou stejná, obsah jiný.
@@ -232,6 +236,26 @@ final class CopyTests: XCTestCase {
         )
     }
 
+    /// Růst zdroje po prvním zápisu nesmí vyvézt více bajtů než schválilo preview.
+    func testSparseGrowthDuringCopyIsBoundedByPreviewSize() throws {
+        try tree.writeBytes("growing.bin", bytes: Array(repeating: 0x41, count: 4096))
+        let plan = try prepare(["growing.bin"])
+        let sourceFD = open(tree.path("growing.bin"), O_WRONLY | O_NOFOLLOW)
+        XCTAssertGreaterThanOrEqual(sourceFD, 0)
+        defer { close(sourceFD) }
+        let writer = GrowingSourceContentWriter(sourceFD: sourceFD)
+
+        XCTAssertThrowsError(try ExportCopier(configuration: .init(contentWriter: writer, bufferSize: 4096))
+            .apply(plan, destinationRoot: destination)) { error in
+            guard case ExportError.identityMismatch = error else {
+                return XCTFail("unexpected error \(error)")
+            }
+        }
+        XCTAssertEqual(writer.bytesWritten, 4096, "kontrolní bajt navíc se nesmí zapsat")
+        XCTAssertEqual(writer.calls, 1, "nečekat na EOF stále rostoucího zdroje")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination + "/growing.bin"))
+    }
+
     /// Plán prošlý JSON round-tripem nese snapshoty, které tento proces neověřil.
     func testPlanThatWentThroughJSONIsNotAcceptedForCopy() throws {
         try tree.writeFile("a.txt", contents: "x")
@@ -259,6 +283,23 @@ final class CopyTests: XCTestCase {
             XCTAssertEqual(root, tree.root)
         }
         XCTAssertFalse(FileManager.default.fileExists(atPath: inside))
+    }
+
+    func testDestinationThroughSymlinkThenParentInsideRootIsRefused() throws {
+        try tree.writeFile("a.txt", contents: "canary")
+        try tree.makeDirectory("nested")
+        try destTree.makeSymlink("alias", target: tree.path("nested"))
+        let destinationThroughAlias = destTree.path("alias") + "/../out"
+        let plan = try prepare(["a.txt"])
+
+        XCTAssertEqual(ExportPathPolicy.canonicalPath(destinationThroughAlias), tree.path("out"))
+        XCTAssertThrowsError(try ExportCopier().apply(plan, destinationRoot: destinationThroughAlias)) { error in
+            guard case ExportError.destinationInsideRoot = error else {
+                return XCTFail("unexpected error \(error)")
+            }
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: tree.path("out")))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destTree.path("out")))
     }
 
     /// Různé identity se stejným cílovým jménem (case varianta) se odmítnou v plánu,
@@ -377,12 +418,29 @@ final class CopyTests: XCTestCase {
     /// Export nesmí vyrábět privilegovaný soubor: setuid/setgid bity se nepřenášejí.
     func testSpecialModeBitsAreNotPropagated() throws {
         try tree.writeFile("tool.sh", contents: "#!/bin/sh\n", mode: 0o4755)
+        let sourceMode = try XCTUnwrap(fileMode(tree.path("tool.sh"))) & 0o7777
+        guard sourceMode == 0o4755 else {
+            throw XCTSkip("fixture filesystem/sandbox nepovolil setuid: skutečný mode \(String(sourceMode, radix: 8))")
+        }
         let plan = try prepare(["tool.sh"])
         XCTAssertEqual(plan.candidates.first?.snapshot?.mode, 0o4755, "preview hlásí zdrojová práva")
 
         _ = try ExportCopier().apply(plan, destinationRoot: destination)
         let copied = try XCTUnwrap(fileMode(destination + "/tool.sh"))
         XCTAssertEqual(copied & 0o7777, 0o755, "setuid se na výsledek nepřenáší")
+    }
+
+    /// Sticky bit lze ověřit i tam, kde sandbox odstraňuje setuid ze zdroje.
+    func testStickyModeBitIsNotPropagated() throws {
+        try tree.writeFile("sticky.txt", contents: "canary", mode: 0o1755)
+        let sourceMode = try XCTUnwrap(fileMode(tree.path("sticky.txt"))) & 0o7777
+        guard sourceMode == 0o1755 else {
+            throw XCTSkip("fixture filesystem/sandbox nepovolil sticky bit")
+        }
+        let plan = try prepare(["sticky.txt"])
+        XCTAssertEqual(plan.candidates.first?.snapshot?.mode, 0o1755)
+        _ = try ExportCopier().apply(plan, destinationRoot: destination)
+        XCTAssertEqual(try XCTUnwrap(fileMode(destination + "/sticky.txt")) & 0o7777, 0o755)
     }
 
     func testEmptyFileCopied() throws {
@@ -428,6 +486,26 @@ final class FailingContentWriter: ContentWriter, @unchecked Sendable {
         )
         total += written
         return written
+    }
+}
+
+/// MOCK souběžného producenta: mění jen zdroj, zápis do cíle je skutečný.
+/// Limit 64 KiB zajistí, že i původní neomezená implementace skončí bezpečně.
+final class GrowingSourceContentWriter: ContentWriter, @unchecked Sendable {
+    let sourceFD: Int32
+    private(set) var bytesWritten = 0
+    private(set) var calls = 0
+
+    init(sourceFD: Int32) { self.sourceFD = sourceFD }
+
+    func write(fileDescriptor fd: Int32, buffer: UnsafeRawBufferPointer) throws -> Int {
+        let count = try SystemContentWriter().write(fileDescriptor: fd, buffer: buffer)
+        bytesWritten += count
+        calls += 1
+        if bytesWritten < 65536, ftruncate(sourceFD, off_t(bytesWritten + 4096)) != 0 {
+            throw POSIXWriteError(code: errno)
+        }
+        return count
     }
 }
 

@@ -136,13 +136,12 @@ public final class FileAuditSink: AuditSink, @unchecked Sendable {
         }
         let code = errno
         if code == EEXIST {
-            // Rozlišit existující soubor (fail-closed EEXIST) od adresáře (skutečné EISDIR).
-            let probe = path.withCString { open($0, O_WRONLY | O_APPEND | O_CLOEXEC) }
-            if probe >= 0 {
-                close(probe)
-                throw ExportError.io(path: path, operation: "write-audit", errno: EEXIST)
-            }
-            throw ExportError.io(path: path, operation: "write-audit", errno: errno)
+            // Pouze metadata: otevření existujícího FIFO pro zápis by blokovalo
+            // a symlink by mohl otevřít cizí objekt. Vše existující se odmítá.
+            var status = stat()
+            let isDirectory = path.withCString { lstat($0, &status) } == 0
+                && FileKind(mode: status.st_mode) == .directory
+            throw ExportError.io(path: path, operation: "write-audit", errno: isDirectory ? EISDIR : EEXIST)
         }
         throw ExportError.io(path: path, operation: "write-audit", errno: code)
     }

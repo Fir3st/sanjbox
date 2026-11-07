@@ -49,7 +49,9 @@ otevře (`openat` relativně k fd rodiče, každá komponenta `O_NOFOLLOW`) a po
   `sourceUnavailable` s důvodem ze selekce,
 - kopie počítá SHA-256 průběžně při čtení; jiný hash nebo počet bajtů než v preview →
   `identityMismatch`, částečný cíl se odstraní,
-- jiný stav po dokončení kopie → `identityMismatch`.
+- jiný stav po dokončení kopie → `identityMismatch`,
+- kopie přečte nejvýše velikost z preview a jeden kontrolní bajt; bajty přes schválenou
+  velikost nezapisuje. Souběžný růst, včetně řídkého souboru, se odmítne bez čekání na EOF.
 
 Tím se zachytí i přepis na místě se stejnou velikostí a stejným inode. Preview proto musí zdroj
 skutečně přečíst: soubor bez práva čtení se odmítne už v preview jako `ioError`.
@@ -68,7 +70,8 @@ téhož jména. Preview proto:
 Cílový soubor vzniká `O_CREAT | O_EXCL`, takže existující cíl se nikdy nepřepíše. Cílový kořen
 musí být **nový** adresář; existující cíl je `destinationExists` (i symbolický odkaz).
 Cílový kořen nesmí ležet uvnitř zdrojového kořene (`destinationInsideRoot`): export by zapisoval
-do právě exportovaného stromu. CLI tento případ odmítne jako chybu příkazové řádky (exit 2).
+do právě exportovaného stromu. Kontrola zachovává pořadí vyhodnocení symlinků a `..`
+stejně jako souborový systém. CLI tento případ odmítne jako chybu příkazové řádky (exit 2).
 
 ### Co prototyp nedělá
 
@@ -76,8 +79,8 @@ do právě exportovaného stromu. CLI tento případ odmítne jako chybu příka
   se nastavují `fchmod` z `mode & 0o777` — setuid/setgid/sticky se na výsledek nepřenáší,
   aby export nevyráběl privilegovaný soubor.
 - Neuklízí částečný cílový **strom** po chybě — volající ho smaže sám, protože je to jeho nový
-  adresář. Částečný **soubor** po selhání zápisu ale odstraní sám, aby v cíli nezůstal
-  nekaranténovaný částečný soubor.
+  adresář. Částečný **soubor** odstraní sám při selhání
+  kteréhokoli kroku po vytvoření, včetně `fchmod` a prvního nastavení/ověření karantény.
 - Neumí adresářový export ani rekurzi; strom se skládá z explicitních cest.
 - Neobsahuje čas v auditu. Formát auditu z WP1.H1 ještě neexistuje, proto je zde **provizorní
   lokální záznam** (`sanjbox.export.audit.v0`, JSON Lines). **Konsolidace s formátem auditu
@@ -97,7 +100,8 @@ Audit:
 
 - s `--apply`: `--audit <file>` zapíše append-only JSON Lines, jeden záznam na řádek, `fsync`
   po každém záznamu. Soubor vzniká `O_CREAT | O_EXCL`, takže se **nikdy nepřepíše** existující
-  soubor; chyba zápisu nese skutečné `errno` (např. `EISDIR`, `ENOENT`, `EEXIST`).
+  soubor. Existující objekty včetně FIFO a symlinků se pouze klasifikují přes `lstat`
+  a odmítnou bez otevření pro zápis; chyba nese `errno` (např. `EISDIR`, `ENOENT`, `EEXIST`).
 - bez `--apply` (dry-run): `--audit` **nikdy nezapisuje na disk**. Auditní dokument jde jen na
   standardní výstup za plán; žádný soubor nevznikne. Dry-run tak nemá žádný vedlejší účinek.
 
@@ -172,7 +176,7 @@ ne pro mock celé kopie.
 
 ## Testy
 
-`swift test --package-path proto/export -c release`. Šedesát testů ve čtyřech sadách
+`swift test --package-path proto/export -c release`. Šedesát šest testů ve čtyřech sadách
 (`SelectionTests`, `CopyTests`, `AuditTests`, `CLITests`) pokrývá:
 
 - odmítnutí symlinku (cíl i komponenta), hardlinku (`nlink=2`), cesty mimo kořen, prázdné cesty,
@@ -189,12 +193,15 @@ ne pro mock celé kopie.
 - JSON round-trip plánu se pro apply odmítne (`planNotPrepared`),
 - injektované selhání zápisu uprostřed kopie: v cíli nezůstane nekaranténovaný částečný soubor
   a append-only audit existuje,
-- `setuid`/`setgid` se na výsledek nepřenáší a `bytesCopied` sedí na velikost,
+- `setuid` a sticky bit se na výsledek nepřenášejí a `bytesCopied` sedí na velikost;
+  test konkrétního speciálního bitu se přeskočí pouze tehdy, když ho prostředí nedovolí
+  vytvořit už na zdrojové fixture (obyčejná práva a další testy kopie běží dál),
 - audit je bajtově identický napříč běhy, nezávislý na pořadí argumentů a **neobsahuje absolutní
   cesty** ani v preview, ani v copy záznamech,
 - CLI: dry-run nic nezapíše (ani `--audit`), exit 0/1/2/3, `--audit` nepřepíše existující soubor,
   chyba auditu hlásí skutečné `errno` pro adresář i chybějícího rodiče, `--dest` uvnitř `--root`
-  je exit 2.
+  je exit 2, včetně cesty `alias/../out`; existující auditní FIFO a symlink na FIFO
+  se odmítnou v samostatných procesech s časovým limitem.
 
 ## Omezení a navazující kroky
 

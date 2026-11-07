@@ -3,8 +3,8 @@ import SanjboxExport
 @testable import SanjboxExportCLI
 
 /// CLI: `--dry-run` je výchozí režim, exit kódy jsou dokumentované v README.
-/// Testy volají knihovní runner, ne proces — ověřují stejnou cestu, kterou používá
-/// tenký `main.swift`.
+/// Většina testů volá knihovní runner, stejnou cestu jako tenký `main.swift`.
+/// Regrese blokujícího auditního open běží v procesech s časovým limitem.
 final class CLITests: XCTestCase {
     private var tree: TempTree!
     private var destTree: TempTree!
@@ -212,6 +212,62 @@ final class CLITests: XCTestCase {
         XCTAssertEqual(result.code, ExportExitCode.failure.rawValue)
         XCTAssertTrue(result.stderr.contains("errno 2"), "skutečné ENOENT, ne vždy EEXIST: \(result.stderr)")
         XCTAssertTrue(result.stderr.contains("No such file or directory"))
+    }
+
+    func testDestinationThroughSymlinkThenParentIsRejectedBeforeAuditCreation() throws {
+        try tree.makeDirectory("nested")
+        try destTree.makeSymlink("alias", target: tree.path("nested"))
+        let audit = destTree.path("audit-alias.jsonl")
+        let result = run([
+            "--root", tree.root, "--file", "notes/a.txt",
+            "--dest", destTree.path("alias") + "/../out", "--audit", audit, "--apply",
+        ])
+        XCTAssertEqual(result.code, ExportExitCode.usage.rawValue)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: tree.path("out")))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: audit))
+    }
+
+    func testExistingAuditFIFOIsRefusedWithoutBlocking() throws {
+        try destTree.makeFIFO("audit.fifo")
+        try assertAuditPathRefusedByProcess(destTree.path("audit.fifo"))
+    }
+
+    func testExistingAuditSymlinkToFIFOIsRefusedWithoutFollowingIt() throws {
+        try destTree.makeFIFO("audit-target.fifo")
+        try destTree.makeSymlink("audit-link", target: "audit-target.fifo")
+        try assertAuditPathRefusedByProcess(destTree.path("audit-link"))
+        XCTAssertEqual(try FileManager.default.destinationOfSymbolicLink(atPath: destTree.path("audit-link")),
+                       "audit-target.fifo")
+    }
+
+    /// Proces je ohraničený: regrese blokujícího open nesmí zaseknout test runner.
+    private func assertAuditPathRefusedByProcess(_ audit: String) throws {
+        let binary = Bundle(for: CLITests.self).bundleURL.deletingLastPathComponent()
+            .appendingPathComponent("sanjbox-export")
+        let process = Process()
+        process.executableURL = binary
+        process.arguments = ["--root", tree.root, "--file", "notes/a.txt",
+                             "--dest", destTree.path("out"), "--audit", audit, "--apply"]
+        let output = Pipe()
+        let errors = Pipe()
+        process.standardOutput = output
+        process.standardError = errors
+        let exited = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in exited.signal() }
+        try process.run()
+        defer {
+            if process.isRunning {
+                process.terminate()
+                process.waitUntilExit()
+            }
+        }
+        guard exited.wait(timeout: .now() + 3) == .success else {
+            return XCTFail("CLI se zablokovalo na existujícím auditním objektu")
+        }
+        let error = String(decoding: errors.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+        XCTAssertEqual(process.terminationStatus, ExportExitCode.failure.rawValue, error)
+        XCTAssertTrue(error.contains("errno 17"), error)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destTree.path("out")))
     }
 
     func testArgumentOrderDoesNotAffectOutput() throws {

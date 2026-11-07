@@ -5,13 +5,12 @@ import Foundation
 /// znamenal zápis do zdroje, který se právě exportuje; proto se odmítá ještě před
 /// jakýmkoli zápisem.
 public enum ExportPathPolicy {
-    /// Kanonická absolutní cesta: standardizace `.`/`..` a `realpath` existujícího
-    /// předka. Neexistující ocas zůstává lexikální. `URL.resolvingSymlinksInPath`
-    /// se nepoužívá, protože pro existující a neexistující cestu vrací nekonzistentní
-    /// podobu `/tmp` vs `/private/tmp`.
+    /// Kanonická absolutní cesta podle `realpath` existujícího předka.
+    /// `..` se nesmí odstranit před vyhodnocením symlinků: `alias/..` je rodič
+    /// cíle odkazu, nikoli rodič jeho jména. Neexistující ocas zůstává lexikální.
     public static func canonicalPath(_ path: String) -> String {
-        let standardized = URL(fileURLWithPath: path).standardizedFileURL.path
-        var existing = standardized
+        let absolute = path.hasPrefix("/") ? path : FileManager.default.currentDirectoryPath + "/" + path
+        var existing = absolute
         var tail: [String] = []
         while !existing.isEmpty && existing != "/" {
             var buffer = [CChar](repeating: 0, count: Int(PATH_MAX))
@@ -22,7 +21,7 @@ public enum ExportPathPolicy {
             tail.append((existing as NSString).lastPathComponent)
             existing = (existing as NSString).deletingLastPathComponent
         }
-        return standardized
+        return absolute
     }
 
     /// `true`, když je `destination` stejný jako `root` nebo leží pod ním.
