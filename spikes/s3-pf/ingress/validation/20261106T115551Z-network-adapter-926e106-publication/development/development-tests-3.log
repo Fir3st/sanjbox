@@ -1,0 +1,299 @@
+[0/1] Planning build
+Building for production...
+[0/4] Write sources
+[1/4] Write swift-version--58304C5D6DBC2206.txt
+[3/4] Compiling IngressKitTests AdapterTests.swift
+[4/6] Compiling SanjboxIngressPreparationPackageTests runner.swift
+[4/6] Write Objects.LinkFileList
+[5/6] Linking SanjboxIngressPreparationPackageTests
+Build complete! (11.00s)
+Test Suite 'All tests' started at 2026-11-06 12:51:17.223.
+Test Suite 'All tests' passed at 2026-11-06 12:51:17.224.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test duplicateEscapedJSONKeysAndGroupsRejected() started.
+◇ Test cleanupPreservesDirectoryFlagsAndGroupDrift() started.
+◇ Test syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test syntheticProducerEncodedForeignZeroUUIDFrameRetainsTerminalAndExactBytes() started.
+◇ Test zeroPayloadAcceptIsStillContactAndPartialCaptureDoesNotEraseFinding() started.
+◇ Test missingCounterpartLifecycleRecordsKeepRemainingFindings(_:) started.
+◇ Test adapterReadsUntouchedProducerWireAndDeterministicallyLinksAvailableFacts() started.
+◇ Test missingOrWrongCredentialsNeverValidate() started.
+◇ Test cleanupPreservesChangedBytesAndExtraEntries() started.
+◇ Test malformedRawMetadataKeepsContactButCannotBecomeLinkedEvidence() started.
+◇ Test payloadReconciliationReportsUnmatchedOccurrencesInBothDirections(_:) started.
+◇ Test zeroByteContactsSurviveMissingBindingsInvalidSiblingsAndMatrix(_:) started.
+◇ Test vectorsUseCurrentCommonRunRecordEncoderAndCounterpartModel() started.
+◇ Test syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test syntheticNewEnvelopeIsStrictAndBounded(_:) started.
+◇ Test boundedSourcesAndUnknownFormatsFailExplicitlyWithoutLosingOtherSources() started.
+◇ Test c1FramerHandlesEscapesAndPreservesCompletedRecordsBeforeMalformedTail() started.
+◇ Test observationMatchingReassignsGreedyChoicesAndIsMaximumOnAllSmallGraphs() started.
+◇ Test missingControlsCoverageAndHandshakeStayIncomplete() started.
+◇ Test cleanupPreservesACLConflictUntilExplicitFixtureRestore() started.
+◇ Test unsupportedAndWildcardPeerEndpointsAreNotGuessed(_:) started.
+◇ Test packetCaptureLifecycleCannotBeReplacedByAnEmptySource() started.
+◇ Test packetMatchingCannotConsumeARecordWithConflictingTuple() started.
+◇ Test matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_:) started.
+◇ Test actualAdversarialAndIncompleteProducerJournalsRetainContacts(_:) started.
+◇ Test missingMatrixRawFlowAndUnderstatedTimeAreNotPositiveControls() started.
+◇ Test ipv6AndWildcardListenerTuplesAreParsedWithoutOpeningSockets(_:) started.
+◇ Test syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test cleanupPreservesDirectoryACLConflict() started.
+◇ Test reversedHandshakeAndEarlyCloseAreNotPositiveControls() started.
+◇ Test duplicateFlowsAreNotSilentlyDeduplicated(_:) started.
+◇ Test syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test allMatrixCellsArePlannedWhenEvidenceAbsent() started.
+◇ Test lateContactInDrainRetainsOriginalFlowAndZeroPayload() started.
+◇ Test cleanupPreservesSymlinkAndHardlinkConflicts() started.
+◇ Test packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test producerMillisecondTimestampsAreNotTruncatedAgainOrCalendarNormalized() started.
+◇ Test recordLimitPreservesAlreadyParsedContactsAndFlagsUninterpretedTail() started.
+◇ Test everyOriginIsPreservedAndHashIsOnlyComputedIntegrity() started.
+◇ Test delayedContactAndAcquisitionPreserveOriginalTestFlow() started.
+◇ Test explicitZeroCanMatchZeroClaimOrHaveNoPayloadEvent(_:) started.
+◇ Test signaturePolicyFailClosedWithoutCreatingForbiddenBinaries() started.
+◇ Test adapterRejectsMalformedOuterEnvelopes(_:) started.
+◇ Test reusedFlowIDAndActorSpoofAreRejected() started.
+◇ Test completeTranscriptRemainsIncompleteUntilRawEndpointAdapter() started.
+◇ Test importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test cleanupPreservesImmutableStateUntilExplicitFixtureRestore() started.
+◇ Test clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test outputIsCreateNewCleanupIsDryByDefaultAndIdempotent() started.
+◇ Test exactHistoricalProducerBytesRemainDistinctFromMeasurementClaims(_:) started.
+◇ Test listenerLogWithoutPacketImportNeverBecomesZeroPacketProof() started.
+◇ Test measuredMockPlannedRemainSeparate() started.
+◇ Test senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test roleMapRejectsHostAsSameZoneAndSwappedHostRoute() started.
+◇ Test drainSquattingIsFindingAndEphemeralIsNotFixedHostPort() started.
+◇ Test syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test badRawRecordCannotEraseValidSiblingContacts(_:) started.
+◇ Test forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test malformedUnknownDuplicateOversizedAndDeepJSONRejected() started.
+◇ Test case passing 1 argument mutation → "missing" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument mutation → "count" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument mutation → "hash" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument mutation → "base64" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument mutation → "noncanonical" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument mutation → "path" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument mutation → "duplicate" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument removed → 0 to missingCounterpartLifecycleRecordsKeepRemainingFindings(_:) started.
+◇ Test case passing 1 argument mutation → "extra" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument removed → 1 to missingCounterpartLifecycleRecordsKeepRemainingFindings(_:) started.
+◇ Test case passing 1 argument mutation → "rawMismatch" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument removed → 2 to missingCounterpartLifecycleRecordsKeepRemainingFindings(_:) started.
+◇ Test case passing 1 argument mutation → "inputHash" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument removed → 3 to missingCounterpartLifecycleRecordsKeepRemainingFindings(_:) started.
+◇ Test case passing 1 argument mutation → "signature" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument mutation → "identity" to syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) started.
+◇ Test case passing 1 argument variant → "unbound" to payloadReconciliationReportsUnmatchedOccurrencesInBothDirections(_:) started.
+◇ Test case passing 1 argument variant → "duplicate" to payloadReconciliationReportsUnmatchedOccurrencesInBothDirections(_:) started.
+◇ Test case passing 1 argument variant → "missingMatrix" to payloadReconciliationReportsUnmatchedOccurrencesInBothDirections(_:) started.
+◇ Test case passing 1 argument mutation → "duplicate" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "escapedDuplicate" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument variant → "falseZero" to payloadReconciliationReportsUnmatchedOccurrencesInBothDirections(_:) started.
+◇ Test case passing 1 argument mutation → "unknown" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "null" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "malformed" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "missingEnding" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "missingStop" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument host → "::ffff:127.0.0.1" to unsupportedAndWildcardPeerEndpointsAreNotGuessed(_:) started.
+◇ Test case passing 1 argument mutation → "gap" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "reorder" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument host → "fe80::1%en0" to unsupportedAndWildcardPeerEndpointsAreNotGuessed(_:) started.
+◇ Test case passing 1 argument mutation → "unknownBinding" to syntheticNewEnvelopeIsStrictAndBounded(_:) started.
+◇ Test case passing 1 argument mutation → "pid" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument host → "example.test" to unsupportedAndWildcardPeerEndpointsAreNotGuessed(_:) started.
+◇ Test case passing 1 argument mutation → "nullBinding" to syntheticNewEnvelopeIsStrictAndBounded(_:) started.
+◇ Test case passing 1 argument mutation → "parent" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument host → "127.0.0.1◇ Test case passing 1 argument mutation → "nullArtifact" to syntheticNewEnvelopeIsStrictAndBounded(_:) started.
+◇ Test case passing 1 argument mutation → "instance" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument vector → "commonZeroTCP" to zeroByteContactsSurviveMissingBindingsInvalidSiblingsAndMatrix(_:) started.
+◇ Test case passing 1 argument mutation → "nullClock" to syntheticNewEnvelopeIsStrictAndBounded(_:) started.
+◇ Test case passing 1 argument mutation → "run" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument host → "0.0.0.0" to unsupportedAndWildcardPeerEndpointsAreNotGuessed(_:) started.
+◇ Test case passing 1 argument variant → "tcp-zero" to matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_:) started.
+◇ Test case passing 1 argument mutation → "flow" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "legacyArtifacts" to syntheticNewEnvelopeIsStrictAndBounded(_:) started.
+◇ Test case passing 1 argument variant → "tcp-missing" to matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_:) started.
+◇ Test case passing 1 argument vector → "commonZeroUDP" to zeroByteContactsSurviveMissingBindingsInvalidSiblingsAndMatrix(_:) started.
+◇ Test case passing 1 argument mutation → "monotonic" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "oversizeArtifacts" to syntheticNewEnvelopeIsStrictAndBounded(_:) started.
+◇ Test case passing 1 argument variant → "tcp-absent" to matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_:) started.
+◇ Test case passing 1 argument variant → "udp-zero" to matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_:) started.
+◇ Test case passing 1 argument mutation → "utc" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument variant → "udp-missing" to matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_:) started.
+◇ Test case passing 1 argument mutation → "tuple" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument variant → "udp-absent" to matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_:) started.
+◇ Test case passing 1 argument mutation → "count" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "nonce" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "partial" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument mutation → "replay" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "missingEnd" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument name → "udp-adversarial" to actualAdversarialAndIncompleteProducerJournalsRetainContacts(_:) started.
+◇ Test case passing 1 argument mutation → "unexpectedField" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "progressRegression" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument name → "commonIPv6" to ipv6AndWildcardListenerTuplesAreParsedWithoutOpeningSockets(_:) started.
+◇ Test case passing 1 argument mutation → "falseFinished" to syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) started.
+◇ Test case passing 1 argument mutation → "progressAfterEnd" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument kind → "binding" to duplicateFlowsAreNotSilentlyDeduplicated(_:) started.
+◇ Test case passing 1 argument kind → "rawAccept" to duplicateFlowsAreNotSilentlyDeduplicated(_:) started.
+◇ Test case passing 1 argument mutation → "missingConnected" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument name → "tcp-adversarial" to actualAdversarialAndIncompleteProducerJournalsRetainContacts(_:) started.
+◇ Test case passing 1 argument kind → "rawClose" to duplicateFlowsAreNotSilentlyDeduplicated(_:) started.
+◇ Test case passing 1 argument mutation → "intentCount" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument kind → "reuse" to duplicateFlowsAreNotSilentlyDeduplicated(_:) started.
+◇ Test case passing 1 argument name → "commonWildcardIPv6" to ipv6AndWildcardListenerTuplesAreParsedWithoutOpeningSockets(_:) started.
+◇ Test case passing 1 argument mutation → "wrongTuple" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument kind → "changedTuple" to duplicateFlowsAreNotSilentlyDeduplicated(_:) started.
+◇ Test case passing 1 argument mutation → "falseSuccess" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument name → "contact-limit" to actualAdversarialAndIncompleteProducerJournalsRetainContacts(_:) started.
+◇ Test case passing 1 argument mutation → "inputRegistration" to syntheticSenderSeparatesIntentProgressAndFailure(_:) started.
+◇ Test case passing 1 argument mutation → "matching" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument variant → "reused" to packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test case passing 1 argument name → "interrupted-prefix" to actualAdversarialAndIncompleteProducerJournalsRetainContacts(_:) started.
+◇ Test case passing 1 argument variant → "distinct" to packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test case passing 1 argument mutation → "extraPayload" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument variant → "sameTime" to packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test case passing 1 argument name → "refused-connect" to actualAdversarialAndIncompleteProducerJournalsRetainContacts(_:) started.
+◇ Test case passing 1 argument variant → "extraRaw" to packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test case passing 1 argument mutation → "missingPayload" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument variant → "extraMatrix" to packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test case passing 1 argument variant → "boundary" to packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test case passing 1 argument variant → "tcp-zero-event" to explicitZeroCanMatchZeroClaimOrHaveNoPayloadEvent(_:) started.
+◇ Test case passing 1 argument variant → "tcp-no-event" to explicitZeroCanMatchZeroClaimOrHaveNoPayloadEvent(_:) started.
+◇ Test case passing 1 argument variant → "outside" to packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test case passing 1 argument variant → "udp-zero-event" to explicitZeroCanMatchZeroClaimOrHaveNoPayloadEvent(_:) started.
+◇ Test case passing 1 argument variant → "overlap" to packetOccurrencesRequireAOneToOneTimeMatching(_:) started.
+◇ Test case passing 1 argument mutation → "wrongCount" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument variant → "udp-no-event" to explicitZeroCanMatchZeroClaimOrHaveNoPayloadEvent(_:) started.
+◇ Test case passing 1 argument field → "runID" to importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test case passing 1 argument mutation → "wrongActor" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument field → "scenarioID" to importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test case passing 1 argument kind → "duplicate" to adapterRejectsMalformedOuterEnvelopes(_:) started.
+◇ Test case passing 1 argument field → "captureID" to importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test case passing 1 argument kind → "escaped" to adapterRejectsMalformedOuterEnvelopes(_:) started.
+◇ Test case passing 1 argument field → "clockID" to importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test case passing 1 argument field → "interface" to importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test case passing 1 argument kind → "unknown" to adapterRejectsMalformedOuterEnvelopes(_:) started.
+◇ Test case passing 1 argument name → "tcp-v4" to exactHistoricalProducerBytesRemainDistinctFromMeasurementClaims(_:) started.
+◇ Test case passing 1 argument mutation → "missingConnected" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument field → "oracleInstanceID" to importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test case passing 1 argument kind → "depth" to adapterRejectsMalformedOuterEnvelopes(_:) started.
+◇ Test case passing 1 argument name → "tcp-v6" to exactHistoricalProducerBytesRemainDistinctFromMeasurementClaims(_:) started.
+◇ Test case passing 1 argument field → "family" to importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test case passing 1 argument name → "udp-v4" to exactHistoricalProducerBytesRemainDistinctFromMeasurementClaims(_:) started.
+◇ Test case passing 1 argument kind → "oversize" to adapterRejectsMalformedOuterEnvelopes(_:) started.
+◇ Test case passing 1 argument kind → "missing" to clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test case passing 1 argument field → "remote" to importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) started.
+◇ Test case passing 1 argument mutation → "extraConnected" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument name → "udp-v6" to exactHistoricalProducerBytesRemainDistinctFromMeasurementClaims(_:) started.
+✘ Test syntheticMatrixMustReconcileEveryNetworkObservation(_:) recorded an issue with 1 argument mutation → "wrongActor" at NetworkAdapterTests.swift:275:14: Expectation failed: link.problems.contains { $0.contains("one-to-one reconciliation") }
+↳ wrongActor: ["missing/invalid matrix cell for binding", "network recorded own identity/PID/instance/signature differs from matrix initiator", "network recorded own identity/PID/instance/signature differs from matrix listener"]
+↳ link.problems.contains { $0.contains("one-to-one reconciliation") } → <not evaluated>
+◇ Test case passing 1 argument kind → "boolean" to adapterRejectsMalformedOuterEnvelopes(_:) started.
+◇ Test case passing 1 argument kind → "sourceID" to adapterRejectsMalformedOuterEnvelopes(_:) started.
+◇ Test case passing 1 argument kind → "uncertainty" to clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test case passing 1 argument mutation → "clockGap" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument mutation → "clockUnknown" to syntheticMatrixMustReconcileEveryNetworkObservation(_:) started.
+◇ Test case passing 1 argument kind → "case" to senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test case passing 1 argument kind → "zeroClock" to clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test case passing 1 argument kind → "pid" to senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test case passing 1 argument kind → "audit" to senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test case passing 1 argument kind → "membership" to senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test case passing 1 argument bad → "{"kind":"stopped","kind":"stopped"}" to badRawRecordCannotEraseValidSiblingContacts(_:) started.
+◇ Test case passing 1 argument mutation → "legacyMix" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument kind → "offset" to clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test case passing 1 argument kind → "duplicateGroups" to senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test case passing 1 argument bad → "{"kind":"stopped","k\u0069nd":"stopped"}" to badRawRecordCannotEraseValidSiblingContacts(_:) started.
+◇ Test case passing 1 argument mutation → "reusedSender" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument kind → "identityOutcome" to senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test case passing 1 argument bad → "{"kind":"stopped","unknown":1}" to badRawRecordCannotEraseValidSiblingContacts(_:) started.
+◇ Test case passing 1 argument mutation → "reusedContact" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument kind → "identitySession" to senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test case passing 1 argument kind → "jump" to clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test case passing 1 argument mutation → "wrongContact" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument kind → "sendOutcome" to senderMismatchNeverCreatesTrustedBinding(_:) started.
+◇ Test case passing 1 argument mutation → "crossRun" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument kind → "local" to forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test case passing 1 argument mutation → "wrongFlow" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument kind → "unknownLoss" to clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test case passing 1 argument mutation → "wrongEndpoint" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument mutation → "wrongTransport" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument kind → "remote" to forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test case passing 1 argument kind → "drop" to clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test case passing 1 argument mutation → "wildcardScenario" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument mutation → "aliasSource" to syntheticNewBindingsCannotHideAmbiguity(_:) started.
+◇ Test case passing 1 argument kind → "port" to forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test case passing 1 argument kind → "gap" to clockLossAndDrainGapsRemainExplicit(_:) started.
+◇ Test case passing 1 argument kind → "family" to forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test case passing 1 argument kind → "canary" to forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test case passing 1 argument kind → "endpoint" to forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test case passing 1 argument kind → "run" to forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test case passing 1 argument kind → "stage" to forgedJoinsReportConflictsAndRetainFindings(_:) started.
+◇ Test case passing 1 argument kind → "shortDrain" to clockLossAndDrainGapsRemainExplicit(_:) started.
+✔ Test duplicateEscapedJSONKeysAndGroupsRejected() passed after 0.322 seconds.
+✔ Test zeroPayloadAcceptIsStillContactAndPartialCaptureDoesNotEraseFinding() passed after 0.322 seconds.
+✔ Test cleanupPreservesDirectoryFlagsAndGroupDrift() passed after 0.322 seconds.
+✔ Test syntheticExplicitArtifactsDoNotBecomeBytesOrAuthorityByDeclaration(_:) with 12 test cases passed after 0.322 seconds.
+✔ Test syntheticProducerEncodedForeignZeroUUIDFrameRetainsTerminalAndExactBytes() passed after 0.322 seconds.
+✔ Test missingCounterpartLifecycleRecordsKeepRemainingFindings(_:) with 4 test cases passed after 0.322 seconds.
+✔ Test missingOrWrongCredentialsNeverValidate() passed after 0.322 seconds.
+✔ Test adapterReadsUntouchedProducerWireAndDeterministicallyLinksAvailableFacts() passed after 0.322 seconds.
+✔ Test cleanupPreservesChangedBytesAndExtraEntries() passed after 0.322 seconds.
+✔ Test malformedRawMetadataKeepsContactButCannotBecomeLinkedEvidence() passed after 0.322 seconds.
+✔ Test payloadReconciliationReportsUnmatchedOccurrencesInBothDirections(_:) with 4 test cases passed after 0.322 seconds.
+✔ Test vectorsUseCurrentCommonRunRecordEncoderAndCounterpartModel() passed after 0.322 seconds.
+✔ Test c1FramerHandlesEscapesAndPreservesCompletedRecordsBeforeMalformedTail() passed after 0.322 seconds.
+✔ Test missingControlsCoverageAndHandshakeStayIncomplete() passed after 0.322 seconds.
+✔ Test boundedSourcesAndUnknownFormatsFailExplicitlyWithoutLosingOtherSources() passed after 0.322 seconds.
+✔ Test observationMatchingReassignsGreedyChoicesAndIsMaximumOnAllSmallGraphs() passed after 0.322 seconds.
+✔ Test cleanupPreservesACLConflictUntilExplicitFixtureRestore() passed after 0.322 seconds.
+✔ Test syntheticNetworkMutationsCannotEraseContactOrSubstantiateLink(_:) with 22 test cases passed after 0.322 seconds.
+✔ Test unsupportedAndWildcardPeerEndpointsAreNotGuessed(_:) with 5 test cases passed after 0.322 seconds.
+✔ Test packetCaptureLifecycleCannotBeReplacedByAnEmptySource() passed after 0.322 seconds.
+✔ Test syntheticNewEnvelopeIsStrictAndBounded(_:) with 6 test cases passed after 0.323 seconds.
+✔ Test zeroByteContactsSurviveMissingBindingsInvalidSiblingsAndMatrix(_:) with 2 test cases passed after 0.323 seconds.
+✔ Test matrixPayloadCannotContradictZeroOrMissingReceiverBytes(_:) with 6 test cases passed after 0.322 seconds.
+✔ Test packetMatchingCannotConsumeARecordWithConflictingTuple() passed after 0.322 seconds.
+✔ Test missingMatrixRawFlowAndUnderstatedTimeAreNotPositiveControls() passed after 0.322 seconds.
+✔ Test cleanupPreservesDirectoryACLConflict() passed after 0.322 seconds.
+✔ Test syntheticSenderSeparatesIntentProgressAndFailure(_:) with 9 test cases passed after 0.322 seconds.
+✔ Test ipv6AndWildcardListenerTuplesAreParsedWithoutOpeningSockets(_:) with 2 test cases passed after 0.322 seconds.
+✔ Test duplicateFlowsAreNotSilentlyDeduplicated(_:) with 5 test cases passed after 0.322 seconds.
+✔ Test reversedHandshakeAndEarlyCloseAreNotPositiveControls() passed after 0.322 seconds.
+✔ Test allMatrixCellsArePlannedWhenEvidenceAbsent() passed after 0.322 seconds.
+✔ Test actualAdversarialAndIncompleteProducerJournalsRetainContacts(_:) with 5 test cases passed after 0.323 seconds.
+✔ Test lateContactInDrainRetainsOriginalFlowAndZeroPayload() passed after 0.322 seconds.
+✔ Test cleanupPreservesSymlinkAndHardlinkConflicts() passed after 0.322 seconds.
+✔ Test packetOccurrencesRequireAOneToOneTimeMatching(_:) with 8 test cases passed after 0.322 seconds.
+✔ Test producerMillisecondTimestampsAreNotTruncatedAgainOrCalendarNormalized() passed after 0.322 warning: '--build-system native' has been deprecated and will be removed in a future release; please report an issue at https://github.com/swiftlang/swift-package-manager/issues if you are unable to adopt the default build system.
+seconds.
+✔ Test delayedContactAndAcquisitionPreserveOriginalTestFlow() passed after 0.322 seconds.
+✔ Test everyOriginIsPreservedAndHashIsOnlyComputedIntegrity() passed after 0.322 seconds.
+✔ Test signaturePolicyFailClosedWithoutCreatingForbiddenBinaries() passed after 0.322 seconds.
+✔ Test recordLimitPreservesAlreadyParsedContactsAndFlagsUninterpretedTail() passed after 0.323 seconds.
+✔ Test reusedFlowIDAndActorSpoofAreRejected() passed after 0.322 seconds.
+✔ Test explicitZeroCanMatchZeroClaimOrHaveNoPayloadEvent(_:) with 4 test cases passed after 0.323 seconds.
+✔ Test completeTranscriptRemainsIncompleteUntilRawEndpointAdapter() passed after 0.323 seconds.
+✔ Test importedCaptureProvenanceCannotBeForgedByFlowIDAlone(_:) with 8 test cases passed after 0.323 seconds.
+✔ Test adapterRejectsMalformedOuterEnvelopes(_:) with 7 test cases passed after 0.323 seconds.
+✔ Test cleanupPreservesImmutableStateUntilExplicitFixtureRestore() passed after 0.323 seconds.
+✔ Test outputIsCreateNewCleanupIsDryByDefaultAndIdempotent() passed after 0.323 seconds.
+✘ Test syntheticMatrixMustReconcileEveryNetworkObservation(_:) with 9 test cases failed after 0.323 seconds with 1 issue.
+✔ Test listenerLogWithoutPacketImportNeverBecomesZeroPacketProof() passed after 0.323 seconds.
+✔ Test measuredMockPlannedRemainSeparate() passed after 0.323 seconds.
+✔ Test roleMapRejectsHostAsSameZoneAndSwappedHostRoute() passed after 0.323 seconds.
+✔ Test drainSquattingIsFindingAndEphemeralIsNotFixedHostPort() passed after 0.323 seconds.
+✔ Test exactHistoricalProducerBytesRemainDistinctFromMeasurementClaims(_:) with 4 test cases passed after 0.323 seconds.
+✔ Test senderMismatchNeverCreatesTrustedBinding(_:) with 8 test cases passed after 0.323 seconds.
+✔ Test badRawRecordCannotEraseValidSiblingContacts(_:) with 3 test cases passed after 0.323 seconds.
+✔ Test malformedUnknownDuplicateOversizedAndDeepJSONRejected() passed after 0.323 seconds.
+✔ Test forgedJoinsReportConflictsAndRetainFindings(_:) with 8 test cases passed after 0.323 seconds.
+✔ Test clockLossAndDrainGapsRemainExplicit(_:) with 9 test cases passed after 0.327 seconds.
+✔ Test syntheticNewBindingsCannotHideAmbiguity(_:) with 10 test cases passed after 0.331 seconds.
+✘ Test run with 59 tests in 0 suites failed after 0.332 seconds with 1 issue.
+Note: Some test targets reported failures:
+  - SanjboxIngressPreparationPackageTests (Swift Testing)

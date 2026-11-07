@@ -192,3 +192,12 @@ ADAPTER dokumentace, tento přidávací záznam a vlastní COVERAGE řádek. Ž�
 C1/common/Contracts/PLAN změny, systémové zásahy, síť, capture ani pf. C3 zůstává partial;
 S3b/NET-10…12 a F1 agregát beze změny. Finální commit čeká na opětovné nezávislé review;
 tato sekce popisuje ověření oprav implementátorem, nikoli výsledek tohoto dalšího review.
+
+## Navazující explicitní network provenance consumer
+
+Nový samostatný [validační index](NETWORK-ADAPTER-VALIDATION.md) připíná source commit
+`926e106f24f1366af103544b546ad10db58efdf0`: 60 Release testů, 30 nových + 25 legacy offline
+CLI kontrol a přesné bytes 61 souborů z 9 skutečných producer případů. Předchozí validace
+výše zůstávají historickými důkazy svých původních revizí; S3b/NET-10…12 zůstávají Neověřeno.
+
+Samostatný [dodatek nezávislého review](NETWORK-ADAPTER-VALIDATION.md#opravy-nezávislého-review--source-608b41c) připíná opravený source `608b41cc308ffa6d6fb530f24bc3a899537e0411`: 63 Release testů, 30 + 25 offline CLI a čtyři přesné review regrese. Předchozí měření a manifesty se nepřepisují.

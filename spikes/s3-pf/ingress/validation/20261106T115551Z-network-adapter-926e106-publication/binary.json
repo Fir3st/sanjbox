@@ -1,0 +1,5 @@
+{
+  "note": "Release SwiftPM binary used offline; not newly signed or a signing attestation",
+  "path": "/private/tmp/sanjbox-c3-adapter-own/build/release/sanjbox-ingress",
+  "sha256": "c72e3708968549cb14b7de3ff0d4315f335aa2a0d76dd9030f14e18adb670dd4"
+}

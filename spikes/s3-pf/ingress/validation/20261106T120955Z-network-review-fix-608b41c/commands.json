@@ -1,0 +1,86 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "spikes/s3-pf/ingress/tools/network-producer-vectors.py"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "name": "exact-vectors"
+    },
+    {
+      "argv": [
+        "python3",
+        "spikes/s3-pf/ingress/tools/check-network-adapter-cli.py",
+        "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/build/release/sanjbox-ingress",
+        "--output",
+        "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/network-cli-original"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "name": "network-cli"
+    },
+    {
+      "argv": [
+        "python3",
+        "spikes/s3-pf/ingress/tools/check-offline-cli.py",
+        "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/build/release/sanjbox-ingress"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "name": "legacy-cli"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "dd058d3f4e758ed7fdef7dc64eba1c9a34a66967",
+        "HEAD",
+        "--",
+        "spikes/s3-pf/ingress/Sources",
+        "spikes/s3-pf/ingress/Tests",
+        "spikes/s3-pf/ingress/tools",
+        "spikes/s3-pf/ingress/Package.swift"
+      ],
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "name": "source-whitespace"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "dd058d3f4e758ed7fdef7dc64eba1c9a34a66967",
+        "HEAD"
+      ],
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "name": "historical-log-whitespace"
+    }
+  ],
+  "releaseTest": {
+    "argv": [
+      "swift",
+      "test",
+      "--package-path",
+      "spikes/s3-pf/ingress",
+      "-c",
+      "release",
+      "--jobs",
+      "2",
+      "--build-system",
+      "native",
+      "--disable-sandbox",
+      "--scratch-path",
+      "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/build",
+      "--cache-path",
+      "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/cache"
+    ],
+    "exitCode": 0,
+    "observedSummary": "63 tests passed"
+  },
+  "sourceRevision": "608b41cc308ffa6d6fb530f24bc3a899537e0411"
+}

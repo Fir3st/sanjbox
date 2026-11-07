@@ -1,0 +1,3 @@
+Automatic approval review rejected in-place sanitation of two old sealed diagnostic files before any command execution.
+Reason: editing the previously sealed validation record would make its original manifest no longer match, contrary to preservation instructions. Sanitization should create a separate derivative.
+Resolution: no retry or bypass; old record remains exactly unchanged. Two separately labeled sanitized diagnostic derivatives were created under ingress/publication with original/published hashes and replacement map. Historical diagnostic home paths therefore remain in the preserved original record; final publication packaging is unresolved here.

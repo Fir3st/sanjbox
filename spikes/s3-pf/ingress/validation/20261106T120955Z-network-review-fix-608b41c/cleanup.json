@@ -1,0 +1,12 @@
+{
+  "privateOriginalDiagnostics": "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85",
+  "removedOwnedDirectories": [
+    "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/build",
+    "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/modules",
+    "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/cache",
+    "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/tmp"
+  ],
+  "retainedBinarySHA256": "48de990ee1c5e0f5c6860cf37e756975f4fa0cdd06cceb653c7b8d394f9b9090",
+  "retainedOfflineBinary": "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85/bin/sanjbox-ingress",
+  "scope": "Only own new build/modules/cache/tmp removed after frozen-source handoff; exact old record and review evidence preserved."
+}

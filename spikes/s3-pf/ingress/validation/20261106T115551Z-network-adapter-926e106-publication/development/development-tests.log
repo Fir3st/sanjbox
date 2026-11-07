@@ -1,0 +1,94 @@
+[0/1] Planning build
+Building for production...
+[0/7] Write sources
+[1/7] Copying Fixtures
+[2/7] Write sources
+[3/7] Write swift-version--58304C5D6DBC2206.txt
+[5/8] Compiling IngressKit Evidence.swift
+[5/9] Write Objects.LinkFileList
+[6/10] Linking sanjbox-ingress
+[8/10] Compiling IngressKitTests AdapterTests.swift
+<REPO_ROOT>/spikes/s3-pf/ingress/Tests/IngressKitTests/NetworkAdapterTests.swift:11:102: error: ambiguous use of 'encodeJSON'
+  9 |     return try #require(values[name])
+ 10 | }
+ 11 | private func networkReport(_ input: AdapterInput) throws -> AdapterReport { try EvidenceAdapter.link(encodeJSON(input)) }
+    |                                                                                                      `- error: ambiguous use of 'encodeJSON'
+ 12 | private func networkIssues(_ report: AdapterReport) -> String {
+ 13 |     (report.sources.flatMap { $0.problems + ($0.network?.records.flatMap(\.problems) ?? []) } + report.links.flatMap(\.problems)).joined(separator: "\n")
+
+<REPO_ROOT>/spikes/common/Sources/SanjboxNetworkProvenance/StrictJSON.swift:93:13: note: found this candidate in module 'SanjboxNetworkProvenance'
+91 | }
+92 | 
+93 | public func encodeJSON<T: Encodable>(_ value: T) throws -> Data {
+   |             `- note: found this candidate in module 'SanjboxNetworkProvenance'
+94 |     let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+95 |     return try encoder.encode(value)
+
+<REPO_ROOT>/spikes/s3-pf/ingress/Sources/IngressKit/StrictJSON.swift:93:13: note: found this candidate in module 'IngressKit'
+91 | }
+92 | 
+93 | public func encodeJSON<T: Encodable>(_ value: T) throws -> Data {
+   |             `- note: found this candidate in module 'IngressKit'
+94 |     let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+95 |     return try encoder.encode(value)
+
+<REPO_ROOT>/spikes/s3-pf/ingress/Tests/IngressKitTests/NetworkAdapterTests.swift:39:5: error: failed to produce diagnostic for expression; please submit a bug report (https://swift.org/contributing/#reporting-bugs)
+ 37 |     #expect(report.matrixProblems == ["missing matrix evidence"])
+ 38 |     #expect(!report.packetAbsenceProven && report.externalReviewRequired)
+ 39 |     #expect(try encodeJSON(report) == encodeJSON(networkReport(input)))
+    |     `- error: failed to produce diagnostic for expression; please submit a bug report (https://swift.org/contributing/#reporting-bugs)
+ 40 | }
+ 41 | 
+
+macro expansion #expect:2:3: error: call can throw, but it is not marked with 'try' and the error is not handled
+`- <REPO_ROOT>/spikes/s3-pf/ingress/Tests/IngressKitTests/NetworkAdapterTests.swift:48:72: note: expanded code originates here
+ 46 |     #expect(report.findings.count == expected[name])
+ 47 |     #expect(!networkIssues(report).isEmpty)
+ 48 |     #expect(report.findings.allSatisfy(\.hasInvalidOrIncompleteSource))
+    |     |- note: in expansion of macro 'expect' here
+    |     `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkFunctionCall(report.findings.self,calling: {
+    |2 |   $0.allSatisfy($1)
+    |  |   |             `- note: call is to 'rethrows' function, but argument function can throw
+    |  |   `- error: call can throw, but it is not marked with 'try' and the error is not handled
+    |3 | },\.hasInvalidOrIncompleteSource,expression: .__fromFunctionCall(.__fromSyntaxNode("report.findings"),"allSatisfy",(nil,.__fromSyntaxNode(#"\.hasInvalidOrIncompleteSource"#))),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    +-------------------------------------------------------------------
+ 49 |     if name == "interrupted-prefix" {
+ 50 |         #expect(report.findings[0].bytes == nil)
+
+<REPO_ROOT>/spikes/s3-pf/ingress/Tests/IngressKitTests/NetworkAdapterTests.swift:137:66: error: ambiguous use of 'encodeJSON'
+135 | @Test(arguments: ["unknownBinding", "nullBinding", "nullArtifact", "nullClock", "legacyArtifacts", "oversizeArtifacts"])
+136 | func syntheticNewEnvelopeIsStrictAndBounded(_ mutation: String) throws {
+137 |     var object = try #require(JSONSerialization.jsonObject(with: encodeJSON(networkFixture())) as? [String: Any])
+    |                                                                  `- error: ambiguous use of 'encodeJSON'
+138 |     var sources = object["sources"] as! [[String: Any]], bindings = object["bindings"] as! [[String: Any]]
+139 |     switch mutation {
+
+<REPO_ROOT>/spikes/common/Sources/SanjboxNetworkProvenance/StrictJSON.swift:93:13: note: found this candidate in module 'SanjboxNetworkProvenance'
+91 | }
+92 | 
+93 | public func encodeJSON<T: Encodable>(_ value: T) throws -> Data {
+   |             `- note: found this candidate in module 'SanjboxNetworkProvenance'
+94 |     let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+95 |     return try encoder.encode(value)
+
+<REPO_ROOT>/spikes/s3-pf/ingress/Sources/IngressKit/StrictJSON.swift:93:13: note: found this candidate in module 'IngressKit'
+91 | }
+92 | 
+93 | public func encodeJSON<T: Encodable>(_ value: T) throws -> Data {
+   |             `- note: found this candidate in module 'IngressKit'
+94 |     let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+95 |     return try encoder.encode(value)
+
+<REPO_ROOT>/spikes/s3-pf/ingress/Tests/IngressKitTests/NetworkAdapterTests.swift:137:18: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+135 | @Test(arguments: ["unknownBinding", "nullBinding", "nullArtifact", "nullClock", "legacyArtifacts", "oversizeArtifacts"])
+136 | func syntheticNewEnvelopeIsStrictAndBounded(_ mutation: String) throws {
+137 |     var object = try #require(JSONSerialization.jsonObject(with: encodeJSON(networkFixture())) as? [String: Any])
+    |                  `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+138 |     var sources = object["sources"] as! [[String: Any]], bindings = object["bindings"] as! [[String: Any]]
+139 |     switch mutation {
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+warning: '--build-system native' has been deprecated and will be removed in a future release; please report an issue at https://github.com/swiftlang/swift-package-manager/issues if you are unable to adopt the default build system.
+error: fatalError

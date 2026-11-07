@@ -1,0 +1,109 @@
+{
+  "files": [
+    {
+      "file": "inputs.json",
+      "originalSHA256": "ec53740dee871412672fe971fb928b1c8067f5a6df30f9d9c8cbfb3d3532d343",
+      "publishedSHA256": "ec53740dee871412672fe971fb928b1c8067f5a6df30f9d9c8cbfb3d3532d343",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/exact-vectors.stderr.log",
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publishedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/exact-vectors.stdout.log",
+      "originalSHA256": "7b47408c8bfc1fcbf3bea3414c8e066e35aafedee4654e2d04c374eacf5f4c8a",
+      "publishedSHA256": "7b47408c8bfc1fcbf3bea3414c8e066e35aafedee4654e2d04c374eacf5f4c8a",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/historical-log-whitespace.stderr.log",
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publishedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/historical-log-whitespace.stdout.log",
+      "originalSHA256": "5320af2a829d50b96111c8eb726112e3c06e2d3dfb0cce591373bb1a434a9a49",
+      "publishedSHA256": "5320af2a829d50b96111c8eb726112e3c06e2d3dfb0cce591373bb1a434a9a49",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/legacy-cli.stderr.log",
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publishedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/legacy-cli.stdout.log",
+      "originalSHA256": "6c64d9cac285a8acfe58ea8e4bb9fc8f8aaa1de2fc4cfb5d26ccdbfbf2789d81",
+      "publishedSHA256": "6c64d9cac285a8acfe58ea8e4bb9fc8f8aaa1de2fc4cfb5d26ccdbfbf2789d81",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/network-cli.stderr.log",
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publishedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/network-cli.stdout.log",
+      "originalSHA256": "33f8bd9aabd36a40f5989e789e1a13eae062c342dc689da1dd135dc6030afa78",
+      "publishedSHA256": "33f8bd9aabd36a40f5989e789e1a13eae062c342dc689da1dd135dc6030afa78",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/release-tests-original.log",
+      "originalSHA256": "2e88c2c2f8951c9c952fe31a3f6bd03ab705ed9dbdf67f8e0a5528060c23f6b7",
+      "publishedSHA256": "2e88c2c2f8951c9c952fe31a3f6bd03ab705ed9dbdf67f8e0a5528060c23f6b7",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/source-whitespace.stderr.log",
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publishedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "replacementCounts": [
+        0
+      ]
+    },
+    {
+      "file": "logs/source-whitespace.stdout.log",
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publishedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "replacementCounts": [
+        0
+      ]
+    }
+  ],
+  "kind": "diagnostic publication derivatives; measurements and producer bytes unchanged",
+  "privateOriginalDirectory": "/private/tmp/sanjbox-c3-boundary-fix-20261106-6e51e85",
+  "replacementMap": [
+    {
+      "description": "exact absolute C3 worktree prefix, preserved in private original diagnostic bytes",
+      "originalPrefixSHA256": "fc78b4541e3385880b13c2553ef85439784520c5f6c872c79a511ef1a4739a60",
+      "replacementUTF8": "<SANJBOX_WORKTREE>"
+    }
+  ]
+}

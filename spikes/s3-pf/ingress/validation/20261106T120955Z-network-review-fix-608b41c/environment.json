@@ -1,0 +1,10 @@
+{
+  "architecture": "arm64",
+  "binarySHA256": "48de990ee1c5e0f5c6860cf37e756975f4fa0cdd06cceb653c7b8d394f9b9090",
+  "macOS": "27.2",
+  "macOSBuild": "26B123",
+  "scope": "offline consumer review fix; no sockets/identity/capture; not performance or isolation evidence",
+  "sourceRevision": "608b41cc308ffa6d6fb530f24bc3a899537e0411",
+  "swift": "swift-driver version: 1.168.6 Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)\nTarget: arm64-apple-macosx27.2.0",
+  "xcode": "Xcode 27.2\nBuild version 27B52"
+}

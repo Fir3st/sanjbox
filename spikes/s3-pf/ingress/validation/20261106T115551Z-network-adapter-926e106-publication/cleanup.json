@@ -1,0 +1,11 @@
+{
+  "note": "Only own build/modules/cache/tmp removed after frozen source and paths handed to parent; all validation raw/logs preserved, no producer/parent/other worker scratch touched.",
+  "removedOwnedDirectories": [
+    "/private/tmp/sanjbox-c3-adapter-own/build",
+    "/private/tmp/sanjbox-c3-adapter-own/modules",
+    "/private/tmp/sanjbox-c3-adapter-own/cache",
+    "/private/tmp/sanjbox-c3-adapter-own/tmp"
+  ],
+  "retainedBinarySHA256": "c72e3708968549cb14b7de3ff0d4315f335aa2a0d76dd9030f14e18adb670dd4",
+  "retainedOfflineBinary": "/private/tmp/sanjbox-c3-adapter-own/bin/sanjbox-ingress"
+}
