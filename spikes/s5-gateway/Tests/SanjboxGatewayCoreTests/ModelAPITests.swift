@@ -216,11 +216,13 @@ actor ModelEvents {
     for timeout in [false, true] {
         let connection = ScriptedConnection(try modelWire(modelFixture()))
         let config = try ModelAPIConfiguration(zoneID: "zone-test", allowedModels: [modelTestName], budgetUnits: 100, chargePerRequest: 10,
-                                              maximumConcurrent: 1, maximumRecords: 1, lifetime: timeout ? .milliseconds(30) : .seconds(2))
+                                              maximumConcurrent: 1, maximumRecords: 1, lifetime: .seconds(2))
         let handler = try modelGateway(connection, configuration: config)
         let produce = try await modelProducer(handler.reply(to: modelRequest()))
         if timeout {
-            await #expect(throws: ModelAPIFailure.upstream) { try await produce { _ in try await Task.sleep(for: .seconds(3)) } }
+            // The lifetime must outlast dialing on a loaded runner (30 ms expired before the
+            // connection existed); the consumer then stalls until the deadline cancels it.
+            await #expect(throws: ModelAPIFailure.upstream) { try await produce { _ in try await Task.sleep(for: .seconds(60)) } }
         } else {
             await #expect(throws: ModelAPIFailure.upstream) { try await produce { _ in throw UpstreamFailure.connectionFailed } }
         }

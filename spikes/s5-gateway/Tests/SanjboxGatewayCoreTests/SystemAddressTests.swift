@@ -31,7 +31,9 @@ private struct PublicDNS: DestinationResolver {
 }
 
 @Test func systemLookupAndSnapshotFailuresArePropagated() async throws {
-    let resolver = SystemDestinationResolver(maximumConcurrentLookups: 1, timeout: .seconds(1)) { _ in
+    // The lookup fails immediately; the generous timeout only absorbs worker
+    // scheduling delay on a loaded runner, where 1 s produced .timedOut/.busy.
+    let resolver = SystemDestinationResolver(maximumConcurrentLookups: 1, timeout: .seconds(30)) { _ in
         throw SystemAddressFailure.lookupFailed
     }
     await #expect(throws: SystemAddressFailure.lookupFailed) { _ = try await resolver.addresses(for: "api.example") }
