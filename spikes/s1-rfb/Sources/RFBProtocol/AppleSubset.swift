@@ -17,11 +17,12 @@
 //        command 1 to the console and command 2 to the virtual desktop, with pending and
 //        granted states. S5 is a client-side implementation claim, not a server contract.
 //
-// Deliberate omission: SOURCES.md records no Apple-published byte-level contract for these
-// extensions and no pinned layout for the selection messages. The SessionInfo /
-// SessionInfoChoice / SessionResult bytes below are therefore a *package-local fixture
-// framing*. They are never a claim about Apple's wire format, and no real endpoint may be
-// fed with them: the prototype has no transport at all.
+// S5 does specify client-side byte layouts: ard-patch.js lines 779–797 (SessionInfo),
+// 839–867 (SessionResult), 2510–2523 (SessionCommand), and 331–348 (extended ServerInit).
+// This package deliberately uses a simpler package-local selection framing instead.
+// The reviewed sources contain no Apple-published byte-level contract, and no live
+// interoperability was verified. These fixture messages are not Apple wire messages;
+// no real endpoint may receive them, and this prototype has no transport.
 
 /// S4: the two-length DH challenge a type-30 server sends before any credential.
 /// `modulus` and `serverPublicKey` both have the pinned key length.
@@ -84,7 +85,7 @@ public enum AppleFixtureFraming {
     public static let virtualDesktopCommand: UInt8 = 2
 
     // PACKAGE-LOCAL: availability flag inside SessionInfo (0 = unavailable, 1 = available).
-    // S5 only records that pending/granted states exist; it pins no codepoint.
+    // S5 ard-patch.js lines 779–797 instead uses a u32 allowed-command mask.
     public static let unavailableState: UInt8 = 0
     public static let availableState: UInt8 = 1
 
@@ -93,17 +94,16 @@ public enum AppleFixtureFraming {
     public static let sessionInfoChoiceKind: UInt8 = 2
     public static let sessionResultKind: UInt8 = 3
 
-    // PACKAGE-LOCAL: SessionResult outcomes; `pending` stands for S5's pending state,
-    // `granted`/`denied` for its granted state and its failure case.
+    // PACKAGE-LOCAL: one-byte SessionResult outcomes. S5 ard-constants.js lines 94–97
+    // uses u32 statuses: granted 0/4 and pending 2/3; other statuses fail in ard-patch.js
+    // lines 856–867. The reduced fixture outcomes below do not implement that record.
     public static let outcomeGranted: UInt8 = 0
     public static let outcomeDenied: UInt8 = 1
     public static let outcomePending: UInt8 = 2
 
-    /// Candidate Apple banner. PACKAGE-LOCAL and unre-verified: this literal is the one the
-    /// earlier, reviewed revision of this package already treated as the Apple banner and
-    /// rejected (README "Podporovaná podmnožina"). SOURCES.md records that S5 handles "Apple
-    /// banner handling" but not its bytes, so this value is a fixture constant, not a claim.
+    /// Candidate Apple banner: exact literal in pinned S5 ard-patch.js line 214.
+    /// Source bytes and SHA-256 were rechecked; live server behavior remains unverified.
     /// It is only accepted under `AuthenticationPolicy.syntheticAppleSubset`; the default
-    /// policy still rejects it. Nothing here proves which banner a macOS server sends.
+    /// policy still rejects it. The citation does not establish live interoperability.
     public static let appleBanner = Array("RFB 003.889\n".utf8)
 }

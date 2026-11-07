@@ -64,16 +64,17 @@ standardní verzi a odmítnutí na autentizační hranici; nenabízí skrytou ce
 
 ## Apple security a výběr relace — co je doložené a co ne
 
-Tato část **není** důkaz o Apple protokolu. SOURCES.md konstatuje, že v reviewed zdrojích nebyl nalezen
-žádný Apple-published byte-level kontrakt; pinované jsou jen dva klientské zdroje. Kód proto rozlišuje
-dvě vrstvy:
+Tato část **nedokazuje interoperabilitu se serverem Apple**. V reviewed zdrojích nebyl nalezen
+Apple-published byte-level kontrakt. Připnuté klientské zdroje ale obsahují konkrétní rámování;
+[SOURCES.md §S5](SOURCES.md#s5--original-author-implementation-lead-for-apple-selection) uvádí přesné
+řádky a hashe. Zdejší výběr relace je záměrně zjednodušený fixture model:
 
 | Vrstva | Původ | Důsledek |
 |---|---|---|
 | Rámování typu 30: u16 generátor, u16 délka klíče, modulus, veřejný klíč serveru, odpověď = credential blok + veřejný klíč klienta, pak SecurityResult | **S4** (noVNC v1.6.0 `_negotiateARDAuth`, řádky 1798–1866) | Implementované jako parsování s pevnými mezemi. Je to tvrzení jednoho klienta, ne serverový kontrakt. |
 | ClientInit `0xC1`, SessionInfo → volba → SessionResult, příkaz 1 = konzole, 2 = virtuální plocha, stavy pending/granted | **S5** (peetinc/noVNC-ARD `_ardSessionSelect`, řádky 776–875, `ard-constants.js`) | Implementované jen **sémanticky**: hodnoty příkazů a konečné stavy. |
-| Bajtové rozložení SessionInfo / volby / SessionResult | **package-local fixture framing** — žádná citace, protože žádná pinovaná citace rozložení neuvádí | Není to tvrzení o Apple wire formátu. Nikdy se neposílá na reálný endpoint; prototyp žádný endpoint nemá. |
-| Kandidát Apple banneru `RFB 003.889\n` | package-local konstanta, kterou předchozí reviewovaná revize tohoto balíku už odmítala jako „Apple banner“ | Přijímá se jen pod fixture politikou; výchozí politika ho odmítá. Literál není znovu ověřený. |
+| Bajtové rozložení SessionInfo / volby / SessionResult | **package-local fixture framing**; S5 má odlišné délkově rámované záznamy (`ard-patch.js` 779–797, 839–867, 2510–2523), které tento model záměrně neimplementuje | Dostupná klientská evidence není ověřený serverový kontrakt. Fixture zprávy se nikdy neposílají na reálný endpoint; prototyp žádný endpoint nemá. |
+| Kandidát Apple banneru `RFB 003.889\n` | Přesný literál v připnutém S5 `ard-patch.js`, řádek 214; znovu ověřeno proti raw souboru a jeho SHA-256 | Přijímá se jen pod fixture politikou; výchozí politika ho odmítá. Ověření zdroje nedokazuje banner živého serveru. |
 | Meze `appleKeyBytes` 512, `appleCredentialBytes` 4096, `appleSessionChoices` 8 | package-local výzkumné rozpočty | Nejsou z S4/S5; omezují práci před alokací. |
 
 Konečné stavy výběru (`AppleSession`) a jejich význam:
@@ -161,8 +162,9 @@ systému, účtů či služeb tento balík nepotřebuje.
 
 - Skutečná implementace S4 krypta (DH/MD5/AES) pod samostatným review; zde je jen prázdný seam a mock.
   Prototyp nedokazuje, že se reálný Apple auth dá takto provést, ani že by byl bezpečný.
-- Ověřené bajtové rámování SessionInfo / volby / SessionResult a rozšířených ServerInit metadat. Zdejší
-  fixture rámování je package-local; žádný zdroj ho nepinuje a nikdy se neposílá na server.
+- Implementace a interoperabilní ověření bajtového rámování SessionInfo / volby / SessionResult
+  a rozšířených ServerInit metadat. S5 poskytuje konkrétní klientskou implementační evidenci; zdejší
+  záměrně odlišné package-local fixture rámování ji nenahrazuje a nikdy se neposílá na server.
 - Autentizovaná identita serveru, confidentialita transportu a schválená správa testovacích údajů.
 - Vynucený výběr vlastní virtuální **uživatelské** relace bez tichého přechodu na host konzoli; fixtures
   dokazují jen to, že tento parser takový přechod neudělá.

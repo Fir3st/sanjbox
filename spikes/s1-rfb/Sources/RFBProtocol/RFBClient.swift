@@ -64,8 +64,8 @@ public struct RFBClient: Sendable {
         public static let serverMessages = 1_024
         public static let updateRequests = 64
         public static let bufferedBytes = framebufferBytes + chunkBytes
-        // Package-local research bounds, NOT values taken from S4/S5: those sources pin no
-        // lengths for the Apple exchange. They bound work before any allocation.
+        // Package-local research budgets, not upstream maximums from S4/S5. The sources
+        // describe record lengths, but do not prescribe these limits for this parser.
         public static let appleKeyBytes = 512
         public static let appleCredentialBytes = 4_096
         public static let appleSessionChoices = 8
@@ -217,7 +217,7 @@ public struct RFBClient: Sendable {
         case .version:
             guard available(12) else { return false }
             // S1: the client echoes the version it negotiated. The Apple banner is accepted
-            // only under the fixture policy and only as the package-local candidate constant.
+            // only under the fixture policy; its exact literal is cited to S5 in AppleSubset.swift.
             let expected = apple ? AppleFixtureFraming.appleBanner : Self.standardBanner
             guard Array(buffer[cursor..<(cursor + 12)]) == expected else {
                 throw Failure.unsupportedVersion
@@ -324,10 +324,10 @@ public struct RFBClient: Sendable {
             guard available(length) else { return false }
             cursor += length
             if apple {
-                // Only the standard ServerInit is modeled. S5's "extended ServerInit
-                // metadata" has no pinned layout in SOURCES.md, so it is not invented here:
-                // any additional bytes are read as the fixture selection message and an
-                // unknown kind terminates. Nothing is allocated or published before grant.
+                // Only standard ServerInit is modeled. S5 ard-patch.js lines 331–348
+                // describes extended metadata inside the name field; this parser deliberately
+                // discards that field as opaque. Following bytes use the separate package-local
+                // selection framing. Nothing is allocated or published before grant.
                 state = .sessionInfoHeader
                 break
             }

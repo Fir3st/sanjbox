@@ -24,8 +24,9 @@ resulting desktop belongs to the intended user. Trusting it as an Apple client w
    Validate all lengths, pending/denied states, capability/command masks and deadlines with synthetic
    transcripts. An unknown variant or unavailable virtual-user command must terminate before requesting
    pixels or control. Done offline for the S4 type-30 framing and the S5 command/state semantics; the
-   SessionInfo/choice/result byte layout is still package-local and must be established from evidence
-   before any real endpoint is contacted. Extended Apple ServerInit metadata is unmodeled.
+   SessionInfo/choice/result byte layout is deliberately package-local. S5 already provides concrete
+   client-side selection records and extended ServerInit metadata (see SOURCES.md §S5); those layouts
+   remain unimplemented here and need separate review and interoperability validation for a live client.
 2. Establish authenticated server identity and confidentiality appropriate to the chosen local path before
    any credentials. Loopback, a port number, a server name or DH exchange alone is not an identity proof.
    Investigate local port substitution and the trust boundary around a forwarder. Do not adopt the

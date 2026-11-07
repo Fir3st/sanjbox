@@ -1,8 +1,9 @@
 # WP1.A3 — primary sources and evidence boundaries
 
-Access date for every source below: **2026-11-03**. This is source research, not a capture of a macOS
-server or a measurement. Exact source commits were resolved through the public GitHub commits API
-and their raw files inspected over HTTPS. Moving branches/search excerpts are not the pinned evidence.
+Initial access date for every source below: **2026-11-03**. The three pinned S4/S5 raw files and
+their SHA-256 values were independently rechecked on **2026-11-07**. This is source research, not a
+capture of a macOS server or a measurement. Exact source commits were resolved through the public
+GitHub commits API and their raw files inspected over HTTPS. Moving branches/search excerpts are not the pinned evidence.
 No downloaded code was executed, copied into Swift, linked, vendored, or installed.
 
 ## S1 — published RFB protocol
@@ -13,9 +14,10 @@ security negotiation, initialization, pixel format, update requests and Raw rect
 In 3.8, None authentication still receives SecurityResult; 3.3 and 3.7 differ. ClientInit's shared flag
 governs coexistence of clients, not selection of a macOS user. Raw rectangles carry scanline pixels.
 
-Decision derived for this experiment: support only exact 3.8 and a bounded pixel-format/encoding subset.
-Reject 3.3/3.7, unknown/Apple banners and extensions rather than inventing compatible framing. The
-constant byte vectors and Swift parser were authored for this package; no RFC code component was copied.
+Decision for the standard policies: support only exact 3.8 and a bounded pixel-format/encoding subset;
+reject 3.3/3.7 and unknown/Apple banners. The separate Apple fixture policy below accepts S5's banner
+without claiming interoperability. The byte vectors and Swift parser were authored for this package;
+no RFC code component was copied.
 
 ## S2 — Apple user-session semantics
 
@@ -78,12 +80,24 @@ extended ServerInit metadata, then SessionInfo / a client choice / SessionResult
 command 1 to console and 2 to virtual desktop, with pending and granted states. It also contains a type-33
 RSA tunnel path; type 30 is not necessarily the whole Apple authentication surface.
 
+The pinned implementation also contains concrete byte layouts, not just session semantics:
+
+| Element | Pinned evidence in S5 |
+|---|---|
+| Banner `RFB 003.889\n` | [Detection at line 131](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L124-L131) and [exact response at line 214](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L207-L218) |
+| ClientInit `0xC1`, commands console `1` / virtual `2`, result codes | [ard-constants.js lines 75–97](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-constants.js#L75-L97): granted `0`/`4`, pending `2`/`3` |
+| Extended ServerInit | [ard-patch.js lines 331–348](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L331-L348): marker, flags and capability bitmap inside the name field |
+| SessionInfo | [ard-patch.js lines 779–797](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L779-L797): u16 body length, u16 version, u32 allowed-command mask, u32 reserved, username bytes |
+| SessionCommand (client choice) | [ard-patch.js lines 2510–2523](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L2510-L2523): 74-byte record with length, version, padding, command and 64-byte username |
+| SessionResult | [ard-patch.js lines 839–867](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L839-L867): u16 body length, u16 version, u32 status and remaining reserved bytes |
+
 These are **client-side implementation claims**, not a verified server contract. Validation of framing,
 capability bits, allowed commands, encryption, cancel/retry semantics, failure behavior and version
 compatibility remains open. Do not copy this client's automatic choice policy into Sanďbox: an unavailable
-virtual choice must fail, not choose the console. This prototype implements **none of these messages in
-Apple's wire form**; the only selection bytes it produces are the package-local fixture framing listed
-under “Implementation boundary” below, which no real endpoint may ever receive.
+virtual choice must fail, not choose the console. This prototype deliberately does **not implement S5's
+selection records or extended ServerInit parsing**. Its selection bytes use the simplified package-local
+fixture framing below. That is a scope choice despite the available client implementation evidence;
+no real endpoint may ever receive these fixture messages.
 The lead narrows future investigation; it does not establish a working or safe Apple client.
 
 Raw SHA-256 values:
@@ -99,27 +113,28 @@ The package separates two layers so that no fixture byte is read as an Apple cla
 boundary is `Sources/RFBProtocol/AppleSubset.swift`; the behaviour side is `RFBClient` under
 `AuthenticationPolicy.syntheticAppleSubset`, which is a fixture policy and not an authentication mode.
 
-### (a) Implemented as package-local synthetic framing
+### (a) Implemented fixture subset
 
-Everything below is reachable only under the fixture policy. Items marked S4/S5 carry cited *semantics*,
-not cited bytes.
+Everything below is reachable only under the fixture policy. S4 supplies the challenge framing; S5
+supplies the banner and selected constants/semantics. The selection message layout and local budgets
+are deliberately authored for this package, separate from S5's records above.
 
 | Element | Constant / state | Basis |
 |---|---|---|
-| Message kinds `1` SessionInfo, `2` SessionInfoChoice, `3` SessionResult | `sessionInfoKind`, `sessionInfoChoiceKind`, `sessionResultKind` | package-local; no reviewed source pins a layout |
-| Availability flag `0` unavailable, `1` available | `unavailableState`, `availableState` | package-local; S5 pins no codepoint |
-| SessionResult outcomes `0` granted, `1` denied, `2` pending | `outcomeGranted`, `outcomeDenied`, `outcomePending` | package-local encoding of S5's granted/pending states and its failure case |
-| Candidate Apple banner `RFB 003.889\n` | `appleBanner` | package-local and **not re-verified**; the default policy rejects it |
+| Message kinds `1` SessionInfo, `2` SessionInfoChoice, `3` SessionResult | `sessionInfoKind`, `sessionInfoChoiceKind`, `sessionResultKind` | package-local kinds; deliberately different from S5's length-prefixed records |
+| Availability flag `0` unavailable, `1` available | `unavailableState`, `availableState` | package-local availability byte; S5 instead parses an allowed-command mask |
+| SessionResult outcomes `0` granted, `1` denied, `2` pending | `outcomeGranted`, `outcomeDenied`, `outcomePending` | package-local one-byte outcomes; S5 uses u32 statuses including additional granted/pending values |
+| Candidate Apple banner `RFB 003.889\n` | `appleBanner` | exact literal in S5 `ard-patch.js` line 214; source-verified, not server-verified; default policy rejects it |
 | Bounds 512-byte key length, 4096-byte credential response, 8 SessionInfo entries | `Limits.appleKeyBytes`, `appleCredentialBytes`, `appleSessionChoices` | package-local research budgets, NOT values from S4/S5 |
-| Console command `1`, virtual-desktop command `2`; ClientInit `0xC1` | `consoleCommand`, `virtualDesktopCommand`, `appleClientInit` | S5 semantics only |
+| Console command `1`, virtual-desktop command `2`; ClientInit `0xC1` | `consoleCommand`, `virtualDesktopCommand`, `appleClientInit` | exact constants in S5 `ard-constants.js` lines 78, 90–91; the surrounding selection record remains package-local |
 | Type-30 challenge framing: u16 generator, u16 key length, modulus, server public key; the answer is the injected provider's bytes | parser states `appleChallengeHeader` / `appleModulus` / `appleServerKey` | S4 framing only; no key agreement, hash or cipher exists |
 | The rule that only an *available* virtual desktop may be chosen, that a pending result never retries, and that no message ever selects the console | client state machine | package policy derived from S5's failure leads, not an Apple guarantee |
 
 ### (b) Not implemented and not claimed
 
-- The actual Apple wire format of SessionInfo / choice / SessionResult and of S5's “extended ServerInit
-  metadata”. No reviewed source pins those bytes, so nothing is invented; the fixture layout above is not
-  a substitute.
+- S5's byte layouts for SessionInfo / SessionCommand / SessionResult and extended ServerInit metadata.
+  The pinned client implements them, but this package deliberately models only simplified selection
+  messages. Neither these fixtures nor the source inspection verifies a live Apple server contract.
 - The S4 DH / MD5 / AES credential exchange, the 128-byte encrypted block and the client public key. Only
   the empty `AppleCredentialProvider` seam exists: with no provider the handshake stops before anything is
   sent, and the provider used by the tests and the demo is a labelled mock with constant bytes.
@@ -136,7 +151,7 @@ scoped finding, not a claim that none exists anywhere. There is enough evidence 
 standard shared=1 or successful auth selects the right user. There is not enough local evidence to
 enable Apple credentials, the proprietary selection path or a live viewer in this package.
 
-Implementation work is consequently restricted to synthetic standard RFB framing plus the package-local
-Apple fixture framing in (a); no Apple message is implemented as Apple's wire format. Follow-up requires
-the separate identity, crypto/transport, capability/failure and laboratory work in
+Implementation work is restricted to the standard RFB fixture parser and the Apple fixture subset in
+(a). S5's selection records are not implemented, and no live Apple wire compatibility is claimed.
+Follow-up requires the separate identity, crypto/transport, capability/failure and laboratory work in
 [LAB-NEXT.md](LAB-NEXT.md).

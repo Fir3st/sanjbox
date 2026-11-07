@@ -237,3 +237,25 @@ It proves neither the Apple wire format, the selection semantics of a real macOS
 seam, nor any gate. The classification fix is a package policy statement: a console that a server
 marks unavailable is now reported as `unavailable`, which is still not evidence that the offered
 virtual desktop belongs to the intended user. All R1–R8, GUI, POS-08 and S1 statuses are unchanged.
+
+## Source-provenance correction after independent PR #57 review — 2026-11-07
+
+This correction supersedes the earlier description of the banner as an un-re-verified local constant
+and the claim that pinned sources contain no selection layout. S5 `ard-patch.js` at
+`d699293635083c9e0c30c8f9480993865653772a` contains the exact banner at line 214, extended ServerInit
+metadata at lines 331–348, SessionInfo at 779–797, SessionResult at 839–867 and SessionCommand at
+2510–2523. [SOURCES.md §S5](SOURCES.md#s5--original-author-implementation-lead-for-apple-selection)
+now links each record. Its raw SHA-256 was independently rechecked as
+`bef0c7b6c88639d555815487e48dcecdcd8362dcee20eb258f70ad397c7164d5`; the S5 constants and S4 raw
+hashes also match their existing SOURCES.md entries.
+
+The package-local selection model is a deliberate simplification despite that available client
+implementation evidence. No Apple-published specification or live-server interoperability was
+established. This correction changes documentation and Swift comments only; runtime statements,
+constants and tests are unchanged. Independent review of parent commit
+`757b073d887486c7b28447531224a6e2a8650272` passed native Release 40/40 tests and an offline harness
+with 131,072 command/availability and kind/result combinations, pending exhaustion and duplicate-grant
+rejection. Those runtime checks remain applicable; they were not rerun for this comment-only change.
+Validation of this correction: pinned source lines and SHA-256 values checked, Swift non-comment text
+compared with the parent, and `git diff --check` passed. All outputs stayed in a unique temporary
+directory. No transport, crypto implementation, credentials or laboratory run was added.
