@@ -1,7 +1,7 @@
 # Předloha L4 / NET-10…12 — neaktivní plán
 
 Tento dokument nic nerezervuje v LAB, nepovoluje wildcard/LAN aktivitu a nemění PLAN ani jeho kontrakt.
-C3 partial dodává matice, bounded vlastní transport fixture a konzervativní offline classifier.
+WP1.C3 je hotový balík, jakmile je návrh bind policy zapsaný v [BIND-POLICY.md](BIND-POLICY.md); vynucení mechanismu a verdikt patří WP1.C4/L4.
 Dílčí offline propojení existujících C1/common wire výstupů dodává [ADAPTER.md](ADAPTER.md);
 chybějící producer nonce/tuple/identity/capture vazby, S0/S1 předpoklady a skutečný S3b/L4 běh zůstávají otevřené. Historické tvrzení o
 pf `user` se zde neopakuje jako absolutní vlastnost kernelu; chování konkrétního mechanismu musí být
