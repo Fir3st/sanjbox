@@ -158,6 +158,6 @@ descriptor-relative preflight není atomická compare-and-unlink operace proti �
 útočníkovi. To není navrhovaná bezpečnostní hranice produktu. Raw výsledky před smazáním ručně zkontrolovat;
 publikované gate důkazy se v tomto balíku nevytvářejí a nikdy se nepřepisují.
 
-Návrh skutečné hranice a uživatelského L4: [LABPLAN.md](LABPLAN.md). Stav ověření: [VALIDATION.md](VALIDATION.md).
+Návrh skutečné hranice a uživatelského L4: [LABPLAN.md](LABPLAN.md). Návrh bind policy (spec, nic neověřeno): [BIND-POLICY.md](BIND-POLICY.md). Stav ověření: [VALIDATION.md](VALIDATION.md).
 
 Nový offline consumer má samostatný [validační index](NETWORK-ADAPTER-VALIDATION.md) s připnutým source commitem, přesnými raw/log hashi a zachovanými neúspěšnými vývojovými pokusy.
