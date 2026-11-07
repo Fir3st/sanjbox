@@ -1,10 +1,16 @@
 # S3b — návrh bind policy
 
 **Stav: specifikace k review. Nic v tomto dokumentu není ověřené, nainstalované ani změřené.**
-S3b, NET-10…12, R2 a R3 zůstávají **Neověřeno**; C3 zůstává partial. Dokument neobsahuje
-spustitelný příkaz, žádné pf pravidlo vydávané za řešení, žádnou změnu systému a žádnou změnu
-PLAN.md ani `Contracts/`. Důkaz, který by tento návrh posunul, vzniká až v uživatelském L4
-podle [LABPLAN.md](LABPLAN.md) a [L4-RUNBOOK.md](../L4-RUNBOOK.md).
+S3b, NET-10…12, R2 a R3 zůstávají **Neověřeno**. Dokument neobsahuje spustitelný příkaz, žádné
+pf pravidlo vydávané za řešení, žádnou změnu systému a žádnou změnu PLAN.md ani `Contracts/`.
+Důkaz, který by tento návrh posunul, vzniká až v uživatelském L4 podle [LABPLAN.md](LABPLAN.md)
+a [L4-RUNBOOK.md](../L4-RUNBOOK.md).
+
+**Rozhodnutí orchestrátora — stav balíku:** WP1.C3 je **hotový balík** ve chvíli, kdy je návrh
+bind policy zapsaný. Podle [IMPLEMENTATION §0](../../../docs/IMPLEMENTATION.md) (řádek WP1.C3)
+je hotovo, až je „Návrh bind policy zapsaný; další offline provenance, zbytek je L4“. Vynucení
+mechanismu a verdikt proto patří balíku **WP1.C4/L4**, ne C3; tento dokument nikde netvrdí
+„C3 zůstává partial“ a neposouvá hranici balíku jinam.
 
 Vztah k ostatním dokumentům: invariant je v [PLAN §4 Síť](../../../PLAN.md) („oblast komunikuje
 jen schválenými operacemi brány, izolovaným same-zone loopbackem a výslovně řízeným vstupem“),
@@ -20,9 +26,15 @@ nezávislá ochrana v [C2 rešerši](../research/wp1-c2-pf-independent/RESEARCH.
 Oblast je sada procesů pod vyhrazeným UID. Egress filtr umí rozhodovat o provozu, který oblast
 **vysílá**. Ingress — provoz, který někdo **navazuje na listener uvnitř oblasti** — egress filtr
 neovlivní: paket na `lo0` nebo na LAN adresu hosta nevzniká v oblasti, takže se na něj `user`
-podmínka vztáhnout nemůže. Oblast si dnes může otevřít listener na `0.0.0.0`/`::` a být dosažitelná
-z hosta i z LAN, aniž by to jakékoli existující pravidlo zachytilo. To je přesně mezera, kterou má
-S3b uzavřít.
+podmínka vztáhnout nemůže.
+
+**Odvozeno / hypotéza (GUIDE §7), nikoli pozorování:** [PLAN §4 Síť](../../../PLAN.md) tuto otázku
+výslovně nechává „není uzavřená“ a změřený výsledek nikde neuvádí; následující tvrzení je odvozeno
+z egress sémantiky pf `user` a z chybějícího ingress pravidla, ne z měření. Odvozená hypotéza zní,
+že oblast si dnes může otevřít listener na `0.0.0.0`/`::` a být dosažitelná z hosta i z LAN, aniž
+by to jakékoli existující pravidlo zachytilo. To je mezera, kterou má S3b uzavřít. [C2 RESEARCH §2](../research/wp1-c2-pf-independent/RESEARCH.md)
+však jako incoming policy uvádí **ALF** (Application Layer Firewall) — kandidáta, který by tuto
+hypotézu mohl vyvrátit (M12 níže). Dokud ALF není změřen, zůstává hypotéza otevřená, ne potvrzená.
 
 ### 1.2 Binární volba same-zone loopbacku
 
@@ -77,23 +89,27 @@ na macOS 27.
 | # | Mechanismus | Co by vynutil (dle podkladů) | Mezera: start / revokace / pád helperu / sleep-wake / VPN | Co by ho vyvrátilo |
 |---|---|---|---|---|
 | M1 | App Sandbox: entitlement client/server + profil | Omezení sandboxovaného procesu a jeho přímých potomků; `network.server` existuje | Start: není doložena per-UID instalace pro **všechny** starty oblasti a systémové služby. Revokace: zastavení/restart procesu, ne uzavření již otevřeného listeneru. Pád brokeru: děti bez politiky. Sleep-wake/VPN: nové starty bez profilu. Address/port scope `network.server` není v prozkoumaných podkladech doložen | Sandboxovaný proces bindne `0.0.0.0`/`::` a host i LAN ho dosáhne; nebo same-zone listener je dosažitelný z hosta |
-| M2 | Seatbelt / custom SBPL s bind allowlistem (local ip/port) | Filtr na bind adresu/port uvnitř profilu; wrapper aplikuje profil před `exec` | Start: `sandbox-exec` je deprecated, veřejné `sandbox_init` nepodporované → není stabilní kontrakt. Pokrytí dědiců, `exec`, launchd startů a family forem není doloženo. Revokace: zavřený jen nový bind, starý listener žije. Pád helperu: profil drží proces, ale helper nemůže politiku měnit. Sleep-wake/VPN: nové procesy mimo wrapper | Proces s allowlistem bindne adresu/port mimo seznam, nebo wildcard; nebo port z allowlistu je dosažitelný z hosta |
+| M2 | Seatbelt / custom SBPL s bind allowlistem (local ip/port) | **Hypotéza bez zdroje:** filtr na bind adresu/port uvnitř profilu a wrapper aplikující profil před `exec` nejsou v prozkoumaných podkladech doloženy; [C2 RESEARCH](../research/wp1-c2-pf-independent/RESEARCH.md) řadí bind/ingress mezi chybějící schopnosti Seatbeltu | Start: `sandbox-exec` je deprecated, veřejné `sandbox_init` nepodporované → není stabilní kontrakt. Pokrytí dědiců, `exec`, launchd startů a family forem není doloženo. Revokace: zavřený jen nový bind, starý listener žije. Pád helperu: profil drží proces, ale helper nemůže politiku měnit. Sleep-wake/VPN: nové procesy mimo wrapper | Proces s allowlistem bindne adresu/port mimo seznam, nebo wildcard; nebo port z allowlistu je dosažitelný z hosta |
 | M3 | Host-owned listen proxy + zákaz vlastního bindu v oblasti | Port drží hostem vlastněný proces, oblast dostane fd nebo jen broker kanál; wildcard ingress v oblasti nevzniká | Start: fd předaný při startu obchází pozdější kontrolu (fd transfer, `dup`, `fork`). Bez M1/M2/M5 oblast bindne sama. Revokace: již předaný fd zůstává. Pád proxy: fail-closed jen když to klient doloží. Sleep-wake/VPN: proxy musí revalidovat adresy. Kompatibilita: mění, na jaký `HOST:PORT` nástroje v oblasti míří (R1/R8) | Oblast otevře vlastní socket mimo proxy; nebo proxy po pádu nechá starý fd obsluhovat; nebo se povolený devserver nerozběhne |
 | M4 | Per-zone adresa (alias `127.0.0.x`, dedikovaná LAN/ULA adresa) + bind allowlist | Oddělí adresy, na kterých kdo listenuje; same-zone klient míří na vlastní adresu | Start: alias sám o sobě nic nevynutí — wildcard bind je dosažitelný přes všechny adresy. Revokace: alias zůstává. Pád helperu: politika vázaná na adresu vydrží jen s M2/M5. Sleep-wake/VPN: adresa se může změnit/zmizet. Kompatibilita: nástroje s hardcoded `127.0.0.1` přestanou fungovat | Wildcard bind je dosažitelný přes jakoukoli adresu; nebo nástroj v oblasti na `127.0.0.1` nefunguje |
-| M5 | MAC framework / socket filter (XNU hooky pro bind/connect/send) | Kernelový hook existuje; teoreticky bind gate | Start/revokace by byly správné, ale: není veřejná userspace per-zone policy; Apple Silicon KEXT cesta vyžaduje Reduced Security, approval a reboot → mimo zadání; podpis/deployment nedoložen | Bez změny boot policy neexistuje instalovatelná podepsaná cesta; nebo by šlo jen s vypnutou System Integrity Protection |
+| M5 | MAC framework / socket filter (XNU hooky pro bind/connect/send) | Kernelový hook existuje; teoreticky bind gate | Start/revokace by byly správné, ale: není veřejná userspace per-zone policy; Apple Silicon KEXT cesta vyžaduje Reduced Security, approval a reboot → rozsah **čeká na Q5** (§6); podpis/deployment nedoložen | Bez změny boot policy neexistuje instalovatelná podepsaná cesta; nebo by šlo jen s vypnutou System Integrity Protection |
 | M6 | Privátní NECP policy | Čtený zdroj umí policy podle UID i zprostředkované identity | Otevření policy session kontroluje platformový podpis a privilegium; root nestačí. Interní možnosti jádra nejsou veřejné API | Platformově nepodepsaný proces policy session neotevře; nebo API není dokumentované |
-| M7 | Network Extension (content/packet filter) | Apple doporučená cesta pro síťové filtry | **Vyloučeno** F0.5/D-002 (žádný placený Developer Program). Navíc: per-UID atribuce listeneru a fail-closed při pádu rozšíření nejsou doložené | Jakýkoli návrh závislý na NE je mimo kontrakt |
-| M8 | Endpoint Security authorization | Autorizační události; macOS 27 descendants klient | **Vyloučeno** D-002; v prozkoumaném enumu není IP bind/packet authorization. Entitlement i tak vyžaduje placený program | Návrh závislý na ES je mimo kontrakt |
-| M9 | launchd socket activation + hostem držená rezervace | Host-owned proces drží endpoint dřív než oblast startuje; oblast dostane jen aktivovaný fd | Je to **rezervace, ne bind policy**: user-level kód v oblasti otevře socket přímo. Revokace: aktivovaný fd přežívá. Pád: rezervace může zůstat viset. Sleep-wake: aktivace po wake neopakuje kontrolu | Oblast bindne rezervovaný port sama; nebo rezervace nepřežije zavření host služby |
+| M7 | Network Extension (content/packet filter) | Apple doporučená cesta pro síťové filtry | **Vyloučeno** F0.5/D-002 (žádný placený Developer Program). Navíc: per-UID atribuce listeneru a fail-closed při pádu rozšíření nejsou doložené | Vyloučení platí, dokud trvá D-002. Zpět do hry by ho vrátil pozorovatelný jev: veřejná (nepodepsaná placeným programem) cesta k content/packet filtru na macOS 27, nebo změřený per-UID ingress filtr bez Developer Programu — pak by se D-002 muselo znovu rozhodnout, ne obejít |
+| M8 | Endpoint Security authorization | Autorizační události; macOS 27 descendants klient | **Vyloučeno** D-002; v prozkoumaném enumu není IP bind/packet authorization. Entitlement i tak vyžaduje placený program | Vyloučení platí pro prozkoumaný enum. Zpět do hry by ho vrátil pozorovatelný jev: veřejně dokumentovaná IP bind/packet authorization událost v SDK 27 a současně cesta k entitlementu bez placeného programu — jinak zůstává vyloučeno |
+| M9 | launchd socket activation + hostem držená rezervace | **Hypotéza bez zdroje:** že launchd aktivace předá oblasti jen aktivovaný fd a jinak endpoint drží host, není v prozkoumaných podkladech doloženo; zdroj chybí | Je to **rezervace, ne bind policy**: user-level kód v oblasti otevře socket přímo. Revokace: aktivovaný fd přežívá. Pád: rezervace může zůstat viset. Sleep-wake: aktivace po wake neopakuje kontrolu | Oblast bindne rezervovaný port sama; nebo rezervace nepřežije zavření host služby |
 | M10 | pf ingress atribuce (jen jako měřená hypotéza) | Místní `pf.conf(5)` uvádí `user` i pro naslouchajícího uživatele; XNU má wildcard PCB lookup | Jen TCP/UDP; jeden globální ruleset; flush/disable/state je jiný životní cyklus, než revokace oblasti; credentials socketu, ne aktuální EUID. Sleep-wake/VPN: nové sockety bez nové evaluace | Wildcard listener je z hosta/LAN dosažitelný i s deny pravidlem; nebo atribuce závisí na rodině/reuse variantě |
-| M11 | Oddělený network namespace / VM | Úplné oddělení adresního prostoru | macOS nemá veřejné netns; VM je odmítnutá (F0.6) | Návrh závislý na VM/netns je mimo kontrakt |
+| M11 | Oddělený network namespace / VM | Úplné oddělení adresního prostoru | macOS nemá veřejné netns; VM je odmítnutá (F0.6) | **Netestovatelné v rozsahu projektu**, protože macOS nemá veřejné netns a VM je vyloučená F0.6; falsifikátor by byl jen veřejný netns ekvivalent pro macOS nebo zrušení F0.6 uživatelem. Do té doby se netestuje |
+| M12 | ALF / Application Layer Firewall (incoming policy) | Dokumentovaná incoming/per-app policy a výjimky [S16, L9]; teoreticky by mohl odmítnout incoming spojení na oblast | Start: ALF je globální a per-app/path, ne per-UID ani per-oblast — mapování sady procesů oblasti na „app“ není doložené. Revokace: změna policy je globální stav, ne revokace oblasti; zavření existujícího listeneru není doložené. Pád helperu: policy drží systém, ale nemá per-oblast generaci. Sleep-wake/VPN: bez doložené revalidace. Loopback a vlastnictví portu (B4/B5) ALF nedokládá | Falsifikátor: doložený veřejný způsob, jak ALF rozhoduje incoming **per-oblast** (ne per-app), jak po revokaci zavře existující listener a jak odmítne host/LAN kontakt na wildcard listener oblasti nezávisle na bundle. Pokud by to doloženo bylo, vrací se do hry jako doplněk M3; zůstává-li jen globální per-app policy, strukturální skladbu nenahrazuje |
 
 ### 2.1 Co z toho plyne pro architekturu
 
-Jediná nalezená **skladba**, která problém řeší strukturálně, je M3 (host-owned proxy drží
-endpoint, oblast nikdy nelistenuje na host portu) **plus** enforcementský zákaz vlastního bindu
-v oblasti (M1/M2/M5). Skladba není ověřená: jejíž jediná nedoložená část je právě ten zákaz
-a jeho platnost v pěti životních fázích. M4 je doplněk (oddělení adres), ne náhrada zákazu.
+Z **posouzené množiny M1–M12** je jediná **skladba**, která problém řeší strukturálně, M3
+(host-owned proxy drží endpoint, oblast nikdy nelistenuje na host portu) **plus** enforcementský
+zákaz vlastního bindu v oblasti (M1/M2/M5). ALF (M12) je v této množine posouzený a skladbu
+nenahrazuje: dokládá globální per-app incoming policy, ne per-oblast rozhodnutí. Skladba není
+ověřená; nedoložené jsou čtyři části: (a) sám zákaz vlastního bindu vynutitelný bez NE/ES/KEXTu,
+(b) jeho platnost v pěti životních fázích B7, (c) fail-closed při pádu proxy (M3), (d) kompatibilita
+nástrojů s `HOST:PORT` injektovaným hostem (R1/R8). M4 je doplněk (oddělení adres), ne náhrada zákazu.
 
 Dokument proto **nedoporučuje** žádný mechanismus jako řešení. Pořadí, ve kterém je má smysl
 falsifikovat, a odpovídající důkaz, patří do L4 plánu uživatele (§4).
@@ -124,7 +140,8 @@ Každá vlastnost musí být pozorovatelná zvenčí; „politika to zakazuje“
 ### 3.2 Datový model (návrh pro `Contracts/`, nerealizováno)
 
 Pole, která musí politika umět vyjádřit, aby B1–B11 šla vůbec měřit. Tabulka **není** změna
-`Contracts/`; formát politiky patří do WP2.0/H1.
+`Contracts/`; formát síťové politiky patří do **WP1.H1** (`proto/contracts/`, viz
+[IMPLEMENTATION §0](../../../docs/IMPLEMENTATION.md)), zatímco kořenový `Contracts/` je F2/WP2.0.
 
 | Pole | Význam |
 |---|---|
@@ -187,11 +204,27 @@ na buňku, 60 s před poruchou, 600 s během/po, drain alespoň 60 s a delší n
 | Neúplné capture, chybějící kontrola, nejasná identita | Nejasné / neplatné měření; nic se nezapisuje jako pass. |
 | Chybějící buňka (IPv6, LAN, nástroj, oblast) | Missing → Neověřeno zůstává. |
 
+### 4.5 Kam se zapisuje který fázový výsledek (B7)
+
+B7 žádá oracle pro pět fází, ale S3b v [COVERAGE](../../../docs/COVERAGE.md) vlastní jen NET-10…12;
+fázové případy jsou pod S3. Mapování je závazné, aby běh neskončil ve špatné bráně:
+
+| Fáze B7 | Kde se měří | Řádek COVERAGE a brána | Poznámka |
+|---|---|---|---|
+| Start (politika platí před prvním `socket`) | Buňky §4.1–4.3; listener vzniká při startu | NET-10, NET-11, NET-12 — **S3b** | Start není samostatný případ; je to podmínka buňky. |
+| Revokace (existující listenery zavřené nebo nedosažitelné) | Postup NET-25a/NET-26 v [L4-RUNBOOK](../L4-RUNBOOK.md) | NET-25, NET-26 — **S3** | Fázový výsledek patří do S3, ne do S3b. |
+| Pád helperu/brány (žádná zděděná schopnost) | Postup NET-23a/NET-23b v [L4-RUNBOOK](../L4-RUNBOOK.md) | NET-23 — **S3** | Sem patří i ověření, že pád nenechá otevřený fd ani rezervaci. |
+| Sleep/wake, VPN, změna sítě | Postup NET-24a/NET-24b v [L4-RUNBOOK](../L4-RUNBOOK.md) | NET-24 — **S3** | Nový bind po wake/VPN vyžaduje novou validaci; nepatří do NET-10…12. |
+| Souběh fáze s pozitivní buňkou | §4.3 (dva procesy stejné oblasti) | NET-12 — **S3b** | Pozitivní same-zone důkaz zůstává v S3b, fázový důkaz v S3. |
+
+Fázový výsledek se **nikdy** nezapisuje do NET-10…12 a výsledek bind buňky do NET-23/24/25/26.
+Jeden řádek COVERAGE tak nemůže být uzavřen výsledkem z jiné brány.
+
 ---
 
 ## 5. Co tento dokument NEdokazuje
 
-1. **Žádný mechanismus není ověřený.** M1–M11 jsou kandidáti; žádný nebyl spuštěn, nainstalován
+1. **Žádný mechanismus není ověřený.** M1–M12 jsou kandidáti; žádný nebyl spuštěn, nainstalován
    ani změřen. Tabulka „co by vynutil“ je tvrzení podkladů, ne pozorování.
 2. **Není zde pf pravidlo ani skript.** Žádná změna systému, žádný slot LAB, žádná evidence.
    Nic z tohoto dokumentu není důkazní adresář podle GUIDE §7.
@@ -204,8 +237,9 @@ na buňku, 60 s před poruchou, 600 s během/po, drain alespoň 60 s a delší n
    vlastnická hranice; to je zde jen požadavek B5.
 6. **Není dokázáno, že se tento návrh shoduje s PLAN.md.** Návrh se nepovyšuje na kontrakt;
    případná změna jde přes DECISIONS.md.
-7. **S3b, NET-10…12, R2, R3 zůstávají Neověřeno** a C3 zůstává partial i po přijetí tohoto
-   dokumentu. Hotový je jen výstup „návrh bind policy je zapsaný“ z IMPLEMENTATION §0.
+7. **S3b, NET-10…12, R2 a R3 zůstávají Neověřeno.** To není stav C3: balík WP1.C3 je hotový
+   právě tím, že je tento návrh zapsaný ([IMPLEMENTATION §0](../../../docs/IMPLEMENTATION.md), řádek
+   WP1.C3). Vynucení mechanismu a verdikt patří WP1.C4/L4 a jsou tam zatím otevřené.
 8. **Není zde tvrzení o výkonu, kompatibilitě nástrojů ani o chování po sleep/wake či VPN**;
    ty patří do L4 běhů podle [L4-RUNBOOK.md](../L4-RUNBOOK.md).
 
@@ -225,6 +259,6 @@ Rozhodnutí, která nejde udělat offline. Dokud nejsou rozhodnutá, S3b se nepo
 | Q6 | Kdo je budoucí `reservationOwner` host portů (`helper`, `launchd`, `agent`) a jak široký je statický seznam host portů, které musí zůstat nedosažitelné? | Je to architektonické a bezpečnostní rozhodnutí s dopadem na S0/S8 identity. | B5, NET-11 a integraci s helperem. |
 | Q7 | Připouští první verze **jakoukoli** wildcard výjimku (B2), nebo je wildcard v MVP zakázaný úplně? | PLAN wildcard nezavrhuje výslovně, ale každá výjimka je trvalá plocha. | Rozsah matice NET-10 a počet buněk L4. |
 
-**Poznámka k rozsahu:** podle [IMPLEMENTATION §0](../../../docs/IMPLEMENTATION.md) tímto
-dokumentem příprava C3 končí. Další offline provenance ani rozšiřování adapteru do přípravy
-nepatří; následuje rozhodnutí uživatele (Q1–Q7) a běh L4.
+**Poznámka k rozsahu:** podle [IMPLEMENTATION §0](../../../docs/IMPLEMENTATION.md) je tímto
+dokumentem balík C3 hotový (návrh zapsán). Další offline provenance ani rozšiřování adapteru do
+přípravy nepatří; následuje rozhodnutí uživatele (Q1–Q7) a běh WP1.C4/L4.
