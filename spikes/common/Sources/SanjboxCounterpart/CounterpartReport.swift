@@ -157,11 +157,20 @@ private struct ReportValidation {
                 if expectedTransport == .tcp && (remote.port == 0 || address.isUnspecified) {
                     problem(prefix + "invalid remote endpoint")
                 }
-                if let local = event.local, let localAddress = NumericAddress(local.host),
-                   address.octets.count != localAddress.octets.count,
-                   !(expectedTransport == .udp && address.octets.count == 4
-                     && localAddress.octets.count == 16 && (localAddress.isUnspecified || localAddress.isMappedIPv4)) {
-                    problem(prefix + "local and remote address families differ")
+                if let local = event.local, let localAddress = NumericAddress(local.host) {
+                    // Mapped IPv4 and native IPv6 both occupy 16 bytes, but cannot be opposite
+                    // ends of one TCP connection or a datagram to a concrete listener. UDP's
+                    // local address is the bind, so :: can receive either domain; Darwin can
+                    // also report a plain IPv4 source on a mapped IPv6 UDP listener.
+                    let sameDomain = address.octets.count == localAddress.octets.count
+                        && address.isMappedIPv4 == localAddress.isMappedIPv4
+                    let udpWildcard = expectedTransport == .udp && localAddress.octets.count == 16
+                        && localAddress.isUnspecified
+                    let udpMappedWithIPv4Source = expectedTransport == .udp && localAddress.isMappedIPv4
+                        && address.octets.count == 4
+                    if !sameDomain && !udpWildcard && !udpMappedWithIPv4Source {
+                        problem(prefix + "local and remote address families differ")
+                    }
                 }
             } else {
                 problem(prefix + "invalid remote endpoint")

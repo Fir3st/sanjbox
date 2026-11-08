@@ -235,6 +235,59 @@ func invalidNumericHostsAreRejected(host: String) {
     }
 }
 
+@Test func mappedAndNativeEndpointDomainsAreCheckedInReportsAndCLI() throws {
+    let executable = try counterpartExecutable()
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("sanjbox-counterpart-domains-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let cases: [(CounterpartEvent.Transport, String, String, Bool)] = [
+        (.tcp, "::1", "::ffff:127.0.0.1", false),
+        (.tcp, "::ffff:127.0.0.1", "::1", false),
+        (.tcp, "0:0:0:0:0:0:0:1", "0:0:0:0:0:ffff:7f00:1", false),
+        (.tcp, "::ffff:7f00:1", "::1", false),
+        (.tcp, "::1", "::1", true),
+        (.tcp, "0:0:0:0:0:0:0:1", "::1", true),
+        (.tcp, "::ffff:127.0.0.1", "::ffff:127.0.0.1", true),
+        (.tcp, "::ffff:7f00:1", "0:0:0:0:0:ffff:7f00:1", true),
+        (.udp, "::1", "::ffff:127.0.0.1", false),
+        (.udp, "::ffff:127.0.0.1", "::1", false),
+        (.udp, "0:0:0:0:0:0:0:1", "::ffff:7f00:1", false),
+        (.udp, "0:0:0:0:0:ffff:7f00:1", "::1", false),
+        (.udp, "::1", "0:0:0:0:0:0:0:1", true),
+        (.udp, "::ffff:7f00:1", "::ffff:127.0.0.1", true),
+        (.udp, "::ffff:7f00:1", "127.0.0.1", true),
+        (.udp, "::", "::1", true),
+        (.udp, "::", "::ffff:7f00:1", true),
+        (.udp, "::", "127.0.0.1", true),
+    ]
+    for (index, scenario) in cases.enumerated() {
+        let (transport, local, remote, valid) = scenario
+        var start = ReportFixture.start
+        start.listeners = [.init(transport: transport,
+            endpoint: .init(host: transport == .tcp ? "::" : local, port: ReportFixture.local.port))]
+        var accepted = ReportFixture.accepted()
+        accepted.local?.host = local
+        accepted.remote?.host = remote
+        var receipt = ReportFixture.receipt(transport == .tcp ? .closed : .datagram)
+        receipt.local = accepted.local
+        receipt.remote = accepted.remote
+        receipt.findings = [ReportFixture.finding]
+        let events = [start] + (transport == .tcp ? [accepted] : []) + [receipt, ReportFixture.stop]
+        let report = CounterpartReport(events: events)
+        #expect(report.complete == valid, "\(transport) \(local) <- \(remote): \(report.problems)")
+        #expect(report.receivedAnything)
+        #expect(report.bytes == 8)
+        #expect(report.findings == [ReportFixture.finding])
+        #expect(report.tcpConnections == (transport == .tcp ? 1 : 0))
+        #expect(report.udpDatagrams == (transport == .udp ? 1 : 0))
+        let url = directory.appendingPathComponent("\(index).jsonl")
+        for event in events { try JSONLines.append(event, to: url) }
+        let (status, output) = try runReport(executable, log: url)
+        #expect(status == (valid ? 1 : 3))
+        #expect(try JSONDecoder().decode(CounterpartReport.self, from: output) == report)
+    }
+}
+
 @Test func endpointPortAndAddressFamilyConstraintsRespectUDPSourcePortZero() {
     for remote in [Endpoint(host: "127.0.0.1", port: 0), Endpoint(host: "0.0.0.0", port: 1234), Endpoint(host: "::1", port: 1234)] {
         var accepted = ReportFixture.accepted(), closed = ReportFixture.receipt()

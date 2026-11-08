@@ -131,7 +131,10 @@ TCP má `accepted` před právě jedním `closed` se stejnými endpointy a trans
 má vlastní ID. ID jsou kladná, bez opakovaného použití a v úplném běhu tvoří řadu od 1 bez mezer.
 **Pořadí ID ani časových razítek nemusí růst:** vlákna přidělují ID a čas před zamčením logu.
 Lokální endpoint musí odpovídat listeneru a transportu, včetně TCP wildcard/IPv4-mapped IPv6;
-UDP zapisuje přímo endpoint listeneru. Nulový zdrojový port UDP je přípustný.
+UDP zapisuje přímo endpoint listeneru. Nativní IPv6 a IPv4-mapped IPv6 se rozlišují podle
+binární adresy i při hexadecimálním zápisu: nesmějí tvořit opačné endpointy TCP ani UDP
+s konkrétním bindem. UDP wildcard `::` přijímá obě varianty; mapped UDP listener může podle
+Darwinu hlásit i prostý IPv4 zdroj. Nulový zdrojový port UDP je přípustný.
 
 U neplatného logu zůstávají počty jen pozorování pro diagnostiku: každé `accepted` se počítá,
 stejně jako `closed` bez předchozího `accepted` daného ID, a každý `datagram`. Kladné bajty a
