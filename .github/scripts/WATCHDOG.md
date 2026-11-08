@@ -92,5 +92,12 @@ Follow-up review found that the original synchronous error print could block
 cleanup on a full undrained stdout pipe, and that diagnostic-path I/O could hold
 up exit. The follow-up fix moves all such output to the bounded reporter above.
 New fixtures cover full stdout/stderr, FIFO and symlink log targets, supervisor
-death during reporting, and inherited SIGCHLD=SIG_IGN. Exact committed-source
-results for this fix are recorded after its source commit.
+death during reporting with an inherited blocked alarm, and inherited
+SIGCHLD=SIG_IGN. On 2026-11-08, final executable source/tests at
+`bed778a7160f96bbcf6f032cb57efc0c12dd25c6` passed **83/83 tools tests**, including
+all **20 watchdog tests**, on system Python 3.9.6 (33.505 s) and Python 3.15.2
+(30.710 s), on the same macOS configuration above. Resource warnings were treated
+as errors; none occurred. Bash syntax and `git diff --check` also passed. The
+preceding fix at `bd7fc3d` passed the same count before the inherited-alarm-mask
+fixture was strengthened; both runs were retained. This validation update changes
+only documentation.
