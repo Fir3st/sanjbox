@@ -295,3 +295,28 @@ zachovávají hlavní běh i tuto očekávanou chybu. Starý manifest byl znovu 
 opravném běhu nenastal další build/test fail; žádný test nebyl skipnutý. Vlastní build/cache byly po
 zaznamenání validace odstraněny, lokální raw zůstaly. S0/S8 a WP1.A4 coverage stav se nemění: partial,
 bez full peer auditUID/token, bez cross-session důkazu, bez systémových/privilegovaných změn.
+
+
+## Příprava všech 31 případů (2026-11-08)
+
+Dokumentační změna podle IMPLEMENTATION §0 / GUIDE §11; kód testován na
+`b3bb8f8b21fcba3e85702f5d2eaf4fa2b6ec76a2` (claim nad `7b20c414`, beze změny zdrojů).
+[LAB-PLAN](LAB-PLAN.md) a karty FS/ID/LC v tomto commitu mají 31 unikátních ID a 31 indexových
+řádků shodných s přesným rozsahem COVERAGE; u každého je kontrola, oracle, blokátor a úklid.
+Ověřeno 60 lokálních odkazů včetně fragmentů a všech 68 starých sealed souborů byte-for-byte
+proti základnímu commitu; historické záznamy výše zůstávají beze změn.
+
+- `python3 -B -m unittest discover -s spikes/s0-boundary/Tests/RunnerTests -v`: **12/12**, bez skips.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s0-boundary/Tests/RunnerTests -v`:
+  **12/12** i na systémovém Pythonu 3.9.6 používaném macOS CI.
+- `python3 -B -m unittest discover -s tools/tests -v`: **63/63**, bez skips (Python 3.15.2).
+- `python3 -B spikes/s0-boundary/validate-xpc.py`: výchozí dry-run, žádná aktivace XPC.
+- CLI syntax ověřena proti parserům a instalovaným man stránkám (`open`, `launchctl`, `ps`,
+  `mdfind`, `log`, `dscl`, cron/at); 21 jmen API proti hlavičkám aktivního macOS SDK, nikoli
+  živým voláním. `log help show` sandbox odmítl; syntax ověřena z `log(1)`, žádné logy se nečetly.
+  `git diff --check` prošel; žádný nový Swift build, protože se kód nezměnil.
+
+macOS 27.2 / 26B123, arm64. Žádný L2, TCC/capture/attach, změna účtů, podpisových identit,
+Keychain, systémových nastavení, mountů nebo registrací. Příprava scénářů nedokazuje jejich
+spustitelnost ani izolaci; chybějící komponenty zůstávají stop podmínky, FS-04/08/LC-11 patří
+k S4/S8/F2. Žádný nový offline evidence balík; stávající CI pokrývá použité testové sady.
