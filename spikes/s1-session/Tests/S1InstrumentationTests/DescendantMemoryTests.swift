@@ -177,3 +177,78 @@ private final class TreeMock {
     #expect(report.processes[0].residentBytes?.maximum == 15_728_640.0)
     #expect(report.issues.contains("polling gap exceeds 2 seconds") && !report.fullTreeAttributionComplete && !report.wholeUIDAttributionComplete && report.quickProcessesMayBeMissed)
 }
+
+@Test func descendantsDeadlineAfterEachOperationStopsFurtherReads() throws {
+    // Root poll: metadata, memory, metadata, enumeration, metadata.
+    // Candidate admission: parent metadata, child metadata, parent metadata, child metadata.
+    for slowOperation in 1...9 {
+        var now = 100.0, calls: [String] = []
+        func operation(_ name: String) { calls.append(name); if calls.count == slowOperation { now = 102 } }
+        let reader = DescendantReader(relation: { pid in
+            operation("identity-\(pid)"); return relation(pid, parent: pid == 10 ? 1 : 10)
+        }, memory: { pid in operation("memory-\(pid)"); return (12, 34) }, children: { pid, _ in
+            operation("children-\(pid)"); return ([11], false)
+        }, now: { now })
+        var collector = DescendantCollector(plan: descendantPlan(), reader: reader, started: 100)
+        var rows: [DescendantObservation] = []
+        try collector.tick(deadline: 101) { rows.append($0) }
+        #expect(calls.count == slowOperation)
+        #expect(rows.last?.state == .timeLimit && rows.last?.time == 102)
+        #expect(rows.last?.physicalFootprintBytes == nil && rows.last?.residentBytes == nil)
+        #expect(collector.bindings.count == 1)
+        if slowOperation == 1 { #expect(calls == ["identity-10"]) }
+        if slowOperation == 2 { #expect(calls == ["identity-10", "memory-10"]) }
+    }
+}
+@Test func descendantsDeadlineEqualityStopsAtEntryAndBetweenOperations() throws {
+    let mock = TreeMock(); mock.now = 101
+    var collector = DescendantCollector(plan: descendantPlan(), reader: mock.reader, started: 100)
+    var rows: [DescendantObservation] = []
+    try collector.tick(deadline: 101) { rows.append($0) }
+    #expect(mock.memoryCalls.isEmpty && mock.listCalls.isEmpty && rows.first?.state == .timeLimit)
+
+    var clockReads = 0, identityReads = 0, memoryReads = 0, listReads = 0
+    // Entry, timestamp, pre-metadata and post-metadata are in budget. The next operation's
+    // pre-call check lands EXACTLY on the deadline, before a memory read may be admitted.
+    let reader = DescendantReader(relation: { _ in identityReads += 1; return relation(10) },
+        memory: { _ in memoryReads += 1; return (12, 34) },
+        children: { _, _ in listReads += 1; return ([], false) },
+        now: { clockReads += 1; return clockReads < 5 ? 100 : 101 })
+    collector = DescendantCollector(plan: descendantPlan(), reader: reader, started: 100)
+    rows = []; try collector.tick(deadline: 101) { rows.append($0) }
+    #expect(identityReads == 1 && memoryReads == 0 && listReads == 0)
+    #expect(rows.first?.state == .timeLimit && rows.first?.physicalFootprintBytes == nil)
+}
+@Test func descendantsDeadlineIsCheckedForEachKnownAncestor() throws {
+    let mock = TreeMock(); mock.tree[11] = relation(11, parent: 10); mock.tree[12] = relation(12, parent: 11)
+    mock.lists = [10: [11], 11: [12]]
+    var collector = DescendantCollector(plan: descendantPlan(), reader: mock.reader, started: 100)
+    try collector.tick(deadline: 101) { _ in }
+    #expect(collector.bindings.count == 3)
+    var calls: [String] = []
+    var reader = mock.reader
+    let originalRelation = reader.relation, originalMemory = reader.memory, originalChildren = reader.children
+    reader.relation = { pid in
+        calls.append("identity-\(pid)")
+        // Five calls complete the root poll. The child's first ancestry element overruns.
+        if calls.count == 6 { mock.now = 101 }
+        return try originalRelation(pid)
+    }
+    reader.memory = { pid in calls.append("memory-\(pid)"); return try originalMemory(pid) }
+    reader.children = { pid, capacity in calls.append("children-\(pid)"); return try originalChildren(pid, capacity) }
+    var bounded = DescendantCollector(plan: descendantPlan(), reader: reader, started: 100)
+    bounded.bindings = collector.bindings
+    var rows: [DescendantObservation] = []; try bounded.tick(deadline: 101) { rows.append($0) }
+    #expect(calls == ["identity-10", "memory-10", "identity-10", "children-10", "identity-10", "identity-10"])
+    #expect(rows.count == 2 && rows.last?.index == 1 && rows.last?.state == .timeLimit)
+    #expect(rows.last?.physicalFootprintBytes == nil)
+}
+@Test func descendantsSlowEmissionStopsCandidateTraversalWithoutReads() throws {
+    let mock = TreeMock(); mock.tree[11] = relation(11, parent: 10); mock.lists[10] = [11]
+    var collector = DescendantCollector(plan: descendantPlan(), reader: mock.reader, started: 100)
+    var rows: [DescendantObservation] = []
+    try collector.tick(deadline: 101) { point in rows.append(point); mock.now = 101 }
+    #expect(rows.count == 2 && rows[0].state == .sampled && rows[1].state == .timeLimit)
+    #expect(collector.bindings.count == 1 && mock.memoryCalls == [10] && mock.listCalls == [10])
+    #expect(rows[1].before.isEmpty && rows[1].physicalFootprintBytes == nil)
+}

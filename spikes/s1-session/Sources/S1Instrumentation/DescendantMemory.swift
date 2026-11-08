@@ -112,6 +112,8 @@ struct DescendantReader {
     }, now: InstrumentClock.now) }
 }
 
+private struct DescendantDeadlineReached: Error {}
+
 /// Only the normal runner constructs this with a native reader, AFTER credentials/signature gates.
 /// All candidate PIDs come from a checked parent's child list; there is no global/UID enumeration.
 struct DescendantCollector {
@@ -127,48 +129,65 @@ struct DescendantCollector {
         while let parent = cursor { indices.append(parent); cursor = bindings[parent].parentIndex }
         return indices.reversed().map { bindings[$0].process }
     }
-    /// Save even a partial/changed chain. Do not inspect descendants past the first failed ancestor.
-    func check(_ expected: [ProcessRelation], into values: inout [ProcessRelation]) throws -> Bool {
+    /// Bound admission of each kernel operation, not its execution time. A call already in flight
+    /// cannot be interrupted here; an overrun discards its result and prevents every subsequent read.
+    func readBeforeDeadline<T>(_ deadline: Double, _ operation: () throws -> T) throws -> T {
+        guard reader.now() < deadline else { throw DescendantDeadlineReached() }
+        do {
+            let result = try operation()
+            guard reader.now() < deadline else { throw DescendantDeadlineReached() }
+            return result
+        } catch {
+            if reader.now() >= deadline { throw DescendantDeadlineReached() }
+            throw error
+        }
+    }
+    func failed(_ error: Error, otherwise state: DescendantState, point: inout DescendantObservation) {
+        point.state = error is DescendantDeadlineReached ? .timeLimit : state
+        point.errorCode = error is DescendantDeadlineReached ? nil : ((error as? ProcessReadFailure)?.code ?? EIO)
+    }
+    /// Save even a partial/changed chain. Check budget separately for EVERY ancestry element.
+    func check(_ expected: [ProcessRelation], into values: inout [ProcessRelation], deadline: Double) throws -> Bool {
         for process in expected {
-            let actual = try reader.relation(process.identity.pid)
+            let actual = try readBeforeDeadline(deadline) { try reader.relation(process.identity.pid) }
             values.append(actual)
             if actual != process { return false }
         }
         return true
     }
-    func checkedBefore(_ expected: [ProcessRelation], point: inout DescendantObservation) -> Bool {
+    func checkedBefore(_ expected: [ProcessRelation], point: inout DescendantObservation, deadline: Double) -> Bool {
         do {
-            if try check(expected, into: &point.before) { return true }
+            if try check(expected, into: &point.before, deadline: deadline) { return true }
             point.state = .scopeChangedBefore
-        } catch { point.state = .unreadableBefore; point.errorCode = (error as? ProcessReadFailure)?.code ?? EIO }
+        } catch { failed(error, otherwise: .unreadableBefore, point: &point) }
         return false
     }
-    func checkedAfter(_ expected: [ProcessRelation], point: inout DescendantObservation) -> Bool {
+    func checkedAfter(_ expected: [ProcessRelation], point: inout DescendantObservation, deadline: Double) -> Bool {
         do {
-            if try check(expected, into: &point.after) { return true }
+            if try check(expected, into: &point.after, deadline: deadline) { return true }
             point.state = .scopeChangedAfter
-        } catch { point.state = .unreadableAfter; point.errorCode = (error as? ProcessReadFailure)?.code ?? EIO }
+        } catch { failed(error, otherwise: .unreadableAfter, point: &point) }
         return false
     }
     mutating func tick(deadline: Double, emit: (DescendantObservation) throws -> Void) throws {
         var index = 0, candidates = 0
         while index < bindings.count {
-            if reader.now() > deadline { try emit(DescendantObservation(operation: "limit", index: index, readStarted: reader.now(), time: reader.now(), state: .timeLimit)); return }
+            if reader.now() >= deadline { try emit(DescendantObservation(operation: "limit", index: index, readStarted: reader.now(), time: reader.now(), state: .timeLimit)); return }
             let expected = chain(index), binding = bindings[index]
             var point = DescendantObservation(operation: "poll", index: index, readStarted: reader.now(), time: 0, state: .sampled)
-            if checkedBefore(expected, point: &point) {
+            if checkedBefore(expected, point: &point, deadline: deadline) {
                 var metrics: (footprint: UInt64, resident: UInt64)?
                 var listed: (pids: [Int32], saturated: Bool)?
-                do { metrics = try reader.memory(binding.process.identity.pid) }
-                catch { point.state = .memoryFailed; point.errorCode = (error as? ProcessReadFailure)?.code ?? EIO }
+                do { metrics = try readBeforeDeadline(deadline) { try reader.memory(binding.process.identity.pid) } }
+                catch { failed(error, otherwise: .memoryFailed, point: &point) }
                 // Recheck immediately after memory, BEFORE using this PID as a discovery parent.
-                let memoryScopeValid = checkedAfter(expected, point: &point)
+                let memoryScopeValid = point.state != .timeLimit && checkedAfter(expected, point: &point, deadline: deadline)
                 point.afterMemory = point.after; point.after = []
                 if memoryScopeValid {
-                    do { listed = try reader.children(binding.process.identity.pid, plan.maxProcesses + 1) }
-                    catch { point.state = .enumerationFailed; point.errorCode = (error as? ProcessReadFailure)?.code ?? EIO }
+                    do { listed = try readBeforeDeadline(deadline) { try reader.children(binding.process.identity.pid, plan.maxProcesses + 1) } }
+                    catch { failed(error, otherwise: .enumerationFailed, point: &point) }
                 }
-                if memoryScopeValid && checkedAfter(expected, point: &point), let list = listed {
+                if memoryScopeValid && point.state != .timeLimit && checkedAfter(expected, point: &point, deadline: deadline), let list = listed {
                     point.children = list.pids
                     if list.pids.count > plan.maxProcesses + 1 || list.pids.contains(where: { $0 <= 0 }) || Set(list.pids).count != list.pids.count {
                         point.state = .malformedEnumeration
@@ -180,37 +199,48 @@ struct DescendantCollector {
                 }
             }
             point.time = reader.now()
+            if point.time >= deadline {
+                point.state = .timeLimit; point.physicalFootprintBytes = nil; point.residentBytes = nil
+            }
             try emit(point)
+            if point.state == .timeLimit { return }
             // Only a successful checked enumeration permits candidate identity reads.
             if [.sampled, .memoryFailed, .enumerationCapacity].contains(point.state), let children = point.children {
                 for pid in children {
                     if let old = bindings.first(where: { $0.process.identity.pid == pid }), old.parentIndex == index { continue }
                     var event = DescendantObservation(operation: "discover", index: index, candidatePID: pid, readStarted: reader.now(), time: 0, state: .discovered)
-                    if binding.depth >= plan.maxDepth { event.state = .depthLimit }
+                    var discovered: ProcessRelation?
+                    if reader.now() >= deadline { event.state = .timeLimit }
+                    else if binding.depth >= plan.maxDepth { event.state = .depthLimit }
                     else if bindings.count >= plan.maxProcesses { event.state = .processLimit }
                     else if candidates >= plan.maxProcesses { event.state = .candidateLimit }
-                    else if reader.now() > deadline { event.state = .timeLimit }
                     else {
                         candidates += 1
-                        if checkedBefore(expected, point: &event) {
+                        if checkedBefore(expected, point: &event, deadline: deadline) {
                             do {
-                                let child = try reader.relation(pid)
+                                let child = try readBeforeDeadline(deadline) { try reader.relation(pid) }
                                 event.before.append(child)
                                 if child.identity.pid != pid || child.identity.uid != plan.root.identity.uid || child.identity.realUID != plan.root.identity.uid || child.parentPID != binding.process.identity.pid {
                                     event.state = .candidateOutOfScope
                                 } else {
                                     try child.identity.validate()
-                                    if checkedAfter(expected, point: &event) {
-                                        let after = try reader.relation(pid); event.after.append(after)
+                                    if checkedAfter(expected, point: &event, deadline: deadline) {
+                                        let after = try readBeforeDeadline(deadline) { try reader.relation(pid) }; event.after.append(after)
                                         if after != child { event.state = .candidateChanged }
                                         else if bindings.contains(where: { $0.process.identity.pid == pid }) { event.state = .reusedPID }
-                                        else { bindings.append(DescendantBinding(index: bindings.count, parentIndex: index, depth: binding.depth + 1, process: child, discoveredAt: reader.now())) }
+                                        else { discovered = child }
                                     }
                                 }
-                            } catch { event.state = .candidateUnreadable; event.errorCode = (error as? ProcessReadFailure)?.code ?? EIO }
+                            } catch { failed(error, otherwise: .candidateUnreadable, point: &event) }
                         }
                     }
-                    event.time = reader.now(); try emit(event)
+                    event.time = reader.now()
+                    if event.time >= deadline { event.state = .timeLimit }
+                    if event.state == .discovered, let discovered {
+                        bindings.append(DescendantBinding(index: bindings.count, parentIndex: index, depth: binding.depth + 1, process: discovered, discoveredAt: event.time))
+                    }
+                    try emit(event)
+                    if event.state == .timeLimit { return }
                 }
             }
             index += 1

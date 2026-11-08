@@ -46,8 +46,12 @@ Bounds and evidence:
 - Each child list has `maxProcesses + 1` numeric slots; a filled buffer is explicitly saturated.
   At most `maxProcesses` new candidate identity attempts occur per tick. At the depth/count bound,
   child PID observations remain explicit but no candidate metadata/memory is read.
-- A tick has a one-second work budget; the acquisition endpoint has at most one second allowance.
-  Actual operation/tick times are retained. Missed ticks are skipped, never fabricated; gaps over
+- A tick admits process reads within a one-second budget; the endpoint deadline is one second after
+  the planned end. The deadline is checked before and after every memory/enumeration call and each
+  ancestry/candidate metadata call. Equality exhausts the budget. An overrun stops traversal with
+  `timeLimit` and no ambiguous metrics. This bounds admission between operations: a kernel call
+  already in flight cannot be interrupted here, so this is **not a hard per-call timeout** and its
+  actual completion may exceed the deadline. Actual operation/tick times are retained. Missed ticks are skipped, never fabricated; gaps over
   two seconds and operations over one second are issues. A CLI self-watchdog is duration + 30 seconds.
 - Create-new `/private/tmp/sanjbox-a2-<runID>-uid<uid>-descendant-memory/` contains `intent.json`,
   durable `descendants.jsonl` (fsync before the next observation), compact `recording.json` and `report.json`.
