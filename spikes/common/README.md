@@ -17,6 +17,13 @@ pro síťové testy. Bez externích závislostí.
 Pokrývá případ GUI-11 (credentials sond odpovídají očekávání). Sondy dalších bran ho používají
 jako první krok měření.
 
+`ProbeContext.capture()` omezuje každý pevný dotaz `launchctl managername` / `manageruid` na
+2 s monotónního času po spuštění a 8192 B stdout; úklid vlastního potomka má další dvě okna po 200 ms.
+Chyba, timeout, neúspěšný exit nebo neplatná odpověď znamená `launchdManager == nil`.
+Kolektor vyžaduje výchozí `SIGCHLD` bez automatického reapování a bez konkurenčního reaperu;
+při nevyhovujícím zděděném handleru dotaz odmítne. Celé `capture()` časový limit nemá, protože
+ostatní systémová API zůstávají synchronní. Podrobnosti a ověření: [VALIDATION-CONTEXT-BOUNDS.md](VALIDATION-CONTEXT-BOUNDS.md).
+
 ## Sestavení a testy
 
 ```bash
