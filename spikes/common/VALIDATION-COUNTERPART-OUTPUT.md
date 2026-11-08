@@ -1,7 +1,7 @@
 # WP0.4 — oprava vlastnictví výstupů counterpartu
 
 2026-11-08, offline oprava po reprodukovaném přesměrování `stopped` do syntetického kanárka výměnou
-cesty logu za symlink. Implementátor Codex Astra; nezávislé review následuje. Testovaný source/test commit:
+cesty logu za symlink. Implementátor Codex Astra; samostatné čerstvé Astra xhigh review dokončeno bez nálezů P0–P2. Testovaný source/test commit:
 `63280b401fff8828136336ba552f16888a540433` (base `7b20c41496f9a8d2a8e49604e31c7598a4943adb`).
 
 ## Změna a hranice
@@ -52,6 +52,12 @@ syntetické `cli-output-*` adresáře. Zachovány jsou i předchozí pokusy: `de
 výchozí compiler cache), `debug-second.log` (sandbox odmítl bind a existing membership smoke),
 `debug-tests.log` (první úspěšná sada) a `cli-debug-first.stderr` (harness chybně čekal compact stdout;
 opraveno čtením `started` z JSONL). Finální testy běžely po schválení mimo sandbox; žádné balíčky se
-neinstalovaly. Build/module cache zůstávají pro review a potom lze odstranit pouze vlastní velké cache.
+neinstalovaly. Po review byly vlastní velké build/module cache odstraněny; ověřené CLI binárky, malé logy a receipt `cache-cleanup.json` zůstávají.
 
 To je test opravy kódu, nikoli laboratorní důkaz R2/R3, průchod brány nebo změna historického verdiktu.
+
+Nezávislý reviewer ověřil shodný source/test commit a dokumentační HEAD `400ad1536fff6e1b018b2c230398a108f05903d3`:
+**47/47 Debug**, **12/12 vlastních CLI scénářů** a **4/4 kontrol descriptorů**, včetně 500 konfliktních
+startů bez úniku a souběžného close/write. Release nezávisle neopakoval; výše je běh implementátora.
+Malý nezávislý souhrn a harnessy: `/private/tmp/sanjbox-output-independent.HZI0Og/review-summary.txt`;
+reviewerovy velké cache jsou odstraněny. Tato následná aktualizace mění jen dokumentaci a vlastní řádek coverage.
