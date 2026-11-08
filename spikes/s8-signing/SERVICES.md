@@ -132,12 +132,14 @@ unlink. Konflikt/partial write se uchová pro ruční review; opakování úpln�
 
 1. Až po S1: rezervovat L2, potvrdit LAB/F0.8 a předregistrovat samostatné SG-04 varianty pro tři
    služby. Prázdné profily, žádné skutečné účty či data. Vyjasnit cleanup ještě **před** registrací.
-2. Vytvořit novou disposable app/run ID, připnout zdrojové a executable hashe. Podepisující identitu
-   připraví a použije výhradně uživatel mimo tuto automatiku; žádná zdejší volba nepřijímá identity.
-   Podepsat zevnitř ven, runtime a nikdy get-task-allow; znovu auditovat všechny čtyři targets.
-   Re-signing původního rootu záměrně poruší jeho cleanup manifest. Pro skutečný L2 mít vlastní
-   schválenou instalaci/removal inventuru. Daemon boot experiment potřebuje aplikaci dostupnou před
-   loginem (Apple doporučuje `/Applications`); builder ji nikam neinstaluje.
+2. Pro konkrétní user signing použít [nový copy/handoff postup](HANDOFF.md): dry-run i apply
+   připraví **novou kopii** s vlastní provenance/inventurou a zachovají původní ad-hoc manifest.
+   Identitu vybírá a používá jen uživatel; čtyři cíle se podepisují zevnitř ven a samostatně ověří.
+   Po vydání podpisových příkazů je registration state unknown a automatický artifact cleanup
+   odmítá. Podepsaná inventura není vlastnictví služby ani unregister. Kroky 3–6 níže jsou budoucí
+   L2 postup a vyžadují přezkoumanou lifecycle cleanup cestu; nový handoff je neodblokovává.
+   Daemon boot experiment potřebuje aplikaci dostupnou před loginem (Apple doporučuje
+   `/Applications`); builder ani handoff ji nikam neinstalují.
 3. Zafixovat očekávání pro konkrétní uživatelskou relaci. Spustit user-level UI, ověřit status a
    pouze v připraveném scénáři výslovně zvolit registraci. Uchovat intent/result a startup marker.
    Same-session register/unregister smoke je oddělený od následného login/reboot.

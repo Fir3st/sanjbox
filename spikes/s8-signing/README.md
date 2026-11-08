@@ -3,8 +3,8 @@
 **WP1.A6 zůstává rozpracované. S8 a SG-01…11 zůstávají Neověřeno.** Balíček dodává
 spustitelnou statickou sondu vlastních syntetických artefaktů, čisté policy testy, omezený mock
 fuzzer a plán šesti odlišných uživatelských experimentů. Nedodává produkční broker, XPC transport,
-produkční autorizační cestu daemonu ani platný same-UID attach oracle. Nové [disposable service fixtures](SERVICES.md) dodávají sestavitelný SMAppService host, tři samostatné helper targets a úzké uživatelské UI. Konkrétní mezery jsou níže.
-Historický `SOURCES.sha256` patří výhradně revizi a výsledkům 2026-11-03; nepřepisuje se pro dnešní HEAD. Aktuální service přípravu pinne `SERVICE-SOURCES-20261104.sha256`.
+produkční autorizační cestu daemonu ani platný same-UID attach oracle. Nové [disposable service fixtures](SERVICES.md) dodávají sestavitelný SMAppService host, tři samostatné helper targets a úzké uživatelské UI. Nový [copy/signing handoff](HANDOFF.md) předá uživateli čtyři konkrétní podpisové příkazy bez změny původního ad-hoc manifestu; po handoffu automatický cleanup záměrně odmítá neznámý registration state. Konkrétní mezery jsou níže.
+Historický `SOURCES.sha256` patří výhradně revizi a výsledkům 2026-11-03; nepřepisuje se pro dnešní HEAD. `SERVICE-SOURCES-20261104.sha256` je rovněž historický snapshot; aktuální handoff se dokládá testy a krátkou poznámkou ve VALIDATION podle GUIDE §11.
 Autoritativní jsou [PLAN](../../PLAN.md), [GUIDE](../../docs/GUIDE.md) a [LAB](../../docs/LAB.md).
 
 ## Rozsah a oracle
