@@ -177,3 +177,43 @@ registrace ve stejné živé session. Napříč restartem UI/login/reboot není 
 scénáře se nesmějí zahájit bez doplnění přezkoumaného úklidu. Same-status cizí změna není detekovatelná;
 serial LAB slot je předpoklad, nikoli enforcement. **A6 zůstává partial, A7/L2 neprovedené, S8/SG-01…11
 Neověřeno; F1 aggregate se nemění.** Úplný postup a další omezení: [SERVICES.md](SERVICES.md).
+
+## WP1.A6 signing handoff — 2026-11-08
+
+Omezená příprava z `main` `7b20c41`, claim `b237e37`; měřený code commit
+`5adefab06813d92c8674df5aa1fd88f280e2f22c`. Původní záznamy a hash snapshoty výše se nemění.
+Postup: [HANDOFF.md](HANDOFF.md). Celé A6 zůstává partial (H1 fuzzer čeká na H1); A7/L2 a S8/SG-01…11
+zůstávají Neověřeno. Tato poznámka je offline validace podle GUIDE §11, nikoli nový laboratorní běh.
+
+- macOS 27.2 `26B123`, arm64, Swift 6.4.2 `swiftlang-6.4.2.1.9`, systémový Python 3.9.6.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools -v`: **51 testů, 0 failures,
+  0 skips** (15 původních + 36 nových). Skutečný nový planner/copy/inventory/preflight/cleanup;
+  pozitivní non-ad-hoc metadata jsou výslovně **tool stubs**, nikoli Personal Team či self-signed.
+  Negativy zahrnují obsah/load-command změny, cesty, linky, flags/módy/inodes, duplicate JSON,
+  source drift, částečný handoff zápis, write-before-output, ad-hoc/runtime/entitlement chyby,
+  timeout a odmítnutí přepsat signed inventory. Malformovaný testovací Mach-O a počáteční syntax
+  testu byly opraveny během vývoje; nejde o výsledky brány.
+- Native Release `swift test` s izolovaným scratch/cache: **42 existujících Swift testů, 0 failures**.
+  Native backend nadále vydává deprecation warning. Nový Python modul automaticky patří do
+  stávajícího macOS spike discovery v CI; GitHub kontrola se ověří až po pushi PR.
+- Skutečný vlastní ad-hoc Release app (čtyři targets) prošel původním strict/runtime/empty-entitlement
+  verifierem. Jeho Swift zdroje jsou beze změny proti měřenému commitu; build si zapsal tehdejší
+  source manifest. **12 smoke kontrol na měřeném commitu**: konkrétní dry-run/new-copy apply,
+  nezměněný původní manifest, handoff preview, pre-handoff cleanup dry/apply/repeat, u druhé kopie
+  persisted handoff + `bash -n` snippet a očekávané odmítnutí ad-hoc jako reálného podpisu i obou
+  post-handoff cleanup režimů. Žádný signing snippet ani fixture executable se nespustil.
+- Zdrojový build/cache root `/private/tmp/sanjbox-s8-services-49530FC7-97BF-4BFB-B642-336F080ED806`
+  odstraněn původním manifest cleanup dry/apply/repeat; původní manifest zůstal až do cleanup beze
+  změny. První copy `…signing-0FC5B2F9-C2A7-489F-A346-6E7F030C4A77` odstraněna novým pre-handoff
+  cleanup. Vlastní Swift scratch `/private/tmp/s8-a6-handoff-swift-20261108-4D79F2C1` odstraněn
+  po validaci (147 731 258 bytes). Zachována malá ad-hoc kopie pro review:
+  `/private/tmp/sanjbox-s8-signing-9C012AF0-5A3B-4B13-A03D-F6A960FBA787`; její handoff marker záměrně
+  blokuje produktový cleanup. Je to vlastní testovací fixture bez vykonaného podpisu či služby.
+  Krátké lokální diagnostiky: `/private/tmp/s8-a6-handoff-{python-final.log,swift-final.log,real-smoke.json,cache-cleanup.json}`.
+
+**Neověřeno a neprovedeno:** skutečný Personal Team/self-signed podpis a jeho kompatibilita s úzkým
+Mach-O delta pravidlem, certifikáty/Keychain/identity lookup, registrace/unregister, status API,
+spuštění UI/helperů, service ownership, login/reboot/daemon, TCC/attach a H1 XPC fuzzer.
+`record-signed` ověřuje statické properties a inventuru, nikoli druh účtu (`profileVerified=false`).
+Po vydání handoffu zůstává registration state unknown a automatický artifact cleanup **odmítá**;
+podepsaná inventura neodblokovává L2 ani odstraňování potenciálně registrované aplikace.
