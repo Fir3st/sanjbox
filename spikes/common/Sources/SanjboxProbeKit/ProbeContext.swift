@@ -128,26 +128,7 @@ private func queryAuditSession() -> ProbeContext.AuditSession? {
 }
 
 private func queryLaunchdManager() -> ProbeContext.LaunchdManager? {
-    guard let name = launchctl("managername"),
-          let uidText = launchctl("manageruid"), let uid = UInt32(uidText)
-    else { return nil }
-    return .init(name: name, uid: uid)
-}
-
-/// Runs `/bin/launchctl <subcommand>`, which answers about the domain of the calling process.
-private func launchctl(_ subcommand: String) -> String? {
-    let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-    process.arguments = [subcommand]
-    let output = Pipe()
-    process.standardOutput = output
-    process.standardError = FileHandle.nullDevice
-    do { try process.run() } catch { return nil }
-    let data = output.fileHandleForReading.readDataToEndOfFile()
-    process.waitUntilExit()
-    guard process.terminationStatus == 0 else { return nil }
-    let text = String(decoding: data, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-    return text.isEmpty ? nil : text
+    LaunchctlQuery.capture()
 }
 
 private func queryWindowSession() -> ProbeContext.WindowSession? {
