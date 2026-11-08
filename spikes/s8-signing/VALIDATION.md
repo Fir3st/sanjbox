@@ -217,3 +217,22 @@ spuštění UI/helperů, service ownership, login/reboot/daemon, TCC/attach a H1
 `record-signed` ověřuje statické properties a inventuru, nikoli druh účtu (`profileVerified=false`).
 Po vydání handoffu zůstává registration state unknown a automatický artifact cleanup **odmítá**;
 podepsaná inventura neodblokovává L2 ani odstraňování potenciálně registrované aplikace.
+
+### Oprava souběhu po nezávislém review — 2026-11-08
+
+Review prokázalo P2: handoff vložený při druhé kontrole rootu v cleanup mohl vydat příkazy a zapsat
+marker, zatímco cleanup pokračoval se starou inventurou, odstranil app a selhal až na novém markeru.
+Měřená oprava `1af8925d41c9a3ea61c8cbafb833056d1aa55cad` drží inode-bound directory-fd `flock`
+před inventurou až do konce každé operace (včetně dry-run); nový prepare root je zamčen před kopírováním
+po zápis inventury. Souběžná operace odmítne `busy` bez inventury nebo změn, další pokus znovu ověří
+aktuální stav. Zámek je advisory mezi spolupracujícími příkazy, ne ochrana před ručním codesign či nespolupracujícími změnami téhož UID.
+
+`/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools -v`: **59 testů, 0 failures,
+0 skips**, 4,369 s na stejném macOS/Python prostředí; log `/private/tmp/s8-a6-handoff-lock-final.log`.
+Osm regresí navíc: přesný review counterexample, šest testů se skutečnými samostatnými procesy
+(obě pořadí handoff/cleanup, souběžné handoff a signed-inventory zápisy, prepare/partial-state/exit,
+dry-run bez lockfile) a uvolnění po refusal. Codesign v těchto syntetických procesových testech
+zůstává stub; žádné fixture executable ani služby neběžely. Všechny nové vlastní test roots uklidil
+teardown včetně ukončení child procesů; původní nativní review fixture zůstala beze změny.
+Swift zdroje se nemění: předchozích **42 Release testů** platí pro stejný Swift kód, znovu zde neběžely.
+GitHub CI/re-review následují po předání koordinátorovi; signing/L2/cleanup limity výše zůstávají.
