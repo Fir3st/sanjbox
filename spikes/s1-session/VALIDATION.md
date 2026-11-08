@@ -400,3 +400,25 @@ Malé logy, podepsané binárky, souhrn a původní pokusy:
 Přesné nové datasety jsou v jejich `datasets.json`; vlastní build/cache (~340 MiB) byly po ověření
 zdroje a logů odstraněny. Polling nezaručuje zachycení krátkých procesů; žádné whole-UID, cross-UID,
 WindowServer, session, L1, P4 ani S1 tvrzení. Systémové ΔM se s footprint/RSS nesčítá.
+
+## 2026-11-08 — review fix: deadline před každým procesním čtením
+
+Nezávislé review zdroje `e5e1b203` našlo P2: metadata mohla spotřebovat celý tick budget a původní
+kontrola před celým pollem přesto dovolila další memory/enumeration volání. Zdroj
+**`464f1fff0cd9b857f5550b1be62b514e1abf829c`** kontroluje deadline před i po každém jednotlivém
+metadata/memory/list volání, včetně každého prvku ancestry a kandidáta. Rovnost s deadline již
+nepovolí čtení; overrun ukončí traversal s `timeLimit`, bez metrik nebo nové binding po timeoutu.
+Již běžící kernel call tím nelze přerušit: jde o omezení mezi operacemi, nikoli hard per-call timeout.
+
+Nové vlastní ověření na témže Macu, beze změny V2 identity očekávání: native SwiftPM Debug
+**95/95**, Release **95/95** (4 nové regresní testy: všech 9 pozic volání, rovnost deadline, ancestry
+loop a pomalý journal emit). Po ověřeném ad-hoc hardened podpisu bez entitlements normální signed
+native CLI **9/9 v obou konfiguracích**; každá pozitivní acquisition opět 3 instance, 11 ticks,
+29 observations, posthoc fixture truth, explicitní exity a ověřený úklid. Žádný S1/P4 ani úplný UID
+nebo session závěr. Původní testy, odmítnuté preflighty a reviewer repro zůstávají beze změny.
+
+Nové malé logy, `validation-summary.json`, `cache-cleanup.json` a ověřené kopie `bin/debug-instrument`,
+`bin/release-instrument` jsou v `/private/tmp/sanjbox-a2-deadline-fix-20261108-EcrkVmZm`;
+finální logy `debug-01.log`, `release-01.log`, `native-debug-01/`, `native-release-01/`.
+Přesné acquisition cesty jsou v `datasets.json` obou native sad. Vlastní build/cache byly po
+ověření zdroje, logů a kopií binárek odstraněny; žádné starší scratch nebo sdílené cache se neměnily.
