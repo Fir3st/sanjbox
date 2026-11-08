@@ -129,7 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           # The slowest package needs about 80 s. A test that hangs fails after 5 minutes with
-          # the thread stacks of the test processes in the log, instead of the 20-minute job limit.
+          # bounded diagnostics of its owned process scope in the uploaded logs.
           .github/scripts/run-with-watchdog.sh 300 "$CI_LOG_DIR" \
             swift test --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
             --xunit-output "$CI_LOG_DIR/tests.xml" \

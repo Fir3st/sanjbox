@@ -60,8 +60,17 @@ Local commands (offline fixtures, not a laboratory gate):
 
 ```sh
 /bin/bash -n .github/scripts/run-with-watchdog.sh
-/usr/bin/python3 -I -B -m unittest discover -s tools/tests -v
-python3 -I -B -m unittest discover -s tools/tests -v
+/usr/bin/python3 -B -W error::ResourceWarning -m unittest discover -s tools/tests -v
+python3 -B -W error::ResourceWarning -m unittest discover -s tools/tests -v
 ```
 
-Exact committed-source validation is recorded after the source commit.
+On 2026-11-08, executable source/tests at commit
+`0358eebee80379fc2905fb46652c5b51a66272b4` passed Bash syntax validation and
+**77/77 tools tests**, including all **14 watchdog tests**, on both system Python
+3.9.6 and Python 3.15.2 (macOS 27.2 / build 26B123, arm64, Bash 3.2.57).
+No resource warnings were emitted. An initial full-suite invocation with `-I`
+failed to import the preexisting evidence-tool tests; the commands above match
+CI's repository import mode. The dedicated watchdog-only CI step uses `-I`.
+Linux/Python 3.11 and the hosted `xcode-27` image remain CI validation, not a local
+measurement. This document and the workflow's diagnostic comment were then
+updated without changing the tested executable code.
