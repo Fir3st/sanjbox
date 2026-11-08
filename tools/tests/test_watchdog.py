@@ -217,6 +217,11 @@ class WatchdogTests(unittest.TestCase):
             "    Path(%r).write_text('ready')\n"
             "    while True: signal.pause()\n"
             "watchdog.write_diagnostic=block\n"
+            "emit=watchdog.emit_diagnostics\n"
+            "def inherit_blocked_alarm(*args, **kwargs):\n"
+            "    signal.pthread_sigmask(signal.SIG_BLOCK,{signal.SIGALRM})\n"
+            "    return emit(*args, **kwargs)\n"
+            "watchdog.emit_diagnostics=inherit_blocked_alarm\n"
             "os._exit(watchdog.main(sys.argv))\n" % (str(HELPER), str(marker)))
         process = subprocess.Popen([sys.executable, "-I", "-B", str(launcher),
                                     "3", str(self.logs), sys.executable, "-I", "-B",

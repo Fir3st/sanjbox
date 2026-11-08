@@ -196,6 +196,7 @@ def emit_diagnostics(messages, log_dir=None, diagnostic=None, output_fd=1):
                 signal.signal(sig, signal.SIG_DFL)
             # Survive neither a blocked sink nor a killed supervisor. This child
             # does not launch descendants and is never detached from its parent.
+            signal.pthread_sigmask(signal.SIG_UNBLOCK, {signal.SIGALRM})
             signal.setitimer(signal.ITIMER_REAL, REPORT_SECONDS)
             if diagnostic is not None:
                 try:
