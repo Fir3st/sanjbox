@@ -59,3 +59,12 @@ Spouštěla se pouze uvedená lokální podmnožina; celá S1 sada zahrnuje jin�
 sondy. `serve() -> Never`, páry copy vláken a procesové ukončení zůstávají původním modelem; `deinit`
 není nový mechanismus zastavení běžícího serveru. Syscall allocation/setsockopt selhání nejsou uměle
 vyvolávána. Skutečné Screen Sharing, tři relace, L1 a brána S1 zůstávají neověřené.
+
+Nezávislé review čerstvým Astra xhigh agentem na dokumentačním HEAD
+`166b60facd7cda21a5893912198b8bb020be278e` ověřilo totožnost source/test commitu a skončilo bez
+nálezů P0–P2. Ve vlastním izolovaném buildu zopakovalo Debug i Release **6/6 Swift**, **5/5 CLI**
+a **3/3 descriptor audit**, včetně nezměněného negativního baseline s +16 FD a přijatým self-targetem.
+Malé logy a souhrn: `/private/tmp/sanjbox-forwarder-astra-review-V4oXhC/review-summary.json`.
+Vlastní velké cache implementátora i reviewera jsou po review odstraněny; ověřené CLI binárky,
+malé podklady a receipt `cache-cleanup.json` zůstávají. Následná aktualizace mění jen dokumentaci
+a vlastní řádek coverage; celá S1 sada se ověřuje až na jednorázovém CI runneru.
