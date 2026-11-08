@@ -46,3 +46,25 @@ Jde o implementační regresi podle GUIDE §11, **ne o průchod S3/S5/S7**. Repo
 neautentizuje log, neověřuje obsah raw souborů ani skutečnou izolaci. Sdílený parser načítá
 celý JSONL soubor, ignoruje neznámé klíče a nekontroluje striktně duplicitní klíče objektů;
 tato oprava validuje dekódované události. Podrobnosti kontraktu: [README](README.md#sanjbox-counterpart).
+
+
+## Následné nezávislé review — adresní domény (2026-11-08)
+
+Review commitu `aa6c234` našlo další neplatné běhy přijímané jako úplné: nativní IPv6
+endpoint a IPv4-mapped IPv6 endpoint mají oba 16 bajtů, ale nemohou tvořit dvojici TCP
+ani UDP s konkrétním bindem. Opravený zdroj: `0c44d8266e7aa0bbae938ff60ef780f07164631c`.
+Původní výsledky výše zůstávají zachované; toto je nové ověření ve stejném prostředí
+stejnými příkazy a s novými dočasnými soubory.
+
+**Debug i Release: 55 testů prošlo, 0 selhání** (30 counterpart + 18 ProbeKit + 7 provenance).
+Nová regrese má 18 případů přes report API i CLI: obě chybná pořadí endpointů pro TCP/UDP,
+ekvivalentní dotted/hex zápisy, platné nativní/mapped dvojice, UDP wildcard a Darwin
+mapped UDP listener s prostým IPv4 zdrojem. Celkem je v každé konfiguraci 29 CLI spuštění.
+Neplatné dvojice vracejí 3 a zachovávají kontakt, 8 bajtů a nález; platné dvojice vracejí 1.
+Nový skutečný TCP test na `::1` ověřil nativní endpointy z `accept`/`getsockname`, zatímco
+stávající loopback testy dále ověřují mapped TCP a UDP s prostým IPv4 zdrojem.
+
+Navíc obě hotové binárky odmítly všechny čtyři původní JSONL reprodukce review (2 TCP,
+2 UDP; **8 kontrol**): exit 3, `complete=false`, zachovaný jeden kontakt bez bajtů.
+Velké build/cache adresáře byly po ověření kopií binárek odstraněny. Omezení parseru
+a důkazů uvedená výše se nemění.
