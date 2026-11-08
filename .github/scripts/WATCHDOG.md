@@ -23,7 +23,7 @@ anchor perform the same TERM/CONT/KILL fallback. If the anchor dies first, the
 supervisor still holds its unreaped PID and cleans the group. The command
 cannot inherit that control socket or start before the ownership handshake.
 
-All failure diagnostics and cleanup verification share one four-second budget;
+Snapshot collection and cleanup verification share one four-second budget;
 reaping the anchor has a further half-second budget. A command-exit check takes
 at most 0.55 seconds. The operational upper bound is the requested command limit
 plus about six seconds, subject to OS scheduling. A kernel-stuck process cannot
@@ -36,6 +36,18 @@ owned process group; Linux `ps -s` selects the owned session. No global process
 listing, recursive traversal or sequential per-process stack sampling is used.
 A numeric descendant PID is insufficient to safely sample a process that could
 exit and have its PID reused. Zombies count as terminated, not running children.
+The supervisor resets an inherited ignored SIGCHLD disposition before creating
+children, so its anchor and reporter PIDs cannot be automatically reaped.
+
+The supervisor performs no console or filesystem writes on its cleanup path.
+After cleanup, one owned reporter child creates the diagnostic directory lazily,
+writes the log and attempts console output. Its independent default-signal alarm
+and the supervisor's bounded KILL/reap budget allow at most 0.6 seconds for
+reporting, including when the supervisor dies. Output may be dropped under
+backpressure. No shared output-descriptor flags are changed. Diagnostic files
+must be regular files with one link; file/directory symlinks, FIFOs and devices
+are rejected. Even a stalled regular-file operation cannot hold up the supervisor.
+The command must create any output directory it needs; CI already does so.
 
 This is CI lifecycle hygiene, **not a security boundary**. Supported commands
 and descendants must retain the inherited process group and session. A process
@@ -74,3 +86,11 @@ CI's repository import mode. The dedicated watchdog-only CI step uses `-I`.
 Linux/Python 3.11 and the hosted `xcode-27` image remain CI validation, not a local
 measurement. This document and the workflow's diagnostic comment were then
 updated without changing the tested executable code.
+
+
+Follow-up review found that the original synchronous error print could block
+cleanup on a full undrained stdout pipe, and that diagnostic-path I/O could hold
+up exit. The follow-up fix moves all such output to the bounded reporter above.
+New fixtures cover full stdout/stderr, FIFO and symlink log targets, supervisor
+death during reporting, and inherited SIGCHLD=SIG_IGN. Exact committed-source
+results for this fix are recorded after its source commit.

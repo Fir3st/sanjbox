@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -43,6 +44,9 @@ if child == 0:
 while not ready.with_suffix(".child").exists():
     time.sleep(0.005)
 ready.write_text(json.dumps({"root": os.getpid(), "group": os.getpgrp()}))
+if mode == "flood":
+    while True:
+        os.write(1, b"x" * 4096)
 if mode == "orphan":
     os._exit(status)
 if mode == "anchor-dies":
@@ -140,6 +144,106 @@ class WatchdogTests(unittest.TestCase):
         self.assertIn("timed out", output)
         self.assertTrue(self.ready.with_suffix(".term").exists())
         self.assertLess(time.monotonic() - start, 5)
+
+    def test_full_undrained_stdout_cannot_block_cleanup_or_exit(self):
+        process = self.launch("flood", limit=0.3)
+        self.wait_ready(process)
+        # Deliberately do NOT drain either stream until supervisor exit. The
+        # previous synchronous print blocked before TERM at this exact point.
+        start = time.monotonic()
+        self.assertEqual(process.wait(timeout=6), 124)
+        self.assertLess(time.monotonic() - start, 5)
+        self.assertTrue(self.ready.with_suffix(".term").exists())
+        self.assertIn("timed out", (self.logs / "hung-processes.txt").read_text())
+        self.finish(process, 124, timeout=1)
+
+    def test_full_undrained_stderr_cannot_block_argument_error_exit(self):
+        readfd, writefd = os.pipe()
+        try:
+            os.set_blocking(writefd, False)
+            while True:
+                try:
+                    os.write(writefd, b"x" * 4096)
+                except BlockingIOError:
+                    break
+            os.set_blocking(writefd, True)
+            process = subprocess.Popen([sys.executable, "-I", "-B", str(HELPER),
+                                        "invalid", str(self.logs), "unused"],
+                                       stdout=subprocess.PIPE, stderr=writefd)
+            self.processes.append(process)
+            os.close(writefd)
+            writefd = None
+            self.assertEqual(process.wait(timeout=3), 2)
+            # Also require the reporter's inherited descriptor to close.
+            os.set_blocking(readfd, False)
+            while os.read(readfd, 4096):
+                pass
+            self.finish(process, 2, timeout=1)
+        finally:
+            os.close(readfd)
+            if writefd is not None:
+                os.close(writefd)
+
+    def test_fifo_log_target_cannot_block_exit(self):
+        self.logs.mkdir()
+        target = self.logs / "hung-processes.txt"
+        os.mkfifo(target)
+        process = self.launch("hang", limit=0.3)
+        self.wait_ready(process)
+        self.assertEqual(process.wait(timeout=5), 124)
+        output = self.finish(process, 124, timeout=1)
+        self.assertIn("cannot write diagnostic log", output)
+        self.assertTrue(stat.S_ISFIFO(target.stat().st_mode))
+        self.assertTrue(self.ready.with_suffix(".term").exists())
+
+    def test_symlink_log_target_is_not_overwritten(self):
+        self.logs.mkdir()
+        canary = self.directory / "own-canary.txt"
+        canary.write_text("untouched")
+        (self.logs / "hung-processes.txt").symlink_to(canary)
+        self.finish(self.launch("hang", limit=0.3), 124)
+        self.assertEqual(canary.read_text(), "untouched")
+
+    def test_supervisor_death_during_reporting_cannot_orphan_reporter(self):
+        launcher = self.directory / "blocked_reporter.py"
+        marker = self.directory / "reporter-started"
+        launcher.write_text(
+            "import importlib.util,os,signal,sys\n"
+            "from pathlib import Path\n"
+            "spec=importlib.util.spec_from_file_location('watchdog', %r)\n"
+            "watchdog=importlib.util.module_from_spec(spec)\n"
+            "spec.loader.exec_module(watchdog)\n"
+            "def block(*args):\n"
+            "    Path(%r).write_text('ready')\n"
+            "    while True: signal.pause()\n"
+            "watchdog.write_diagnostic=block\n"
+            "os._exit(watchdog.main(sys.argv))\n" % (str(HELPER), str(marker)))
+        process = subprocess.Popen([sys.executable, "-I", "-B", str(launcher),
+                                    "3", str(self.logs), sys.executable, "-I", "-B",
+                                    str(self.fixture), "orphan", str(self.ready), "0"],
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.processes.append(process)
+        end = time.monotonic() + 4
+        while not marker.exists():
+            if process.poll() is not None or time.monotonic() >= end:
+                self.fail("owned reporter did not start")
+            time.sleep(0.01)
+        process.kill()
+        # The blocked reporter holds stdout. EOF needs its own alarm to fire;
+        # killing the supervisor alone cannot satisfy this assertion.
+        self.finish(process, -signal.SIGKILL, timeout=2)
+
+    def test_inherited_sigchld_ignore_does_not_release_owned_pids(self):
+        launcher = ("import os,signal,sys; "
+                    "signal.signal(signal.SIGCHLD,signal.SIG_IGN); "
+                    "os.execv(sys.executable,[sys.executable,'-I','-B']+sys.argv[1:])")
+        process = subprocess.Popen([sys.executable, "-I", "-B", "-c", launcher,
+                                    str(HELPER), "0.3", str(self.logs), sys.executable,
+                                    "-I", "-B", str(self.fixture), "hang", str(self.ready), "0"],
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.processes.append(process)
+        self.finish(process, 124)
+        self.assertTrue(self.ready.with_suffix(".term").exists())
 
     def test_cancellation_signals_clean_owned_group(self):
         for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):

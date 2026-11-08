@@ -7,6 +7,7 @@ from pathlib import Path
 import select
 import signal
 import socket
+import stat
 import subprocess
 import sys
 import time
@@ -18,6 +19,8 @@ QUERY_REAP_SECONDS = 0.1
 TERM_SECONDS = 1.0
 CLEANUP_SECONDS = 4.0
 REAP_SECONDS = 0.5
+REPORT_SECONDS = 0.5
+REPORT_REAP_SECONDS = 0.1
 CANCEL_SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)
 
 
@@ -155,6 +158,78 @@ def reap_anchor(anchor):
         time.sleep(POLL)
 
 
+def write_diagnostic(log_dir, diagnostic):
+    # All filesystem operations run only in the bounded reporter. Do not follow
+    # a replaced log-directory/file symlink or truncate a FIFO/device/hardlink.
+    log_dir.mkdir(parents=True, exist_ok=True)
+    directory = os.open(str(log_dir), os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        descriptor = os.open("hung-processes.txt", os.O_WRONLY | os.O_CREAT |
+                             os.O_NONBLOCK | os.O_NOFOLLOW, 0o600, dir_fd=directory)
+        try:
+            info = os.fstat(descriptor)
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                raise OSError("diagnostic target is not a single regular file")
+            os.ftruncate(descriptor, 0)
+            data = diagnostic.encode("utf-8")[:QUERY_BYTES + 4096]
+            while data:
+                data = data[os.write(descriptor, data):]
+        finally:
+            os.close(descriptor)
+    finally:
+        os.close(directory)
+
+
+def emit_diagnostics(messages, log_dir=None, diagnostic=None, output_fd=1):
+    """Best-effort output AFTER scope cleanup, never on the supervisor's thread."""
+    if not messages and diagnostic is None:
+        return
+    try:
+        reporter = os.fork()
+    except OSError:
+        # Reporting is optional; an allocation failure must not invoke Python's
+        # blocking traceback output or change the already determined status.
+        return
+    if reporter == 0:
+        try:
+            for sig in CANCEL_SIGNALS + (signal.SIGALRM,):
+                signal.signal(sig, signal.SIG_DFL)
+            # Survive neither a blocked sink nor a killed supervisor. This child
+            # does not launch descendants and is never detached from its parent.
+            signal.setitimer(signal.ITIMER_REAL, REPORT_SECONDS)
+            if diagnostic is not None:
+                try:
+                    write_diagnostic(log_dir, diagnostic)
+                except OSError as exc:
+                    messages = messages + ["::error::Watchdog: cannot write diagnostic log: %s" % exc]
+            for message in messages:
+                # No Python stream buffering/finalizer can retry a blocked write.
+                os.write(output_fd, (message + "\n").encode("utf-8")[:4096])
+        except BaseException:
+            pass
+        finally:
+            os._exit(0)
+    end = time.monotonic() + REPORT_SECONDS
+    while time.monotonic() < end:
+        found, _ = os.waitpid(reporter, os.WNOHANG)
+        if found:
+            return
+        time.sleep(POLL)
+    # waitpid has NOT reaped the child, so this numeric PID is still owned.
+    try:
+        os.kill(reporter, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    end = time.monotonic() + REPORT_REAP_SECONDS
+    while time.monotonic() < end:
+        found, _ = os.waitpid(reporter, os.WNOHANG)
+        if found:
+            return
+        time.sleep(POLL)
+    # Only an uninterruptible kernel task can outlive both KILL and its alarm.
+    # Do not turn a blocked diagnostic sink into an unbounded supervisor wait.
+
+
 def supervise(limit, log_dir, command):
     cancelled = [0]
 
@@ -181,6 +256,8 @@ def supervise(limit, log_dir, command):
     buffer = b""
     reason = "supervisor failed"
     diagnostic = ""
+    messages = []
+    report = None
     try:
         while True:
             if cancelled[0]:
@@ -225,7 +302,7 @@ def supervise(limit, log_dir, command):
     finally:
         if not released:
             end = time.monotonic() + CLEANUP_SECONDS
-            print("::error::Watchdog: " + reason, flush=True)
+            messages.append("::error::Watchdog: " + reason)
             if ready:
                 try:
                     if not diagnostic:
@@ -250,40 +327,40 @@ def supervise(limit, log_dir, command):
                         pass
                     time.sleep(min(POLL, max(0, end - time.monotonic())))
                 if not verified:
-                    print("::error::Watchdog: scope cleanup could not be verified", flush=True)
+                    messages.append("::error::Watchdog: scope cleanup could not be verified")
                     if result != 124 and not cancelled[0]:
                         result = 125
             else:
                 # The anchor cannot launch a command before READY + our G reply.
                 os.kill(anchor, signal.SIGKILL)
-            try:
-                (log_dir / "hung-processes.txt").write_text(
-                    "Owned scope %d; %s\npid pgid state\n%s" % (anchor, reason, diagnostic),
-                    encoding="utf-8")
-            except OSError as exc:
-                print("::error::Watchdog: cannot write diagnostic log: %s" % exc, flush=True)
+            report = "Owned scope %d; %s\npid pgid state\n%s" % (anchor, reason, diagnostic)
         parent.close()
         if not reap_anchor(anchor):
-            print("::error::Watchdog: anchor did not exit within the reap budget", flush=True)
+            messages.append("::error::Watchdog: anchor did not exit within the reap budget")
             result = 125
+    # Inherited output pipes and even regular log-file I/O can block. Finish all
+    # scope signals/verification/reaping before starting a disposable reporter.
+    emit_diagnostics(messages, log_dir, report)
     return 128 + cancelled[0] if cancelled[0] else result
 
 
 def main(argv):
+    # SIGCHLD=SIG_IGN survives exec and would automatically reap our children,
+    # invalidating the pinned-PID guarantee for both the anchor and reporter.
+    signal.signal(signal.SIGCHLD, signal.SIG_DFL)
     if len(argv) < 4:
-        print("Usage: run-with-watchdog.sh SECONDS LOG_DIR COMMAND [ARGS...]", file=sys.stderr)
+        emit_diagnostics(["Usage: run-with-watchdog.sh SECONDS LOG_DIR COMMAND [ARGS...]"], output_fd=2)
         return 2
     try:
         limit = float(argv[1])
         if not math.isfinite(limit) or limit <= 0:
             raise ValueError("SECONDS must be positive and finite")
         log_dir = Path(argv[2])
-        log_dir.mkdir(parents=True, exist_ok=True)
     except (OSError, ValueError) as exc:
-        print("Watchdog: %s" % exc, file=sys.stderr)
+        emit_diagnostics(["Watchdog: %s" % exc], output_fd=2)
         return 2
     return supervise(limit, log_dir, argv[3:])
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    os._exit(main(sys.argv))
