@@ -94,7 +94,7 @@ podle případu: jiný stroj v LAN (NET-01), tvoje relace na `127.0.0.1` (NET-02
   - `datagram` pro každý UDP datagram.
 - **Zastavení** (`SIGINT`/`SIGTERM`) dočte, co už jádro přijalo, uzavře všechny toky a zapíše `stopped`.
   Spojení, která jádro dokončilo, ale ještě nebyla přijata, se také zaznamenají.
-- **Log a raw adresář** musí být nové (adresář smí být prázdný). Jeden log tak vždy popisuje právě jeden běh.
+- **Log a raw adresář** musí být nové (adresář smí být prázdný); log leží mimo raw adresář. Jeden log tak vždy popisuje právě jeden běh; pravidla cest a chyb jsou níže.
 - **Surová data** každého toku jdou do `DIR/<tok>-<tcp|udp>-<port>.bin`, nejvýš 1 MiB na tok. Počty bajtů
   a hledání kanárků pokrývají i zbytek.
 - **Kanárky** se hledají v syrové podobě i jako hex. Registrované se hlásí tokenem, jakýkoli jiný prefixem
@@ -134,6 +134,26 @@ Co protistrana nevidí, a čím to doplnit:
 - TLS neterminuje. U šifrovaného provozu dokládá bajty a kontakt, kanárka jen v nešifrovaných datech.
 - DNS přes TCP a mDNS (multicast) neparsuje; syrový obsah se prohledává.
 - U UDP zapisuje jako `local` adresu listeneru, ne cílovou adresu datagramu.
+
+### Vlastnictví výstupů protistrany
+
+`listen` drží deskriptor nového logu a ověřeného raw adresáře po celý běh; raw soubory vytváří
+relativně k tomuto deskriptoru a také je drží otevřené. Přejmenování logu, raw adresáře nebo jejich
+předka proto nepřesměruje další zápisy: pokračují do původních objektů. Nové soubory mají `0600`,
+nové adresáře `0700` (umask je může dále omezit); existující objekty se nepřepisují ani nemažou.
+
+Komponenty cesty nesmějí být symlinky, kromě přesných systémových root-owned aliasů `/tmp` →
+`/private/tmp` a `/var` → `/private/var`. Otevřené adresáře musí patřit volajícímu nebo rootovi a nesmějí
+být zapisovatelné skupinou/ostatními; výjimkou u předků je root-owned sticky adresář jako `/private/tmp`.
+Samotný raw adresář musí patřit volajícímu a nesmí mít zápis pro skupinu/ostatní. Před zápisem se kontroluje
+běžný typ souboru, vlastník, práva a jediný hardlink; zachycený konflikt či chyba zápisu ukončí proces bez
+`stopped`. Krátké zápisy a `EINTR` se dořeší na stejném deskriptoru. Selhání startu ponechá již vytvořené
+prázdné výstupy, aby úklid nesmazal mezitím vyměněnou cestu; pro opakování použij nové cesty.
+
+To není neměnnost důkazu vůči procesu se stejným UID, atomická kontrola metadat a zápisu ani záruka
+odolnosti proti výpadku napájení (`fsync` se neprovádí). Cizí změny obsahu stejného inode, práv nebo
+hardlinků souběžně s kontrolou takto nelze vyloučit. [Validace opravy WP0.4](VALIDATION-COUNTERPART-OUTPUT.md)
+obsahuje regresní testy a přesnou testovanou revizi; brány ani historické důkazy nemění.
 
 ## Návratové kódy
 
