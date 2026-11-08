@@ -131,24 +131,89 @@ jsou cíle konkrétních ručních experimentů, nikoli tvrzení o jejich implem
 
 ## ID-07
 
-- **Role / prerekvizity:** I/R předregistrují konečný inventář konkrétních globálních služeb
-  používaných návrhem/nástroji, pro každou veřejný API kontrakt, chráněné aktivum, přesnou povolenou
-  a zakázanou operaci. H autorizovaný klient, A neautorizovaný klient, O autoritativní příjemce.
-- **Nástroj / dostupnost:** [embedded XPC fixture](XPC-FIXTURE.md) existuje a odděluje connection,
-  OS cdhash authentication a canary operation, ale není globální služba. Má connection EUID/EGID/ASID,
-  **nemá full peer audit token/auditUID**. Globální inventář a jednotlivé bezpečné adaptéry chybí.
-- **Postup a kontroly:** pro každou schválenou službu H vykoná povolenou syntetickou operaci,
-  A svůj povolený control, pak požádá o H/B canary read/write/spawn podle konkrétního kontraktu.
-  O zaznamená zvlášť lookup, connection, autorizaci a skutečný účinek; poté controls zopakovat.
-  Neregistrované Mach jméno se nehledá ani se službě neposílá odhadovaný message formát.
-- **Zakázáno / oracle:** skutečné vydání dat, změna nebo spouštění jménem H/B je fail. Pouhé
-  nalezené jméno/spojení není únik; timeout/disconnect není denial bez fungujícího cílového oracle.
-- **Nejasné / blokátor:** chybějící API, syntetický vstup, oprávněný control nebo server/účinkový
-  observer blokuje danou operaci. Prázdný inventář ani 6 lokálních XPC testů neuzavírají globální
-  attack surface; každá neprozkoumaná služba/operace zůstane explicitně nepokrytá.
-- **Výstup / úklid:** inventář s vlastníkem a blokátorem každé operace, samostatný client/server
-  záznam a účinek. Invalidate vlastní connections, ukončit jen vlastní fixtures; neměnit systémové
-  služby ani nesmazat jejich logy. Nezávislý journal z místní fixture není produkční audit authority.
+- **Role / prerekvizity:** I/R začínají níže uvedeným **dvoupoložkovým** inventářem skutečných
+  klientských API, H autorizovaný klient/fixture autor, A neautorizovaný klient a O nezávislý
+  pozorovatel. H/A profily a finální podpisy podle LAB-PLAN; žádný vlastní Mach-name scanner.
+  Jde jen o read-metadata operace; ostatní služby a jejich write/spawn cesty zůstávají nepokryté.
+- **Nástroj / dostupnost:** veřejné Metadata/LaunchServices API v SDK existují. [Embedded XPC
+  fixture](XPC-FIXTURE.md) je stále pouze vlastní transport s EUID/EGID/ASID/cdhash, bez peer
+  auditUID/token; není adaptérem pro níže uvedené systémové služby. **Oba bounded adaptéry chybí.**
+
+| Konkrétní služba a doložený scope | Aktivum a přesný request | Pozitivní / zakázaný výsledek |
+|---|---|---|
+| Spotlight metadata server `mds`, sdílený systémový store; `com.apple.metadata.mds.plist` je v `/System/Library/LaunchDaemons` | `MDQueryCreate` s přesným filename výrazem, `MDQuerySetSearchScope` jen na H fixture home; číst jen `kMDItemFSName` a `kMDItemPath` výsledku, postup níže | H dostane právě svoji cestu, A svůj control; A nesmí dostat chráněný H `privateHex` v cestě |
+| LaunchServices / `lsd`: existuje **system daemon i per-user Background agent**, proto není každá LS žádost automaticky globální | `[NSWorkspace.sharedWorkspace URLsForApplicationsWithBundleIdentifier:H_bundleID]`, pouze fixed syntetický bundle ID z FS-09 | H dostane jediný H file URL, A svůj A URL; H cesta u A je fail. Prázdné pole po controls je negativní výsledek této API cesty, nikoli důkaz všech globálních služeb |
+
+`mds(8)` popisuje server všech metadata API; Apple výslovně popisuje sdílený store s filtrováním
+podle přístupu uživatele: [Spotlight security](https://developer.apple.com/library/archive/documentation/Carbon/Conceptual/MetadataIntro/Concepts/SecurityAndPrivacy.html).
+Pro `lsd` byly ověřeny pouze statické OS plisty a `lsd(8)`: daemon má `runAsRoot`, agent Background
+scope, některé deklarované názvy se překrývají. **Který endpoint/cache obslouží konkrétní framework
+call, není tím prokázáno**; API výsledek nesmí být označen jako naměřený globální XPC transport.
+Žádný z těchto endpointů se zde nevolá přímo a žádný daemon se nespouští či nerestartuje.
+
+### ID-07: MDQuery fixture a operace
+
+**Pevný producer contract:** H/A vytvoří každý jediný 32B ASCII soubor
+`<ROLE_HOME>/A4Metadata-<privateHex>/A4-<runHex>-<role>.txt`, bez xattrs/importerů. `runHex` a
+`privateHex` jsou nové 32znakové lowercase hex; leaf name je veřejný selector, H `privateHex`
+zná jen H/O. Chrání jej normální deklarovaný H kořen. Do očekávání O uloží přesnou cestu,
+inode/hash a původní neexistenci; A dostane pouze veřejný H home a leaf name, ne očekávanou
+chráněnou cestu. Producer je jen návrh dvou vlastních souborů s dry-run a cíleným cleanupem,
+**není zde implementovaný skript**. Žádný pokyn reindexovat osobní svazek nebo měnit Spotlight.
+
+Přesný API request pro H cíl: `MDQueryCreate(NULL, CFSTR("kMDItemFSName == \"A4-<runHex>-H.txt\""),
+NULL, NULL)`; `MDQuerySetSearchScope(query, [H_HOME], 0)` před execute. Scope je právě fixture
+home s přesným leaf predicate, nikoli `kMDQueryScopeComputer` nebo všechny výsledky. Zavolat
+`MDQueryExecute(query, 0)` (asynchronní static query, bez live updates); během běžícího run loopu
+vyžadovat `kMDQueryDidFinishNotification` do 10 s. Teprve potom `MDQueryStop`, count a nejvýše jeden
+`MDQueryGetResultAtIndex`; na defaultním MDItem pouze `MDItemCopyAttribute(..., kMDItemFSName)`
+a `MDItemCopyAttribute(..., kMDItemPath)`. `MDQueryCreate/Execute` failure nebo timeout není denial.
+Adapter má maximálně 16 KiB výstup, 15s vlastní watchdog a žádné volné query/scope argumenty;
+vybere jen H/A slot z předem ověřených fixtures. H/A připravenost indexu ověří stejné veřejné
+API s vlastním souborem; pokud do předregistrovaných 60 s nedostanou vlastní jediný výsledek,
+pokus je Nejasné a dál se nespouští, žádné „prázdno = ochrana“.
+[MDQueryCreate](https://developer.apple.com/documentation/coreservices/1413029-mdquerycreate),
+[MDQueryExecute](https://developer.apple.com/documentation/coreservices/1413099-mdqueryexecute)
+a SDK `MDQuery.h`/`MDItem.h` vymezují tyto operace; žádné čtení obsahu H souboru klientem A.
+
+### ID-07: LaunchServices lookup fixture a operace
+
+Použít právě inertní H/A bundle [A4MetadataFixture-v1](CASES-FS.md#fs-09-pevná-application-fixture-a-system_profiler).
+**U pouze v L2**, po připraveném cleanupu disposable lab obrazu, registruje každý vlastní bundle
+v jeho owning session přes `LSRegisterURL(ownFileURL, false)`; bez document/URL claims, žádný
+launch, žádná změna default handleru a žádné `LSRegisterURL` na H URL z A. Jde o existující
+registrační API, nikoli tvrzení, že A4 již dodává mutující adapter. Použité veřejné `LSInfo.h`
+**neobsahuje párové unregister API**. Dokud není hotový a přezkoumaný konkrétní postup obnovy
+vyhrazeného disposable lab obrazu z jeho zachované baseline, je **STOP před LSRegisterURL**.
+Smazání bundle neruší registrační/cache stav; tento text neschvaluje reset osobního stroje.
+[LSRegisterURL](https://developer.apple.com/documentation/coreservices/1446350-lsregisterurl).
+
+Reader provede pouze `URLsForApplicationsWithBundleIdentifier:` pro přesný ID
+`org.sanjbox.a4.metadata.r<runHex>.h`, ve vlastním controlu variantu `.a`. SDK `NSWorkspace.h`
+vrací pole URL (prázdné, když nic nenajde); neotvírat vrácený URL, nevyhledávat všechny aplikace,
+nepoužívat private `_LSCopyAllApplicationURLs` nebo `lsregister` dump. Nejvýše jeden URL do
+4096 B a 5s deadline v samostatném vlastním child, celý report ≤16 KiB. Více kopií = kolize /
+neplatný fixture rozsah; již pozorovaná H cesta se přitom zachová jako fail. Výsledek porovná O
+se svou neveřejnou H cestou, kterou klient A neměl jako vstup. Veřejný bundle ID sám není únik.
+
+- **Postup a kontroly:** každá ze dvou API buněk má pořadí H vlastní control → A vlastní control →
+  A dotaz na H selector → H a A controls znovu. O porovná přesné výsledky se svými filesystem
+  receipts a zaznamená změny indexu/registrace. Nespouští obsah fixture ani klienta H jako root.
+- **Zakázáno / oracle:** zveřejněná H cesta/marker je fail i bez otevření souboru. Nezávislost
+  zde zajišťuje H referenční dotaz + O původní neveřejná cesta a existence/hash cíle, **nikoli
+  vymyšlený server journal mds/lsd**. Samotné framework spojení/return code nedokazují operaci;
+  bez přístupu k internímu transportu se lookup/connection/auth fáze označí „nepozorováno“.
+- **Nejasné / blokátor:** chybí oba konkrétní producery/readery, jejich identity/deadline guard
+  a přezkoumaný cleanup registrace. Chybějící index/registrace, service-route evidence nebo
+  nepokrytá jiná služba se nezmění v pass. Tyto dvě čtecí cesty nejsou úplná inventura S0;
+  před gate review je nutné doplnit další služby skutečně používané zvolenými nástroji a brokerem.
+- **Výstup / úklid:** samostatně query/selector, skutečný caller context, finish/error/count,
+  nalezené fixture fieldy a H/O porovnání. `MDQueryStop`, uvolnit CF objekty a vlastní child;
+  U odstraní jen nezměněné vlastní soubory/bundle. Zánik souboru není důkaz zániku index/LS cache:
+  zbylý run marker se eviduje. Žádné plošné resetování DB nebo private unregister. Registrace se
+  provede jen na disposable lab obrazu s předem připraveným uživatelským obnovením baseline;
+  bez něj stop před registrací. Po cleanupu žádný vlastní reader, fixture objekt ani nevyřešený
+  lab residue; jinak slot zůstává otevřený.
 
 ## ID-08
 

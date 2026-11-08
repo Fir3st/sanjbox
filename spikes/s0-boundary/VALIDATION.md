@@ -320,3 +320,22 @@ macOS 27.2 / 26B123, arm64. Žádný L2, TCC/capture/attach, změna účtů, pod
 Keychain, systémových nastavení, mountů nebo registrací. Příprava scénářů nedokazuje jejich
 spustitelnost ani izolaci; chybějící komponenty zůstávají stop podmínky, FS-04/08/LC-11 patří
 k S4/S8/F2. Žádný nový offline evidence balík; stávající CI pokrývá použité testové sady.
+
+
+## Review oprava FS-09 / ID-07 (2026-11-08)
+
+Dvě P2 nad `dcd8282e57a85ace64de4b1521c7ec10edf6c70f`: neurčené metadata fixtures a prázdná
+service inventura. FS-09 nyní fixuje všech sedm zdrojů/selektorů/polí, včetně inertního app bundle
+a vlastní USB descriptor fixture; široké system_profiler/netstat CLI zůstávají STOP. ID-07 má
+konkrétní MDQuery a NSWorkspace lookup, rozlišuje system/per-user scope i neprokázanou runtime trasu.
+LS registrace čeká na konkrétní cleanup disposable lab baseline; smazání app není unregister.
+
+Targeted audit opravných dokumentů: **31/31** ID + index, **62** lokálních odkazů/anchorů,
+Markdown tabulky, **33** SDK deklarací/konstant a **4** statické Apple plisty. Primární opory:
+aktivní SDK `MDQuery.h`, `MDItem.h`, `NSWorkspace.h`, `LSInfo.h`, `IOKitLib.h`, `IOKitKeys.h`,
+`IOUSBHostFamilyDefinitions.h`, `DirServicesConst.h`, `os/log.h`; instalované man stránky
+system_profiler/ioreg/mds/lsd/netstat/log/dscl/ps/mdfind a připojené Apple API odkazy v kartách.
+Kontrolována jen dokumentace/hlavičky a statické deklarace, žádné cílové API, systémový report,
+registrace nebo příprava fixture se nespouštěly. Všech 68 sealed souborů, starý text VALIDATION
+a root COVERAGE zůstaly beze změn; `git diff --check` prošel. Kód se nezměnil, 12 + 63 testů
+z předchozí poznámky se bez nového důvodu neopakovalo; žádný nový build či evidence balík.

@@ -159,21 +159,25 @@ ruční krok se zastaví a potřebuje úzký fixture adapter; nevymění se za o
 - **Role / prerekvizity:** H vytváří syntetické metadata, A je čte běžným rozhraním, O zná přesný
   neveřejný marker každé buňky. H/A podpis a kontext podle společného předpisu. Předem rozlišit
   veřejná systémová metadata od konkrétního chráněného pole; nulový exit utility není fail.
-- **Nástroje / přesné buňky:** následující selektory jsou existující rozhraní, **ne hotový A4 adapter**.
+- **Nástroje / přesné buňky:** následující nástroje/API existují, ale jejich skutečný scope se liší;
+  tabulka není hotový A4 adapter ani příslib neexistujícího per-fixture filtru.
 
 | Povrch | Vlastní fixture a omezený dotaz | Pozitivní kontrola / mezera |
 |---|---|---|
-| `ps` | H kontrolovaný dlouhožijící proces s markerem v argumentu; `ps -p` pouze jeho předem známé instance, `-o args=` | H vidí marker, A stejným dotazem svůj proces; PID/start kontrola před/po nutná, PID reuse = stop. Žádný `ps aux` |
-| `mdfind` | Syntetický indexovaný soubor; `-onlyin` pouze jeho fixture kořen, přesná `kMDItemFSName` query | H a A musí nejprve nalézt své vlastní indexované canary; nehotový index není denial |
-| `log show` | Vlastní emitter s subsystem `org.sanjbox.a4.metadata`, category `fixture` a run markerem | Přesný `--predicate`, `--start`/`--end`, `--style json`; H a A emitter control. Emitter a bounded sběr zde chybí, žádný obecný dump logů |
-| `netstat` | H vlastní listener na přiděleném testovacím portu; chráněné pole = předem určený endpoint marker | H i A musí vidět svůj listener. `netstat` nemá zde dodaný bezpečný per-fixture adapter; celkový socket dump není náhrada, tato buňka čeká na omezený sběr v čistém labu |
-| `system_profiler` | Předregistrovaný syntetický objekt a jediné chráněné pole konkrétního data type | Objekt/pole a bezpečný selektor dosud neurčené; nezískávat serial/uživatelský inventář jako náhradní kanárek. Samostatný blokátor |
-| `ioreg` | Vlastní testovací zařízení/service a syntetická property | Přesná class/name/property, pozitivní čtení stejného objektu H. Fixture a adapter chybí; neprocházet celý IORegistry |
-| `dscl` | Pouze U vytvořený vyhrazený testovací record s neautentizačním markerem | Pevná node/record/attribute varianta `-read`; H čte vlastní marker, A kontrolní record. Žádné password/hash/authentication položky ani obecný seznam účtů; fixture změna čeká na U |
+| `ps` | Vlastní `A4ArgFixture` s jediným argumentem `SANJBOX-A4-PS-<privateHex>-<role>`; `/bin/ps -p <registeredPID> -o args=` | H/A vidí vlastní marker před/po; A nesmí vidět H argument. PID/start kontrola před/po, žádný `ps aux`; fixed fixture/collector chybí |
+| `mdfind` | Soubor/cesta z [ID-07 MDQuery](CASES-ID.md#id-07-mdquery-fixture-a-operace); `/usr/bin/mdfind -onlyin <H_HOME> 'kMDItemFSName == "A4-<runHex>-H.txt"'` | H/A vidí vlastní cestu před/po, A nesmí dostat H `privateHex`; nehotový index není denial. Stejná fixture, odlišná CLI buňka |
+| `log show` | Fixed `A4LogFixture-v1`: subsystem `org.sanjbox.a4.metadata`, category `r<runHex>.<h-or-a>`, jediné syntetické `eventMessage`; přesný request níže | H/A musí vidět vlastní zprávu před/po; A nesmí dostat H message marker. Emitter a bounded sběr chybí, žádný obecný dump logů |
+| `netstat` | Fixed `A4SocketMetadata-v1`: jediný TCP listener `127.0.0.1:0`, `getsockname` určí H port; chráněné pole je H listening endpoint | H/A controls mají vrátit vlastní endpoint, A nesmí vidět H endpoint. CLI nemá per-endpoint filtr; široký report zakázán, konkrétní request a stop níže |
+| `system_profiler` | `SPApplicationsDataType`; inertní `A4MetadataFixture.app`, chráněné pole = absolutní cesta H bundle s neveřejným `pathHex`; přesný kontrakt níže | H i A musí najít vlastní bundle před/po. CLI nemá bundle/path filtr: široký report zakázán, přesný experiment zůstává blokovaný chybějící selektivní cestou |
+| `ioreg` | Jen vlastní USB descriptor fixture `A4USBMetadata-v1`, class `IOUSBHostDevice`, veřejný product alias a chráněný syntetický `kUSBHostDevicePropertyVendorString`; přesný kontrakt níže | H control stejného object ID před/po, A control druhé vlastní fixture. Chybí periferie/descriptor producer i bounded adapter; žádný registry dump, driver install nebo osobní serial |
+| `dscl` | Pouze U vytvořené dvě prázdné fixture groups v `/Local/Default`, record `/Groups/a4meta_<run12>_<h-or-a>`, jediné čtené pole `RealName`; přesný request níže | H/A vidí vlastní syntetický RealName před/po, A nesmí vidět H marker. Žádné členství ani auth položky; producer/collector chybí |
 
 - **Postup a kontroly:** každou připravenou buňku provést H control → A own control → A dotaz na
   H syntetické pole → obě controls. Zapsat přesný dotaz/čas/instance, aby ztracený proces/index/log
-  nebyl mylně vyhodnocen jako ochrana. Není dovoleno začít širokým sběrem a teprve pak redigovat.
+  nebyl mylně vyhodnocen jako ochrana. Není dovoleno sbírat osobní inventář a teprve pak jej
+  redigovat. `netstat` a `system_profiler` bez selektivního přístupu nesmějí začít širokým
+  sběrem ani na tomto hostu, ani jako automatický krok L2; jejich cíle/oracles jsou pevně dané,
+  ale současný CLI request není bezpečně spustitelný. Následný grep/JSON filtr zákaz neřeší.
 - **Zakázáno / oracle:** marker H u A je fail; O nezávisle potvrzuje zdrojový marker a životnost
   fixture. Neschopnost spustit utilitu nebo dostupnost pouze jiných veřejných polí nic nedokazuje.
 - **Nejasné / blokátor:** všech sedm buněk se hodnotí zvlášť; chybějící syntetický zdroj/selector
@@ -181,3 +185,148 @@ ruční krok se zastaví a potřebuje úzký fixture adapter; nevymění se za o
 - **Výstup / úklid:** dotaz, očekávané pole, před/po reference, redigovaný bounded výsledek a chyby
   pro každou buňku. U ukončí jen vlastní emitter/listener a odstraní vlastní record/fixture;
   nemaže systémový index ani log history kvůli úklidu markeru.
+
+
+### FS-09: pevné process, log, socket a directory fixtures
+
+`runHex/privateHex` jsou nové 32znakové lowercase hex, `run12` prvních 12 znaků runHex po ověření,
+že oba konkrétní DS recordy neexistují. Veřejný selector nikdy neobsahuje chráněný H `privateHex`.
+Každý níže uvedený producer je **pevný návrh, ne implementovaný nástroj**; nejprve potřebuje
+review, self identity/signature, default dry-run a cílený cleanup. Read controls mají vždy stejné
+API/CLI před/po jako negativní pokus, nikoli pouze filesystem kontrolu namísto testované služby.
+
+- **Process:** `A4ArgFixture` je vlastní inertní podepsaný executable, který přijme jen svůj
+  syntetický argv marker, čeká nejvýše 120 s a skončí; žádný shell nebo další command. O registruje
+  jeho PID/start/UID a jediný argv marker. `ps -p <registeredPID> -o args=` s limitem 4096 B / 2 s
+  se smí použít jen na tuto stále živou instanci. H marker v A výstupu = fail; zánik/reuse = Nejasné.
+  Cleanup přes vlastněný child handle + reap, nikoli kill podle čísla z CLI vstupu.
+- **Log:** `A4LogFixture-v1` emitne právě jednu zprávu přes `os_log_create("org.sanjbox.a4.metadata",
+  "r<runHex>.<h-or-a>")` a `os_log_with_type(..., OS_LOG_TYPE_DEFAULT, "%{public}s", marker)`;
+  marker = `SANJBOX-A4-LOG-<privateHex>-<role>`. `public` vypíná redakci **syntetického** canary,
+  není změna bezpečnostního požadavku. O zapíše emitter exit a UTC okno `T0/T1` max 10 s před
+  dotazem. Přesný request: `/usr/bin/log show --style json --start <T0> --end <T1> --predicate
+  'subsystem == "org.sanjbox.a4.metadata" AND category == "r<runHex>.h"'`; control A mění jen `.a`.
+  Limit stdout 16 KiB, stderr 4 KiB, deadline 5 s, maximálně jedna canary zpráva. Zakázané pole je
+  H text zprávy (`eventMessage`), nikoli předaný category selector. H/A vlastní zpráva musí být
+  přítomná v před/po query; nezapsaná/pozdní zpráva, redakce nebo nefunkční logger = Nejasné.
+  O srovná vlastní emitter marker/čas s výsledkem. Cleanup ukončí vlastní emitters; jejich
+  syntetické log záznamy zůstanou jako známý residue až do obnovy lab baseline, bez `log erase`.
+- **Socket:** `A4SocketMetadata-v1` má pouze `socket(AF_INET, SOCK_STREAM, 0)`, bind na `127.0.0.1:0`,
+  `listen(..., 1)` a `getsockname`; žádné accept payloady, další sockets nebo remote peer.
+  H/A producer každý drží jeden vlastní FD nejvýše 120 s. O zná jejich přesný local endpoint a
+  otevřený FD/process receipt. Požadavek by byl `/usr/sbin/netstat -an -p tcp`, očekávané
+  pole H = numeric local endpoint `127.0.0.1:<H-port>` ve stavu LISTEN. **Tento CLI request se
+  nespouští:** `netstat(1)` nemá per-PID/per-endpoint selector; post-filter by už četl cizí tabulku.
+  Bounded stdout není privacy filtr. Pevný oracle je H/A endpoint v pozitivním výpisu před/po,
+  absence H endpointu u A; s dnešními nástroji tuto kontrolu bezpečně nevykonáme. `getsockname`
+  jen potvrzuje zdroj, nenahrazuje netstat test. Stop je chybějící selektivní cesta, ne volba
+  budoucího portu/operace; nic se neoznačí Prošlo. Cleanup zavře pouze vlastní listen FD a reaps producer.
+- **Directory:** `A4DirectoryMetadata-v1` používá dvě nové prázdné **group records**, žádné osobní
+  účty: `/Local/Default` + `/Groups/a4meta_<run12>_h` a `_a`. U vyhradí dvě nepoužitá laboratorní
+  GID a zapíše původní neexistenci; `GroupMembership`, `GroupMembers` a `NestedGroups` jsou
+  prázdné/absent, žádný principal do skupin nevstoupí.
+  `RealName=SANJBOX-A4-DS-<privateHex>-<H-or-A>` je jediné chráněné testované pole. Přesný read je
+  `/usr/bin/dscl /Local/Default -read /Groups/a4meta_<run12>_h RealName`; control mění jen `_a`.
+  Žádné `-list`, `-readall`, auth/password atributy nebo jiný node. H/A výstup obsahuje přesný
+  vlastní `RealName:` marker; H marker u A = fail. O má vlastní producer receipt a stejné H read
+  před/po, limit stdout/stderr 4096 B, 5s deadline. Chybějící record/attribute není denial.
+  U vytvoření/odstranění dělá jen po konkrétním dry-runu; při úklidu porovná oba vlastní recordy
+  včetně GID a prázdného členství, odstraní pouze nezměněné vlastní recordy, konflikt zachová.
+  Aktuální balík tento directory writer ani jeho rollback **nemá**, žádný DS zápis se zde neprovádí.
+
+
+### FS-09: pevná application fixture a system_profiler
+
+**Producer contract `A4MetadataFixture-v1` (návrh, producer chybí):** U/I v čistých testovacích
+H/A home vytvoří právě dva inertní bundle, žádný dokument/URL handler, plugin, login item ani
+vnější závislost. `runHex` je nových 32 malých hex znaků, `role` = `H` nebo `A`. Každý vlastník
+má vlastní náhodný `pathHex` (32 hex), který O uloží do očekávání; H hodnotu A klient nedostane.
+Přesná cesta je `<ROLE_HOME>/Applications/A4-<runHex>-<role>-<pathHex>.app`, rodiče chrání běžná
+zvolená S4 politika, nikoli zvláštní právo jen na canary. Přesné soubory:
+
+- `Contents/Info.plist`: `CFBundleIdentifier=org.sanjbox.a4.metadata.r<runHex>.<h-or-a>`,
+  `CFBundleName=SANJBOX-A4-<runHex>-<role>`, `CFBundleDisplayName` stejný, `CFBundlePackageType=APPL`,
+  `CFBundleExecutable=A4MetadataFixture`, `CFBundleVersion=1`, `CFBundleShortVersionString=1.0.0`.
+- `Contents/MacOS/A4MetadataFixture`: vlastní minimální executable, který pouze vrací 0; finální
+  runtime podpis bez entitlements. Při tomto experimentu se **nespouští**. Producer má mít dry-run,
+  inventář původní neexistence / finálních inode a hashů a odstranění pouze nezměněných vlastních
+  souborů včetně code seal. Neexistuje zde implementovaný CLI příkaz s tímto názvem.
+
+**Přesný požadavek, nyní STOP:** `/usr/sbin/system_profiler -json -timeout 30 SPApplicationsDataType`.
+`system_profiler(8)` definuje výběr data type, JSON a timeout, **žádný filtr cesty/bundle ID**.
+Statický Apple `SPApplicationsReporter.spreporter/Contents/Info.plist` na 27.2/26B123 uvádí
+`SPDataType=SPApplicationsDataType`; jeho přítomnost není výsledek reportu. Příkaz by četl celou
+applications kategorii. **Nespouštět široký report a teprve pak grep/JSON filtr, ani zaměnit
+bounded stdout za selektor.** Čistý lab obraz je nutný pro fixtures, sám však nevytváří chybějící
+per-fixture filtr tohoto CLI. Současné nástroje proto tuto podbuňku bezpečně nespustí.
+
+Objekt, request a oracle jsou pevně definované; chybí přezkoumaná selektivní cesta nebo samostatně
+schválený budoucí lab rozsah, který by explicitně dovolil celou předem známou syntetickou kategorii.
+Tento runbook takový rozsah nerozšiřuje. Žádný zdejší wrapper/scratch nevyřeší privacy vlastnost
+samotným odfiltrováním přijatých dat. Při případném budoucím vyřešení scope zůstávají limity stdout
+2 MiB, stderr 64 KiB a vnější 35s deadline/reap pouze vlastního child; jiné data types nepovolené.
+
+O pro daný bundle kontroluje vrácené jméno a **absolutní cestu** v JSON reportu, jejíž součástí je
+neznámý H `pathHex`; neodvozuje nález z textu požadavku. Pokud OS v reportu cestu nevydává, pozitivní
+control nesplnil kontrakt a tato varianta se neprovedla — nezaměnit za test názvu/jiné pole.
+
+H report před/po musí obsahovat přesnou H cestu, A report před/po vlastní A cestu. Zakázaný A
+report nesmí obsahovat H cestu/`pathHex`; takový výsledek je fail, i když soubor A neotevře.
+Nepřítomný H bundle je negativní výsledek jen při úplném reportu a obou controls. Partial report,
+truncation, timeout, chybějící reporter, změna objektu nebo nehotový index = Nejasné; známý únik
+se zachová i při truncation. O porovná report s vlastním filesystem receipt, nikoli s tvrzením A.
+
+**Cleanup:** U odstraní pouze oba ověřené vlastní bundle; nečistí Spotlight/LaunchServices DB,
+nespouští jejich reset ani aplikace. Pokud jejich metadata zůstala v cache, zaznamená residue
+při novém dotazu na toto jediné run ID. Čistý lab obraz se uvolní až po uživatelském obnovení
+předem zajištěné baseline podle laboratorního cleanup plánu; bez tohoto plánu se fixture nevytváří.
+Chybí producer, bezpečně vymezený sběr a připravený čistý lab/cleanup, nikoli specifikace objektu a pokusu.
+
+### FS-09: pevná USB metadata fixture a IORegistry
+
+**Producer contract `A4USBMetadata-v1` (návrh, periferie/producer chybí):** dvě vlastní kontrolované
+USB testovací periferie, role H/A, s descriptor firmware připnutým hashem a se známými oprávněně
+použitými VID/PID dané testovací desky. Device descriptor: `iManufacturer=1`, `iProduct=2`,
+`iSerialNumber=0`; index 1 má pouze `SANJBOX-A4-<privateHex>-<role>` (32 hex marker), index 2 veřejný
+alias `SANJBOX-A4-USB-<runHex>-<role>`. Bez serialu; jen inertní vendor-specific interface, žádné
+HID, storage nebo network funkce. Descriptor dodává **vlastní periferie**, žádný program nevytváří
+privilegovaný IORegistry objekt, neinstaluje kext/DriverKit driver a neotvírá device user client.
+U připojení/odpojení provede pouze v L2; pokud deska tento descriptor kontrakt neumí, je stop.
+
+Chráněné syntetické pole je manufacturer marker H; product alias, VID/PID a entry ID jsou veřejné
+selektory. Politika měření předem chrání H marker jako syntetická host data; čitelnost veřejného
+aliasu sama není fail. Běžná viditelnost výrobních hardware metadat se nevydává za tajemství.
+
+**Přesný selection/read contract:** O použije `IOServiceMatching("IOUSBHostDevice")` s jediným
+`kIOPropertyMatchKey` dictionary `{kUSBHostDevicePropertyProductString: <public-alias>}`; matching
+musí vrátit právě jeden objekt. Žádné čtení všech USB položek. O zaznamená `IORegistryEntryGetRegistryEntryID`
+a zvlášť name/location přes `IORegistryEntryGetNameInPlane` / `IORegistryEntryGetLocationInPlane`
+v `kIOServicePlane`; pro CLI úplné `name@location` (nebo samotné name při doloženě chybějící
+location). Neúspěšné rozlišení je stop CLI větve. H i A klient hledají **tentýž registrovaný entry ID**
+přes `IORegistryEntryIDMatching` / `IOServiceGetMatchingService` a čtou pouze
+`IORegistryEntryCreateCFProperty(entry, CFSTR(kUSBHostDevicePropertyVendorString), allocator, 0)`.
+SDK `IOUSBHostFamilyDefinitions.h` definuje vendor key jako `"kUSBVendorString"`, product key jako
+`"kUSBProductString"`; nezaměnit je za starší legacy klíče. Maximálně jeden CFString do 128 ASCII
+bajtů, žádné `CreateCFProperties` nebo recursive search, žádný `kUSBSerialNumberString`.
+[Apple popis single-property API](https://developer.apple.com/documentation/iokit/1514293-ioregistryentrycreatecfproperty/).
+
+Doslovná **CLI podbuňka** je `/usr/sbin/ioreg -p IOService -r -d 1 -n <celé-vlastní-jméno>` pouze
+po ověření jedinečného jména výše, se stejnou známou periferií a bounded stdout 64 KiB / deadline
+5 s. `ioreg(8)` říká, že `-d 1` ukáže jen matched root a `-n` vybere celé jméno včetně location;
+`-k` by **nefiltrovalo výstup na jedinou property**, proto se jako privacy filtr nepoužívá.
+CLI zobrazí properties tohoto jednoho vlastního objektu; firmware nesmí obsahovat osobní serial
+ani jiná soukromá data. Nevyhovující/nejedinečné jméno = stop CLI podbuňky, žádný fallback dump.
+Úspěch přímého API se nevydává za vykonání CLI.
+
+**Controls/oracle:** H přečte H marker a A svůj A marker před/po přes každou testovanou cestu;
+A mezi nimi žádá H entry ID/jméno. O má nezávislý hash descriptorů, H read a nepřerušenou fyzickou
+přítomnost. H manufacturer marker u A = fail této buňky. Null/error při živém H controlu je jen
+negativní výsledek této cesty; unplug, změna entry ID po reconnect/reboot, chybějící property nebo
+nefungující A control = Nejasné. Entry ID platí jen pro tutéž instanci v daném bootu; po
+reconnect/reboot zastavit běh a udělat nový O preflight, staré ID nikdy nerebindovat a nepřejít
+na class-wide enumeraci. Odlišný formát property se nenahradí čtením jiné/serial property.
+
+**Cleanup:** CF hodnoty a IO objekty uvolnit (`CFRelease`, `IOObjectRelease`), reaps pouze vlastní
+CLI child; U fyzicky odpojí obě testovací periferie. O potvrdí zánik přesných původních entry IDs,
+nevyhledává jiné přístroje. Firmware zůstane syntetický; žádný reset USB busu ani editace registru.
+Bez doloženého descriptor produceru, vlastní periferie a bounded adapteru se buňka nespouští.
