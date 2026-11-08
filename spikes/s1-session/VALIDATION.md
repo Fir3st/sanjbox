@@ -373,3 +373,30 @@ velké vlastní native-build/cache z předchozího scratch byly pro build znovu 
 validovaný zdrojový commit a hash finální podepsané binárky. Při zabalení publikace do jiné větve rozhoduje
 shoda uvedených source/test bytů; nový veřejný commit není vydáván za revizi původního měření. Kód i data
 stále neposkytují autentizaci historické identity/provenance, úplnou acquisition ani S1/P4 verdict.
+
+## 2026-11-08 — dynamický sběr potomků test rootu (offline příprava)
+
+Zdroj **`e5e1b203239b0ae4f4c7e6bc0b559aab770b0097`** přidává samostatný
+[descendant-memory](DESCENDANT-MEMORY.md): skutečné `proc_listchildpids` pouze nad registrovaným
+same-UID rootem a ověřenými potomky, kontrolu celé ancestry před/po čtení, footprint/resident a
+explicitní chyby, exit/reparent/PID reuse, limity a mezery. Pevný registr/journal i staré výsledky beze změny.
+
+Na aktuálním Macu: explicitní native SwiftPM Debug **91/91**, Release **91/91** (17 nových syntetických
+případů); po ad-hoc hardened podpisu bez entitlements skutečné CLI **9/9 v každé konfiguraci** a původní
+CLI regrese **30/30**. Normální acquisition CLI v obou bězích samo objevilo root → pozdní dítě → vnuka:
+3 instance, 11 ticks, 29 observations; známé dotčené alokace 4/8/12 MiB, raw/report jednotky a exity
+ověřeny proti fixture truth čtené až po skončení collectoru. Úklid vlastních potomků ověřen. Exit 3 a
+`unreadableBefore` po ukončení dětí jsou očekávané neúplné pozorování, nikoli nulová RAM nebo S1 pass.
+
+První preflight byl správně odmítnut bez target reads: nezávisle připravené očekávání použilo 17 skupin
+z Python/Darwin EXT API; samostatná kontrola native `getgroups` potvrdila 16 skupin. Nové předregistrované
+V2 očekávání má SHA-256 `3c2abcaf1af3119cb3b37e77cbc8464ec4a5c5dcb6a13ac5af263294d35622c3`;
+gate ani společný identity kód se neoslabily. Před finálním zdrojem byla opravena i reportová konverze
+UInt64→Double; nové oracles porovnávají report přímo s raw byty. Dřívější pokusy zůstaly zachované.
+
+Malé logy, podepsané binárky, souhrn a původní pokusy:
+`/private/tmp/sanjbox-a2-descendants-20261108-5bwaXeVW` (`validation-summary.json`, `bin/`,
+`debug-07.log`, `release-03.log`, `native-debug-03/`, `native-release-02/`, `legacy-cli-release-02/`).
+Přesné nové datasety jsou v jejich `datasets.json`; vlastní build/cache (~340 MiB) byly po ověření
+zdroje a logů odstraněny. Polling nezaručuje zachycení krátkých procesů; žádné whole-UID, cross-UID,
+WindowServer, session, L1, P4 ani S1 tvrzení. Systémové ΔM se s footprint/RSS nesčítá.
