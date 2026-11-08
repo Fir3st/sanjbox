@@ -107,6 +107,15 @@ spuštění UI, registraci, attach, TCC ani přechod na L2.
 
 ## 4. Úklid a konflikty
 
+`handoff`, `record-signed` a `cleanup` drží od doby před první inventurou až do dokončení operace
+výhradní neblokující `flock` na otevřeném directory fd konkrétního root inode. Souběžný příkaz skončí
+s `signing root busy` ještě před inventurou; po skončení prvního příkazu jej lze znovu spustit a
+ověří aktuální stav pod novým zámkem. Totéž platí pro dry-run, který nevytváří žádný lockfile ani
+nemění inventuru. `prepare --apply` zamkne svůj nově vytvořený root před kopírováním a drží jej až
+po zápis prepared inventury. Pád procesu uvolní zámek, ale neudělá z částečné přípravy platný artefakt.
+Jde o serializaci spolupracujících příkazů tohoto nástroje; ruční podpis ani cizí změny tento advisory
+zámek neomezí. Uživatel proto dokončí své podpisové příkazy před `record-signed`.
+
 **Pouze před `handoff --apply`:**
 
 ```sh

@@ -2,6 +2,7 @@
 """Offline copy/signing handoff. Never selects an identity or executes a signing command."""
 import argparse
 import contextlib
+import fcntl
 import hashlib
 import importlib.util
 import io
@@ -136,6 +137,19 @@ def linked_root(root, fd):
     f.no_acl(fd)
 
 
+def lock_root(fd):
+    """Serialize cooperating processes on this directory inode, including dry-runs.
+
+    No lockfile is created or adopted. The caller retains this fd until its entire
+    operation completes; close also releases the lock on refusal or process exit.
+    This advisory lock does not constrain a user signing outside this tool.
+    """
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise f.Refused('signing root busy; another handoff operation holds its directory lock')
+
+
 def write_record(root, fd, name, value):
     linked_root(root, fd)
     data = json.dumps(value, sort_keys=True, indent=2).encode() + b'\n'
@@ -180,20 +194,22 @@ def prepare(source, destination, profile, fallback=False, apply=False):
         root.mkdir(mode=0o700)
         # On failure retain this exact root. Never bless a partial copy as a complete inventory.
         print('OWN_SIGNING_ROOT=' + str(root), file=sys.stderr, flush=True)
-        f.write_new(root/'provenance.json', json.dumps(provenance, sort_keys=True).encode())
-        for name, before in sorted(app_entries.items()):
-            if stat.S_ISDIR(before['mode']):
-                (root/name).mkdir(mode=stat.S_IMODE(before['mode']))
-            else:
-                data = read_bytes(source_fd, name)
-                f.require(hashlib.sha256(data).hexdigest() == before['sha256'], 'source changed before copy')
-                f.write_new(root/name, data, stat.S_IMODE(before['mode']))
-        f.write_new(root/'empty-entitlements.plist', plistlib.dumps({}))
-        f.require(f.inventory(source_fd) == manifest['entries'] and
-                  f.snapshot(source_fd, 'artifact-manifest.json') == manifest_info, 'source changed during copy')
-        adhoc_verify(root)
         fd = f.scoped_root(str(root), PREFIX)
         try:
+            lock_root(fd)
+            linked_root(root, fd)
+            f.write_new(root/'provenance.json', json.dumps(provenance, sort_keys=True).encode())
+            for name, before in sorted(app_entries.items()):
+                if stat.S_ISDIR(before['mode']):
+                    (root/name).mkdir(mode=stat.S_IMODE(before['mode']))
+                else:
+                    data = read_bytes(source_fd, name)
+                    f.require(hashlib.sha256(data).hexdigest() == before['sha256'], 'source changed before copy')
+                    f.write_new(root/name, data, stat.S_IMODE(before['mode']))
+            f.write_new(root/'empty-entitlements.plist', plistlib.dumps({}))
+            f.require(f.inventory(source_fd) == manifest['entries'] and
+                      f.snapshot(source_fd, 'artifact-manifest.json') == manifest_info, 'source changed during copy')
+            adhoc_verify(root)
             copied = entries(fd)
             for name, before in app_entries.items():
                 for field in ('mode', 'uid', 'size', 'sha256'):
@@ -213,6 +229,7 @@ def open_prepared(value):
     root = root_path(value)
     fd = f.scoped_root(value, PREFIX)
     try:
+        lock_root(fd)
         actual = entries(fd)
         record = f.read_json(fd, PREPARED)
         f.require(record['schema'] == 1 and record['kind'] == 's8-prepared-signing-copy' and
