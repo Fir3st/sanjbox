@@ -15,7 +15,7 @@ let usage = """
     listen prints the bound listeners and runs until SIGINT or SIGTERM; then it drains and closes
     every flow and writes the stopped event.
     report exit codes: 0 complete run, nothing received; 1 something received;
-      3 incomplete log (invalid measurement); 2 usage or I/O error
+      3 incomplete or invalid event log (invalid measurement); 2 usage, decoding or I/O error
     """
 
 let rawArguments = Array(CommandLine.arguments.dropFirst())
