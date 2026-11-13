@@ -72,3 +72,26 @@ certificates, trust changes, `.build`, `__pycache__`, `.pyc`, `.pytest_cache` or
 were produced. The temporary data-authoring script was deleted after the final authored artifacts
 were verified. Only the reviewed JSON, Python, Markdown and small mutation fixtures remain.
 No archives were made. No secrets, account stores, Keychain, sudo or system configuration were used.
+
+## Current-decision follow-up — 2026-11-08
+
+Reason: F0.7/C-003 accepted on November 7 after the historical inventory. Measured source commit
+`f9e7019bcabb15caaf667e73c29004b7895dd521`; decision source
+`740593d8d9e66e719c179572354f634c2ed85457`; reviewed repository source
+`7b20c41496f9a8d2a8e49604e31c7598a4943adb`.
+
+On this Mac, both `/usr/bin/python3` **3.9.6** and existing `/opt/homebrew/bin/python3` **3.15.2**
+passed `-I -B spikes/s5-compatibility/tests.py` (**9 tests / 28 negative mutations**) and
+`-I -B spikes/s5-compatibility/tests_current.py` (**10 tests / 44 negative mutations**): **19 tests
+per interpreter**. Both validators passed with `/usr/bin/python3 -I -B`: `matrix.py validate`
+retains 25 profiles / 50 rows (2 fixture-only, 3 untested, 45 unsupported); `current_decisions.py
+validate` reports 7 entries, 6 accepted but implementation-blocked, 1 unsupported, 0 live-verified,
+and 3 C-003 entries where full R3 is not met. `git diff --check` passed.
+
+Tests verify exact regeneration of both reports, current-report stability under reordered JSON,
+byte preservation of all six historical artifacts, closed scope/provenance and rejection of
+acceptance-to-implementation/live/gate promotion. Temporary directories were automatically removed;
+no bytecode caches or offline-proof archives were produced. No clients, network, accounts, secrets,
+Keychain, certificates, system settings or privileged operations were used. This is offline
+inventory validation; reviewed domain lists, scopes, revocation, live compatibility and all gate
+results remain missing/unverified as specified in [CURRENT-DECISIONS.md](CURRENT-DECISIONS.md).

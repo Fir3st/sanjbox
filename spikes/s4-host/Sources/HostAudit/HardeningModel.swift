@@ -1,17 +1,34 @@
 import Darwin
 import Foundation
 
-/// B2 intentionally implements one operation, with no recursive or ACL mutations.
+/// v1 changes mode only. v2 prepends explicit, non-inheritable deny ACEs only.
 struct HardeningPlan: Codable {
     var schema = "sanjbox.host-harden.plan.v1"
     var roots: [String]
-    var mode: UInt16 = 0o700
+    var mode: UInt16? = 0o700
+    var deny: [ACLDeny]?
+
+    init(schema: String = "sanjbox.host-harden.plan.v1", roots: [String], mode: UInt16? = 0o700, deny: [ACLDeny]? = nil) {
+        self.schema = schema; self.roots = roots; self.mode = mode; self.deny = deny
+    }
+    init(from decoder: Decoder) throws {
+        try rejectUnknownPlanKeys(decoder, allowed: ["schema", "roots", "mode", "deny"])
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schema = try c.decode(String.self, forKey: .schema)
+        roots = try c.decode([String].self, forKey: .roots)
+        mode = try c.decodeIfPresent(UInt16.self, forKey: .mode)
+        deny = try c.decodeIfPresent([ACLDeny].self, forKey: .deny)
+    }
 
     func validate() throws {
-        guard schema == "sanjbox.host-harden.plan.v1", mode == 0o700,
-              (1...16).contains(roots.count), Set(roots).count == roots.count,
+        guard (1...16).contains(roots.count), Set(roots).count == roots.count,
               roots.allSatisfy({ !$0.isEmpty && $0.utf8.count <= 64 })
-        else { throw AuditFailure("invalid bounded hardening plan; only 1...16 explicit root IDs and mode 448 (0700) are supported") }
+        else { throw AuditFailure("invalid bounded hardening plan: require 1...16 unique root IDs") }
+        if schema == "sanjbox.host-harden.plan.v1", mode == 0o700, deny == nil { return }
+        guard schema == "sanjbox.host-harden.plan.v2", mode == nil, let deny else {
+            throw AuditFailure("v1 requires mode 448 only; v2 requires deny only (no combined mode/ACL operation)")
+        }
+        try validateDenies(deny)
     }
 }
 
@@ -47,6 +64,14 @@ struct HardenChange: Codable, Equatable {
     var before: HardenStamp
     var ancestors: [HardenStamp]
     var mode: UInt16 = 0o700
+    /// Absent in legacy journals. Non-nil selects an ACL-only operation, preserving mode.
+    var acl: ACLMetadata?
+
+    func result(from stamp: HardenStamp, restoring: Bool = false, observed: StatMetadata) -> HardenStamp {
+        var result = stamp.replacingMode(restoring ? before.stat.mode : mode, change: observed)
+        if let acl { result.acl = restoring ? before.acl : acl }
+        return result
+    }
 }
 
 struct HardenManifest: Codable {
@@ -78,8 +103,8 @@ struct HardenResult: Codable {
     var status: String
     var detail: String
     var limitations = [
-        "Only explicit owned directories on local writable APFS without ACL entries/flags are supported; only mode 0700 is installed. No recursive, ACL, file, socket, mount, user or system changes.",
-        "Requires a quiescent trusted host namespace. Descriptor pinning and comparisons detect some races; chmod has no atomic compare-and-swap. A concurrent change in the final check-to-chmod interval can be overwritten or a renamed pinned inode changed. Detected post-operation races remain conflicts, never automatically rolled back.",
+        "Only explicit owned directories on local writable APFS. v1 installs mode 0700 with empty ACL; v2 prepends non-inheritable deny ACEs and preserves mode and existing ACL order. Ancestors/journal require empty ACL. No recursive, file, socket, mount, user or system changes; no descendant ACL ownership.",
+        "Requires a quiescent trusted host namespace. Descriptor pinning and comparisons detect some races; metadata setters have no atomic compare-and-swap. A concurrent change in the final check-to-set interval can be overwritten or a renamed pinned inode changed. Detected post-operation races remain conflicts, never automatically rolled back.",
         "Durable intent without durable completion is ambiguous, even if current mode matches. Uninstall refuses automatic recovery. Reboot, metadata drift, identity/ancestor changes and journal corruption require manual review.",
         "This is bounded preparation for RB-09/10, not continuous R2 enforcement, a host compatibility result, a crash-atomic transaction or an S4 gate verdict."
     ]

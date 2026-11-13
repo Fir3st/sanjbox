@@ -63,7 +63,7 @@ public actor NPMGateway {
         let forbidden: Set<String> = ["authorization", "proxy-authorization", "cookie", "x-api-key", "api-key", "range"]
         guard request.method == "GET", request.body.isEmpty,
               request.headers.keys.allSatisfy({ !forbidden.contains($0.lowercased()) }) else { return .error(403) }
-        guard operations < configuration.maximumOperations else { return .error(503) }
+        guard operations < configuration.maximumOperations else { return .error(503, rejection: .capacity) }
         operations += 1
         defer { operations -= 1 }
         do {
@@ -92,7 +92,7 @@ public actor NPMGateway {
             switch error {
             case .target: return .error(400)
             case .tooLarge: return .error(413)
-            case .busy: return .error(503)
+            case .busy: return .error(503, rejection: .capacity)
             case .metadata: return .error(502)
             default: return .error(403)
             }

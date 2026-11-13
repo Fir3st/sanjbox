@@ -131,3 +131,9 @@ Zbývají skutečné L1 aplikace/tři relace, úplný registr procesů a jejich 
 klient/keeper vazby, W0 systémové baselines, workloady a ostatní LAB/P4 důkazy. Výstup se nesmí označit
 za úplnou procesní atribuci, reálný třírelační výkon ani za uzavřený A2/S1. Současný stav a historické
 počty testů jsou beze změny zachované ve [VALIDATION](VALIDATION.md).
+
+## Samostatné dynamické potomky (2026-11-08)
+
+[DESCENDANT-MEMORY.md](DESCENDANT-MEMORY.md) přidává oddělený skutečný sběrač potomků
+registrovaného same-UID test rootu. Pevný registr, jeho journal/analyzer a výše uvedené historické
+výsledky se nemění; polling neposkytuje úplnou atribuci UID/relace.

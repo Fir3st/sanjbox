@@ -201,3 +201,22 @@ CLI kontrol a přesné bytes 61 souborů z 9 skutečných producer případů. P
 výše zůstávají historickými důkazy svých původních revizí; S3b/NET-10…12 zůstávají Neověřeno.
 
 Samostatný [dodatek nezávislého review](NETWORK-ADAPTER-VALIDATION.md#opravy-nezávislého-review--source-608b41c) připíná opravený source `608b41cc308ffa6d6fb530f24bc3a899537e0411`: 63 Release testů, 30 + 25 offline CLI a čtyři přesné review regrese. Předchozí měření a manifesty se nepřepisují.
+
+## Review návrhu bind policy — 2026-11-13
+
+PR #55, výchozí revize `c7dd4c6`, proti integračnímu základu `e2582be` (main po PR #63).
+Review a opravy mění jen dokumentaci; Swift zdroje, fixtures a CLI zůstávají shodné s `c7dd4c6`.
+Prošlo **63/63 Release Swift testů**, **25/25 legacy offline CLI kontrol** a **30/30 network
+adapter offline CLI kontrol**; žádný živý smoke, capture, pf ani L4 běh nebyl proveden.
+Příkazy jsou v README a v obou `tools/check-*-cli.py`; scratch/cache tohoto ověření leží pod
+`/private/tmp/sanjbox-pr55-review-*`.
+
+Specifikace nově odděluje hypotézu brokeru od předání síťového fd, neodvozuje jediné řešení
+ani revokaci z existence kernelového hooku a mapuje ingress oracly i na ztrátu PF a queued
+práci při revokaci. C3-T1 eviduje rozpor technické formulace PLAN s manuálem a připnutým
+XNU; invariant ani akceptace se nemění. Přijaté F0.8 je odlišeno od konkrétní předregistrace L4.
+
+Návrh plní podmínku dokončení přípravy C3 v IMPLEMENTATION §0. Souhrn F1 **13 hotových / 8
+rozpracovaných / 15 nezahájených = 36** odpovídá jednotlivým řádkům i po začlenění aktuálního
+main; D6 byl již hotový, proto se znovu nezapočítává. Celkem je 63 balíků: 18 hotových,
+8 rozpracovaných a 37 nezahájených. S3b/NET-10…12/R2/R3 zůstávají Neověřeno.

@@ -42,7 +42,10 @@ Binárky leží ve složce, kterou vypíše `swift build --show-bin-path`.
 sanjbox-whoami [--expect FILE] [--log FILE] [--case ID]
 ```
 
-Vypíše JSON `{context, mismatches, valid}`. Bez `--expect` je `valid` `null` (kontext se jen zaznamená).
+Vypíše JSON s kontextem a neshodami. Bez `--expect` je výsledek nevyhodnocený (`valid == nil`, pole
+`valid` se v JSON vynechá): exit `0`, při `--log` outcome `unclear`. Shoda s `--expect` znamená
+`valid: true`, `passed`, exit `0`; neshoda `valid: false`, `invalidMeasurement`, exit `3`.
+Úspěšná diagnostika bez očekávání nepotvrzuje platnost měření. [Regresní ověření](WHOAMI-OUTCOME-VALIDATION.md).
 
 Příklad očekávání pro sondu v oblasti (hodnoty určí běh S1, tady jsou jen ilustrační):
 
@@ -101,7 +104,7 @@ podle případu: jiný stroj v LAN (NET-01), tvoje relace na `127.0.0.1` (NET-02
   - `datagram` pro každý UDP datagram.
 - **Zastavení** (`SIGINT`/`SIGTERM`) dočte, co už jádro přijalo, uzavře všechny toky a zapíše `stopped`.
   Spojení, která jádro dokončilo, ale ještě nebyla přijata, se také zaznamenají.
-- **Log a raw adresář** musí být nové (adresář smí být prázdný). Jeden log tak vždy popisuje právě jeden běh.
+- **Log a raw adresář** musí být nové (adresář smí být prázdný); log leží mimo raw adresář. Jeden log tak vždy popisuje právě jeden běh; pravidla cest a chyb jsou níže.
 - **Surová data** každého toku jdou do `DIR/<tok>-<tcp|udp>-<port>.bin`, nejvýš 1 MiB na tok. Počty bajtů
   a hledání kanárků pokrývají i zbytek.
 - **Kanárky** se hledají v syrové podobě i jako hex. Registrované se hlásí tokenem, jakýkoli jiný prefixem
@@ -117,8 +120,44 @@ podle případu: jiný stroj v LAN (NET-01), tvoje relace na `127.0.0.1` (NET-02
 |---|---|
 | 0 | Úplný běh, nic nepřišlo |
 | 1 | Něco přišlo; i TCP spojení bez jediného bajtu je kontakt |
-| 3 | Neúplný log: chybí `started`/`stopped`, více běhů nebo nezavřený tok. Protistrana možná neposlouchala, takže měření je neplatné. |
-| 2 | Chyba použití nebo čtení logu |
+| 3 | Neúplný nebo sémanticky neplatný log (viz níže). Měření je neplatné, i když obsahuje kontakt nebo bajty. |
+| 2 | Chyba použití, čtení nebo dekódování JSON logu |
+
+Report ověřuje jeden `started` na začátku s neprázdným seznamem jedinečných numerických
+listenerů (skutečný nenulový port) a jeden `stopped` na konci. Události mezi nimi mají pole
+podle producenta; pole z jiných druhů událostí jsou chyba:
+
+| Událost | Povinná pole navíc k `timestamp` a `kind` |
+|---|---|
+| `started` | `listeners` |
+| `accepted` | `flowID`, `transport`, `local`, `remote` |
+| `closed` | pole `accepted` + `bytes`, `findings`, `rawTruncated`, `endReason` |
+| `datagram` | pole `accepted` + `bytes`, `findings`, `rawTruncated` |
+| `stopped` | žádná |
+
+`closed`/`datagram` mají navíc `rawFile` právě při kladném počtu bajtů; název musí odpovídat
+ID, transportu a portu. Příznak zkrácení odpovídá limitu raw capture. Report raw soubor neotvírá.
+TCP má `accepted` před právě jedním `closed` se stejnými endpointy a transportem; každý datagram
+má vlastní ID. ID jsou kladná, bez opakovaného použití a v úplném běhu tvoří řadu od 1 bez mezer.
+**Pořadí ID ani časových razítek nemusí růst:** vlákna přidělují ID a čas před zamčením logu.
+Lokální endpoint musí odpovídat listeneru a transportu, včetně TCP wildcard/IPv4-mapped IPv6;
+UDP zapisuje přímo endpoint listeneru. Nativní IPv6 a IPv4-mapped IPv6 se rozlišují podle
+binární adresy i při hexadecimálním zápisu: nesmějí tvořit opačné endpointy TCP ani UDP
+s konkrétním bindem. UDP wildcard `::` přijímá obě varianty; mapped UDP listener může podle
+Darwinu hlásit i prostý IPv4 zdroj. Nulový zdrojový port UDP je přípustný.
+
+U neplatného logu zůstávají počty jen pozorování pro diagnostiku: každé `accepted` se počítá,
+stejně jako `closed` bez předchozího `accepted` daného ID, a každý `datagram`. Kladné bajty a
+nálezy se zachovají i z události se špatnými poli; záporné bajty se odmítnou a neodečítají,
+při přetečení se součet zastaví na `Int.max` a měření je neplatné. Diagnostika má nejvýš 100
+položek, další události se stále zpracují. `receivedAnything` zahrnuje i osiřelé uzavření,
+kladné bajty a nálezy. Kód 0 vyžaduje **platný** běh bez jakéhokoli takového kontaktu.
+
+Tato kontrola je sémantická nad již dekódovanými událostmi. Sdílený `JSONLines`/`JSONDecoder`
+zůstává beze změny: načítá celý soubor, ignoruje neznámé klíče a není striktní kontrolou
+zdvojených klíčů JSON objektu. Syntakticky nedekódovatelný log vrací 2. Report neautentizuje
+původ ani úplnost samotného souboru a nepotvrzuje síťovou izolaci. Tu musí doložit kontrolní
+cesta a měření konkrétní brány. Regrese opravy: [VALIDATION-COUNTERPART.md](VALIDATION-COUNTERPART.md).
 
 Postup jednoho negativního případu:
 
@@ -142,6 +181,28 @@ Co protistrana nevidí, a čím to doplnit:
 - DNS přes TCP a mDNS (multicast) neparsuje; syrový obsah se prohledává.
 - U UDP zapisuje jako `local` adresu listeneru, ne cílovou adresu datagramu.
 
+### Vlastnictví výstupů protistrany
+
+`listen` drží deskriptor nového logu a ověřeného raw adresáře po celý běh; raw soubory vytváří
+relativně k tomuto deskriptoru a také je drží otevřené. Přejmenování logu, raw adresáře nebo jejich
+předka proto nepřesměruje další zápisy: pokračují do původních objektů. Nové soubory mají `0600`,
+nové adresáře `0700` (umask je může dále omezit); existující objekty se nepřepisují ani nemažou.
+
+Komponenty cesty nesmějí být symlinky, kromě přesných systémových root-owned aliasů `/tmp` →
+`/private/tmp` a `/var` → `/private/var`. Otevřené adresáře musí patřit volajícímu nebo rootovi a nesmějí
+být zapisovatelné skupinou/ostatními; výjimkou u předků je root-owned sticky adresář jako `/private/tmp`.
+Samotný raw adresář musí patřit volajícímu a nesmí mít zápis pro skupinu/ostatní. Před zápisem se kontroluje
+běžný typ souboru, vlastník, práva a jediný hardlink; zachycený konflikt či chyba zápisu ukončí proces bez
+`stopped`. Krátké zápisy a `EINTR` se dořeší na stejném deskriptoru. Selhání startu ponechá již vytvořené
+prázdné výstupy, aby úklid nesmazal mezitím vyměněnou cestu; pro opakování použij nové cesty.
+
+To není neměnnost důkazu vůči procesu se stejným UID, atomická kontrola metadat a zápisu ani záruka
+odolnosti proti výpadku napájení (`fsync` se neprovádí). Cizí změny obsahu stejného inode, práv nebo
+hardlinků souběžně s kontrolou takto nelze vyloučit. Kontroly práv čtou pouze POSIX mode bits;
+rozšířené ACL adresářů ani souborů (včetně zděděných oprávnění) se nekontrolují. `0600`/`0700` proto
+samy o sobě nedokládají vyloučení zápisu jiným UID přes ACL. [Validace opravy WP0.4](VALIDATION-COUNTERPART-OUTPUT.md)
+obsahuje regresní testy a přesnou testovanou revizi; brány ani historické důkazy nemění.
+
 ## Návratové kódy
 
 | Kód | Význam |
@@ -149,7 +210,7 @@ Co protistrana nevidí, a čím to doplnit:
 | 0 | V pořádku; `scan` nic nenašel; `report`: úplný běh bez kontaktu |
 | 1 | `scan` našel kanárka; `report`: protistrana něco přijala |
 | 2 | Chyba použití nebo I/O |
-| 3 | Neplatné měření: identita nebo relace neodpovídá očekávání, nebo log protistrany je neúplný; běh je nutné opakovat |
+| 3 | Neplatné měření: identita nebo relace neodpovídá očekávání, nebo log protistrany je neúplný či sémanticky neplatný; běh je nutné opakovat |
 | 4 | `cleanup` něco odmítl smazat; zkontroluj ručně |
 
 ## Bezpečnost
