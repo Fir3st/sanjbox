@@ -45,7 +45,7 @@ public final class Counterpart: Sendable {
     /// Bound listeners with their actual ports (port 0 in the configuration picks a free one).
     public let listeners: [Listener]
     private let sockets: [Int32]
-    private let configuration: Configuration
+    private let output: CounterpartOutput
     private let scanner: CanaryScanner
     /// Self-pipe: one byte written on stop makes every poll in every loop return.
     private let wakeRead: Int32
@@ -60,9 +60,10 @@ public final class Counterpart: Sendable {
     }
 
     private init(
-        configuration: Configuration, sockets: [Int32], listeners: [Listener], wakeRead: Int32, wakeWrite: Int32
+        configuration: Configuration, output: CounterpartOutput, sockets: [Int32], listeners: [Listener],
+        wakeRead: Int32, wakeWrite: Int32
     ) {
-        self.configuration = configuration
+        self.output = output
         self.sockets = sockets
         self.listeners = listeners
         self.wakeRead = wakeRead
@@ -72,20 +73,12 @@ public final class Counterpart: Sendable {
 
     /// Binds every listener, writes the `started` event and starts receiving.
     public static func start(_ configuration: Configuration) throws -> Counterpart {
-        let logPath = configuration.logURL.path
-        let logFD = open(logPath, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0o644)
-        guard logFD >= 0 else { throw CounterpartError.system("create log \(logPath)", errno: errno) }
-        close(logFD)
+        let output = try CounterpartOutput(log: configuration.logURL, raw: configuration.rawDirectory)
 
         var sockets: [Int32] = []
         var listeners: [Listener] = []
         var pipeFDs: [Int32] = [0, 0]
         do {
-            let raw = configuration.rawDirectory
-            try FileManager.default.createDirectory(at: raw, withIntermediateDirectories: true)
-            guard try FileManager.default.contentsOfDirectory(atPath: raw.path).isEmpty else {
-                throw CounterpartError.rawDirectoryNotEmpty(raw.path)
-            }
             let requested = configuration.tcpPorts.map { (CounterpartEvent.Transport.tcp, $0) }
                 + configuration.udpPorts.map { (CounterpartEvent.Transport.udp, $0) }
             for (transport, port) in requested {
@@ -96,12 +89,12 @@ public final class Counterpart: Sendable {
             guard pipe(&pipeFDs) == 0 else { throw CounterpartError.system("pipe", errno: errno) }
         } catch {
             sockets.forEach { close($0) }
-            unlink(logPath)  // still empty: nothing was recorded
+            output.close()  // Retain created evidence; a pathname may now name someone else’s file.
             throw error
         }
 
         let counterpart = Counterpart(
-            configuration: configuration, sockets: sockets, listeners: listeners,
+            configuration: configuration, output: output, sockets: sockets, listeners: listeners,
             wakeRead: pipeFDs[0], wakeWrite: pipeFDs[1]
         )
         counterpart.record(CounterpartEvent(kind: .started, listeners: listeners))
@@ -131,6 +124,7 @@ public final class Counterpart: Sendable {
         close(wakeRead)
         close(wakeWrite)
         record(CounterpartEvent(kind: .stopped))
+        output.close()
     }
 
     // MARK: - Receive loops
@@ -159,7 +153,7 @@ public final class Counterpart: Sendable {
         let (_, local) = capturingAddress { getsockname(fd, $0, $1) }
         record(CounterpartEvent(kind: .accepted, flowID: flow, transport: .tcp, local: local, remote: remote))
 
-        var capture = RawCapture(directory: configuration.rawDirectory, name: "\(flow)-tcp-\(listener.endpoint.port).bin")
+        var capture = RawCapture(directory: output.raw, name: "\(flow)-tcp-\(listener.endpoint.port).bin")
         var stream = CanaryStreamScanner(scanner: scanner)
         var bytes = 0
         let endReason = receive(fd) { chunk in
@@ -221,7 +215,7 @@ public final class Counterpart: Sendable {
 
     private func recordDatagram(_ data: Data, remote: Endpoint?, listener: Listener) {
         let flow = nextFlowID()
-        var capture = RawCapture(directory: configuration.rawDirectory, name: "\(flow)-udp-\(listener.endpoint.port).bin")
+        var capture = RawCapture(directory: output.raw, name: "\(flow)-udp-\(listener.endpoint.port).bin")
         capture.write(data)
         capture.close()
         var findings = Set(scanner.findings(in: data))
@@ -266,7 +260,7 @@ public final class Counterpart: Sendable {
     /// aborts: the log then lacks `stopped` and the report marks the run invalid.
     private func record(_ event: CounterpartEvent) {
         logLock.withLock { _ in
-            do { try JSONLines.append(event, to: configuration.logURL) } catch {
+            do { try output.record(event) } catch {
                 fatalError("cannot write event log: \(error)")
             }
         }
@@ -342,41 +336,6 @@ public enum CounterpartError: Error, CustomStringConvertible {
         case .rawDirectoryNotEmpty(let path): "raw directory is not empty: \(path)"
         case .system(let operation, let code): "\(operation) failed: \(String(cString: strerror(code)))"
         }
-    }
-}
-
-/// Raw bytes of one flow, written to `<raw dir>/<name>` up to `Counterpart.rawLimit`.
-/// The file is created on the first byte, so contact without data leaves no empty file.
-private struct RawCapture {
-    private let path: String
-    private let name: String
-    private var fd: Int32 = -1
-    private var written = 0
-    private(set) var truncated = false
-
-    init(directory: URL, name: String) {
-        path = directory.appendingPathComponent(name).path
-        self.name = name
-    }
-
-    var fileName: String? { written > 0 ? name : nil }
-
-    mutating func write(_ data: Data) {
-        let kept = data.prefix(Counterpart.rawLimit - written)
-        if kept.count < data.count { truncated = true }
-        guard !kept.isEmpty else { return }
-        if fd < 0 {
-            fd = open(path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0o644)
-            guard fd >= 0 else { fatalError("cannot create raw capture \(path): errno \(errno)") }
-        }
-        let result = kept.withUnsafeBytes { Darwin.write(fd, $0.baseAddress, $0.count) }
-        guard result == kept.count else { fatalError("cannot write raw capture \(path): errno \(errno)") }
-        written += kept.count
-    }
-
-    mutating func close() {
-        if fd >= 0 { Darwin.close(fd) }
-        fd = -1
     }
 }
 

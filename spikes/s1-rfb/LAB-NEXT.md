@@ -5,13 +5,28 @@ and [LAB](../../docs/LAB.md); they neither reserve a slot nor authorize the impl
 services, create users, change pf/TCC, read credentials, inspect the live screen or connect a client.
 All existing measurements and sealed evidence directories remain untouched.
 
+## What the offline prototype now covers, and what it still does not
+
+**[implementátor]** The package models an Apple security/selection **fixture** subset: candidate banner,
+ARD type 30 framing per S4, `0xC1` ClientInit, then SessionInfo / choice / SessionResult with the
+package-local layout documented in [README.md](README.md). Strict length and range validation, the
+fail-closed credential seam and the forbidden console fallback are covered by 22 Apple mock tests.
+
+That is a parser result only. It does **not** show that a macOS server sends these bytes, that the
+selection layout matches Apple, that the credential exchange can be implemented safely, or that the
+resulting desktop belongs to the intended user. Trusting it as an Apple client would be a scope error.
+
 ## Before a custom client can connect
 
 **[implementátor]** The current binary has no live mode. A later separately reviewed change must:
 
-1. Specify a versioned Apple security/selection subset from pinned primary evidence. Validate all lengths,
-   pending/denied states, capability/command masks and deadlines with synthetic transcripts. An unknown
-   variant or unavailable virtual-user command must terminate before requesting pixels or control.
+1. **[částečně hotovo]** Specify a versioned Apple security/selection subset from pinned primary evidence.
+   Validate all lengths, pending/denied states, capability/command masks and deadlines with synthetic
+   transcripts. An unknown variant or unavailable virtual-user command must terminate before requesting
+   pixels or control. Done offline for the S4 type-30 framing and the S5 command/state semantics; the
+   SessionInfo/choice/result byte layout is deliberately package-local. S5 already provides concrete
+   client-side selection records and extended ServerInit metadata (see SOURCES.md §S5); those layouts
+   remain unimplemented here and need separate review and interoperability validation for a live client.
 2. Establish authenticated server identity and confidentiality appropriate to the chosen local path before
    any credentials. Loopback, a port number, a server name or DH exchange alone is not an identity proof.
    Investigate local port substitution and the trust boundary around a forwarder. Do not adopt the
@@ -26,6 +41,9 @@ All existing measurements and sealed evidence directories remain untouched.
    synthetic test harness.
 5. Bind the returned surface to an independently checked expected identity. Do not infer it from the
    desktop name, login username, server status, requested virtual mode or framebuffer content.
+   **[částečně hotovo]** The offline parser now publishes `.initialized` and any pixel format only after
+   a granted SessionResult, so a surface cannot appear before selection; that ordering is not an identity
+   check and does not replace the exact audit-session comparison below.
 
 ## Identity first, before real measurement
 

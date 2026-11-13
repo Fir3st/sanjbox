@@ -30,7 +30,7 @@ public actor PyPIGateway {
     public func response(to request: HTTPRequest) async throws -> HTTPResponse {
         try Task.checkCancellation()
         guard request.method == "GET", request.body.isEmpty, registryHeadersAllowed(request) else { return .error(403) }
-        guard operations < configuration.limits.operations else { return .error(503) }
+        guard operations < configuration.limits.operations else { return .error(503, rejection: .capacity) }
         operations += 1
         defer { operations -= 1 }
         do {
