@@ -53,3 +53,45 @@ Pouze syntetické dokumenty, mock delivery context a zdrojový parity oracle; ž
 privilegovaný příkaz, skutečný uživatel/oblast, APFS, XPC, signing, audit-token autentizace, Mach
 přenos, síťové vynucení nebo process/stdio adaptér. Historické evidence ani cizí výsledky se nemění.
 H1 je hotový offline balík; všechny brány, R1–R8 a runtime integrace zůstávají Neověřeno.
+
+## Navazující opravy nezávislého review — 2026-11-13
+
+Nezávislé Astra xhigh review původního dokončení našlo dva P2 nálezy. Původní výsledky výše
+zůstávají zachované; tento doplněk popisuje opravy a nové ověření na commitu
+`80dab00e9480f8666182946517c5ca9f314f8ec0` (obsahuje také síťovou opravu
+`b54d269be45f6d9e97acadbfed3d0690fadbf66f`).
+
+1. **Legacy IPv4:** bare hex komponenta `0x` obcházela lexikální výluku a review doložilo, že
+   `127.0x.0x.1` může být Darwin parserem interpretováno jako loopback. Oprava považuje i prázdnou
+   hex číselnou část za numeric-looking a odmítá celý takový adresní zápis. Nový test odmítá
+   15 číselných/legacy zápisů v `Identifier`, typed gate validaci, policy encode i wire decode;
+   zahrnuje uppercase varianty (H1 nemá lowercase normalizaci vstupu). Tři skutečné DNS názvy
+   s numeric-looking labelem nadále projdou. Všechny vstupy jsou syntetické, bez DNS/socket operací.
+2. **B3-only CI:** změny `spikes/s4-state/Sources/`, `examples/` nebo `SCHEMA.md` nyní výslovně
+   vybírají `proto/contracts` a jeho případné SwiftPM dependenty. Je to testovací vazba, nikoli
+   runtime package dependency. `--no-renames` zachovává starou cestu i při přesunu zdroje mimo B3;
+   chybějící H1 balík je chyba. Sedm nových Python testů vykonává skutečný discovery blok workflow
+   nad syntetickými Git výstupy/manifesty, včetně B3-only, smazání/přesunu, chybového grafu,
+   nezávislých změn, `.github` změn a všech stávajících event fallbacků.
+
+| Kontrola na opraveném stromu | Výsledek |
+|---|---|
+| `swift test --package-path proto/contracts --scratch-path /private/tmp/h1-completion-build -c debug` | **125 testů / 11 suites prošlo**, test fáze 6,903 s |
+| Stejný příkaz s `-c release` | **125 testů / 11 suites prošlo**, test fáze 6,389 s |
+| Source-backed parity uvnitř obou Swift běhů | **140 případů / 48 B3 kódů**, úplné reporty shodné |
+| `/usr/bin/python3 -I -B -m unittest discover -s tools/tests -p test_ci_selection.py -v` | **7/7 prošlo** |
+| `/usr/bin/python3 -B -m unittest discover -s tools/tests -v` | **94/94 prošlo** za 41,470 s, Python 3.9.6, s povoleným `/bin/ps` |
+| Ruby `YAML.parse_file` nad `.github/workflows/ci.yml` | Prošlo |
+| Skutečné multiline `run` bloky workflow přes `/bin/bash -n` | **6/6 prošlo** |
+| Skutečný `CI required` shell se syntetickými job statusy | **14/14 scénářů**: úspěchy včetně povoleného no-Swift skip a failure/cancelled/skipped každé závislosti |
+| `git diff --check` | Prošlo |
+
+Plná repo sada byla nejprve omylem spuštěna s `-I`: 49 testů prošlo včetně všech watchdog testů,
+ale `test_lab_evidence` nešlo importovat (`No module named 'tools'`). Opravený příkaz výše používá
+zdokumentovaný repository import mode a všech 94 testů prošlo; žádná změna existujícího tooling
+nebyla kvůli této chybě příkazu potřeba. Dřívější sandbox-limited výsledek 87/8 zůstává historickým
+záznamem, nová sada s povoleným procesovým přehledem není jím blokovaná.
+
+Nové CI pravidlo a jeho regresní testy jsou zdokumentované v [docs/CI.md](../../docs/CI.md).
+Neproběhl hosted GitHub Actions běh, push, PR ani merge. Hranice offline důkazu a stav bran výše
+zůstávají beze změny.
