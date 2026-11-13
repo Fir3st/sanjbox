@@ -45,9 +45,14 @@ writes the log and attempts console output. Its independent default-signal alarm
 and the supervisor's bounded KILL/reap budget allow at most 0.6 seconds for
 reporting, including when the supervisor dies. Output may be dropped under
 backpressure. No shared output-descriptor flags are changed. Diagnostic files
-must be regular files with one link; file/directory symlinks, FIFOs and devices
-are rejected. Even a stalled regular-file operation cannot hold up the supervisor.
+must be regular files with one link; symlinks at the final diagnostic directory
+or filename, FIFOs and devices are rejected. Ancestor directories of `LOG_DIR`
+must be trusted: their symlinks are resolved normally. Even a stalled regular-file
+operation cannot hold up the supervisor.
 The command must create any output directory it needs; CI already does so.
+Startup socket/fork allocation failures also use bounded reporting and return
+125. Timeout/cancellation statuses survive a subsequent anchor-reap failure;
+an ordinary command exit of 124 is not itself classified as a watchdog timeout.
 
 This is CI lifecycle hygiene, **not a security boundary**. Supported commands
 and descendants must retain the inherited process group and session. A process

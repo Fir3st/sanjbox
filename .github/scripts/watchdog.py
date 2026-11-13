@@ -28,6 +28,10 @@ class ScopeError(Exception):
     pass
 
 
+class StartupError(Exception):
+    """A failure before fork creates an owned process scope."""
+
+
 def shell_status(returncode):
     return returncode if returncode >= 0 else 128 - returncode
 
@@ -240,18 +244,26 @@ def supervise(limit, log_dir, command):
 
     for sig in CANCEL_SIGNALS:
         signal.signal(sig, cancel)
-    parent, child = socket.socketpair()
+    try:
+        parent, child = socket.socketpair()
+    except OSError as exc:
+        raise StartupError(str(exc)) from None
     deadline = time.monotonic() + limit
-    anchor = os.fork()
+    try:
+        parent.setblocking(False)
+        anchor = os.fork()
+    except OSError as exc:
+        parent.close()
+        child.close()
+        raise StartupError(str(exc)) from None
     if anchor == 0:
         parent.close()
         anchor_main(child, command)
         child.close()
         os._exit(0)
-    child.close()
-    parent.setblocking(False)
     ready = False
     released = False
+    timed_out = False
     result = 125
     root_status = None
     buffer = b""
@@ -260,11 +272,13 @@ def supervise(limit, log_dir, command):
     messages = []
     report = None
     try:
+        child.close()
         while True:
             if cancelled[0]:
                 result, reason = 128 + cancelled[0], "watchdog cancelled"
                 break
             if time.monotonic() >= deadline:
+                timed_out = True
                 result, reason = 124, "timed out after %gs" % limit
                 break
             readable, _, _ = select.select([parent], [], [],
@@ -329,8 +343,7 @@ def supervise(limit, log_dir, command):
                     time.sleep(min(POLL, max(0, end - time.monotonic())))
                 if not verified:
                     messages.append("::error::Watchdog: scope cleanup could not be verified")
-                    if result != 124 and not cancelled[0]:
-                        result = 125
+                    result = 125
             else:
                 # The anchor cannot launch a command before READY + our G reply.
                 os.kill(anchor, signal.SIGKILL)
@@ -342,7 +355,9 @@ def supervise(limit, log_dir, command):
     # Inherited output pipes and even regular log-file I/O can block. Finish all
     # scope signals/verification/reaping before starting a disposable reporter.
     emit_diagnostics(messages, log_dir, report)
-    return 128 + cancelled[0] if cancelled[0] else result
+    if cancelled[0]:
+        return 128 + cancelled[0]
+    return 124 if timed_out else result
 
 
 def main(argv):
@@ -360,7 +375,13 @@ def main(argv):
     except (OSError, ValueError) as exc:
         emit_diagnostics(["Watchdog: %s" % exc], output_fd=2)
         return 2
-    return supervise(limit, log_dir, argv[3:])
+    try:
+        return supervise(limit, log_dir, argv[3:])
+    except StartupError as exc:
+        # Socket/fork allocation can fail before a command scope exists. Never
+        # let the interpreter print a blocking traceback to inherited stderr.
+        emit_diagnostics(["::error::Watchdog: %s" % exc], output_fd=2)
+        return 125
 
 
 if __name__ == "__main__":

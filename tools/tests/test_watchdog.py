@@ -51,6 +51,8 @@ if mode == "orphan":
     os._exit(status)
 if mode == "anchor-dies":
     os.kill(os.getpgrp(), signal.SIGKILL)
+if mode == "stopped":
+    os.kill(os.getpid(), signal.SIGSTOP)
 if mode == "race":
     # Parent harness triggers cancellation and root exit from the same marker.
     while not ready.with_suffix(".exit").exists():
@@ -84,13 +86,23 @@ class WatchdogTests(unittest.TestCase):
             except subprocess.TimeoutExpired:
                 self.fail("fixture exceeded its independent 12-second alarm")
 
-    def launch(self, mode="exit", status=0, limit=3, wrapper=False, command=None):
-        prefix = ["/bin/bash", str(WRAPPER)] if wrapper else [sys.executable, "-I", "-B", str(HELPER)]
+    def launch(self, mode="exit", status=0, limit=3, wrapper=False, command=None, helper=HELPER):
+        prefix = ["/bin/bash", str(WRAPPER)] if wrapper else [sys.executable, "-I", "-B", str(helper)]
         command = command or [sys.executable, "-I", "-B", str(self.fixture), mode, str(self.ready), str(status)]
         process = subprocess.Popen(prefix + [str(limit), str(self.logs)] + command,
                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.processes.append(process)
         return process
+
+    def patched_helper(self, patch):
+        launcher = self.directory / "patched_watchdog.py"
+        launcher.write_text(
+            "import importlib.util,os,sys\n"
+            "spec=importlib.util.spec_from_file_location('watchdog', %r)\n"
+            "watchdog=importlib.util.module_from_spec(spec)\n"
+            "spec.loader.exec_module(watchdog)\n" % str(HELPER)
+            + patch + "\nos._exit(watchdog.main(sys.argv))\n")
+        return launcher
 
     def wait_ready(self, process):
         end = time.monotonic() + 3
@@ -144,6 +156,73 @@ class WatchdogTests(unittest.TestCase):
         self.assertIn("timed out", output)
         self.assertTrue(self.ready.with_suffix(".term").exists())
         self.assertLess(time.monotonic() - start, 5)
+
+    def test_timeout_continues_stopped_root_and_cleans_child(self):
+        process = self.launch("stopped", limit=0.3)
+        self.wait_ready(process)
+        self.finish(process, 124)
+        self.assertTrue(self.ready.with_suffix(".term").exists())
+
+    def test_reap_failure_preserves_only_timeout_status(self):
+        helper = self.patched_helper(
+            "reap = watchdog.reap_anchor\n"
+            "def failed_reap(anchor):\n"
+            "    reap(anchor)\n"
+            "    return False\n"
+            "watchdog.reap_anchor = failed_reap\n")
+        # Reap the real fixture so the test cannot leak a child, then inject the
+        # same failure report an uninterruptible anchor would produce.
+        for mode, status, expected in (("hang", 0, 124), ("exit", 0, 125), ("exit", 124, 125)):
+            with self.subTest(mode=mode, status=status):
+                output = self.finish(self.launch(mode, status, limit=0.3, helper=helper), expected)
+                self.assertIn("anchor did not exit within the reap budget", output)
+                if mode == "hang":
+                    self.assertTrue(self.ready.with_suffix(".term").exists())
+
+    def test_startup_failure_cannot_block_on_full_stderr(self):
+        for operation in ("socketpair", "fork"):
+            with self.subTest(operation=operation):
+                helper = self.patched_helper(
+                    "module = watchdog.%s\n"
+                    "original = module.%s\n"
+                    "def fail_once(*args, **kwargs):\n"
+                    "    module.%s = original\n"
+                    "    raise OSError('synthetic startup allocation failure')\n"
+                    "module.%s = fail_once\n" % (
+                        "socket" if operation == "socketpair" else "os",
+                        operation, operation, operation))
+                readfd, writefd = os.pipe()
+                process = None
+                marker = self.directory / "command-started"
+                try:
+                    os.set_blocking(writefd, False)
+                    while True:
+                        try:
+                            os.write(writefd, b"x" * 4096)
+                        except BlockingIOError:
+                            break
+                    os.set_blocking(writefd, True)
+                    process = subprocess.Popen(
+                        [sys.executable, "-I", "-B", str(helper), "3", str(self.logs),
+                         sys.executable, "-c", "from pathlib import Path; Path(%r).touch()" % str(marker)],
+                        stdout=subprocess.PIPE, stderr=writefd)
+                    self.processes.append(process)
+                    os.close(writefd)
+                    writefd = None
+                    self.assertEqual(process.wait(timeout=3), 125)
+                    self.assertFalse(marker.exists(), "startup failure launched the command")
+                    # EOF also proves the bounded reporter relinquished stderr.
+                    os.set_blocking(readfd, False)
+                    while os.read(readfd, 4096):
+                        pass
+                    self.finish(process, 125, timeout=1)
+                finally:
+                    if process is not None and process.poll() is None:
+                        process.kill()
+                        process.wait(timeout=2)
+                    os.close(readfd)
+                    if writefd is not None:
+                        os.close(writefd)
 
     def test_full_undrained_stdout_cannot_block_cleanup_or_exit(self):
         process = self.launch("flood", limit=0.3)
@@ -202,6 +281,22 @@ class WatchdogTests(unittest.TestCase):
         canary.write_text("untouched")
         (self.logs / "hung-processes.txt").symlink_to(canary)
         self.finish(self.launch("hang", limit=0.3), 124)
+        self.assertEqual(canary.read_text(), "untouched")
+
+    def test_diagnostic_directory_symlink_and_hardlink_target_are_rejected(self):
+        actual_logs = self.directory / "actual-logs"
+        actual_logs.mkdir()
+        canary = actual_logs / "hung-processes.txt"
+        canary.write_text("untouched")
+        self.logs.symlink_to(actual_logs, target_is_directory=True)
+        output = self.finish(self.launch("hang", limit=0.3), 124)
+        self.assertIn("cannot write diagnostic log", output)
+        self.assertEqual(canary.read_text(), "untouched")
+        self.logs.unlink()
+        self.logs.mkdir()
+        os.link(canary, self.logs / "hung-processes.txt")
+        output = self.finish(self.launch("hang", limit=0.3), 124)
+        self.assertIn("cannot write diagnostic log", output)
         self.assertEqual(canary.read_text(), "untouched")
 
     def test_supervisor_death_during_reporting_cannot_orphan_reporter(self):
