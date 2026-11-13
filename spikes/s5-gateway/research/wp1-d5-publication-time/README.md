@@ -28,6 +28,8 @@ Primární opora: [Git prostředí, pin v2.54.0](https://github.com/git/git/blob
 [OCI annotations v1.1.1](https://github.com/opencontainers/image-spec/blob/v1.1.1/annotations.md#L22),
 [OCI config v1.1.1](https://github.com/opencontainers/image-spec/blob/v1.1.1/config.md#L95).
 Piny, umístění, velikosti a SHA-256 přečtených zdrojů jsou v [sources.json](sources.json).
+API version v URL nezmrazí HTML dokumentace; [review z 2026-11-13](VALIDATION.md#review-2026-11-13)
+odděluje její změněné bytes od 11 přesně znovu ověřených zdrojů kódu/specifikací.
 
 ## Co přesně publikuje Homebrew
 
