@@ -48,20 +48,35 @@ cesty a UUID jsou vlastní, ne nalezené v cizím stromu.
 }
 ```
 
-`expectedVolumeUUID`/`expectedContainerUUID` jsou v dry-run volitelné, ale pokud jsou uvedené, musí
-sedět na pozorování, jinak je gate `identity-match` `fail`. Dry-run bez jediného deklarovaného UUID
-nemá co porovnat: gate je `inconclusive`, `verdict.identityChecked` je `false` a běh skončí exit 5.
+`expectedVolumeUUID`/`expectedContainerUUID` musejí sedět na pozorování, jinak je gate
+`identity-match` `fail`. Dry-run bez úplné deklarované identity všech svazků má gate
+`inconclusive`, `verdict.identityChecked` je `false` a běh skončí exit 5; nestačí ověřit jen jeden
+svazek nebo container UUID.
 Pro `--apply` je `expectedVolumeUUID` povinné u source i target; pokud plán deklaruje alespoň jeden
 `expectedContainerUUID`, je povinné i u obou stran každého páru. `pilotRoot` musí ležet pod
 `/Volumes/…` nebo `/private/tmp/…`. Neznámé klíče, duplicitní JSON klíče a více než dva páry se
 odmítají. Cílené `diskutil info` musí obsahovat platné APFS `DeviceIdentifier`/`VolumeUUID`
 a souhlasit s `apfs list`; chybějící metadata znamenají exit 6, rozporná identita exit 5.
+Duplicitní plist klíče, volume devices/UUID a container UUID, chybné typy kapacit/rolí,
+neúplné nebo chybně typované `Bootable`/`Writable`/`APFSSnapshot`/`Sealed` metadata a nečitelná,
+neúplná nebo nerozpoznaná mount tabulka znamenají exit 6. Každá neprázdná role je pro pilot
+zakázaná, včetně neznámé budoucí role. XML i binary plisty jsou podporované.
 Gate `mount-consistency` odmítá rozpor přímých mountů mezi `diskutil info` a mount tabulkou.
 `target-not-active` kontroluje všechny pozorované mounty targetu včetně snapshot mountů.
 
 Výstup nesmí být totožný s plánem, receiptem ani čtenou metadata fixture (ani přes alias nebo
 hardlink). Existující výstup musí být vlastní regular file s přesným mode 0600, i pokud jsou jeho
 bytes shodné. Kolize nebo nebezpečný existující výstup znamenají exit 2 bez přepsání vstupu.
+Jiný existující obsah se také odmítne: změněný plán nebo nové pozorování potřebuje nový out-dir.
+Kompletní 0600 soubor se publikuje atomickým exkluzivním `link`, takže ani souběžně vložený
+objekt nebude přepsán; vlastní dočasný soubor se uklidí. Toto není durable recovery deník ani
+důkaz odolnosti vůči výpadku napájení. Opakovaný shodný plán nemění bytes, inode ani mtime.
+
+Vstupy a výstupní adresář se otevírají přes directory descriptory s `O_NOFOLLOW` v každé
+komponentě, včetně předků; soubory musejí mít jedno hardlink jméno. Group/world writable předek
+se odmítá kromě root-owned sticky adresáře, např. `/private/tmp`, pod kterým musí být vlastní
+privátní strom. Plán/receipt/fixture se validuje přes otevřený descriptor; receipt se hashne ze
+stejných bytes, které se validovaly. Cesty s `..` a nenormalizovaný `pilotRoot` se odmítají.
 
 Zálohový receipt `sanjbox.apfs-pilot.backup-receipt.v1` (max 16 KiB), povinný jen pro `--apply`:
 
@@ -70,6 +85,7 @@ Zálohový receipt `sanjbox.apfs-pilot.backup-receipt.v1` (max 16 KiB), povinný
   "schema": "sanjbox.apfs-pilot.backup-receipt.v1",
   "pilotId": "wp1-b4-p0",
   "transactionLabel": "T-20261107-01",
+  "planSha256": "<pilot.planSha256 ze shodného dry-runu>",
   "createdAt": "2026-11-07T12:00:00Z",
   "backupLocation": "/Volumes/Backup/synthetic-pilot",
   "backupDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -81,6 +97,12 @@ Zálohový receipt `sanjbox.apfs-pilot.backup-receipt.v1` (max 16 KiB), povinný
 `sha256:` + 64 malých hex znaků; jiný tvar je odmítnut exitem 4. Receipt je záznam o záloze, kterou
 uživatel skutečně vytvořil; skript zálohu neověřuje ani ji netvoří. `createdAt` musí být skutečně
 platné kalendářní datum a UTC čas, ne pouze text správného tvaru.
+`planSha256` je povinný hash přesného kanonického vstupního plánu (64 malých hex znaků), který
+dry-run vypisuje v `pilot.planSha256`; změna UUID při zachování BSD locatoru proto starý receipt
+zneplatní. Starý receipt bez tohoto pole se odmítne exitem 4. Datum v budoucnosti, null digest,
+prázdný, neplatný nebo příliš velký JSON receipt se rovněž odmítne exitem 4.
+Skript nemá časovou expiraci receiptu a nezná změny obsahu zálohovaných dat. Stáří, čerstvost,
+skutečnou existenci a obnovitelnost zálohy musí uživatel znovu ověřit; hash plánu je nedokazuje.
 
 ## Kroky pro uživatele (L3)
 
@@ -108,15 +130,19 @@ platné kalendářní datum a UTC čas, ne pouze text správného tvaru.
    `--useReplication` a `--erase`; `asr help` je neuvádí, takže nestačí ho pouze přečíst.
 
 5. **Hand-off.** Po kontrole spusť stejný příkaz s `--apply --i-understand --backup-receipt …`.
-   Výstup `mode: apply-handoff` znamená jen „runbook je schválený k ručnímu provedení“.
+   Výstup `mode: apply-handoff` znamená pouze vytištěný návrh runbooku; není schválením mutací,
+   důkazem čerstvé zálohy ani povolením startu. G1–G3 a aktuální identity stále ověřuje uživatel.
 6. **Proveď P1/P2 ručně.** Každý vypsaný příkaz spouštěj sám, po jednom, po opětovné kontrole
    konkrétního zařízení. `asr restore` je template: `<snapshot-uuid-from-P1>` nahraď tuplem z P1 a
    před potvrzením erase promptu znovu ověř target. Žádný `--noprompt` ani force-unmount.
 7. **Úklid.** Teprve po uzavření P2/P3 a kontrole „nic neběží, oblast je fully-off, snapshoty nejsou
    mounted“ použij `cleanup.steps` v opačném pořadí závislostí: vlastní snapshot mount → vlastní
-   `deleteSnapshot … -wait` (`-wait` proto, že mazání může pokračovat po návratu; `rootRequired` je
+   `deleteSnapshot … -uuid <snapshot-uuid-from-P1> -wait` (`-wait` proto, že mazání může pokračovat po návratu; `rootRequired` je
    `true`, protože tento systém ownership vyžaduje) → finální `diskutil apfs list -plist`. Target bez
    doložené completion zůstává v karanténě, nemaže se.
+   Parent device je také placeholder: znovu ověř celý container/parent/snapshot UUID/XID/name tuple
+   proti vlastnímu receiptu, nikdy nemaž podle shody názvu nebo starého BSD locatoru. Již chybějící
+   vlastní objekt přeskoč; konflikt nebo neuzavřený intent znamená stop a zachování objektu.
 8. **Publikuj běh** jako nový `docs/evidence/…` podle GUIDE §7; uzavřené běhy jsou neměnné.
 
 ## Význam výsledku
@@ -156,11 +182,20 @@ rozporné nebo aktivní mounty, kolize vstupu s výstupem, nebezpečný mode sho
 neplatné typy `coversDevices` a neexistující UTC datum. Neověřují skutečné APFS chování,
 oprávnění ani `asr`.
 
-### Testovací hooky (ne produkční cesta)
+### Důvěryhodné prostředí a izolace testů
 
-Skript lze v testech izolovat od hosta třemi proměnnými: `APFS_PILOT_DISKUTIL`,
-`APFS_PILOT_SYSCTL` a `APFS_PILOT_MOUNT`. Každá musí být absolutní cesta k existujícímu spustitelnému
-regular file bez symlinku; nahrazuje pouze read-only příkaz (`diskutil`, `sysctl`, `mount`). Testy je
-používají pro recording shimy, které odmítnou jakýkoli jiný argv. Hooky rozhodují, co brány vidí, a
-proto **nejsou produkční cestou**: reálný pilot je nikdy nenastavuje a `--apply` s `--fixture-dir`
-odmítá. Fixture režim navíc označí `probe.source` jako `fixture-mock`, nikoli host evidence.
+Distribuovaný skript **odmítá** nastavené `APFS_PILOT_DISKUTIL`, `APFS_PILOT_SYSCTL`
+a `APFS_PILOT_MOUNT`, a to i v fixture režimu. Živé sondy mají pevné cesty
+`/usr/sbin/diskutil`, `/usr/sbin/sysctl`, `/sbin/mount`; Python je `/usr/bin/python3 -I -B`
+a shell nastavuje systémový PATH. Program se nestává read-only tím, že dostane read-only argv.
+Testy recording sondy a pozitivního apply hand-off vytvářejí vlastní dočasnou **kopii skriptu**
+a mění jen tyto tři přesně kontrolované literály na shimy odmítající jiné argv. Fault injection
+publication/open závodů rovněž existuje jen v testové kopii, bez produkčního přepínače.
+Tyto výsledky zůstávají mock; fixture režim má `probe.source: fixture-mock` a apply jej odmítá.
+
+Planner předpokládá důvěryhodný host shell, systémové binárky a výlučný privátní workspace:
+nechrání před kompromitovaným stejným UID, administrátorem ani ACL poskytujícími cizí zápis.
+Kontroly POSIX mode nejsou audit ACL. `pilotRoot` je lexikální deklarace, nikoli důkaz identity
+namountovaného filesystemu; před ruční mutací musí uživatel znovu ověřit skutečné objekty.
+Jednotlivé metadata sondy nejsou atomický snapshot ani quiescence witness. Nepodporované
+metadata se odmítají; jejich skutečný tvar na cílovém macOS se musí připnout v L3.

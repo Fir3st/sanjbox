@@ -9,14 +9,13 @@
 # hand-off; it prints the same argv and still executes none of it.
 set -euo pipefail
 umask 077
+export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
 PROG=apfs-pilot
 PYTHON=/usr/bin/python3
-STAT=/usr/bin/stat
-
-diskutil_bin="${APFS_PILOT_DISKUTIL:-/usr/sbin/diskutil}"
-sysctl_bin="${APFS_PILOT_SYSCTL:-/usr/sbin/sysctl}"
-mount_bin="${APFS_PILOT_MOUNT:-/sbin/mount}"
+diskutil_bin=/usr/sbin/diskutil
+sysctl_bin=/usr/sbin/sysctl
+mount_bin=/sbin/mount
 
 usage() {
   cat <<'USAGE'
@@ -41,7 +40,7 @@ Exit codes:
   5  pre-state gate failed (identity mismatch, forbidden volume, busy target)
   6  read-only probe failed (metadata could not be read)
 
-This script never runs sudo, asr, snapshot create/delete, mount or unmount.
+This script never runs sudo, asr, snapshot create/delete, mounting or unmounting.
 USAGE
 }
 
@@ -50,47 +49,6 @@ die() {
   shift
   printf '%s: %s\n' "$PROG" "$*" >&2
   exit "$code"
-}
-
-# Parent directory must be a caller-owned, non-symlink directory that group/world
-# cannot write, so the checked file cannot be swapped before Python opens it.
-require_private_parent() {
-  local path=$1 label=$2 parent mode
-  parent=$(dirname -- "$path")
-  [[ -e $parent ]] || die 2 "$label: parent directory missing: $parent"
-  [[ ! -L $parent ]] || die 2 "$label: parent directory is a symlink: $parent"
-  [[ -d $parent ]] || die 2 "$label: parent is not a directory: $parent"
-  [[ $("$STAT" -f '%u' -- "$parent") == "${EUID:?}" ]] ||
-    die 2 "$label: parent directory not owned by the caller: $parent"
-  mode=$("$STAT" -f '%Lp' -- "$parent")
-  (( (8#$mode & 8#022) == 0 )) ||
-    die 2 "$label: parent directory is group/world writable: $parent"
-}
-
-# Own regular file: exists, not a symlink, owned by the caller, not group/world writable.
-require_own_file() {
-  local path=$1 label=$2
-  require_private_parent "$path" "$label"
-  [[ -e $path ]] || die 2 "$label: no such file: $path"
-  [[ ! -L $path ]] || die 2 "$label: symlink refused: $path"
-  [[ -f $path ]] || die 2 "$label: not a regular file: $path"
-  [[ $("$STAT" -f '%u' -- "$path") == "${EUID:?}" ]] || die 2 "$label: not owned by the caller: $path"
-  local mode
-  mode=$("$STAT" -f '%Lp' -- "$path")
-  (( (8#$mode & 8#022) == 0 )) || die 2 "$label: group/world writable refused: $path"
-}
-
-# Private directory: caller-owned, not a symlink, exactly mode 0700.
-require_own_dir() {
-  local path=$1 label=$2
-  [[ -e $path ]] || die 2 "$label: no such directory: $path"
-  [[ ! -L $path ]] || die 2 "$label: symlink refused: $path"
-  [[ -d $path ]] || die 2 "$label: not a directory: $path"
-  [[ $("$STAT" -f '%u' -- "$path") == "${EUID:?}" ]] || die 2 "$label: not owned by the caller: $path"
-  local mode
-  mode=$("$STAT" -f '%Lp' -- "$path")
-  (( (8#$mode & 8#077) == 0 && (8#$mode & 8#700) == 8#700 )) ||
-    die 2 "$label: mode must be 0700: $path (got $mode)"
 }
 
 mode=dry-run
@@ -135,28 +93,10 @@ if [[ $mode == apply ]]; then
     die 4 'refused: --apply requires live read-only probing; --fixture-dir is a dry-run-only mock'
 fi
 
-require_own_file "$plan" 'plan'
-plan_bytes=$(wc -c <"$plan")
-((plan_bytes > 0 && plan_bytes <= 65536)) || die 2 "plan: size must be 1..65536 bytes, got $plan_bytes"
-
-if [[ -n $receipt ]]; then
-  require_own_file "$receipt" 'backup receipt'
-  receipt_bytes=$(wc -c <"$receipt")
-  ((receipt_bytes > 0 && receipt_bytes <= 16384)) ||
-    die 4 "refused: backup receipt: size must be 1..16384 bytes, got $receipt_bytes"
-fi
-
-require_own_dir "$out_dir" 'out-dir'
-if [[ -n $fixture_dir ]]; then
-  require_own_dir "$fixture_dir" 'fixture-dir'
-fi
-
-if [[ -z $fixture_dir ]]; then
-  for tool in "$diskutil_bin" "$sysctl_bin" "$mount_bin"; do
-    [[ $tool == /* ]] || die 2 "tool override must be an absolute path: $tool"
-    [[ -f $tool && ! -L $tool && -x $tool ]] || die 2 "tool is not an executable regular file: $tool"
-  done
-fi
+# There are no executable test hooks in the distributed script. A program is
+# not made read-only by passing it a read-only-looking argv.
+[[ -z ${APFS_PILOT_DISKUTIL+x}${APFS_PILOT_SYSCTL+x}${APFS_PILOT_MOUNT+x} ]] ||
+  die 2 'executable overrides are refused; live probes use pinned system binaries'
 
 # --- read-only planning; all JSON work happens in one bounded stdlib-only helper ---
 "$PYTHON" -I -B - \
@@ -171,6 +111,7 @@ import re
 import stat
 import subprocess
 import sys
+import secrets
 
 PLAN_SCHEMA = "sanjbox.apfs-pilot.plan.v1"
 OUT_SCHEMA = "sanjbox.apfs-pilot.dry-run.v1"
@@ -186,13 +127,11 @@ LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 SNAPSHOT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,62}$")
 CREATED_AT_RE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
 MOUNT_PREFIXES = ("/Volumes/", "/private/tmp/")
-FORBIDDEN_ROLES = frozenset(
-    ["System", "Data", "Preboot", "Recovery", "VM", "Update", "xART", "Hardware", "Baseband"]
-)
 FORBIDDEN_MOUNT_PREFIXES = ("/System/Volumes/",)
 
 mode, plan_path, out_dir, fixture_dir, receipt_path, diskutil, sysctl, mount = sys.argv[1:9]
-input_paths = set()
+input_identities = set()
+out_fd = None
 
 
 def fail(code, message):
@@ -200,11 +139,11 @@ def fail(code, message):
     raise SystemExit(code)
 
 
-def load_json(raw, label, limit):
+def load_json(raw, label, limit, code=2):
     if not raw:
-        fail(2, label + ": empty input")
+        fail(code, label + ": empty input")
     if len(raw) > limit:
-        fail(2, label + ": exceeds " + str(limit) + " bytes")
+        fail(code, label + ": exceeds " + str(limit) + " bytes")
 
     def no_duplicates(pairs):
         seen = set()
@@ -218,42 +157,102 @@ def load_json(raw, label, limit):
         raise ValueError("non-finite number " + text)
 
     try:
-        return json.loads(
+        document = json.loads(
             raw.decode("utf-8"), object_pairs_hook=no_duplicates, parse_constant=no_constants
         )
-    except (UnicodeDecodeError, ValueError) as exc:
-        fail(2, label + ": invalid JSON: " + str(exc))
+        def validate(value, depth=0):
+            if depth > 32:
+                raise ValueError("JSON nesting exceeds 32 levels")
+            if isinstance(value, str):
+                value.encode("utf-8")
+            elif isinstance(value, dict):
+                for key, child in value.items():
+                    validate(key, depth + 1)
+                    validate(child, depth + 1)
+            elif isinstance(value, list):
+                for child in value:
+                    validate(child, depth + 1)
+        validate(document)
+        return document
+    except (UnicodeError, ValueError, RecursionError) as exc:
+        fail(code, label + ": invalid JSON: " + str(exc))
 
 
-def read_bytes(path, limit):
+def open_directory(path, private=False):
+    """Walk directory descriptors, never following a symlink in any component."""
+    if ".." in path.split("/"):
+        fail(2, "parent traversal refused: " + path)
+    descriptor = os.open("/", os.O_RDONLY | os.O_DIRECTORY)
     try:
-        with open(path, "rb") as handle:
-            data = handle.read(limit + 1)
+        for part in os.path.abspath(path).split("/")[1:]:
+            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                            dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = child
+            info = os.fstat(descriptor)
+            if info.st_uid not in (0, os.geteuid()):
+                fail(2, "ancestor directory not owned by caller/root: " + path)
+            # Root-owned sticky /private/tmp is permitted; its own child must
+            # still be private. No writable non-sticky ancestor is accepted.
+            if info.st_mode & 0o022 and not (info.st_uid == 0 and info.st_mode & stat.S_ISVTX):
+                fail(2, "parent directory is group/world writable: " + path)
+        info = os.fstat(descriptor)
+        if info.st_uid != os.geteuid():
+            fail(2, "directory not owned by the caller: " + path)
+        if info.st_mode & 0o022:
+            fail(2, "parent directory is group/world writable: " + path)
+        if private and stat.S_IMODE(info.st_mode) != 0o700:
+            fail(2, "directory mode must be 0700: " + path)
+        result, descriptor = descriptor, None
+        return result
     except OSError as exc:
-        fail(2, "cannot read " + path + ": " + str(exc))
-    if len(data) > limit:
-        fail(2, path + ": exceeds " + str(limit) + " bytes")
-    return data
+        fail(2, "cannot open directory (symlink refused): " + path + ": " + str(exc))
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
 
 
-def check_output_collision(path):
+def check_output_collision(info):
     if mode != "dry-run":
         return
-    output = os.path.join(out_dir, OUT_NAME)
-    collision = os.path.realpath(path) == os.path.realpath(output)
     try:
-        if os.path.exists(path) and os.path.exists(output):
-            collision = collision or os.path.samefile(path, output)
-    except OSError as exc:
-        fail(2, "cannot compare input/output identity: " + str(exc))
-    if collision:
-        fail(2, "output collides with an input file: " + path)
+        output = os.stat(OUT_NAME, dir_fd=out_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return
+    if (info.st_dev, info.st_ino) == (output.st_dev, output.st_ino):
+        fail(2, "output collides with an input file")
 
 
-def read_input_bytes(path, limit):
-    input_paths.add(path)
-    check_output_collision(path)
-    return read_bytes(path, limit)
+def read_input_bytes(path, limit, size_code=2):
+    if ".." in path.split("/"):
+        fail(2, "parent traversal refused: " + path)
+    parent = open_directory(os.path.dirname(os.path.abspath(path)))
+    try:
+        try:
+            descriptor = os.open(os.path.basename(path), os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                                 dir_fd=parent)
+        except FileNotFoundError:
+            fail(2, "no such file: " + path)
+        except OSError as exc:
+            fail(2, "cannot open input (symlink refused): " + path + ": " + str(exc))
+        with os.fdopen(descriptor, "rb") as handle:
+            info = os.fstat(handle.fileno())
+            check_output_collision(info)
+            if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_nlink != 1:
+                fail(2, "input must be a caller-owned regular file with one link: " + path)
+            if info.st_mode & 0o022:
+                fail(2, "input group/world writable refused: " + path)
+            data = handle.read(limit + 1)
+            after = os.fstat(handle.fileno())
+            if (info.st_size, info.st_mtime_ns, info.st_ctime_ns) != \
+                    (after.st_size, after.st_mtime_ns, after.st_ctime_ns):
+                fail(2, "input changed while being read: " + path)
+            input_identities.add((info.st_dev, info.st_ino))
+    finally:
+        os.close(parent)
+    if len(data) > limit:
+        fail(size_code, path + ": exceeds " + str(limit) + " bytes")
+    return data
 
 
 def require_object(obj, label, required, optional=(), code=2):
@@ -280,16 +279,15 @@ def require_string(obj, key, label, limit=1024, code=2):
 
 def optional_uuid(obj, key, label):
     value = obj.get(key)
-    if value is None:
+    if key not in obj:
         return None
-    if not isinstance(value, str) or not UUID_RE.match(value):
+    if not isinstance(value, str) or not UUID_RE.fullmatch(value):
         fail(2, label + "." + key + ": must be a UUID like 00000000-0000-0000-0000-000000000000")
     return value
 
 
 def require_absolute_under(value, label, prefixes):
-    if not value.startswith("/") or value.startswith("//") or value.endswith("/") or "/./" in value \
-            or "/../" in value or value == "/..":
+    if not value.startswith("/") or any(part in ("", ".", "..") for part in value.split("/")[1:]):
         fail(2, label + ": must be a normalized absolute path, got " + value)
     if not any(value.startswith(prefix) and len(value) > len(prefix) for prefix in prefixes):
         fail(2, label + ": must live under one of " + ", ".join(prefixes) + ", got " + value)
@@ -299,7 +297,7 @@ def require_absolute_under(value, label, prefixes):
 def check_volume(side, label):
     require_object(side, label, ["device"], ["expectedVolumeUUID", "expectedContainerUUID"])
     device = require_string(side, "device", label, 64)
-    if not DEVICE_RE.match(device):
+    if not DEVICE_RE.fullmatch(device):
         fail(2, label + ".device: must look like disk9s1, got " + device)
     return {
         "device": device,
@@ -315,7 +313,7 @@ def check_plan(doc):
     pilot_id = require_string(doc, "pilotId", "plan", 64)
     transaction = require_string(doc, "transactionLabel", "plan", 64)
     for label, value in (("plan.pilotId", pilot_id), ("plan.transactionLabel", transaction)):
-        if not LABEL_RE.match(value):
+        if not LABEL_RE.fullmatch(value):
             fail(2, label + ": only [A-Za-z0-9._-] up to 64 characters")
     root = require_string(doc, "pilotRoot", "plan")
     require_absolute_under(root, "plan.pilotRoot", MOUNT_PREFIXES)
@@ -331,11 +329,11 @@ def check_plan(doc):
         label = "plan.pairs[" + str(index) + "]"
         require_object(pair, label, ["id", "snapshotName", "source", "target"])
         pair_id = require_string(pair, "id", label, 32)
-        if not LABEL_RE.match(pair_id) or pair_id in ids:
+        if not LABEL_RE.fullmatch(pair_id) or pair_id in ids:
             fail(2, label + ".id: unique [A-Za-z0-9._-] label required")
         ids.add(pair_id)
         name = require_string(pair, "snapshotName", label, 63)
-        if not SNAPSHOT_RE.match(name) or name in names:
+        if not SNAPSHOT_RE.fullmatch(name) or name in names:
             fail(2, label + ".snapshotName: unique [A-Za-z0-9._-] name up to 63 characters")
         names.add(name)
         source = check_volume(pair["source"], label + ".source")
@@ -355,11 +353,11 @@ def check_plan(doc):
     }
 
 
-def check_receipt(doc, plan):
+def check_receipt(doc, plan, plan_digest):
     require_object(
         doc,
         "backup receipt",
-        ["schema", "pilotId", "transactionLabel", "createdAt", "backupLocation", "coversDevices"],
+        ["schema", "pilotId", "transactionLabel", "planSha256", "createdAt", "backupLocation", "coversDevices"],
         ["backupDigest"],
         code=4,
     )
@@ -369,13 +367,17 @@ def check_receipt(doc, plan):
         fail(4, "refused: backup receipt: pilotId does not match the plan")
     if doc["transactionLabel"] != plan["transactionLabel"]:
         fail(4, "refused: backup receipt: transactionLabel does not match the plan")
+    if doc["planSha256"] != plan_digest:
+        fail(4, "refused: backup receipt: planSha256 does not match the exact plan/identities")
     created = require_string(doc, "createdAt", "backup receipt", 32, code=4)
-    if not CREATED_AT_RE.match(created):
+    if not CREATED_AT_RE.fullmatch(created):
         fail(4, "refused: backup receipt: createdAt must be UTC YYYY-MM-DDTHH:MM:SSZ")
     try:
-        datetime.strptime(created, "%Y-%m-%dT%H:%M:%SZ")
+        created_time = datetime.strptime(created, "%Y-%m-%dT%H:%M:%SZ")
     except ValueError:
         fail(4, "refused: backup receipt: createdAt is not a valid UTC calendar timestamp")
+    if created_time > datetime.utcnow():
+        fail(4, "refused: backup receipt: createdAt is in the future")
     location = require_string(doc, "backupLocation", "backup receipt", 1024, code=4)
     if location.strip() != location:
         fail(4, "refused: backup receipt: backupLocation has surrounding whitespace")
@@ -383,7 +385,7 @@ def check_receipt(doc, plan):
     if not isinstance(covers, list) or not covers:
         fail(4, "refused: backup receipt: coversDevices must be a non-empty array")
     for device in covers:
-        if not isinstance(device, str) or not DEVICE_RE.match(device):
+        if not isinstance(device, str) or not DEVICE_RE.fullmatch(device):
             fail(4, "refused: backup receipt: coversDevices entry is not a volume device")
     if len(set(covers)) != len(covers):
         fail(4, "refused: backup receipt: coversDevices contains duplicates")
@@ -391,13 +393,14 @@ def check_receipt(doc, plan):
     if missing:
         fail(4, "refused: backup receipt: does not cover " + ", ".join(missing))
     digest = doc.get("backupDigest")
-    if digest is not None:
-        if not isinstance(digest, str) or not BACKUP_DIGEST_RE.match(digest):
+    if "backupDigest" in doc:
+        if not isinstance(digest, str) or not BACKUP_DIGEST_RE.fullmatch(digest):
             fail(
                 4,
                 "refused: backup receipt: backupDigest must be sha256:<64 lowercase hex characters>",
             )
     return {
+        "planSha256": plan_digest,
         "createdAt": created,
         "backupLocation": location,
         "coversDevices": sorted(covers),
@@ -417,11 +420,13 @@ class Probe(object):
     def _run(self, argv):
         self.commands.append(list(argv))
         try:
-            result = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except OSError as exc:
+            result = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+        except (OSError, subprocess.TimeoutExpired) as exc:
             fail(6, "probe command could not start: " + " ".join(argv) + ": " + str(exc))
         if result.returncode != 0:
             fail(6, "probe command failed with " + str(result.returncode) + ": " + " ".join(argv))
+        if len(result.stdout) > 4 * 1024 * 1024:
+            fail(6, "probe output exceeds 4 MiB")
         return result.stdout
 
     def _fixture(self, name):
@@ -452,8 +457,14 @@ class Probe(object):
 
 
 def parse_plist(data, label):
+    class UniqueDictionary(dict):
+        def __setitem__(self, key, value):
+            if key in self:
+                raise ValueError("duplicate plist key " + repr(key))
+            super().__setitem__(key, value)
+
     try:
-        doc = plistlib.loads(data)
+        doc = plistlib.loads(data, dict_type=UniqueDictionary)
     except Exception as exc:  # plistlib raises several unrelated types
         fail(6, label + ": cannot parse property list: " + str(exc))
     if not isinstance(doc, dict):
@@ -463,20 +474,38 @@ def parse_plist(data, label):
 
 def parse_mounts(text):
     entries = []
-    for line in text.decode("utf-8", "replace").splitlines():
+    try:
+        lines = text.decode("utf-8").splitlines()
+    except UnicodeDecodeError:
+        fail(6, "mount table is not UTF-8")
+    for line in lines:
+        if not line.strip():
+            continue
         match = re.match(r"^(\S+) on (.+) \(([^)]*)\)$", line)
         if not match:
-            continue
+            fail(6, "mount table contains an unrecognized line")
         options = [item.strip() for item in match.group(3).split(",") if item.strip()]
+        point = match.group(2)
+        if not point.startswith("/") or (point != "/" and any(
+                part in ("", ".", "..") for part in point.split("/")[1:])):
+            fail(6, "mount table contains a non-normalized mountpoint")
         entries.append(
             {"device": match.group(1), "mountpoint": match.group(2), "mountFields": options}
         )
+    if not entries or sum(entry["mountpoint"] == "/" for entry in entries) != 1:
+        fail(6, "mount table must contain exactly one root mount")
+    if len({entry["mountpoint"] for entry in entries}) != len(entries):
+        fail(6, "mount table contains duplicate mountpoints")
     entries.sort(key=lambda item: (item["mountpoint"], item["device"]))
     return entries
 
 
 def main():
-    plan_doc = load_json(read_input_bytes(plan_path, MAX_PLAN_BYTES + 1), "plan", MAX_PLAN_BYTES)
+    global out_fd
+    out_fd = open_directory(out_dir, private=True)
+    if fixture_dir != "-":
+        os.close(open_directory(fixture_dir, private=True))
+    plan_doc = load_json(read_input_bytes(plan_path, MAX_PLAN_BYTES), "plan", MAX_PLAN_BYTES)
     plan = check_plan(plan_doc)
     if mode == "apply":
         declared_containers = any(
@@ -504,11 +533,13 @@ def main():
     ).hexdigest()
 
     receipt = None
+    receipt_raw = None
     if receipt_path != "-":
+        receipt_raw = read_input_bytes(receipt_path, MAX_RECEIPT_BYTES, size_code=4)
         receipt_doc = load_json(
-            read_input_bytes(receipt_path, MAX_RECEIPT_BYTES + 1), "backup receipt", MAX_RECEIPT_BYTES
+            receipt_raw, "backup receipt", MAX_RECEIPT_BYTES, code=4
         )
-        receipt = check_receipt(receipt_doc, plan)
+        receipt = check_receipt(receipt_doc, plan, plan_digest)
 
     if mode == "apply" and receipt is None:
         fail(4, "refused: --apply requires a backup receipt")
@@ -522,7 +553,7 @@ def main():
         boot_uuid = boot_raw.decode("utf-8").strip()
     except UnicodeDecodeError:
         fail(6, "cannot decode kern.bootsessionuuid output")
-    if not UUID_RE.match(boot_uuid):
+    if not UUID_RE.fullmatch(boot_uuid):
         fail(6, "kern.bootsessionuuid did not return a UUID")
 
     apfs_doc = parse_plist(probe.apfs_list(), "apfs list")
@@ -533,34 +564,49 @@ def main():
 
     volumes = {}
     containers = {}
+    container_uuids = set()
+    volume_uuids = set()
+
+    def capacity(obj, key):
+        value = obj.get(key, 0)
+        if type(value) is not int or not 0 <= value <= 2 ** 64 - 1:
+            fail(6, "apfs list: " + key + " must be an unsigned integer")
+        return value
+
     for container in containers_doc:
         if not isinstance(container, dict):
             fail(6, "apfs list: container entry is not a dictionary")
         container_uuid = container.get("APFSContainerUUID")
-        if not isinstance(container_uuid, str) or not UUID_RE.match(container_uuid):
+        if not isinstance(container_uuid, str) or not UUID_RE.fullmatch(container_uuid):
             fail(6, "apfs list: container without a valid UUID")
-        if container_uuid in containers:
+        if container_uuid.upper() in container_uuids:
             fail(6, "apfs list: duplicate container UUID " + container_uuid)
+        container_uuids.add(container_uuid.upper())
         container_volumes = container.get("Volumes")
         if not isinstance(container_volumes, list):
             fail(6, "apfs list: container without a Volumes array")
         record = {
             "uuid": container_uuid,
             "designatedPhysicalStore": container.get("DesignatedPhysicalStore", ""),
-            "capacityCeilingBytes": int(container.get("CapacityCeiling", 0) or 0),
-            "capacityFreeBytes": int(container.get("CapacityFree", 0) or 0),
+            "capacityCeilingBytes": capacity(container, "CapacityCeiling"),
+            "capacityFreeBytes": capacity(container, "CapacityFree"),
             "volumes": [],
         }
+        if not isinstance(record["designatedPhysicalStore"], str):
+            fail(6, "apfs list: malformed DesignatedPhysicalStore")
         for volume in container_volumes:
             if not isinstance(volume, dict):
                 fail(6, "apfs list: volume entry is not a dictionary")
             device = volume.get("DeviceIdentifier")
             volume_uuid = volume.get("APFSVolumeUUID")
-            if not isinstance(device, str) or not DEVICE_RE.match(device):
+            if not isinstance(device, str) or not DEVICE_RE.fullmatch(device):
                 fail(6, "apfs list: volume without a valid device identifier")
-            if not isinstance(volume_uuid, str) or not UUID_RE.match(volume_uuid):
+            if not isinstance(volume_uuid, str) or not UUID_RE.fullmatch(volume_uuid):
                 fail(6, "apfs list: volume " + device + " without a valid UUID")
-            roles = volume.get("Roles") or []
+            if device in volumes or volume_uuid.upper() in volume_uuids:
+                fail(6, "apfs list: duplicate volume device or UUID")
+            volume_uuids.add(volume_uuid.upper())
+            roles = volume.get("Roles", [])
             if not isinstance(roles, list) or any(not isinstance(role, str) for role in roles):
                 fail(6, "apfs list: volume " + device + " has malformed Roles")
             entry = {
@@ -568,11 +614,13 @@ def main():
                 "volumeUUID": volume_uuid,
                 "name": volume.get("Name", ""),
                 "roles": sorted(roles),
-                "capacityQuotaBytes": int(volume.get("CapacityQuota", 0) or 0),
-                "capacityReserveBytes": int(volume.get("CapacityReserve", 0) or 0),
-                "capacityInUseBytes": int(volume.get("CapacityInUse", 0) or 0),
+                "capacityQuotaBytes": capacity(volume, "CapacityQuota"),
+                "capacityReserveBytes": capacity(volume, "CapacityReserve"),
+                "capacityInUseBytes": capacity(volume, "CapacityInUse"),
                 "containerUUID": container_uuid,
             }
+            if not isinstance(entry["name"], str):
+                fail(6, "apfs list: malformed volume Name")
             record["volumes"].append(entry)
             volumes[device] = entry
         record["volumes"].sort(key=lambda item: item["device"])
@@ -595,6 +643,11 @@ def main():
             fail(6, "volume info " + device + ": missing or malformed APFS identity metadata")
         if info_device != device or info_uuid != volumes[device]["volumeUUID"]:
             fail(5, "volume info " + device + ": identity mismatch with apfs list")
+        for key in ("Bootable", "Writable", "APFSSnapshot"):
+            if type(info.get(key)) is not bool:
+                fail(6, "volume info " + device + ": malformed " + key)
+        if info.get("Sealed") not in ("Yes", "No"):
+            fail(6, "volume info " + device + ": malformed Sealed")
         infos[device] = info
 
     def mount_device(entry):
@@ -707,6 +760,10 @@ def main():
         for key in ("matchesExpectedVolumeUUID", "matchesExpectedContainerUUID")
         if item[key] is not None
     )
+    containers_declared = any(item["expectedContainerUUID"] is not None for item in pilot_volumes)
+    unidentified = [item["pairId"] + "." + item["side"] for item in pilot_volumes
+                    if item["matchesExpectedVolumeUUID"] is not True
+                    or containers_declared and item["matchesExpectedContainerUUID"] is not True]
     if mismatched:
         gate("identity-match", "fail", "declared UUID does not match observation: " + ", ".join(mismatched))
     elif compared == 0:
@@ -716,6 +773,9 @@ def main():
             "no expectedVolumeUUID/expectedContainerUUID was declared; nothing was compared, "
             "so identity is not verified",
         )
+    elif unidentified:
+        gate("identity-match", "inconclusive", "incomplete declared/observed identity: "
+             + ", ".join(unidentified))
     else:
         gate(
             "identity-match",
@@ -728,7 +788,7 @@ def main():
         observed = item["observed"]
         if observed is None:
             continue
-        hits = sorted(FORBIDDEN_ROLES.intersection(observed["roles"]))
+        hits = observed["roles"]
         if hits:
             forbidden.append(item["device"] + " roles " + ",".join(hits))
         if observed["sealed"] or observed["bootable"]:
@@ -794,7 +854,7 @@ def main():
         gate("quota-declared", "pass", "every observed pilot volume declares a non-zero APFS quota")
 
     if receipt is not None:
-        gate("backup-receipt", "pass", "receipt covers every plan device and matches pilot/transaction")
+        gate("backup-receipt", "pass", "receipt covers every plan device and matches the exact plan hash")
     elif mode == "apply":
         gate("backup-receipt", "fail", "missing receipt")  # unreachable: refused earlier
     else:
@@ -948,7 +1008,8 @@ def main():
                 "readOnly": False,
                 "rootRequired": False,
                 "executed": False,
-                "reason": "Only the operator's own snapshot mount, after an identity check.",
+                "reason": "Only the operator's own snapshot mount, after a fresh receipt/identity "
+                "check. Already absent means skip; a different mount means stop and preserve it.",
             }
         )
         cleanup_steps.append(
@@ -958,17 +1019,20 @@ def main():
                     "diskutil",
                     "apfs",
                     "deleteSnapshot",
-                    pair["source"]["device"],
-                    "-name",
-                    pair["snapshotName"],
+                    "<revalidated-parent-device-from-P1>",
+                    "-uuid",
+                    "<snapshot-uuid-from-P1>",
                     "-wait",
                 ],
-                "argvTemplate": False,
+                "argvTemplate": True,
                 "readOnly": False,
                 "rootRequired": True,
                 "executed": False,
                 "reason": "Only after P2/P3 are closed and the snapshot is provably unused; -wait "
-                "because deletion can continue after the command returns.",
+                "because deletion can continue after the command returns. Revalidate the full "
+                "container/parent/snapshot UUID/XID/name receipt immediately before acting; never "
+                "substitute a name match or stale device locator. Already absent means skip; "
+                "conflict or unresolved intent means preserve the object and stop.",
             }
         )
         cleanup_steps.append(
@@ -991,7 +1055,8 @@ def main():
             "readOnly": True,
             "rootRequired": False,
             "executed": False,
-            "reason": "Read-only: close the run only after no pilot snapshot, mount or target remains.",
+            "reason": "Read-only: record remaining snapshots, mounts and targets. Quarantined "
+            "targets keep the slot blocked; this plan does not delete targets or prove cleanup.",
         }
     )
 
@@ -1055,6 +1120,8 @@ def main():
             "script does not reserve or validate a lab slot.",
             "Run every printed argv yourself, one at a time, after re-reading the concrete device; "
             "this script never executes them and never runs privileged commands.",
+            "The backup receipt binds the exact plan, not backup contents or freshness. Verify the "
+            "backup is still current before each operation; this hand-off grants no authorization.",
             "Replace <snapshot-uuid-from-P1> with the tuple you captured in P1, and the approved "
             "snapshot mount path from P0 in the cleanup template.",
             "Publish the run under docs/evidence per GUIDE §7 and keep closed runs immutable.",
@@ -1068,7 +1135,7 @@ def main():
             "gatesPassed": all(
                 item["status"] in ("pass", "warn", "manual") for item in gates
             ),
-            "identityChecked": compared > 0 and not mismatched,
+            "identityChecked": not unidentified and not mismatched,
             "manualGates": sorted(
                 item["id"] for item in gates if item["status"] == "manual"
             ),
@@ -1081,9 +1148,8 @@ def main():
     if receipt is not None:
         doc["backupReceipt"] = {
             "createdAt": receipt["createdAt"],
-            "sha256": hashlib.sha256(
-                read_input_bytes(receipt_path, MAX_RECEIPT_BYTES + 1)
-            ).hexdigest(),
+            "planSha256": receipt["planSha256"],
+            "sha256": hashlib.sha256(receipt_raw).hexdigest(),
             "coversDevices": receipt["coversDevices"],
             "backupDigest": receipt["backupDigest"],
         }
@@ -1092,37 +1158,43 @@ def main():
     failed = not doc["verdict"]["gatesPassed"]
 
     if mode == "dry-run":
-        path = os.path.join(out_dir, OUT_NAME)
-        for input_path in sorted(input_paths):
-            check_output_collision(input_path)
-        if os.path.lexists(path):
-            existing = os.lstat(path)
-            if not stat.S_ISREG(existing.st_mode):
-                fail(2, "output exists and is not a regular file: " + path)
-            if existing.st_uid != os.geteuid():
-                fail(2, "output is not owned by the caller: " + path)
-            if stat.S_IMODE(existing.st_mode) != 0o600:
-                fail(2, "output mode must be 0600: " + path)
-            current = read_bytes(path, 8 * 1024 * 1024)
-            if current == data:
-                sys.stderr.write("apfs-pilot: dry-run output already identical; not rewritten\n")
-                data = None
+        try:
+            descriptor = os.open(OUT_NAME, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=out_fd)
+        except FileNotFoundError:
+            descriptor = None
+        if descriptor is not None:
+            with os.fdopen(descriptor, "rb") as handle:
+                existing = os.fstat(handle.fileno())
+                if (existing.st_dev, existing.st_ino) in input_identities:
+                    fail(2, "output collides with an input file")
+                if not stat.S_ISREG(existing.st_mode) or existing.st_uid != os.geteuid() \
+                        or existing.st_nlink != 1:
+                    fail(2, "output must be an own regular file with one link")
+                if stat.S_IMODE(existing.st_mode) != 0o600:
+                    fail(2, "output mode must be 0600")
+                if handle.read(len(data) + 1) != data:
+                    fail(2, "output differs from this plan; use a fresh out-dir")
+                after = os.stat(OUT_NAME, dir_fd=out_fd, follow_symlinks=False)
+                fields = ("st_dev", "st_ino", "st_uid", "st_mode", "st_nlink",
+                          "st_size", "st_mtime_ns", "st_ctime_ns")
+                if any(getattr(existing, key) != getattr(after, key) for key in fields):
+                    fail(2, "output changed during validation")
+            sys.stderr.write("apfs-pilot: dry-run output already identical; not rewritten\n")
+            data = None
         if data is not None:
-            temp = os.path.join(out_dir, "." + OUT_NAME + ".tmp." + str(os.getpid()))
-            flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-            descriptor = os.open(temp, flags, 0o600)
+            temp = "." + OUT_NAME + ".tmp." + secrets.token_hex(16)
+            flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+            descriptor = os.open(temp, flags, 0o600, dir_fd=out_fd)
             try:
                 with os.fdopen(descriptor, "wb") as handle:
                     handle.write(data)
                     handle.flush()
                     os.fsync(handle.fileno())
-                os.replace(temp, path)
-            except BaseException:
-                try:
-                    os.unlink(temp)
-                except OSError:
-                    pass
-                raise
+                # link() publishes complete bytes exclusively: never overwrite a
+                # file, symlink or concurrent writer inserted after our check.
+                os.link(temp, OUT_NAME, src_dir_fd=out_fd, dst_dir_fd=out_fd, follow_symlinks=False)
+            finally:
+                os.unlink(temp, dir_fd=out_fd)
 
     sys.stdout.write(json.dumps(doc, sort_keys=True, indent=2, ensure_ascii=True) + "\n")
     sys.stdout.flush()
@@ -1136,5 +1208,11 @@ def main():
     raise SystemExit(0)
 
 
-main()
+try:
+    main()
+except OSError as exc:
+    fail(2, "I/O error; no successful plan verdict: " + str(exc))
+finally:
+    if out_fd is not None:
+        os.close(out_fd)
 PYTHON

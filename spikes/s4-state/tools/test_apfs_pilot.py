@@ -61,6 +61,8 @@ def valid_receipt(backup_digest=None):
         "schema": RECEIPT_SCHEMA,
         "pilotId": "wp1-b4-p0",
         "transactionLabel": "T-20261107-01",
+        "planSha256": hashlib.sha256(json.dumps(valid_plan(), sort_keys=True,
+                                              separators=(",", ":")).encode()).hexdigest(),
         "createdAt": "2026-11-07T12:00:00Z",
         "backupLocation": "/Volumes/Backup/synthetic-pilot-receipt",
         "coversDevices": ["disk9s1", "disk9s2"],
@@ -218,8 +220,12 @@ class PilotTestCase(unittest.TestCase):
     def run_script(self, *args, **kwargs):
         env = dict(os.environ)
         env.update(kwargs.pop("env", {}))
+        # The distributed script has no executable override. Only test-owned
+        # copies replace its three pinned literals with rejecting recording shims.
+        script = kwargs.pop("script", getattr(self, "live_script", SCRIPT)
+                            if "APFS_PILOT_TEST_LOG" in env else SCRIPT)
         return subprocess.run(
-            ["/bin/bash", str(SCRIPT)] + list(args),
+            ["/bin/bash", str(script)] + list(args),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env,
@@ -241,7 +247,7 @@ class PilotTestCase(unittest.TestCase):
 
     def shims(self, marker):
         shims = self.tree.root / "shims"
-        shims.mkdir(mode=0o700)
+        shims.mkdir(mode=0o700, exist_ok=True)
         helpers = {
             "diskutil": (
                 'case "$1 $2" in\n'
@@ -274,10 +280,15 @@ class PilotTestCase(unittest.TestCase):
     def live_env(self, marker=None):
         marker = marker or (self.tree.root / "tool-invoked.log")
         shims = self.shims(marker)
+        source = SCRIPT.read_text()
+        for name, pinned in (("diskutil", "/usr/sbin/diskutil"),
+                             ("sysctl", "/usr/sbin/sysctl"), ("mount", "/sbin/mount")):
+            original = name + "_bin=" + pinned + "\n"
+            self.assertEqual(source.count(original), 1)
+            source = source.replace(original, name + "_bin=" + str(shims / name) + "\n")
+        self.live_script = self.tree.root / "apfs-pilot-test-copy.sh"
+        self.live_script.write_text(source)
         return {
-            "APFS_PILOT_DISKUTIL": str(shims / "diskutil"),
-            "APFS_PILOT_SYSCTL": str(shims / "sysctl"),
-            "APFS_PILOT_MOUNT": str(shims / "mount"),
             "APFS_PILOT_TEST_LOG": str(marker),
             "APFS_PILOT_TEST_FIXTURES": str(self.tree.fixtures),
         }
@@ -414,12 +425,13 @@ class DryRunTests(PilotTestCase):
                 "diskutil",
                 "apfs",
                 "deleteSnapshot",
-                "disk9s1",
-                "-name",
-                "sanjbox-b4-T-20261107-01-A",
+                "<revalidated-parent-device-from-P1>",
+                "-uuid",
+                "<snapshot-uuid-from-P1>",
                 "-wait",
             ],
         )
+        self.assertTrue(delete["argvTemplate"])
         self.assertTrue(doc["cleanup"]["preconditions"])
         gate_ids = {gate["id"] for gate in doc["gates"]}
         self.assertLessEqual(
@@ -467,12 +479,7 @@ class DryRunTests(PilotTestCase):
 
     def test_dry_run_never_shells_out_in_fixture_mode(self):
         marker = self.tree.root / "tool-invoked.log"
-        shims = self.shims(marker)
-        env = {
-            "APFS_PILOT_DISKUTIL": str(shims / "diskutil"),
-            "APFS_PILOT_SYSCTL": str(shims / "sysctl"),
-            "APFS_PILOT_MOUNT": str(shims / "mount"),
-        }
+        env = self.live_env(marker)
         result = self.dry_run(env=env)
         self.assertEqual(result.returncode, 0, result.stderr.decode())
         self.assertFalse(marker.exists(), marker.read_text() if marker.exists() else "")
@@ -907,6 +914,7 @@ class ReviewRegressionTests(PilotTestCase):
 
     def test_target_mount_outside_root_in_table_refuses_both_modes(self):
         (self.tree.fixtures / "mount.txt").write_text(
+            "/dev/disk3s1s1 on / (apfs, sealed, local, read-only)\n"
             "/dev/disk9s2 on /Users/synthetic/active (apfs, local)\n"
         )
         self.assert_mount_refusal()
@@ -914,18 +922,22 @@ class ReviewRegressionTests(PilotTestCase):
     def test_target_info_unmounted_cannot_hide_table_mount(self):
         self.tree.write_plist("volume-info-disk9s2.plist", volume_info("disk9s2", uuid(12)))
         (self.tree.fixtures / "mount.txt").write_text(
+            "/dev/disk3s1s1 on / (apfs, sealed, local, read-only)\n"
             "/dev/disk9s2 on /Users/synthetic/active (apfs, local)\n"
         )
         self.assert_mount_refusal()
 
     def test_mount_disagreement_inside_pilot_root_is_still_refused(self):
         (self.tree.fixtures / "mount.txt").write_text(
+            "/dev/disk3s1s1 on / (apfs, sealed, local, read-only)\n"
             "/dev/disk9s2 on /Volumes/SanjboxPilot/other (apfs, local)\n"
         )
         self.assert_mount_refusal(expected_busy=False)
 
     def test_missing_mount_table_entry_is_not_unmounted_evidence(self):
-        (self.tree.fixtures / "mount.txt").write_text("")
+        (self.tree.fixtures / "mount.txt").write_text(
+            "/dev/disk3s1s1 on / (apfs, sealed, local, read-only)\n"
+        )
         self.assert_mount_refusal(expected_busy=False)
 
     def test_target_snapshot_mount_outside_root_refuses_both_modes(self):
@@ -1042,6 +1054,253 @@ class ReviewRegressionTests(PilotTestCase):
                 doc = json.loads(result.stdout)
                 self.assertEqual(doc["backupReceipt"]["createdAt"], receipt["createdAt"])
                 self.assertFalse(doc["verdict"]["diskMutated"])
+
+
+class FinalReviewRegressionTests(PilotTestCase):
+    def both_modes(self, receipt=None):
+        return ReviewRegressionTests.both_modes(self, receipt)
+
+    def assert_invalid_metadata(self):
+        for mode, result in self.both_modes():
+            with self.subTest(mode=mode):
+                self.assertEqual(result.returncode, 6, result.stderr.decode())
+                self.assertEqual(result.stdout, b"")
+                self.assertNotIn(b"Traceback", result.stderr)
+                self.assertEqual(self.tree.out_entries(), [])
+
+    def test_distributed_script_rejects_all_executable_overrides_before_invocation(self):
+        marker = self.tree.root / "override-ran"
+        shim = self.tree.root / "unexpected-program"
+        shim.write_text("#!/bin/bash\nprintf invoked > '" + str(marker) + "'\n")
+        shim.chmod(0o700)
+        for name in ("APFS_PILOT_DISKUTIL", "APFS_PILOT_SYSCTL", "APFS_PILOT_MOUNT"):
+            for mode in ([], ["--fixture-dir", str(self.tree.fixtures)],
+                         ["--apply", "--i-understand", "--backup-receipt", str(self.tree.receipt_path())]):
+                with self.subTest(variable=name, mode=mode):
+                    result = self.run_script("--plan", str(self.tree.plan_path), "--out-dir",
+                                             str(self.tree.out), *mode, env={name: str(shim)})
+                    self.assertEqual(result.returncode, 2, result.stderr.decode())
+                    self.assertIn(b"executable overrides are refused", result.stderr)
+                    self.assertFalse(marker.exists())
+                    self.assertEqual(result.stdout, b"")
+                    self.assertEqual(self.tree.out_entries(), [])
+
+    def test_duplicate_plist_keys_are_refused(self):
+        path = self.tree.fixtures / "volume-info-disk9s2.plist"
+        raw = path.read_bytes().replace(b"<dict>", b"<dict><key>Bootable</key><true/>", 1)
+        path.write_bytes(raw)
+        self.assert_invalid_metadata()
+
+    def test_duplicate_inventory_devices_and_volume_uuids_are_refused(self):
+        path = self.tree.fixtures / "apfs-list.plist"
+        original = plistlib.loads(path.read_bytes())
+        for field, value in (("DeviceIdentifier", "disk9s1"), ("APFSVolumeUUID", uuid(11))):
+            doc = plistlib.loads(plistlib.dumps(original))
+            doc["Containers"][0]["Volumes"][1][field] = value
+            self.tree.write_plist(path.name, doc)
+            self.assert_invalid_metadata()
+
+    def test_malformed_and_missing_safety_flags_are_refused(self):
+        for field in ("Bootable", "Writable", "APFSSnapshot", "Sealed"):
+            for value in ("missing", 1, [], "true"):
+                with self.subTest(field=field, value=value):
+                    info = volume_info("disk9s2", uuid(12), "/Volumes/SanjboxPilot/target")
+                    if value == "missing":
+                        del info[field]
+                    else:
+                        info[field] = value
+                    self.tree.write_plist("volume-info-disk9s2.plist", info)
+                    self.assert_invalid_metadata()
+
+    def test_malformed_roles_and_capacities_are_refused(self):
+        path = self.tree.fixtures / "apfs-list.plist"
+        original = plistlib.loads(path.read_bytes())
+        cases = [("Roles", value) for value in (False, "", {}, [False])]
+        cases += [("CapacityQuota", value) for value in (True, -1, "7", 1.5, [], {})]
+        for key, value in cases:
+            with self.subTest(key=key, value=value):
+                doc = plistlib.loads(plistlib.dumps(original))
+                doc["Containers"][0]["Volumes"][0][key] = value
+                self.tree.write_plist(path.name, doc)
+                self.assert_invalid_metadata()
+
+    def test_unrecognized_role_cannot_pass_as_an_ordinary_pilot_volume(self):
+        path = self.tree.fixtures / "apfs-list.plist"
+        doc = plistlib.loads(path.read_bytes())
+        doc["Containers"][0]["Volumes"][0]["Roles"] = ["FutureSystemRole"]
+        self.tree.write_plist(path.name, doc)
+        for mode, result in self.both_modes():
+            self.assertEqual(result.returncode, 5, result.stderr.decode())
+            gates = {item["id"]: item for item in json.loads(result.stdout)["gates"]}
+            self.assertEqual(gates["non-system-volume"]["status"], "fail")
+
+    def test_binary_plist_fixtures_are_supported(self):
+        for path in self.tree.fixtures.glob("*.plist"):
+            path.write_bytes(plistlib.dumps(plistlib.loads(path.read_bytes()), fmt=plistlib.FMT_BINARY))
+        self.assertEqual(self.dry_run().returncode, 0)
+
+    def test_malformed_or_incomplete_mount_tables_are_refused(self):
+        path = self.tree.fixtures / "mount.txt"
+        original = path.read_bytes()
+        for raw in (b"", original + b"unrecognized mount\n", original + b"\xff\n",
+                    original + original, original.replace(b"SanjboxPilot/target", b"SanjboxPilot/../active")):
+            path.write_bytes(raw)
+            self.assert_invalid_metadata()
+
+    def test_non_normalized_pilot_roots_are_refused(self):
+        for root in ("/Volumes/Pilot/..", "/Volumes/Pilot/.", "/Volumes//Pilot", "/private/tmp/Pilot/../x"):
+            doc = valid_plan()
+            doc["pilotRoot"] = root
+            self.tree.write_json(self.tree.plan_path, doc)
+            result = self.dry_run()
+            self.assertEqual(result.returncode, 2, result.stderr.decode())
+            self.assertEqual(self.tree.out_entries(), [])
+
+    def test_changed_plan_cannot_reuse_receipt_for_the_same_device_locators(self):
+        doc = valid_plan()
+        doc["pairs"][0]["target"]["expectedVolumeUUID"] = uuid(999)
+        self.tree.write_json(self.tree.plan_path, doc)
+        for mode, result in self.both_modes():
+            self.assertEqual(result.returncode, 4, result.stderr.decode())
+            self.assertIn(b"planSha256", result.stderr)
+            self.assertEqual(self.tree.out_entries(), [])
+
+    def test_partially_declared_identity_cannot_produce_a_pass_verdict(self):
+        doc = valid_plan()
+        del doc["pairs"][0]["target"]["expectedVolumeUUID"]
+        self.tree.write_json(self.tree.plan_path, doc)
+        result = self.dry_run()
+        self.assertEqual(result.returncode, 5, result.stderr.decode())
+        verdict = json.loads(result.stdout)["verdict"]
+        self.assertFalse(verdict["identityChecked"])
+        self.assertFalse(verdict["gatesPassed"])
+        self.assertEqual(verdict["inconclusiveGates"], ["identity-match"])
+
+    def test_missing_plan_hash_future_date_and_null_digest_receipts_are_refused(self):
+        cases = []
+        doc = valid_receipt()
+        del doc["planSha256"]
+        cases.append(doc)
+        doc = valid_receipt()
+        doc["createdAt"] = "9999-12-31T23:59:59Z"
+        cases.append(doc)
+        doc = valid_receipt()
+        doc["backupDigest"] = None
+        cases.append(doc)
+        for receipt in cases:
+            for mode, result in self.both_modes(receipt):
+                self.assertEqual(result.returncode, 4, result.stderr.decode())
+                self.assertEqual(self.tree.out_entries(), [])
+
+    def test_malformed_receipt_json_and_size_use_refusal_exit(self):
+        path = self.tree.receipt_path()
+        env = self.live_env()
+        for raw in (b"", b"{", b" " * 16385, b"[" * 1100 + b"0" + b"]" * 1100):
+            path.write_bytes(raw)
+            for extra in ([], ["--apply", "--i-understand"]):
+                result = self.run_script("--plan", str(self.tree.plan_path), "--out-dir",
+                    str(self.tree.out), "--backup-receipt", str(path), *extra, env=env)
+                self.assertEqual(result.returncode, 4, result.stderr.decode())
+                self.assertNotIn(b"Traceback", result.stderr)
+                self.assertEqual(self.tree.out_entries(), [])
+
+    def test_deep_and_invalid_unicode_plan_json_have_controlled_errors(self):
+        for raw in (b"[" * 1100 + b"0" + b"]" * 1100,
+                    json.dumps(dict(valid_plan(), pilotRoot="/Volumes/\ud800")).encode()):
+            self.tree.plan_path.write_bytes(raw)
+            result = self.dry_run()
+            self.assertEqual(result.returncode, 2, result.stderr.decode())
+            self.assertNotIn(b"Traceback", result.stderr)
+
+    def test_symlinked_ancestors_are_refused_for_every_input_and_output(self):
+        alias = self.tree.root / "alias"
+        alias.symlink_to(self.tree.root, target_is_directory=True)
+        base = {"--plan": self.tree.plan_path, "--out-dir": self.tree.out,
+                "--fixture-dir": self.tree.fixtures, "--backup-receipt": self.tree.receipt_path()}
+        for changed in base:
+            args = []
+            for key, path in base.items():
+                args += [key, str(alias / path.name if key == changed else path)]
+            result = self.run_script(*args)
+            self.assertEqual(result.returncode, 2, result.stderr.decode())
+            self.assertIn(b"symlink refused", result.stderr)
+            self.assertEqual(self.tree.out_entries(), [])
+
+    def test_writable_ancestor_of_private_parent_is_refused(self):
+        ancestor = self.tree.root / "writable"
+        parent = ancestor / "private"
+        parent.mkdir(parents=True, mode=0o700)
+        ancestor.chmod(0o777)
+        self.tree.plan_path = parent / "plan.json"
+        self.tree.write_json(self.tree.plan_path, valid_plan())
+        self.assertEqual(self.dry_run().returncode, 2)
+
+    def test_different_existing_output_is_preserved(self):
+        path = self.tree.out / "apfs-pilot-plan.json"
+        path.write_bytes(b"previous-run\n")
+        path.chmod(0o600)
+        inode = path.stat().st_ino
+        result = self.dry_run()
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertIn(b"fresh out-dir", result.stderr)
+        self.assertEqual(path.read_bytes(), b"previous-run\n")
+        self.assertEqual(path.stat().st_ino, inode)
+
+    def instrument_copy(self, source, injected):
+        point = "try:\n    main()\n"
+        self.assertEqual(source.count(point), 1)
+        copy = self.tree.root / "instrumented-pilot-test-copy.sh"
+        copy.write_text(source.replace(point, injected + "\n" + point))
+        return copy
+
+    def test_concurrent_output_insert_is_preserved_and_temporary_is_cleaned(self):
+        copy = self.instrument_copy(SCRIPT.read_text(), '''
+real_link = os.link
+def insert_before_publish(src, dst, **kwargs):
+    descriptor = os.open(dst, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600,
+                         dir_fd=kwargs["dst_dir_fd"])
+    with os.fdopen(descriptor, "wb") as handle:
+        handle.write(b"concurrent-owner")
+    return real_link(src, dst, **kwargs)
+os.link = insert_before_publish
+''')
+        result = self.run_script("--plan", str(self.tree.plan_path), "--out-dir", str(self.tree.out),
+                                 "--fixture-dir", str(self.tree.fixtures), script=copy)
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertEqual(result.stdout, b"")
+        self.assertEqual(self.tree.out_entries(), ["apfs-pilot-plan.json"])
+        self.assertEqual((self.tree.out / "apfs-pilot-plan.json").read_bytes(), b"concurrent-owner")
+
+    def test_symlink_swap_at_input_open_does_not_read_replacement(self):
+        replacement = self.tree.root / "replacement.json"
+        replacement.write_bytes(b"unread replacement")
+        copy = self.instrument_copy(SCRIPT.read_text(), '''
+real_open = os.open
+def swap_before_open(path, flags, *args, **kwargs):
+    if path == "plan.json" and "dir_fd" in kwargs:
+        os.unlink(path, dir_fd=kwargs["dir_fd"])
+        os.symlink("replacement.json", path, dir_fd=kwargs["dir_fd"])
+    return real_open(path, flags, *args, **kwargs)
+os.open = swap_before_open
+''')
+        result = self.run_script("--plan", str(self.tree.plan_path), "--out-dir", str(self.tree.out),
+                                 "--fixture-dir", str(self.tree.fixtures), script=copy)
+        self.assertEqual(result.returncode, 2, result.stderr.decode())
+        self.assertIn(b"symlink refused", result.stderr)
+        self.assertEqual(result.stdout, b"")
+        self.assertEqual(replacement.read_bytes(), b"unread replacement")
+
+    def test_receipt_digest_is_for_the_bytes_actually_validated(self):
+        path = self.tree.receipt_path()
+        original_digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        env = self.live_env()
+        shim = self.tree.root / "shims" / "sysctl"
+        shim.write_text(shim.read_text() + "printf changed > '" + str(path) + "'\n")
+        result = self.run_script("--apply", "--i-understand", "--plan", str(self.tree.plan_path),
+            "--out-dir", str(self.tree.out), "--backup-receipt", str(path), env=env)
+        self.assertEqual(result.returncode, 0, result.stderr.decode())
+        self.assertEqual(json.loads(result.stdout)["backupReceipt"]["sha256"], original_digest)
+        self.assertEqual(path.read_bytes(), b"changed")
 
 
 class ToolingDocumentationTests(unittest.TestCase):
