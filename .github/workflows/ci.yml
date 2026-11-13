@@ -129,7 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           # The slowest package needs about 80 s. A test that hangs fails after 5 minutes with
-          # the thread stacks of the test processes in the log, instead of the 20-minute job limit.
+          # bounded diagnostics of its owned process scope in the uploaded logs.
           .github/scripts/run-with-watchdog.sh 300 "$CI_LOG_DIR" \
             swift test --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
             --xunit-output "$CI_LOG_DIR/tests.xml" \
@@ -144,7 +144,7 @@ jobs:
           retention-days: 14
 
   python-tests:
-    # Tests of the progress website generator (tools/progress.py).
+    # Repository tooling and CI watchdog regression tests (including Linux).
     name: Python (tools/tests)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -169,6 +169,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Run watchdog regression tests with the macOS system Python
+        run: /usr/bin/python3 -I -B -m unittest discover -s tools/tests -p test_watchdog.py -v
       - name: Run every tracked spike test directory with /usr/bin/python3
         run: |
           set -euo pipefail

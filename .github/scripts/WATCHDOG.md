@@ -1,0 +1,170 @@
+# CI watchdog
+
+`run-with-watchdog.sh SECONDS LOG_DIR COMMAND [ARGS...]` uses `/usr/bin/python3`
+(Python 3.9 or newer, stdlib only) and works with macOS Bash 3.2. It runs a CI
+command in a new session and process group. A separate anchor stays in that
+group after the command root exits. The supervisor keeps the anchor unreaped
+until **after its last group signal and snapshot**, so its PID/PGID cannot be
+reused by an unrelated process during cleanup. No descendant PID is signalled.
+
+A clean command preserves its exit status (including `128 + signal`); exec
+failure returns 126/127. If a command exits with live processes still in its
+group, the watchdog reports failure and cleans the group. Exit 0 becomes 125;
+an already failing command retains its nonzero status if cleanup is verified.
+Timeout returns 124. INT, TERM and HUP return `128 + signal`. Internal or
+unverified-cleanup failures return 125, except that timeout/cancellation retain
+their explicit statuses. None of these failure paths can return 0.
+
+Cleanup sends TERM and CONT, allows one second for exit, then sends KILL to the
+whole owned group. This also covers a stopped root and TERM-ignoring children.
+The anchor ignores cancellation while the command retains normal signal
+handling. If the supervisor dies, EOF on its private control socket makes the
+anchor perform the same TERM/CONT/KILL fallback. If the anchor dies first, the
+supervisor still holds its unreaped PID and cleans the group. The command
+cannot inherit that control socket or start before the ownership handshake.
+
+Snapshot collection and cleanup verification share one four-second budget;
+reaping the anchor has a further half-second budget. A command-exit check takes
+at most 0.55 seconds. The operational upper bound is the requested command limit
+plus about six seconds, subject to OS scheduling. A kernel-stuck process cannot
+be forced to exit by user-space code; failed verification is reported explicitly.
+
+`hung-processes.txt` contains only numeric PID, PGID and state metadata from the
+owned scope. Each snapshot is capped at 64 KiB and at most 0.5 seconds of
+collection, reserving time to reap its own `ps` helper. Darwin `ps -g` selects the
+owned process group; Linux `ps -s` selects the owned session. No global process
+listing, recursive traversal or sequential per-process stack sampling is used.
+A numeric descendant PID is insufficient to safely sample a process that could
+exit and have its PID reused. Zombies count as terminated, not running children.
+The supervisor resets an inherited ignored SIGCHLD disposition before creating
+children, so its anchor and reporter PIDs cannot be automatically reaped.
+
+The supervisor performs no console or filesystem writes on its cleanup path.
+After cleanup, one owned reporter child creates the diagnostic directory lazily,
+writes the log and attempts console output. Its independent default-signal alarm
+and the supervisor's bounded KILL/reap budget allow at most 0.6 seconds for
+reporting, including when the supervisor dies. Output may be dropped under
+backpressure. No shared output-descriptor flags are changed. Diagnostic files
+must be regular files with one link; symlinks at the final diagnostic directory
+or filename, FIFOs and devices are rejected. Ancestor directories of `LOG_DIR`
+must be trusted: their symlinks are resolved normally. Even a stalled regular-file
+operation cannot hold up the supervisor.
+The command must create any output directory it needs; CI already does so.
+Startup socket/fork allocation failures also use bounded reporting and return
+125. Timeout/cancellation statuses survive a subsequent anchor-reap failure;
+an ordinary command exit of 124 is not itself classified as a watchdog timeout.
+
+This is CI lifecycle hygiene, **not a security boundary**. Supported commands
+and descendants must retain the inherited process group and session. A process
+that deliberately uses `setsid` or `setpgid`, double failure of both supervisor
+and anchor, or an uninterruptible kernel task is outside the cleanup guarantee.
+Linux detects a different group still in the owned session and fails verification;
+Darwin's group-only query cannot identify an escaped group. Neither platform
+claims success as proof that deliberately detached descendants do not exist.
+
+## Validation
+
+The regression fixtures create only their own temporary files and processes,
+use independent 12-second alarms, and require EOF on a pipe inherited by the
+child as proof it stopped. Tests cover clean exit 0/nonzero/signal, exec errors,
+a root exiting with a pipe-blocked child, timeout and KILL escalation, INT/TERM/
+HUP, root-exit cancellation races, anchor death, supervisor death, unrelated
+process survival, invalid limits, failed verification and diagnostic size/time
+budgets. CI runs them in `tools/tests` on Ubuntu/Python 3.11 and separately with
+`/usr/bin/python3` on `xcode-27`.
+
+Local commands (offline fixtures, not a laboratory gate):
+
+```sh
+/bin/bash -n .github/scripts/run-with-watchdog.sh
+/usr/bin/python3 -B -W error::ResourceWarning -m unittest discover -s tools/tests -v
+python3 -B -W error::ResourceWarning -m unittest discover -s tools/tests -v
+```
+
+On 2026-11-08, executable source/tests at commit
+`0358eebee80379fc2905fb46652c5b51a66272b4` passed Bash syntax validation and
+**77/77 tools tests**, including all **14 watchdog tests**, on both system Python
+3.9.6 and Python 3.15.2 (macOS 27.2 / build 26B123, arm64, Bash 3.2.57).
+No resource warnings were emitted. An initial full-suite invocation with `-I`
+failed to import the preexisting evidence-tool tests; the commands above match
+CI's repository import mode. The dedicated watchdog-only CI step uses `-I`.
+Linux/Python 3.11 and the hosted `xcode-27` image remain CI validation, not a local
+measurement. This document and the workflow's diagnostic comment were then
+updated without changing the tested executable code.
+
+
+Follow-up review found that the original synchronous error print could block
+cleanup on a full undrained stdout pipe, and that diagnostic-path I/O could hold
+up exit. The follow-up fix moves all such output to the bounded reporter above.
+New fixtures cover full stdout/stderr, FIFO and symlink log targets, supervisor
+death during reporting with an inherited blocked alarm, and inherited
+SIGCHLD=SIG_IGN. On 2026-11-08, final executable source/tests at
+`bed778a7160f96bbcf6f032cb57efc0c12dd25c6` passed **83/83 tools tests**, including
+all **20 watchdog tests**, on system Python 3.9.6 (33.505 s) and Python 3.15.2
+(30.710 s), on the same macOS configuration above. Resource warnings were treated
+as errors; none occurred. Bash syntax and `git diff --check` also passed. The
+preceding fix at `bd7fc3d` passed the same count before the inherited-alarm-mask
+fixture was strengthened; both runs were retained. This validation update changes
+only documentation.
+
+Independent PR #68 review on 2026-11-13 reproduced two further failures against
+`c6ddb360ae4be912f24cffa42aa122529c5b6c0f`: a failed anchor-reap report changed a
+timeout from 124 to 125, and socketpair/fork allocation errors could block while
+the interpreter printed a traceback to a full stderr pipe. The fix distinguishes
+actual timeout from a command merely returning 124 and reports startup failures
+through the bounded reporter. `StartupError` is raised only before a successful
+fork; post-fork failures remain subject to scope cleanup.
+
+Source/tests at `22fb88674a1a60f6079de4d84a92743455ef343c` passed **87/87 tools
+tests**, including **24 watchdog tests**, on system Python 3.9.6 (41.503 s) and
+Python 3.11.4 (37.857 s), macOS 27.2.1 / build 26B131, arm64. The commands above
+treated resource warnings as errors; none occurred. Bash 3.2.57 syntax and
+`git diff --check` passed. Added coverage checks stopped-root cleanup, final
+directory symlink and hardlink canaries, timeout/ordinary-status precedence on
+reap failure, and bounded startup failure with an explicit no-command-started
+marker and stderr EOF. Allocation/reap failures are injected; this does not
+claim a real resource-exhaustion or uninterruptible-kernel experiment.
+
+A controlled negative test ran the old shell wrapper from `33657f7` against a
+root that exits 0 while its child blocks opening a fixture-owned FIFO. The old
+wrapper returned 0 with stdout still held by that live child (2.125 s); the
+harness had to release the FIFO. The reviewed wrapper returned 125 and stdout
+EOF without release (1.418 s). The fixture had an independent eight-second
+alarm and used only its temporary files/processes.
+
+The initial sandboxed baseline could not execute `/bin/ps` and failed scope
+verification; it is an environment restriction, not a source regression. The
+authorized baseline rerun outside that sandbox passed all original 20 watchdog
+tests (31.220 s). The full passing review runs above used the same process-query
+permission. Linux and the hosted Swift matrix still require remote CI. These
+offline checks do not advance any laboratory gate or acceptance status.
+
+After PR #67 merged, exact main `802fb0b1f6500fc02db810c0f8b8aecbc142b4d2`
+was integrated as `403f00712138c6eea27ce2a016b1393cf1d7ce25`. The coverage
+conflict preserved main verbatim except the intended WP0.2 note, including the
+reviewed WP0.3 whoami/context and WP0.4 counterpart entries. The coverage parser
+confirmed identical package counts and unchanged requirements, gates, cases and
+blockers. On that integrated source, both full tooling suites passed **87/87**:
+Python 3.9.6 in 41.189 s and Python 3.11.4 in 38.025 s, with resource warnings
+treated as errors and none emitted. The exact isolated macOS CI command also
+passed **24/24 watchdog tests** in 41.159 s. Bash syntax and diff checks passed.
+
+The workflow's discovery code was executed against the actual 14 tracked Swift
+packages and their local dependencies. PR, main push, merge queue and manual
+events each selected all **14 packages / 28 Debug–Release jobs**. The PR check
+modeled GitHub's merge-parent order using the actual diff from the exact base
+above. The required-status shell passed **15/15** combinations covering success,
+each dependency failing/cancelling/skipping, and the permitted no-Swift-change
+skip. Both Python jobs remain required, and the test pipeline retains
+`set -euo pipefail` and `tee`.
+
+A real `swift test --package-path spikes/common --configuration debug` run,
+through the Bash/system-Python watchdog with a 90-second limit and the CI-style
+`tee`/xUnit arguments, passed **95/95 tests** and returned 0 without a hung-process
+diagnostic (Xcode 27.2 / 27B52, Swift 6.4.2). A post-run check initially expected
+literal `tests.xml`; this toolchain emitted `tests-swift-testing.xml`, which was
+then parsed successfully and is covered by the workflow's whole-directory
+artifact upload. The test log records the complete run. This local Debug smoke
+does not replace Linux validation or the full hosted 28-job matrix; remote CI
+remains required before merge. The integrated review found no further defect
+within the documented process-group and trusted-path contract.
