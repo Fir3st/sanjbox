@@ -116,3 +116,17 @@ deníky, odmítnutí nejednoznačného intentu, ochranu znovuotevření a explic
 předpoklady. Žádný další nález k opravě v tomto omezeném rozsahu nezůstal. Požadavek stabilního
 host namespace, poslední check/set závod, změna členství, power-loss/flush a skutečné L3/RB-09/10
 zůstávají neověřené; tato validace není verdikt S4 ani důkaz průběžné R2 ochrany.
+
+### Integrace main po PR #71
+
+Main `1763484e67ad4f3e8272e517dc76839fe3dd02dd` se sloučil bez konfliktů. Na kombinovaném
+commitu **`8506a57a821e9779d26334d9fde008bd7634e961`** znovu prošlo `s4-host` Debug **55/55**
+(17,377 s) a Release **55/55** (16,628 s), včetně CLI wrapperů a native ACL oracle; žádné
+failures ani skips. Čtyři DNS/cancellation regrese z #71 (`--filter 'boundedIO|cancelledDNS|dnsTimeout'`)
+prošly Debug **4/4** (0,111 s) a Release **4/4** (0,110 s). Gateway se sestavil v nové vlastní cache
+`/private/tmp/sanjbox-pr59-main-dns.L32OQv`; úplná gateway sada se zde neopakovala.
+
+Python tooling **63/63**, shell syntax a `git diff --check origin/main...HEAD` prošly.
+`s4-host/Sources` a `Tests` jsou shodné s opravným commitem `279b8c3`, soubory gateway shodné
+s main. B2 zůstává ✅, součet F1 **17/7/12**, všechny brány Neověřeno. Následující commit
+mění pouze tento záznam validace; dříve uvedené meze a negativní kontrola zůstávají platné.
