@@ -14,6 +14,9 @@ generované automaticky z [COVERAGE.md](docs/COVERAGE.md) ([jak](docs/PROGRESS.m
 podmínky dokončení, závislosti a čekání na uživatele. Před převzetím ověř vlastníka v COVERAGE
 a postup v [GUIDE §5](docs/GUIDE.md#5-paralelní-práce).
 
+[H3 CLI](proto/cli/README.md) je hotový offline prototyp pěti příkazů přes lokální NSXPC k mock
+helperu. Nespouští workload ani skutečné oblasti; [validace](proto/cli/VALIDATION.md) není důkaz izolace.
+
 | Dokument | Obsah |
 |---|---|
 | [PLAN.md](PLAN.md) | Autoritativní kontrakt: požadavky R1–R8, threat model, architektura, brány S0–S8 |
