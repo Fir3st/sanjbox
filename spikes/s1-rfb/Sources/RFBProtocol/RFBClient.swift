@@ -32,6 +32,8 @@ public struct RFBClient: Sendable {
         case terminal, invalidState
         /// S4 challenge framing is out of range (generator, key length, payload).
         case invalidAppleChallenge
+        /// The provider did not return a 128-byte credential block plus a key of the negotiated width.
+        case invalidAppleCredentialResponse
         /// The virtual desktop was absent or offered as unavailable: no fallback exists.
         case sessionUnavailable
         /// SessionResult denied the virtual desktop choice: terminal, never the console.
@@ -107,7 +109,7 @@ public struct RFBClient: Sendable {
 
     /// `appleCredentialProvider` is the only seam where S4's DH/AES exchange could live.
     /// This package ships no implementation; without a provider the Apple handshake stops
-    /// before sending anything. See AppleSubset.swift.
+    /// before sending a credential response or ClientInit. See AppleSubset.swift.
     public init(authenticationPolicy: AuthenticationPolicy = .rejectAll,
                 appleCredentialProvider: (any AppleCredentialProvider)? = nil) {
         self.authenticationPolicy = authenticationPolicy
@@ -252,7 +254,8 @@ public struct RFBClient: Sendable {
             }
         case .appleChallengeHeader:
             // S4: two-byte generator, two-byte key length, then equal-length modulus and
-            // server public key. Bounds are checked before any payload is buffered.
+            // server public key. Bounds are checked before copying either field from the
+            // independently chunk-bounded receive buffer.
             guard available(4) else { return false }
             let generator = read16()
             let keyLength = read16()
@@ -281,6 +284,9 @@ public struct RFBClient: Sendable {
             catch { throw Failure.authenticationNotImplemented }
             guard !response.isEmpty else { throw Failure.authenticationNotImplemented }
             guard response.count <= Limits.appleCredentialBytes else { throw Failure.resourceLimit }
+            // Validate the seam's record shape even for a trusted injected provider. This
+            // checks only framing, not the encrypted block or the DH public key's validity.
+            guard response.count == 128 + keyLength else { throw Failure.invalidAppleCredentialResponse }
             events.append(.send(response))
             state = .securityResult
         case .securityResult:
@@ -390,6 +396,10 @@ public struct RFBClient: Sendable {
             state = .sessionResult
         case .sessionResult, .sessionPending:
             guard available(2) else { return false }
+            // All result outcomes share the ready-message budget. Grant must not bypass
+            // exhaustion and publish a surface after the pending limit has been reached.
+            guard messages < Limits.serverMessages else { throw Failure.resourceLimit }
+            messages += 1
             guard read8() == Int(AppleFixtureFraming.sessionResultKind) else {
                 throw Failure.invalidSelectionMessage
             }
@@ -402,8 +412,6 @@ public struct RFBClient: Sendable {
             case Int(AppleFixtureFraming.outcomePending):
                 // S5 pending state. No polling, no retry, no console: the transport owns the
                 // deadline and must call expire(). The message budget still applies.
-                guard messages < Limits.serverMessages else { throw Failure.resourceLimit }
-                messages += 1
                 session = .pending
                 state = .sessionPending
             default:

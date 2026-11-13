@@ -3,7 +3,7 @@
 **Částečný výstup.** Rešerše rozlišuje standardní RFB, Apple autentizaci a výběr uživatelské relace.
 Swift 6 prototyp zpracuje syntetický RFB 3.8 handshake a Raw framebuffer v paměti a nově i **syntetickou
 fixture podobu** Apple security handshaku (typ 30 podle S4), ClientInit `0xC1` a výběru relace (S5)
-včetně konečných stavů pending / denied / unavailable. Kryptografie zůstává za injektovaným rozhraním
+včetně čekajícího stavu pending a terminálních stavů denied / unavailable. Kryptografie zůstává za injektovaným rozhraním
 **bez implementace**, takže se bez ní handshake zastaví. Prototyp neumí Apple login, nemá transport,
 socket ani okno plochy a **nedokazuje nic o reálném Apple auth**; není klientem pro MVP, keeperem ani
 důkazem brány S1. WP1.A3 proto zůstává `🟨 rozpracováno`. Živé připojení a ověření rámování proti
@@ -22,7 +22,7 @@ Všech 155 případů, požadavků a bran v COVERAGE má nezměněný stav.
 | `Sources/RFBProtocol/AppleSubset.swift` | Apple fixture rámování, `AppleSession`, seam `AppleCredentialProvider`; každá konstanta s citací nebo označením „package-local“. |
 | `Sources/sanjbox-rfb-fixture/main.swift` | Vestavěný mock 2×2, Apple fixture scénář a odmítnutí konzole; vše v paměti. |
 | `Tests/RFBProtocolTests/RFBClientTests.swift` | Standardní RFB 3.8: negativní případy, fragmentace, EOF a rozpočty (21 testů). |
-| `Tests/RFBProtocolTests/AppleSubsetTests.swift` | Apple fixture transkripty a mock provider; 19 testů (celkem 40). |
+| `Tests/RFBProtocolTests/AppleSubsetTests.swift` | Apple fixture transkripty a mock provider; 22 testů (celkem 43). |
 | [SOURCES.md](SOURCES.md) | Primární zdroje, připnuté revize, hranice jejich tvrzení. |
 | [LAB-NEXT.md](LAB-NEXT.md) | Budoucí uživatelský postup s cestou přes Screen Sharing.app a seznam toho, co zůstává na L1-D. |
 | [VALIDATION.md](VALIDATION.md) | Výsledek místních mock testů a reprodukce. |
@@ -37,8 +37,8 @@ obecný interoperabilní VNC klient. Neznámé varianty se nepřekládají odhad
 | Verze | Standardně přesně `RFB 003.008\n`. Kandidát Apple banneru `RFB 003.889\n` se přijme **jen** pod fixture politikou `syntheticAppleSubset`; 3.3, 3.7, ostatní a záměna bannerů mezi politikami se odmítne bez odpovědi. |
 | Autentizace | Výchozí `rejectAll` skončí před výběrem typu. `syntheticNoneOnly` přijme jen seznam přesně `[1]`, `syntheticAppleSubset` jen seznam přesně `[30]` (ARD, S4). |
 | Smíšený seznam | `[30, 1]`, `[1, 30]`, `[33]`, duplicity, `[19]` i ostatní nabídky se odmítnou; žádný downgrade na None ani na konzoli. |
-| Apple typ 30 (S4) | Po odpovědi `[30]` se čte u16 generátor, u16 délka klíče, pak modulus a veřejný klíč serveru téže délky. Délky a rozsahy se ověří **před** načtením payloadu. |
-| Apple credential seam (S4) | `AppleCredentialProvider` je jediné místo, kde by žil DH/MD5/AES. Balík neobsahuje žádnou kryptografii. Bez provideru, s prázdnou odpovědí i s odpovědí nad rozpočet se handshake zastaví (fail-closed). |
+| Apple typ 30 (S4) | Po odpovědi `[30]` se čte u16 generátor, u16 délka klíče, pak modulus a veřejný klíč serveru téže délky. Délky a rozsahy se ověří před kopírováním polí z omezeného vstupního bufferu. |
+| Apple credential seam (S4) | `AppleCredentialProvider` je jediné místo, kde by žil DH/MD5/AES; balík neobsahuje kryptografii. Bez provideru, při chybě nebo prázdné odpovědi se zastaví; délka odpovědi musí být přesně `128 + keyLength`, jinak `invalidAppleCredentialResponse` (nad rozpočet `resourceLimit`), bez credential výstupu či ClientInit. |
 | SecurityResult | Pro 3.8/None i pro Apple je povinný; 0 pokračuje, 1 čte omezený důvod a odmítne, ostatní hodnoty odmítne. |
 | ClientInit | Standardně pouze shared=1; Apple cesta posílá `0xC1` (S5). Ani jedno nevybírá uživatelskou relaci. |
 | ServerInit | Jen 32 bpp / depth 24 / little-endian / true-colour / RGB maxima 255 / posuny 16,8,0. Jméno se omezeně spotřebuje a zahodí. Rozšířená Apple metadata (S5) nejsou modelovaná. |
@@ -75,9 +75,9 @@ Apple-published byte-level kontrakt. Připnuté klientské zdroje ale obsahují 
 | ClientInit `0xC1`, SessionInfo → volba → SessionResult, příkaz 1 = konzole, 2 = virtuální plocha, stavy pending/granted | **S5** (peetinc/noVNC-ARD `_ardSessionSelect`, řádky 776–875, `ard-constants.js`) | Implementované jen **sémanticky**: hodnoty příkazů a konečné stavy. |
 | Bajtové rozložení SessionInfo / volby / SessionResult | **package-local fixture framing**; S5 má odlišné délkově rámované záznamy (`ard-patch.js` 779–797, 839–867, 2510–2523), které tento model záměrně neimplementuje | Dostupná klientská evidence není ověřený serverový kontrakt. Fixture zprávy se nikdy neposílají na reálný endpoint; prototyp žádný endpoint nemá. |
 | Kandidát Apple banneru `RFB 003.889\n` | Přesný literál v připnutém S5 `ard-patch.js`, řádek 214; znovu ověřeno proti raw souboru a jeho SHA-256 | Přijímá se jen pod fixture politikou; výchozí politika ho odmítá. Ověření zdroje nedokazuje banner živého serveru. |
-| Meze `appleKeyBytes` 512, `appleCredentialBytes` 4096, `appleSessionChoices` 8 | package-local výzkumné rozpočty | Nejsou z S4/S5; omezují práci před alokací. |
+| Meze `appleKeyBytes` 512, `appleCredentialBytes` 4096, `appleSessionChoices` 8 | package-local výzkumné rozpočty | Nejsou z S4/S5; omezují přijatá pole a výstup. Odpověď provideru se kontroluje až po jeho návratu; jeho vlastní alokace/čas parser neomezuje. |
 
-Konečné stavy výběru (`AppleSession`) a jejich význam:
+Pozorované stavy výběru (`AppleSession`) a jejich význam:
 
 | Stav | Význam | Následek |
 |---|---|---|
@@ -107,10 +107,10 @@ instanci, ne automatické připojení, jiný auth typ ani jinou relaci. Chybné 
 | Jméno / důvod odmítnutí | 4096 bajtů |
 | Obdélníky jednoho update | 256 |
 | Přijaté bajty za život instance včetně hlaviček | 32 MiB |
-| Zprávy serveru po inicializaci / žádosti klienta | 1024 / 64 |
+| SessionResult a zprávy serveru po inicializaci, společný rozpočet / žádosti klienta | 1024 / 64 |
 | Nezpracovaný příjem | 4 MiB + 64 KiB |
 | Apple délka klíče (package-local) | 1…512 bajtů |
-| Apple credential odpověď (package-local) | 1…4096 bajtů |
+| Apple credential odpověď | Přesně `128 + keyLength` (129…640); navíc package-local strop 4096 bajtů |
 | Položky SessionInfo (package-local) | 1…8 |
 
 Hlavičky se validují před alokací podle délek. Rozměry se omezí před násobením, obdélníky před výpočtem

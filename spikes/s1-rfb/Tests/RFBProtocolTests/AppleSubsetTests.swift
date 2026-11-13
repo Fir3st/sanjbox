@@ -165,11 +165,12 @@ final class AppleSubsetTests: XCTestCase {
                                                               generator: generator))
         }
         // The largest permitted key length is still framing-accepted and reaches the seam.
-        let provider = MockAppleCredentialProvider()
+        let response = Array(repeating: UInt8(0xA5), count: 128 + 512)
+        let provider = MockAppleCredentialProvider(response: response)
         var large = client(provider)
         _ = try large.receive(AppleFixtures.banner + [1, 30])
         XCTAssertEqual(try large.receive(AppleFixtures.challenge(keyLength: 512, generator: 3)),
-                       [.send(AppleFixtures.credential)])
+                       [.send(response)])
         XCTAssertEqual(provider.challenges.first?.modulus.count, 512)
         XCTAssertEqual(provider.challenges.first?.serverPublicKey.count, 512)
     }
@@ -221,6 +222,32 @@ final class AppleSubsetTests: XCTestCase {
             _ = try client.receive(AppleFixtures.banner + [1, AppleFixtureFraming.ardSecurityType])
             assertFailure(expected, client: &client, bytes: AppleFixtures.challenge())
             XCTAssertEqual(client.session, .notOffered)
+        }
+    }
+
+    func testProviderResponseMustMatchTheChallengeRecordLength() throws {
+        // A nonempty blob is not enough: the seam promises a 128-byte block followed by
+        // a public key of the negotiated width. No cryptographic validity is asserted.
+        for keyLength in [1, 8, 512] {
+            let expectedLength = 128 + keyLength
+            for length in [1, 127, 128, expectedLength - 1, expectedLength + 1, 4096] {
+                let provider = MockAppleCredentialProvider(response: Array(repeating: 0xA5, count: length))
+                var client = client(provider)
+                _ = try client.receive(AppleFixtures.banner + [1, 30])
+                XCTAssertThrowsError(try client.receive(AppleFixtures.challenge(keyLength: keyLength))) {
+                    XCTAssertEqual($0 as? RFBClient.Failure, .invalidAppleCredentialResponse)
+                }
+                XCTAssertEqual(client.phase, .failed, "key \(keyLength), response \(length)")
+                XCTAssertEqual(client.session, .notOffered)
+                XCTAssertEqual(client.bufferedByteCount, 0)
+                XCTAssertNil(client.framebuffer)
+                XCTAssertThrowsError(try client.receive(AppleFixtures.u32(0)))
+            }
+            let response = Array(repeating: UInt8(0xA5), count: expectedLength)
+            var valid = client(MockAppleCredentialProvider(response: response))
+            _ = try valid.receive(AppleFixtures.banner + [1, 30])
+            XCTAssertEqual(try valid.receive(AppleFixtures.challenge(keyLength: keyLength)), [.send(response)])
+            XCTAssertEqual(valid.phase, .securityResult)
         }
     }
 
@@ -419,6 +446,31 @@ final class AppleSubsetTests: XCTestCase {
         XCTAssertNil(client.framebuffer)
     }
 
+    func testExhaustedSelectionBudgetCannotBeBypassedByGrantOrDenial() throws {
+        let offers = AppleFixtures.sessionInfo([(2, 1)])
+        let pending = AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending)
+        for outcome in [AppleFixtureFraming.outcomeGranted, AppleFixtureFraming.outcomeDenied,
+                        AppleFixtureFraming.outcomePending] {
+            var client = try preSelection()
+            _ = try client.receive(offers)
+            for _ in 0..<RFBClient.Limits.serverMessages { _ = try client.receive(pending) }
+            assertFailure(.resourceLimit, client: &client, bytes: AppleFixtures.sessionResult(outcome))
+            XCTAssertEqual(client.session, .pending)
+        }
+    }
+
+    func testGrantedResultConsumesTheSameBudgetAsReadyMessages() throws {
+        var client = try preSelection()
+        _ = try client.receive(AppleFixtures.sessionInfo([(2, 1)]))
+        for _ in 0..<(RFBClient.Limits.serverMessages - 1) {
+            _ = try client.receive(AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending))
+        }
+        _ = try client.receive(AppleFixtures.sessionResult(AppleFixtureFraming.outcomeGranted))
+        XCTAssertEqual(client.phase, .ready)
+        XCTAssertEqual(client.session, .granted)
+        assertFailure(.resourceLimit, client: &client, bytes: [2]) // Bell exceeds the shared budget.
+    }
+
     func testUnknownSelectionKindsCommandsAndStatesAreRejected() throws {
         let good = (AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.availableState)
         let badMessages: [(String, [UInt8])] = [
@@ -506,11 +558,11 @@ final class AppleSubsetTests: XCTestCase {
         var oversized = client()
         assertFailure(.resourceLimit, client: &oversized,
                       bytes: Array(repeating: 0, count: RFBClient.Limits.chunkBytes + 1))
-        // A provider cannot smuggle an unbounded response past the challenge stage.
+        // A budget-sized blob is still invalid if it does not match the negotiated record.
         var bounded = client(MockAppleCredentialProvider(
             response: Array(repeating: 1, count: RFBClient.Limits.appleCredentialBytes)))
         _ = try bounded.receive(AppleFixtures.banner + [1, AppleFixtureFraming.ardSecurityType])
-        XCTAssertEqual(try bounded.receive(AppleFixtures.challenge()).count, 1)
+        assertFailure(.invalidAppleCredentialResponse, client: &bounded, bytes: AppleFixtures.challenge())
     }
 
     func testDeterministicAppleCorpusStaysBounded() throws {

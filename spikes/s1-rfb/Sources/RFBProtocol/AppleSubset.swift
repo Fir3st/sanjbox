@@ -44,15 +44,17 @@ public struct AppleDHChallenge: Equatable, Sendable {
 /// agreement or credential handling exists here, and no test supplies real material.
 /// A provider must implement the whole S4 record itself (encrypted 128-byte credential
 /// block followed by the client public key) under a separate reviewed package.
-/// When no provider is injected the client stops at this seam — fail-closed, nothing sent.
+/// The client checks the response length is exactly 128 + the challenge's key length;
+/// that is only framing validation. Cryptographic validation belongs to the provider.
+/// When no provider is injected the client stops before sending a credential response.
 public protocol AppleCredentialProvider: Sendable {
-    /// Return the bytes to send after the challenge. Empty output is treated as
-    /// "not implemented" and stops the handshake.
+    /// Return exactly 128 + challenge.modulus.count bytes after the challenge. Empty output
+    /// is treated as "not implemented"; any wrong length stops the handshake.
     func credentialResponse(for challenge: AppleDHChallenge) throws -> [UInt8]
 }
 
-/// Selection outcome. `pending`, `denied` and `unavailable` are final observables:
-/// none of them ever turns into a console session.
+/// Last selection outcome. `pending` may become `granted` or `denied`;
+/// no outcome ever turns into a console session.
 public enum AppleSession: String, Equatable, Sendable {
     /// No SessionInfo was consumed yet.
     case notOffered

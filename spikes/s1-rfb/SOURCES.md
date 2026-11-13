@@ -1,7 +1,10 @@
 # WP1.A3 — primary sources and evidence boundaries
 
-Initial access date for every source below: **2026-11-03**. The three pinned S4/S5 raw files and
-their SHA-256 values were independently rechecked on **2026-11-07**. This is source research, not a
+Initial access date for the original source set: **2026-11-03**; the added S4 DH support file is dated
+separately below. The three original pinned S4/S5 raw files and
+their SHA-256 values were independently rechecked on **2026-11-07** and **2026-11-13**. S1–S3 were
+also re-read on 2026-11-13 (Apple pages via direct HTTPS after the browser tool returned HTTP 429).
+This is source research, not a
 capture of a macOS server or a measurement. Exact source commits were resolved through the public
 GitHub commits API and their raw files inspected over HTTPS. Moving branches/search excerpts are not the pinned evidence.
 No downloaded code was executed, copied into Swift, linked, vendored, or installed.
@@ -49,20 +52,24 @@ Upstream **noVNC v1.6.0**, commit `a8dfd6a3ea3c74244f5ebdaa5a7f1023007a7820`:
 
 - [core/rfb.js](https://github.com/novnc/noVNC/blob/a8dfd6a3ea3c74244f5ebdaa5a7f1023007a7820/core/rfb.js),
   `_negotiateARDAuth` and `_negotiateARDAuthAsync` (lines 1798–1866 in the inspected raw file).
+- [core/crypto/dh.js](https://github.com/novnc/noVNC/blob/a8dfd6a3ea3c74244f5ebdaa5a7f1023007a7820/core/crypto/dh.js#L36-L47),
+  inspected on 2026-11-13: `_generateKey` exports a public key padded to the modulus byte width.
 - [License](https://github.com/novnc/noVNC/blob/a8dfd6a3ea3c74244f5ebdaa5a7f1023007a7820/LICENSE.txt):
   core library MPL-2.0; consulted only, no implementation reuse.
 
 This client reads a two-byte DH generator, two-byte key length, then modulus and server public key of
 that length. It derives a DH shared value, hashes it with MD5 and encrypts a 128-byte credential block
 with AES-ECB. The block has two 64-byte fields with UTF-8 data truncated to 63 bytes plus NUL and random
-padding. It sends encrypted bytes and the client public key, then awaits SecurityResult.
+padding. It sends encrypted bytes and the client public key, then awaits SecurityResult. The provider
+seam therefore requires exactly `128 + keyLength` response bytes; this checks framing, not crypto.
 
 That is evidence of **noVNC's implementation**, not an Apple specification, endorsement of this crypto,
 authenticated server identity, or proof of full-session encryption. It does not establish user-session
 selection. A production implementation needs a separate security review and interoperability evidence;
 hand-rolled crypto or silently using legacy VNC/None is not an acceptable substitute here.
 
-Raw file SHA-256: `563a8c8469dfb55d1deee05262a311637d0e6fe8f65ae34c8222ee22e34e8a93`.
+Raw `core/rfb.js` SHA-256: `563a8c8469dfb55d1deee05262a311637d0e6fe8f65ae34c8222ee22e34e8a93`.
+Raw `core/crypto/dh.js` SHA-256: `9102454282ba646ee4a4ce34c5db5d2a9979179f9d4606737fc6bb7a669e5ebe`.
 
 ## S5 — original-author implementation lead for Apple selection
 
@@ -127,7 +134,7 @@ are deliberately authored for this package, separate from S5's records above.
 | Candidate Apple banner `RFB 003.889\n` | `appleBanner` | exact literal in S5 `ard-patch.js` line 214; source-verified, not server-verified; default policy rejects it |
 | Bounds 512-byte key length, 4096-byte credential response, 8 SessionInfo entries | `Limits.appleKeyBytes`, `appleCredentialBytes`, `appleSessionChoices` | package-local research budgets, NOT values from S4/S5 |
 | Console command `1`, virtual-desktop command `2`; ClientInit `0xC1` | `consoleCommand`, `virtualDesktopCommand`, `appleClientInit` | exact constants in S5 `ard-constants.js` lines 78, 90–91; the surrounding selection record remains package-local |
-| Type-30 challenge framing: u16 generator, u16 key length, modulus, server public key; the answer is the injected provider's bytes | parser states `appleChallengeHeader` / `appleModulus` / `appleServerKey` | S4 framing only; no key agreement, hash or cipher exists |
+| Type-30 challenge framing: u16 generator, u16 key length, modulus, server public key; the provider answer must have exactly `128 + keyLength` bytes | parser states `appleChallengeHeader` / `appleModulus` / `appleServerKey` | S4 framing only; no key agreement, hash or cipher exists |
 | The rule that only an *available* virtual desktop may be chosen, that a pending result never retries, and that no message ever selects the console | client state machine | package policy derived from S5's failure leads, not an Apple guarantee |
 
 ### (b) Not implemented and not claimed
@@ -136,8 +143,9 @@ are deliberately authored for this package, separate from S5's records above.
   The pinned client implements them, but this package deliberately models only simplified selection
   messages. Neither these fixtures nor the source inspection verifies a live Apple server contract.
 - The S4 DH / MD5 / AES credential exchange, the 128-byte encrypted block and the client public key. Only
-  the empty `AppleCredentialProvider` seam exists: with no provider the handshake stops before anything is
-  sent, and the provider used by the tests and the demo is a labelled mock with constant bytes.
+  the empty `AppleCredentialProvider` seam exists: with no provider the handshake stops before a
+  credential response or ClientInit is sent (banner/type negotiation can precede it), and the provider
+  used by the tests and the demo is a labelled mock with constant bytes.
 - The type-33 RSA tunnel, type-30 key agreement, server identity, transport confidentiality, any socket,
   TLS, network I/O, live macOS-server interoperability and the binding of a surface to an exact audit
   session.

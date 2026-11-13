@@ -10,7 +10,7 @@ All existing measurements and sealed evidence directories remain untouched.
 **[implementátor]** The package models an Apple security/selection **fixture** subset: candidate banner,
 ARD type 30 framing per S4, `0xC1` ClientInit, then SessionInfo / choice / SessionResult with the
 package-local layout documented in [README.md](README.md). Strict length and range validation, the
-fail-closed credential seam and the forbidden console fallback are covered by 17 new mock tests.
+fail-closed credential seam and the forbidden console fallback are covered by 22 Apple mock tests.
 
 That is a parser result only. It does **not** show that a macOS server sends these bytes, that the
 selection layout matches Apple, that the credential exchange can be implemented safely, or that the
