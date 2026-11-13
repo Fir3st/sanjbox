@@ -237,3 +237,44 @@ extension StoreTests {
         XCTAssertFalse(c.mockAdmissionAllowed(zone: "t001"))
     }
 }
+
+
+extension StoreTests {
+    func testLockReplacementMissingLinksAndMetadataInvalidateLiveStoreAndExcludeSecondWriter() throws {
+        for mutation in ["replacement", "missing", "symlink", "hardlink", "mode"] {
+            let fixture = try Fixture()
+            do {
+                let store = try fixture.open(), c = LifecycleCoordinator(store: store)
+                try c.register(manifest: fixtureManifest())
+                try c.execute(.start, zone: "t001")
+                XCTAssertTrue(c.mockAdmissionAllowed(zone: "t001"))
+                let path = fixture.path + "/lock"
+                switch mutation {
+                case "replacement":
+                    XCTAssertEqual(unlink(path), 0)
+                    let fd = Darwin.open(path, O_RDWR | O_CREAT | O_EXCL, 0o600)
+                    XCTAssertGreaterThanOrEqual(fd, 0); if fd >= 0 { close(fd) }
+                case "missing": XCTAssertEqual(unlink(path), 0)
+                case "symlink":
+                    XCTAssertEqual(unlink(path), 0)
+                    XCTAssertEqual(symlink("world.json", path), 0)
+                case "hardlink": XCTAssertEqual(link(path, fixture.path + "/lock-alias"), 0)
+                default: XCTAssertEqual(chmod(path, 0o644), 0)
+                }
+                XCTAssertFalse(c.mockAdmissionAllowed(zone: "t001"), mutation)
+                XCTAssertThrowsError(try c.execute(.stop, zone: "t001"), mutation)
+                XCTAssertThrowsError(try store.entries(), mutation)
+                XCTAssertThrowsError(try fixture.open(), mutation) // directory inode flock remains held
+            }
+            if mutation == "replacement" {
+                // Once the old descriptor closes, the valid replacement can acquire the same
+                // directory lock; all durable records and the world are independently reverified.
+                let reopened = try fixture.open(), c = LifecycleCoordinator(store: reopened)
+                XCTAssertTrue(c.mockAdmissionAllowed(zone: "t001"))
+                try c.execute(.stop, zone: "t001")
+                try c.execute(.cleanup, zone: "t001")
+                XCTAssertTrue(try c.inspect(zone: "t001").uidReusable)
+            } else { XCTAssertThrowsError(try fixture.open(), mutation) }
+        }
+    }
+}

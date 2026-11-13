@@ -74,8 +74,9 @@ shoda nynějších bytes neprokazuje vlastnictví efektu. Není zde force, odhad
 mazání orphanů ani rollback host policy. H2 neimplementuje snapshot/restore ani B4 witness adapter.
 
 Každá fixture vznikne exkluzivním `mkdtemp` pod `/private/tmp/sanjbox-h2-*`, mode 0700. Má `lock`,
-`head.json`, `world.json` a `000000.json`… události. `flock(LOCK_EX | LOCK_NB)` drží výlučnost po dobu
-života store. Jeden koordinátor provádí synchronní operace; Swift 6 jej nedeklaruje `Sendable`.
+`head.json`, `world.json` a `000000.json`… události. `flock(LOCK_EX | LOCK_NB)` na descriptoru adresáře i lock souboru drží výlučnost po dobu
+života store; výměna jména lock nevytvoří druhou doménu zámku. Každé I/O znovu kontroluje named lock
+proti drženému fd (`fstatat` bez následování symlinků), jeho owner/mode a single-link identitu. Jeden koordinátor provádí synchronní operace; Swift 6 jej nedeklaruje `Sendable`.
 
 ```text
 register(manifest + audit)

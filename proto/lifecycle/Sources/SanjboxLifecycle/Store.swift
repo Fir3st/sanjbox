@@ -65,12 +65,21 @@ public final class LifecycleStore {
             close(directory); throw LifecycleFailure("fixture is not private and owned")
         }
         device = st.st_dev; inode = st.st_ino
+        // Lock the stable directory inode too: replacing the named lock must not create a
+        // second lock domain while this store is alive.
+        guard flock(directory, LOCK_EX | LOCK_NB) == 0 else {
+            close(directory); throw LifecycleFailure("fixture directory already locked")
+        }
         lock = openat(directory, "lock", O_RDWR | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
         guard lock >= 0 else { close(directory); throw LifecycleFailure("lock missing") }
-        do { try checkFile(lock); guard flock(lock, LOCK_EX | LOCK_NB) == 0 else { throw LifecycleFailure("fixture already locked") } }
+        do {
+            try checkFile(lock)
+            guard flock(lock, LOCK_EX | LOCK_NB) == 0 else { throw LifecycleFailure("fixture already locked") }
+            try usable()
+        }
         catch { close(lock); close(directory); throw error }
     }
-    deinit { flock(lock, LOCK_UN); close(lock); close(directory) }
+    deinit { flock(lock, LOCK_UN); close(lock); flock(directory, LOCK_UN); close(directory) }
 
     private func checkFile(_ fd: Int32) throws {
         var st = stat()
@@ -84,6 +93,14 @@ public final class LifecycleStore {
         guard lstat(path, &current) == 0, current.st_mode & S_IFMT == S_IFDIR,
               current.st_dev == device, current.st_ino == inode, current.st_uid == getuid(),
               current.st_mode & 0o777 == 0o700 else { throw LifecycleFailure("fixture path identity changed") }
+        try checkFile(lock)
+        var held = stat(), named = stat()
+        guard fstat(lock, &held) == 0, fstatat(directory, "lock", &named, AT_SYMLINK_NOFOLLOW) == 0,
+              named.st_dev == held.st_dev, named.st_ino == held.st_ino,
+              named.st_mode & S_IFMT == S_IFREG, named.st_mode & 0o777 == 0o600,
+              named.st_uid == getuid(), named.st_nlink == 1 else {
+            throw LifecycleFailure("lock binding or metadata changed")
+        }
     }
     private func flush(_ fd: Int32) throws {
         guard fsync(fd) == 0 else { throw LifecycleFailure("fsync failed") }
