@@ -1,6 +1,6 @@
 # S4 — audit hosta pouze z metadat (WP1.B1)
 
-Navazující částečný WP1.B2: [omezený hardening a uninstall](HARDENING.md), samostatné nativní CLI
+Navazující WP1.B2: [omezený mode/ACL hardening a uninstall](HARDENING.md), samostatné nativní CLI
 a dry-run wrappery. Níže zůstává původní rozsah a důkazy B1; audit sám nic nemění.
 
 `audit-host.sh` spouští nativní Swift CLI, které zkontroluje **výhradně explicitně vybrané kořeny**,

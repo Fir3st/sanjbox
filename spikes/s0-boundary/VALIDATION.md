@@ -295,3 +295,95 @@ zachovávají hlavní běh i tuto očekávanou chybu. Starý manifest byl znovu 
 opravném běhu nenastal další build/test fail; žádný test nebyl skipnutý. Vlastní build/cache byly po
 zaznamenání validace odstraněny, lokální raw zůstaly. S0/S8 a WP1.A4 coverage stav se nemění: partial,
 bez full peer auditUID/token, bez cross-session důkazu, bez systémových/privilegovaných změn.
+
+
+## Příprava všech 31 případů (2026-11-08)
+
+Dokumentační změna podle IMPLEMENTATION §0 / GUIDE §11; kód testován na
+`b3bb8f8b21fcba3e85702f5d2eaf4fa2b6ec76a2` (claim nad `7b20c414`, beze změny zdrojů).
+[LAB-PLAN](LAB-PLAN.md) a karty FS/ID/LC v tomto commitu mají 31 unikátních ID a 31 indexových
+řádků shodných s přesným rozsahem COVERAGE; u každého je kontrola, oracle, blokátor a úklid.
+Ověřeno 60 lokálních odkazů včetně fragmentů a všech 68 starých sealed souborů byte-for-byte
+proti základnímu commitu; historické záznamy výše zůstávají beze změn.
+
+- `python3 -B -m unittest discover -s spikes/s0-boundary/Tests/RunnerTests -v`: **12/12**, bez skips.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s0-boundary/Tests/RunnerTests -v`:
+  **12/12** i na systémovém Pythonu 3.9.6 používaném macOS CI.
+- `python3 -B -m unittest discover -s tools/tests -v`: **63/63**, bez skips (Python 3.15.2).
+- `python3 -B spikes/s0-boundary/validate-xpc.py`: výchozí dry-run, žádná aktivace XPC.
+- CLI syntax ověřena proti parserům a instalovaným man stránkám (`open`, `launchctl`, `ps`,
+  `mdfind`, `log`, `dscl`, cron/at); 21 jmen API proti hlavičkám aktivního macOS SDK, nikoli
+  živým voláním. `log help show` sandbox odmítl; syntax ověřena z `log(1)`, žádné logy se nečetly.
+  `git diff --check` prošel; žádný nový Swift build, protože se kód nezměnil.
+
+macOS 27.2 / 26B123, arm64. Žádný L2, TCC/capture/attach, změna účtů, podpisových identit,
+Keychain, systémových nastavení, mountů nebo registrací. Příprava scénářů nedokazuje jejich
+spustitelnost ani izolaci; chybějící komponenty zůstávají stop podmínky, FS-04/08/LC-11 patří
+k S4/S8/F2. Žádný nový offline evidence balík; stávající CI pokrývá použité testové sady.
+
+
+## Review oprava FS-09 / ID-07 (2026-11-08)
+
+Dvě P2 nad `dcd8282e57a85ace64de4b1521c7ec10edf6c70f`: neurčené metadata fixtures a prázdná
+service inventura. FS-09 nyní fixuje všech sedm zdrojů/selektorů/polí, včetně inertního app bundle
+a vlastní USB descriptor fixture; široké system_profiler/netstat CLI zůstávají STOP. ID-07 má
+konkrétní MDQuery a NSWorkspace lookup, rozlišuje system/per-user scope i neprokázanou runtime trasu.
+LS registrace čeká na konkrétní cleanup disposable lab baseline; smazání app není unregister.
+
+Targeted audit opravných dokumentů: **31/31** ID + index, **62** lokálních odkazů/anchorů,
+Markdown tabulky, **33** SDK deklarací/konstant a **4** statické Apple plisty. Primární opory:
+aktivní SDK `MDQuery.h`, `MDItem.h`, `NSWorkspace.h`, `LSInfo.h`, `IOKitLib.h`, `IOKitKeys.h`,
+`IOUSBHostFamilyDefinitions.h`, `DirServicesConst.h`, `os/log.h`; instalované man stránky
+system_profiler/ioreg/mds/lsd/netstat/log/dscl/ps/mdfind a připojené Apple API odkazy v kartách.
+Kontrolována jen dokumentace/hlavičky a statické deklarace, žádné cílové API, systémový report,
+registrace nebo příprava fixture se nespouštěly. Všech 68 sealed souborů, starý text VALIDATION
+a root COVERAGE zůstaly beze změn; `git diff --check` prošel. Kód se nezměnil, 12 + 63 testů
+z předchozí poznámky se bez nového důvodu neopakovalo; žádný nový build či evidence balík.
+
+
+## Nezávislé review PR #62 (2026-11-13)
+
+Review nad `b1b89ff` porovnalo všechny karty s PLAN, COVERAGE a podmínkou IMPLEMENTATION §0.
+Opraveny dvě věcné mezery: FS-03 nově zahrnuje `/private/var/tmp` a společně s FS-06 samostatné
+unlink/rename-replace pokusy (FS-03 i rmdir), protože zákaz přímého zápisu nevylučuje mutaci přes
+rodičovské `delete_child`; společný preflight a ID-06 nyní vyžadují `sanjbox-whoami --expect`
+s konkrétními required/forbidden groups, protože samotný výpis bez argumentů členství nezjišťuje.
+Ruční porovnání přesných kernel groups, pozitivního ASID/auditUID a session profilu zůstává povinné.
+
+Všech 31 případů má konkrétní operaci a oracle včetně předpokladů, controls, výstupu a úklidu;
+chybějící nástroj či mechanismus je výslovný stop. Tím je splněna **přípravná** podmínka A4:
+COVERAGE označuje A4 ✅ podle GUIDE §11, s odpovídajícím součtem F1. Nejde o splnění mechanismů,
+provedení případů nebo verdikt S0; všechny testové a gate stavy zůstávají beze změny.
+
+- Runner regresní sada: **12/12** na Pythonu 3.11.4 a znovu **12/12** na systémovém Pythonu 3.9.6,
+  bez skips; stejné příkazy jako v předchozí přípravě.
+- `python3 -B -m unittest discover -s tools/tests -v`: **63/63**, bez skips.
+- `python3 -B spikes/s0-boundary/validate-xpc.py`: výchozí dry-run, žádné `--apply`.
+- Dokumentační audit: **31/31** karet i indexových řádků, **108** lokálních odkazů/anchorů ve všech
+  osmi souborech PR; všech **155** akceptačních stavů nezměněno. Součet F1 odpovídá detailním řádkům
+  načteným stávajícím `tools/progress.py`; A4 poznámka má dvě věty a odkazy.
+- Všech **68** sealed souborů byte-for-byte shodných se základem `7b20c414`; původní prefix
+  VALIDATION, `docs/evidence`, PLAN, GUIDE, IMPLEMENTATION, gate index a zdrojový kód beze změn.
+  Ověřeny zdroje common identity collector/parseru, lokální `ioreg(8)` a `MDQuery.h`; všech sedm
+  odkazovaných Apple dokumentačních URL je dostupných (část webových API stránek vyžaduje JS).
+  `git diff --check` prošel; Swift build se u této dokumentační změny neopakoval.
+
+Prostředí: macOS **27.2.1 / 26B131**, arm64. Testovaný zdrojový kód zůstává shodný s `b1b89ff`.
+Žádná uvedená souborová mutace, globální dotaz, capture/TCC/attach, registrace nebo privilegovaný
+krok nebyl při review spuštěn. Navazující L2 po S1 a závislosti FS-04/08/LC-11 na S4/S8/F2 trvají;
+review nepřepisuje historické výsledky ani nevytváří laboratorní důkaz.
+
+### Integrace aktuálního main po PR #69 (2026-11-13)
+
+Lokálně sloučeno review `609755c` s `main` na `3a681e352dc469e271bbbcb67f3ac1f113badf22`.
+Všechny převzaté řádky COVERAGE jsou zachované; oproti main se mění jen A4 na ✅ a součet F1
+na **14 hotovo / 7 rozpracováno / 15 nezahájeno**, včetně dříve dokončeného C3. S0 a všech 155
+akceptačních stavů beze změny. Kombinovaný diff má pouze osm dokumentačních souborů A4.
+
+Na tomto sloučeném stromu prošly znovu **63/63** tools testy, **12/12** runner regrese na systémovém
+Pythonu a výchozí XPC dry-run. Nový Release build/test S0 s aktuální lokální common závislostí
+prošel **46/46 XCTest, 0 skips**; první pokus zastavil sandbox před kompilací kvůli nepřístupné
+Clang cache, opakování s vlastními `/private/tmp` caches a povolenými lokálními fixtures uspělo.
+Znovu ověřeno **31/31** karet a indexu, **114** lokálních odkazů/anchorů po integraci, všech **68**
+sealed souborů i dosavadní VALIDATION prefix beze změn a `git diff --check`. Testy používají pouze
+vlastní syntetické fixtures; žádný L2, TCC, globální služba ani změna verdiktu brány.

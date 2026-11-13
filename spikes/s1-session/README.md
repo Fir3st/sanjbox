@@ -47,6 +47,12 @@ PLAN počítá se SSH tunelem, protože Screen Sharing.app se k vlastnímu Macu 
 dělá totéž na úrovni TCP, ale nechá Vzdálené přihlášení vypnuté, takže ubude jedna vstupní služba.
 Poslouchá výhradně na `127.0.0.1` a jinou adresu neumí.
 
+`--listen 0` nechá port vybrat systém; forwarder odmítne cíl shodný se **skutečně přiděleným** portem.
+Chyba přípravy socketu zavře vlastněný descriptor a zánik nepoužívané instance uvolní listener.
+`serve()` dál běží do ukončení procesu (`Ctrl-C`); API pro zastavení za běhu nepřibylo.
+[Validace opravy životního cyklu](VALIDATION-FORWARDER.md) používá jen vlastní syntetické loopback
+protistrany a oddělené procesy, nikoli VNC ani skutečné Sdílení obrazovky.
+
 Pokud ho Screen Sharing.app odmítne, je to nález do protokolu. Pak platí postup z PLANu: Vzdálené
 přihlášení jen pro tvůj účet a `ssh -L 5901:127.0.0.1:5900 <ty>@127.0.0.1`. Port 22 drží `lan-guard.sh`
 mimo LAN.
