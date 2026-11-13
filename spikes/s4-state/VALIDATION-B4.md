@@ -212,3 +212,67 @@ Všechny fixtures byly vlastní dočasné stromy v `/private/tmp`; Python běže
 Žádná skutečná APFS/snapshot/asr/mount/unmount/sudo operace neproběhla. Swift zdroje ani jejich
 kontrakty se nemění, takže Swift sada se v této rundě znovu nespouštěla. Živý APFS pilot,
 G1–G3, L3 a S4 nadále nejsou ověřené. Starší validační záznamy výše zůstaly zachované.
+
+## Integrační review PR #56 — read-only kontrakt a stale stav (2026-11-13)
+
+Původní head `0873a5774d6498818ac6018127d525a835da435d` byl lokálně integrován s main
+`d0ea7bc1c1e04d4c82b6e1fa38489871af73607f` v merge commitu
+`887d2ac02c80b78ca44a94c2d927c86f60b8fec0`. **Přesný otestovaný opravný commit:
+`6a914240dfcf8928d349513c203438eb3cbc1d13`.** Následný commit upravuje pouze dokumentaci
+validace a souhrn COVERAGE; Swift zdroje ani původní laboratorní evidence se neměnily.
+
+Konfigurace: arm64, macOS 27.2.1 / 26B131, Xcode 27.2 / 27B52, Swift 6.4.2
+(`swiftlang-6.4.2.1.9`, `clang-2100.4.1.1`), systémový Python 3.9.
+
+Opravené reprodukovatelné mezery:
+
+- Libovolný executable override mohl mutovat host i pod read-only argv. Distribuovaný skript
+  nyní odmítá všechny tři proměnné a používá pevné systémové cesty; shimy a fault injection žijí
+  pouze v dočasné testové kopii. Default i pozitivní apply hand-off volají jen pět očekávaných
+  read-only argv; žádný vypsaný runbook příkaz se nevykoná.
+- Symlink předka / výměna vstupu při otevření, opětovné čtení receiptu pro hash a přepsání
+  později vloženého výstupu: descriptor-relative `O_NOFOLLOW`, hash validovaných bytes,
+  kontrola vlastníka/mode/hardlinků, odmítnutí jiného existujícího plánu a exkluzivní publikace.
+  Regrese vstřikují výměnu přímo na open/link hranici; cizí bytes se nečtou/nepřepíší a temp se uklidí.
+- Duplicitní nebo špatně typované plisty a tiše přeskočené mount řádky nyní odmítají výsledek.
+  XML i binary plisty mají pozitivní kontrolu; částečná deklarovaná identita už nemá pass verdict.
+- Receipt se váže povinným `planSha256` na konkrétní plán a UUID, ne jen znovupoužitelný device
+  locator. Chybné/future datum, null digest, hluboký/poškozený/oversize JSON a chybné Unicode
+  mají řízené chyby. Úklid je ruční template s revalidovaným parent/snapshot UUID, absent = skip,
+  konflikt = stop; deletion podle samotného názvu se již negeneruje.
+
+Finální příkazy z otestovaného commitu:
+
+```bash
+bash -n spikes/s4-state/apfs-pilot.sh spikes/s4-state/recovery-mock.sh spikes/s4-state/validate-state.sh
+/usr/bin/python3 -I -B -m unittest discover -s spikes/s4-state -p 'test*.py' -q
+/usr/bin/python3 -B -m unittest discover -s tools/tests -q
+# Build byl pro oba režimy vytvořen ze stejného zdrojového stromu; finální běh jej znovu použil.
+CLANG_MODULE_CACHE_PATH="$build_root/module" SWIFTPM_MODULECACHE_OVERRIDE="$build_root/module" \
+  swift test -c debug --skip-build --package-path spikes/s4-state \
+  --scratch-path "$build_root/build" --cache-path "$build_root/cache" --disable-sandbox
+CLANG_MODULE_CACHE_PATH="$build_root/module" SWIFTPM_MODULECACHE_OVERRIDE="$build_root/module" \
+  swift test -c release --skip-build --package-path spikes/s4-state \
+  --scratch-path "$build_root/build" --cache-path "$build_root/cache" --disable-sandbox
+git diff --check
+```
+
+Výsledek: **72/72 Python planner testů** (29,474 s), **63/63 tools testů** (1,867 s),
+**42/42 Swift Debug** (32,246 s), **42/42 Swift Release** (28,677 s), syntax/diff check exit 0.
+Python metody zahrnují skutečné subprocess CLI scénáře pro dry-run, apply hand-off i odmítnutí;
+veškeré APFS vstupy a recording shimy jsou syntetické. Nová sada má 20 regresních metod.
+
+První sandboxovaný Swift běh měl 20 chyb `boot identity unavailable`; systémový read-only
+`kern.bootsessionuuid` byl blokovaný. Opakování mimo sandbox prošlo v obou konfiguracích;
+20 zanechaných vlastních mock stromů bylo odstraněno po kontrole konkrétních cest,
+UID/mode/device/inode a úplného očekávaného obsahu. První tools příkaz s `-I` nemohl importovat
+repozitářový balík `tools`; dokumentovaný příkaz bez `-I` prošel. Čtyři starší mount fixtures
+byly doplněny o root mount, aby dál zkoušely svůj původní rozpor a ne neúplnou tabulku.
+
+Příprava B4 tím splňuje IMPLEMENTATION §0; aktuální F1 souhrn byl přepočten z 36 řádků na
+16 hotových / 7 rozpracovaných / 13 nezahájených. Kromě B4 se stav žádného balíku neměnil.
+**S4 a RB-02…08 zůstávají Neověřeno.** Nebyl spuštěn živý APFS pilot, snapshot/asr/mount/unmount,
+sudo ani jiná systémová mutace. Důvěryhodnost host shellu/binárek, výlučný namespace bez cizích
+write ACL a čerstvá skutečná záloha jsou předpoklady; POSIX mode není ACL audit, metadata nejsou
+atomický snapshot a plán není durable recovery deník. G1–G3, whole-UID interlock a L3 čekají
+na uživatelský laboratorní běh; jeho chybějící důkaz se testy planneru nenahrazuje.

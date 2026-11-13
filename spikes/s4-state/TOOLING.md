@@ -150,18 +150,22 @@ skutečnou existenci a obnovitelnost zálohy musí uživatel znovu ověřit; has
 | Exit / stav | Význam |
 |---|---|
 | 0 | Metadata a všechny deklarované identity jsou konzistentní; `verdict.gatesPassed: true`. **Žádný** verdikt izolace ani rollbacku. |
-| 2 | Chyba vstupu/argumentů: neznámý argument, plán nebo receipt s neexistujícím souborem, symlinkem, cizím vlastníkem, group/world write nebo neprivátním rodičovským adresářem, out-dir bez 0700, existující výstup bez vlastnictví/0600, kolize vstupu s výstupem, neplatný plán/JSON, I/O chyba; nic se nezapsalo. |
-| 4 | Odmítnutý apply/backup: chybí ack/receipt, fixture apply, receipt schema/typ/digest/createdAt/pilot/transaction/coverage/size, nebo apply plán bez povinných UUID; nic se nezapsalo. |
+| 2 | Chyba vstupu/argumentů: executable override, neexistující soubor, symlink/hardlink, cizí vlastník, group/world write, out-dir bez 0700, nebezpečný nebo odlišný výstup, kolize se vstupem, neplatný plán/JSON plánu, I/O chyba; žádný úspěšný verdict. |
+| 4 | Odmítnutý apply/backup: chybí ack/receipt, fixture apply, receipt JSON/schema/typ/digest/createdAt/pilot/transaction/planSha256/coverage/size, nebo apply plán bez povinných UUID; nic se nezapsalo. |
 | 5 | `fail`/`inconclusive` gate: neshoda UUID, system/boot/role svazek, aktivní target, rozpor mountů mezi sondami, neověřená identita. |
 | 6 | Read-only metadata nešla přečíst nebo chybí platná identita v `diskutil info`; výsledek je neplatný, ne úspěch. |
 | `warn` | Otevřený návrh (kterákoli kvóta 0 = unbounded, chybějící receipt v dry-run); exit může být 0. |
 | `manual` | `whole-uid-interlock`: G2 musí doložit uživatel v L3; planner na něm negatuje ani nepředstírá pass. |
-| `inconclusive` | `identity-match` bez deklarovaného UUID: nic se neporovnalo, `verdict.identityChecked` je `false`, exit 5. |
+| `inconclusive` | `identity-match` bez úplné deklarované/pozorované identity: `verdict.identityChecked` je `false`, exit 5. |
 
 Tabulka exit kódů je závazná a testovaná v `ExitCodeContractTests`: chybějící/neznámý klíč receiptu
 nebo špatný typ = 4; neexistující soubor, symlink a 0666 = 2. `verdict.realStartAllowed` je vždy
 `false`, `diskMutated` vždy `false`. Skript nedokazuje APFS snapshot, writable restore, mount switch,
 crash/reboot recovery ani úklid skutečných objektů.
+
+Chyby validace před publikací nic nezapisují; I/O chyba po atomické publikaci (např. při stdout)
+může ponechat kompletní vlastní výstup, ale nesmí se interpretovat jako úspěch. Při zabití procesu
+může zůstat vlastní dočasný soubor; planner jej v dalším běhu automaticky nemaže ani nepřebírá.
 
 ## Testy a hranice
 
