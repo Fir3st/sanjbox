@@ -84,7 +84,8 @@ Tests/Escape/           únikový test suite                               (WP2.
 - **Obsazený balík:** pokračuje jeho vlastník. Jiný agent potřebuje výslovné zadání/předání od uživatele
   nebo dohodu s vlastníkem o konkrétní části, větvi a hranicích změn; existující zadání stačí.
   V COVERAGE zachovej původní autorství a zaznamenej navazujícího vlastníka/rozsah, nepřebírej cizí
-  rozpracovanou větev tiše. Změnu rozhraní H1 koordinuj s H4/A6 a budoucími H2/H3/H6 před jejich implementací.
+  rozpracovanou větev tiše. Změnu rozhraní H1 koordinuj s H2/H4/A6 a budoucími H3/H6; zachovej kompatibilitu
+  dokončeného H2 a znovu spusť jeho testy.
 - **Čekání:** pokud je balík hotový, čeká na lab/rozhodnutí nebo nemá splněné závislosti, není automaticky
   k převzetí. Uveď konkrétní blokátor a pokračuj jiným dostupným zadáním; pokud žádné není, ohlas stav
   podle §11. Nevytvářej další přípravný follow-up bez nálezu a konečné podmínky dokončení.
