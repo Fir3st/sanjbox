@@ -372,3 +372,18 @@ Prostředí: macOS **27.2.1 / 26B131**, arm64. Testovaný zdrojový kód zůstá
 Žádná uvedená souborová mutace, globální dotaz, capture/TCC/attach, registrace nebo privilegovaný
 krok nebyl při review spuštěn. Navazující L2 po S1 a závislosti FS-04/08/LC-11 na S4/S8/F2 trvají;
 review nepřepisuje historické výsledky ani nevytváří laboratorní důkaz.
+
+### Integrace aktuálního main po PR #69 (2026-11-13)
+
+Lokálně sloučeno review `609755c` s `main` na `3a681e352dc469e271bbbcb67f3ac1f113badf22`.
+Všechny převzaté řádky COVERAGE jsou zachované; oproti main se mění jen A4 na ✅ a součet F1
+na **14 hotovo / 7 rozpracováno / 15 nezahájeno**, včetně dříve dokončeného C3. S0 a všech 155
+akceptačních stavů beze změny. Kombinovaný diff má pouze osm dokumentačních souborů A4.
+
+Na tomto sloučeném stromu prošly znovu **63/63** tools testy, **12/12** runner regrese na systémovém
+Pythonu a výchozí XPC dry-run. Nový Release build/test S0 s aktuální lokální common závislostí
+prošel **46/46 XCTest, 0 skips**; první pokus zastavil sandbox před kompilací kvůli nepřístupné
+Clang cache, opakování s vlastními `/private/tmp` caches a povolenými lokálními fixtures uspělo.
+Znovu ověřeno **31/31** karet a indexu, **114** lokálních odkazů/anchorů po integraci, všech **68**
+sealed souborů i dosavadní VALIDATION prefix beze změn a `git diff --check`. Testy používají pouze
+vlastní syntetické fixtures; žádný L2, TCC, globální služba ani změna verdiktu brány.
