@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 5 | 0 | 0 | 0 |
-| F1 | 36 | 16 | 7 | 13 | 0 |
+| F1 | 36 | 16 | 8 | 12 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -325,7 +325,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.G1 | Rešerše Docker runtime | Codex / Astra | ✅ | [Připnutá rešerše runtime](../spikes/s7-docker/research/wp1-g1-runtime/README.md), manifest primárních zdrojů a G2/L8 plán DK-01…10; žádný stock kandidát neprokazuje celý kontrakt. Bez runtime měření; S7/DK Neověřeno, F0.8 budget otevřený, mimo MVP (C-002) |
 | WP1.G2 | S7 příprava | janfiedler / Codex + Astra | 🟨 | [Částečná offline příprava](../spikes/s7-docker/README.md): bounded manifest/planner, 64 scénářů × 3 oblasti, syntetické oracle, registry/toy-frame mocky a vlastní fixture cleanup; 63 native Python tests. Runtime/VM/Engine/bridge a S5 integrace chybí; F0.8 otevřeno, S7/DK-01…10 Neověřeno, Docker mimo MVP. [Validace](../spikes/s7-docker/VALIDATION.md). |
 | WP1.G3 | S7 běh (L8) | uživatel + impl. | ⬜ | |
-| WP1.H1 | Kontrakty v0 (prototyp) | | ⬜ | `proto/contracts/`; k převzetí, IMPLEMENTATION §0 |
+| WP1.H1 | Kontrakty v0 (prototyp) | janfiedler / Pi (agent) | 🟨 rozpracováno | [Prototyp sloučený v PR #52](../proto/contracts/README.md) obsahuje striktní helper zprávy, stavový automat LC-06/LC-11, síťovou politiku, typované brány a audit. [Broker v0](../proto/contracts/README.md#broker-broker-v0) zatím odmítá všechny zprávy a [duplikovaný manifest](../proto/contracts/README.md#manifest-stavu--duplikace-schématu) vynechává vyjmenovaná pravidla B3; úplný výstup z IMPLEMENTATION §3 chybí, žádná brána tím neprošla. |
 | WP1.H2 | Životní cyklus (prototyp) | | ⬜ | `proto/lifecycle/`; po H1 |
 | WP1.H3 | CLI (prototyp) | | ⬜ | `proto/cli/`; po H1 |
 | WP1.H4 | Brána jako služba (prototyp) | janfiedler / Codex + Astra | 🟨 rozpracováno | [Složení npm/PyPI/git/model](../proto/gateway/README.md), striktní draft, mock klíč, bounded loopback a audit; [ověření](../proto/gateway/VALIDATION.md) zahrnuje skutečné lokální sockety/CLI. Chybí ověřený převod H1 NetworkPolicy/TypedGate a jejich limitů do draftu; identita klienta, produkční integrace a S5/GW zůstávají Neověřeno. |
