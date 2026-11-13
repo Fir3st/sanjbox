@@ -422,3 +422,41 @@ Nové malé logy, `validation-summary.json`, `cache-cleanup.json` a ověřené k
 finální logy `debug-01.log`, `release-01.log`, `native-debug-01/`, `native-release-01/`.
 Přesné acquisition cesty jsou v `datasets.json` obou native sad. Vlastní build/cache byly po
 ověření zdroje, logů a kopií binárek odstraněny; žádné starší scratch nebo sdílené cache se neměnily.
+
+## 2026-11-13 — nezávislé review PR #65 po integraci main
+
+Testovaný zdroj **`cae5c611e3163d4279c4fc5b562a5bbc75ad1e10`** obsahuje main
+**`ebfc1ded94d0514f328a535c437c3611862e3e8e`**, včetně PR #61 a forwarderu PR #70.
+Review registrace rootu, známých rodičů, PID/UID/start/ancestry, limitů, deadline před/po každém
+čtení, částečných výstupů a úklidu nenašlo další nález P0–P2 vyžadující opravu v deklarovaném rozsahu.
+Kód collectoru se při tomto review neměnil. Dva nové syntetické testy kontrolují zastavení
+při selhání journal emit před čtením potomka a zachování prefixu/sequence po odmítnutí nadlimitního
+řádku i opětovného otevření. Native harness nově skutečně přeruší jen vlastní collector child
+SIGTERM a SIGALRM po prvním durable pollu a ověří odmítnutí formátu původním offline inspektorem.
+
+Na macOS **27.2.1 / 26B131**, arm64, Apple Swift **6.4.2 (swiftlang-6.4.2.1.9)**, explicitní
+native SwiftPM backend, 2 jobs, vlastní scratch/cache: **97/97 S1InstrumentationTests v Debug
+i Release**, **6/6 ForwarderLifecycleTests v obou konfiguracích**, **63/63 tools/tests**.
+Po posledním buildu vlastní ad-hoc hardened podpis s prázdnými entitlements, strict verify a
+kontrola runtime/absence obou get-task-allow: **12/12 nativních CLI kontrol v každé konfiguraci**,
+Release **30/30 legacy** a **41/41 offline journal CLI**. Oba pozitivní sběry objevily pouze z root
+registrace 3 instance, 11 ticks a 29 observations; 4/8/12 MiB alokace, parent/instance identita,
+explicitní exity a úklid jsou porovnané s fixture truth až po skončení collectoru. Očekávané exity
+dětí znamenají exit 3, nikoli úplnou atribuci.
+
+Každá ze čtyř přerušených acquisition zanechala 1 celý journal řádek, bez `recording.json` a
+`report.json`, s exitem −15/−14 a ověřeným úklidem vlastního fixture stromu. SIGALRM byl poslán
+explicitně vlastním harness parentem: toto **není** nový natural-expiry důkaz duration + 30s
+watchdogu. První legacy pokus v sandboxu skončil na nedostupném boot clock metadata s exit 2;
+je zachován, následný nový native běh prošel 30/30, gate se neoslaboval. Native identity očekávání
+bylo předregistrováno po samostatné kontrole vlastních číselných credentials, 16 kernel groups,
+audit/window session a Aqua manageru; žádné host/account nastavení, Keychain ani certifikáty.
+
+Malé logy, podepsané binárky, nezměněný neúspěšný sandbox pokus, přesné dataset cesty, jejich
+posthoc truth/cleanup, SHA-256 binárek a source souborů jsou zachovány ve vlastním scratch
+`/private/tmp/sanjbox-pr65-review-20261113-wi2nlBr8` (`validation-summary.json`,
+`tested-source-sha256.json`, `bin/`, `native-debug/`, `native-release/`). Přístup se týkal pouze
+vlastních řízených fixture procesů; polling může minout krátké/reparentované procesy a sekvenční
+kontroly nejsou atomický snapshot ani obrana proti hostile fork/reparent race. Úplná UID/session,
+WindowServer a cross-UID atribuce, kalibrovaný login a tři skutečné relace zůstávají neověřené;
+A2 zůstává dílčí a žádný verdikt L1/S1/P4 se nemění.
