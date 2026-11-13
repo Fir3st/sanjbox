@@ -103,3 +103,24 @@ SwiftPM zanechá obvyklé build artefakty v zvoleném scratch path.
 Produkční host-only autorizace (audit token, podpis, session), oddělený helper, reálné UID a
 procesy, stdio/PTY i všechny brány/R1–R8 zůstávají **Neověřeno**. Převzetí do WP2.7 čeká na vstup
 F2 a nativní ověření; tento prototyp neřeší otevřené blokátory PLAN.
+
+## Předání do WP2.7
+
+H3 je po ověření v PR #75 dokončený offline balík. Bez konkrétního nového nálezu se další mock
+vrstva nepřidává. Navazující práci určuje [IMPLEMENTATION §0](../../docs/IMPLEMENTATION.md#0-co-dál);
+H6 má vlastní PR a není závislostí dokončení H3.
+
+Po splnění vstupu F2 převezme WP2.7 tento parser, H1 kódování/korelaci a explicitní neznámý
+výsledek při ztrátě odpovědi. S WP2.0/2.1/2.2/2.3 musí samostatně vymezit a ověřit:
+
+1. Oddělený helper a host-only peer autorizaci audit tokenem, podpisem a session; endpoint mocku
+   sám žádný z těchto důkazů neposkytuje.
+2. Admission skutečného lifecycle a vazbu root IDs na descriptor-ověřené kořeny oblasti;
+   klient nesmí získat výběr host UID, prostředí, cesty či oprávnění mimo úzký kontrakt.
+3. Spouštění shell/run, stdio/PTY, odpojení a dokončení workloadu. Potřebné změny H1 se nejprve
+   reviewují; stávající `accepted` ani exit CLI 0 se nesmějí reinterpretovat jako exit workloadu.
+4. Bezpečnou pauzu celého UID a trvalý snapshot/rollback celé restore unit, včetně recovery,
+   nezměněné host control policy a doložených nativních mechanismů z S0/S4/S8.
+
+Tyto kroky nejsou oprávněním k systémovým změnám nyní. WP2.7 i akceptace zůstávají neprovedené;
+H3/H2/H6 se před laboratorními branami nespojují do běžícího produktu.
