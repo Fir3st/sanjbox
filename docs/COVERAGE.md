@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 5 | 0 | 0 | 0 |
-| F1 | 36 | 14 | 7 | 15 | 0 |
+| F1 | 36 | 16 | 7 | 13 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -305,7 +305,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.B1 | Audit hosta | janfiedler / Codex + Astra | ✅ | [metadata audit](../spikes/s4-host/README.md); 17 syntetických testů, S4/R2/R7 Neověřeno |
 | WP1.B2 | Zpevnění a uninstall | janfiedler / Codex + Astra | 🟨 | [Částečný mode-only hardening/uninstall](../spikes/s4-host/HARDENING.md): dry-run, trvalý before/after deník, konflikty a syntetické testy; ACL hardening, host kompatibilita, poslední TOCTOU mezera a S4/RB-09/10 Neověřeno |
 | WP1.B3 | Manifest a topologie | janfiedler / Codex + Astra | ✅ | [návrhový manifest a validátor](../spikes/s4-state/README.md); 21 syntetických testů, skutečná topologie/kvóty/rollback a S4 Neověřeno |
-| WP1.B4 | Snapshot/rollback prototyp | janfiedler / Codex + Astra | 🟨 rozpracováno | Částečně: [recovery protokol a file-backed mock](../spikes/s4-state/RECOVERY.md), durable deník, deny-start, 31 subprocess crash bodů; [42 Release testů včetně flush-error recovery](../spikes/s4-state/VALIDATION-B4.md). Nová [APFS feasibility studie](../spikes/s4-state/research/wp1-b4-apfs/README.md): 13 připnutých primárních zdrojů, receipt mapa a podmíněné uživatelské piloty; asr replication kandidát, bez diskových mutací. Native APFS, snapshot oprávnění a whole-UID admission/crash/reboot adaptér chybí; S4/RB-02…08 Neověřeno |
+| WP1.B4 | Snapshot/rollback prototyp | janfiedler / Codex + Astra | ✅ hotovo (příprava) | [Read-only APFS planner](../spikes/s4-state/TOOLING.md) má dry-run, záznam stavu, ruční hand-off a úklid; [validace](../spikes/s4-state/VALIDATION-B4.md) doplňuje recovery mock a feasibility studii. Native APFS, snapshot oprávnění a whole-UID admission/crash/reboot adaptér čekají na L3; S4/RB-02…08 zůstávají Neověřeno |
 | WP1.B5 | S4 běh (L3) | uživatel + impl. | ⬜ | |
 | WP1.C1 | S3 příprava | janfiedler / Codex + Astra | ✅ | [Příprava](../spikes/s3-pf/README.md) + [opt-in C1/common producer provenance](../spikes/s3-pf/NETWORK-PROVENANCE.md): předregistrované run/flow/challenge bytes, names-free identity/signature preflight, exact tuple, bounded raw a partial-error receipts. [Validace](../spikes/s3-pf/NETWORK-PROVENANCE-VALIDATION.md): common 32 + C1 11 + C3 50 Release, 25 legacy offline CLI, 11 signed host + 4 offline CLI; nezávislé review a vlastní 11+11 kontrol. Nový C3 adapter a skutečné testArea/L4 chybí; S3/S3b a případy Neověřeno. |
 | WP1.C2 | Ochrana nezávislá na pf | janfiedler / Codex + Astra | ✅ | [Rešerše a návrh](../spikes/s3-pf/research/wp1-c2-pf-independent/README.md): primární zdroje, připnuté OSS/SDK podklady, 12 návrhů L4 experimentů; úplný mechanismus nedoložen, blokátor otevřený. Bez runtime testů; S3/NET/R3 zůstávají Neověřeno |
