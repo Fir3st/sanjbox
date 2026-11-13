@@ -1,9 +1,14 @@
 # WP1.C3 — nezávislá příprava ingress/bind
 
-**C3 je částečné. S3b, NET-10…12 a R2/R3 zůstávají Neověřeno.** Tento samostatný Swift 6.4 balík
-připravuje scénáře a přístroj. Není to bind policy, firewall ani důkaz izolace. Dílčí offline C1/common
-adapter podporuje také explicitní `sanjboxNetworkProvenanceV1` s přesnými vloženými raw bajty; autentizace peeru, nezávislý capture, bind policy a skutečný uživatelský běh L4 zbývají. Nevychází z kódu neintegrovaných větví; jediná závislost je lokální veřejné
-API `../../common` (`ProbeContext`, `ProbeExpectation` a Codable modely `SanjboxNetworkProvenance`). Offline `link` nevolá jejich živé preflight/capture operace.
+**Offline příprava WP1.C3 je hotová: [návrh bind policy](BIND-POLICY.md) je zapsaný podle
+[IMPLEMENTATION §0](../../../docs/IMPLEMENTATION.md). S3b, NET-10…12 a R2/R3 zůstávají Neověřeno.**
+Tento samostatný Swift 6.4 balík dodává scénáře a přístroj; neimplementuje vynucovací mechanismus
+ani nedokazuje izolaci. Dílčí offline C1/common adapter podporuje také explicitní
+`sanjboxNetworkProvenanceV1` s přesnými vloženými raw bajty. Autentizace peeru, nezávislý capture,
+vynucení bind policy a skutečný uživatelský běh patří do WP1.C4/L4 a zůstávají otevřené.
+Nevychází z kódu neintegrovaných větví; jediná závislost je lokální veřejné API `../../common`
+(`ProbeContext`, `ProbeExpectation` a Codable modely `SanjboxNetworkProvenance`). Offline `link`
+nevolá jejich živé preflight/capture operace.
 
 ## Co lze provést nyní
 
@@ -124,7 +129,10 @@ Záznamy pozitivních kontrol před/po musí obsahovat konzistentní sequence at
 Listener i capture musejí pokrývat celé okno včetně kontrol a drainu; neznámé losses/gaps/retry/RTT/clock
 nebo krátký drain jsou chybějící důkaz. Skutečný 60s+600s L4 protokol zde není. Navazující dílčí offline adapter viz [ADAPTER.md](ADAPTER.md).
 
-Výstup obsahuje všech 28 plánovaných kombinací IPv4/IPv6 × loopback/wildcard × 7 směrů/operací:
+Stávající offline výstup obsahuje 28 kombinací IPv4/IPv6 × loopback/wildcard × 7 směrů/operací.
+To není úplná L4 předregistrace: [bind policy §4](BIND-POLICY.md#4-mapování-na-net-10-net-11-net-12)
+navíc požaduje samostatné TCP/UDP buňky a doložené umístění oracle vůči ochranné hranici.
+Tento návrh nepřidává tato pole ani nové živé scénáře do CLI. Význam jeho výstupů:
 
 | Výsledek | Význam |
 |---|---|
@@ -138,10 +146,14 @@ Výstup obsahuje všech 28 plánovaných kombinací IPv4/IPv6 × loopback/wildca
 `link < adapter-input.json` propojuje skutečný C1 RunRecord stream, common counterpart JSONL,
 ingress matrix a oddělený packet import; kontroluje dostupné tuple/canary/identity/time vazby
 a vydává deterministický report. [Formát, příklady, producer zdroje a přesné mezery](ADAPTER.md).
-C1 stále nevydává run/flow/tuple/canary metadata a common nemá identity ani packet capture;
-adapter je nedopočítává. Dodaný JSON včetně signing booleans je tvrzení, nikoli atestace.
+Legacy C1/common wire formáty nemají úplná run/flow/tuple/identity metadata; nový opt-in
+`sanjboxNetworkProvenanceV1` tuto část doplňuje podle ADAPTER. Nezávislý capture a atestaci
+adapter nedopočítává. Dodaný JSON včetně signing booleans je tvrzení, nikoli atestace.
 Findings v raw zůstávají i při neplatné/neúplné jiné evidence. Reviewer musí ověřit jejich
-původ, identity, clock/capture topologii a mechanismus hranice. C3 zůstává partial.
+původ, identity, clock/capture topologii a mechanismus hranice. Raw packet finding ani
+`observedViolationNeedsReview` není automatický verdikt porušení: odmítnutý pokus před hranicí
+a skutečný průchod/doručení se rozlišují podle BIND-POLICY §4. Dokončená příprava C3 tyto
+L4 důkazy nenahrazuje; S3b/NET-10…12 zůstávají Neověřeno.
 
 ## Vlastní výstupy a úklid
 
@@ -158,6 +170,6 @@ descriptor-relative preflight není atomická compare-and-unlink operace proti �
 útočníkovi. To není navrhovaná bezpečnostní hranice produktu. Raw výsledky před smazáním ručně zkontrolovat;
 publikované gate důkazy se v tomto balíku nevytvářejí a nikdy se nepřepisují.
 
-Návrh skutečné hranice a uživatelského L4: [LABPLAN.md](LABPLAN.md). Stav ověření: [VALIDATION.md](VALIDATION.md).
+Návrh skutečné hranice a uživatelského L4: [LABPLAN.md](LABPLAN.md). Návrh bind policy (spec, nic neověřeno): [BIND-POLICY.md](BIND-POLICY.md). Stav ověření: [VALIDATION.md](VALIDATION.md).
 
 Nový offline consumer má samostatný [validační index](NETWORK-ADAPTER-VALIDATION.md) s připnutým source commitem, přesnými raw/log hashi a zachovanými neúspěšnými vývojovými pokusy.

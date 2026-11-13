@@ -1,0 +1,399 @@
+import Foundation
+import SanjboxGatewayCore
+
+/// Jeden řádek směrovací tabulky politiky (i vypnutý mount se eviduje, aby
+/// odmítnutí bylo deterministické a auditované).
+public struct RouteTableEntry: Sendable, Equatable {
+    public let operation: GatewayOperation
+    public let mount: String
+    public let enabled: Bool
+}
+
+public enum RouteClass: Sendable, Equatable {
+    case unknown
+    case disabled(GatewayOperation)
+    case active(GatewayOperation)
+}
+
+/// Neměnný pohled na složení brány: co politika deklaruje a co je aktivní.
+public struct GatewayRuntimeConfiguration: Sendable, Equatable {
+    public let zoneID: String
+    public let auditCapacity: Int
+    public let entries: [RouteTableEntry]
+
+    public init(zoneID: String, auditCapacity: Int, entries: [RouteTableEntry]) {
+        self.zoneID = zoneID
+        self.auditCapacity = auditCapacity
+        self.entries = entries.sorted { $0.mount < $1.mount }
+    }
+
+    public var activeOperations: [GatewayOperation] {
+        entries.filter(\.enabled).map(\.operation).sorted()
+    }
+
+    public var declaredOperations: [GatewayOperation] {
+        entries.map(\.operation).sorted()
+    }
+
+    /// Klasifikace podle mountu z politiky, ne podle sestaveného routeru:
+    /// vypnutý nebo neznámý mount nikdy nepropadne k handleru.
+    public func classify(path: String) -> RouteClass {
+        let matches = entries.filter { path == $0.mount || path.hasPrefix($0.mount + "/") }
+        guard let best = matches.max(by: { $0.mount.count < $1.mount.count }) else { return .unknown }
+        return best.enabled ? .active(best.operation) : .disabled(best.operation)
+    }
+
+    /// Deterministické řádky pro CLI i pro protokol běhu.
+    public var summaryLines: [String] {
+        ["policy zoneID=\(zoneID) auditCapacity=\(auditCapacity)"]
+            + entries.map { entry in
+                "gateway \(entry.operation.rawValue) mount=\(entry.mount) state=\(entry.enabled ? "enabled" : "disabled")"
+            }
+    }
+}
+
+public enum CompositionError: Error, Equatable, Sendable, CustomStringConvertible {
+    /// Politiku nelze převzít: chyba validace, konfigurace odmítnutá handlerem
+    /// nebo chybějící klíč. Texty jsou stabilní a neobsahují klíč ani tělo vstupu.
+    case policy(PolicyError)
+    case handlerConfiguration(GatewayOperation)
+    case keyUnavailable(GatewayOperation)
+    case invalidRouter(String)
+
+    public var description: String {
+        switch self {
+        case .policy(let error): return "policy: \(error.description)"
+        case .handlerConfiguration(let operation):
+            return "handler rejected policy configuration for \"\(operation.rawValue)\""
+        case .keyUnavailable(let operation):
+            return "no key for operation \"\(operation.rawValue)\"; operation is not composed"
+        case .invalidRouter(let reason): return "router: \(reason)"
+        }
+    }
+}
+
+/// Složí typované handlery ze `spikes/s5-gateway` podle politiky a obsluhuje
+/// požadavky v jednom procesu. Žádný socket zde nevzniká; transport je oddělený
+/// (`Transport.swift`) a v testech se používá in-process dispatch.
+public actor GatewayService {
+    public nonisolated let policy: GatewayPolicy
+    public nonisolated let runtime: GatewayRuntimeConfiguration
+    private let router: TypedRouter
+    private let npmGateway: NPMGateway?
+    private let pypiGateway: PyPIGateway?
+    private var records: [AuditRecord] = []
+    private var reserved = 0
+    private var saturationCount: UInt64 = 0
+
+    public init(policy: GatewayPolicy, keyProvider: any KeyProvider = MockKeyProvider(),
+                upstream: UpstreamClient = UpstreamClient()) throws {
+        let handlers = try Self.makeHandlers(policy: policy, keyProvider: keyProvider, upstream: upstream)
+        npmGateway = handlers.npm
+        pypiGateway = handlers.pypi
+        do {
+            router = try TypedRouter(routes: handlers.routes)
+        } catch RouteFailure.duplicateMount {
+            throw CompositionError.invalidRouter("duplicate mount")
+        } catch RouteFailure.invalidMount {
+            throw CompositionError.invalidRouter("invalid mount")
+        } catch {
+            throw CompositionError.invalidRouter("invalid method set")
+        }
+        self.policy = policy
+        runtime = GatewayRuntimeConfiguration(
+            zoneID: policy.zoneID,
+            auditCapacity: policy.auditCapacity,
+            entries: policy.gateways.map {
+                RouteTableEntry(operation: $0.operation, mount: $0.mount, enabled: $0.isEnabled)
+            }
+        )
+    }
+
+    /// In-process dispatch. Neotevírá port; vrací odpověď nebo SSE producenta.
+    ///
+    /// Kapacita auditu je tvrdá brána: rezervace místa proběhne **před**
+    /// handlerem a když není místo, požadavek dostane 503 a handler se nezavolá.
+    /// Záznam se tak nikdy nezahodí poté, co už klient dostal odpověď.
+    public func dispatch(_ request: HTTPRequest) async throws -> GatewayReply {
+        try await dispatch(request, finishingStream: {})
+    }
+
+    /// Transport finalization belongs inside the audited producer: failure to send
+    /// the terminal HTTP chunk must not leave a successful stream audit.
+    func dispatch(_ request: HTTPRequest,
+                  finishingStream: @escaping @Sendable () async throws -> Void) async throws -> GatewayReply {
+        // `path` a `method` jdou do `|`-odděleného auditu; cokoli, co by rozbilo
+        // sedmipolí řádek, se odmítne dřív, než vznikne záznam nebo se zavolá handler.
+        guard Self.isAuditSafe(request.method), Self.isAuditSafe(request.path) else {
+            return deny(.invalidRequestTarget, request: request, status: 400)
+        }
+        let operation: GatewayOperation
+        switch runtime.classify(path: request.path) {
+        case .unknown:
+            return deny(.operationNotConfigured, request: request, status: 404)
+        case .disabled(let disabled):
+            return deny(.operationDisabled, request: request, status: 403, operation: disabled)
+        case .active(let active):
+            operation = active
+        }
+        guard reserve() else { return .response(.error(503)) }
+        var committed = false
+        defer { if !committed { release() } }
+        do {
+            let reply = try await router.reply(to: request)
+            if case .events(let producer) = reply {
+                let sequence = commit(operation: operation, request: request, decision: .pending,
+                                      reason: "streamPending", status: 0)
+                committed = true
+                return .events(auditedStream(producer, sequence: sequence, finishingStream: finishingStream))
+            }
+            guard case .response(let response) = reply else { preconditionFailure("unexpected reply") }
+            let status = response.status
+            if let denial = Self.handlerDenial(for: response) {
+                // Odmítl handler, ne brána: audit to musí rozlišit a nést důvod.
+                commit(operation: operation, request: request, decision: .deniedByHandler,
+                       reason: denial.rawValue, status: status)
+            } else {
+                commit(operation: operation, request: request, decision: .routed, reason: "",
+                       status: status)
+            }
+            committed = true
+            return reply
+        } catch is CancellationError {
+            commit(operation: operation, request: request, decision: .cancelled, reason: "cancelled", status: 0)
+            committed = true
+            throw CancellationError()
+        } catch {
+            // Chyba handleru se nepřenáší jako "průhledný" přenos: klient dostane
+            // deterministickou 502 a rozhodnutí zůstává v auditu.
+            commit(operation: operation, request: request, decision: .failed, reason: "handlerFailed", status: 502)
+            committed = true
+            return .response(.error(502))
+        }
+    }
+
+    public func auditRecords() -> [AuditRecord] { records }
+
+    public func auditText() -> String { records.map(\.canonicalLine).joined(separator: "\n") }
+
+    public func auditSaturationCount() -> UInt64 { saturationCount }
+
+    /// Artifact audit snapshots are distinct from request decisions. No headers,
+    /// credentials or request bodies are included by the underlying handlers.
+    public func npmDownloadRecords() async -> [NPMDownloadRecord] {
+        await npmGateway?.downloadRecords() ?? []
+    }
+
+    public func pypiDownloadRecords() async -> [RegistryDownloadRecord] {
+        await pypiGateway?.downloadRecords() ?? []
+    }
+
+    // MARK: - Sestavení handlerů
+
+    private struct Handlers {
+        var routes: [TypedRoute] = []
+        var npm: NPMGateway?
+        var pypi: PyPIGateway?
+    }
+
+    private static func makeHandlers(policy: GatewayPolicy, keyProvider: any KeyProvider,
+                                     upstream: UpstreamClient) throws -> Handlers {
+        var handlers = Handlers()
+        for rule in policy.enabledRules {
+            switch rule {
+            case .npm(let npm):
+                let configuration: NPMConfiguration
+                do {
+                    configuration = try NPMConfiguration(
+                        registryHostname: npm.upstreamHostname,
+                        artifactHostnames: Set(npm.artifactHostnames),
+                        publicOrigin: npm.publicOrigin,
+                        mount: npm.mount,
+                        cooldown: npm.cooldownSeconds,
+                        maximumMetadataBytes: npm.limits.metadataBytes,
+                        maximumArtifactBytes: npm.limits.artifactBytes,
+                        maximumVersions: npm.limits.files,
+                        maximumAuditRecords: npm.limits.auditRecords,
+                        maximumOperations: npm.limits.operations,
+                        lifetime: .seconds(npm.limits.lifetimeSeconds)
+                    )
+                } catch {
+                    throw CompositionError.handlerConfiguration(.npm)
+                }
+                let gateway = NPMGateway(configuration: configuration, upstream: upstream)
+                handlers.npm = gateway
+                handlers.routes.append(gateway.route())
+            case .pypi(let pypi):
+                let configuration: PyPIConfiguration
+                let limits: RegistryLimits
+                do {
+                    limits = try RegistryLimits(
+                        metadataBytes: pypi.limits.metadataBytes,
+                        artifactBytes: pypi.limits.artifactBytes,
+                        files: pypi.limits.files,
+                        operations: pypi.limits.operations,
+                        auditRecords: pypi.limits.auditRecords,
+                        lifetime: .seconds(pypi.limits.lifetimeSeconds)
+                    )
+                } catch {
+                    throw CompositionError.handlerConfiguration(.pypi)
+                }
+                do {
+                    configuration = try PyPIConfiguration(
+                        registryHostname: pypi.upstreamHostname,
+                        artifactHostnames: Set(pypi.artifactHostnames),
+                        publicOrigin: pypi.publicOrigin,
+                        mount: pypi.mount,
+                        cooldown: pypi.cooldownSeconds,
+                        limits: limits
+                    )
+                } catch {
+                    throw CompositionError.handlerConfiguration(.pypi)
+                }
+                let gateway = PyPIGateway(configuration: configuration, upstream: upstream)
+                handlers.pypi = gateway
+                handlers.routes.append(gateway.route())
+            case .git(let git):
+                let configuration: GitConfiguration
+                do {
+                    configuration = try GitConfiguration(
+                        hostname: git.upstreamHostname,
+                        repositoryPath: git.repositoryPath,
+                        mount: git.mount,
+                        allowPush: git.allowPush,
+                        maximumRequestBytes: git.maximumRequestBytes,
+                        limits: try RegistryLimits(
+                            metadataBytes: git.limits.metadataBytes,
+                            artifactBytes: git.limits.artifactBytes,
+                            files: git.limits.files,
+                            operations: git.limits.operations,
+                            auditRecords: git.limits.auditRecords,
+                            lifetime: .seconds(git.limits.lifetimeSeconds)
+                        )
+                    )
+                } catch {
+                    throw CompositionError.handlerConfiguration(.git)
+                }
+                handlers.routes.append(GitGateway(configuration: configuration, upstream: upstream).route())
+            case .model(let model):
+                guard let key = keyProvider.key(for: .model) else {
+                    throw CompositionError.keyUnavailable(.model)
+                }
+                let gateway: ModelAPIGateway
+                do {
+                    let configuration = try ModelAPIConfiguration(
+                        zoneID: policy.zoneID,
+                        allowedModels: Set(model.allowedModels),
+                        budgetUnits: model.budgetUnits,
+                        chargePerRequest: model.chargePerRequest,
+                        requestsPerWindow: model.requestsPerWindow,
+                        rateWindow: .seconds(model.rateWindowSeconds),
+                        maximumConcurrent: model.maximumConcurrent,
+                        maximumRecords: model.maximumRecords,
+                        maximumInputBytes: model.maximumInputBytes,
+                        maximumOutputTokens: model.maximumOutputTokens,
+                        maximumOutputBytes: model.maximumOutputBytes,
+                        maximumEvents: model.maximumEvents,
+                        lifetime: .seconds(model.lifetimeSeconds)
+                    )
+                    gateway = try ModelAPIGateway(configuration: configuration, testKey: key, upstream: upstream)
+                } catch {
+                    throw CompositionError.handlerConfiguration(.model)
+                }
+                handlers.routes.append(gateway.route())
+            }
+        }
+        return handlers
+    }
+
+    // MARK: - Audit
+
+    /// `path`/`method` nesmí obsahovat `|` ani řídicí znaky. Kanonický řádek je
+    /// navíc escapuje, tohle je ale hranice: takový požadavek se vůbec neobslouží.
+    static func isAuditSafe(_ value: String) -> Bool {
+        !value.contains("|") && !value.unicodeScalars.contains { $0.value < 0x20 || $0.value == 0x7F }
+    }
+
+    /// Capacity is an explicit local refusal from the handler, not a heuristic
+    /// applied to upstream 503 responses.
+    static func handlerDenial(for response: HTTPResponse) -> DenialReason? {
+        if response.rejection == .capacity { return .handlerCapacity }
+        switch response.status {
+        case 403: return .handlerForbidden
+        case 400..<500: return .handlerRejected
+        default: return nil
+        }
+    }
+
+    /// Rezervace místa v auditu. Jediné místo, které rozhoduje o kapacitě:
+    /// když není místo, spočítá se saturace a požadavek se neobslouží.
+    private func reserve() -> Bool {
+        guard records.count + reserved < runtime.auditCapacity else {
+            saturationCount += 1
+            return false
+        }
+        reserved += 1
+        return true
+    }
+
+    private func release() {
+        precondition(reserved > 0, "releasing a slot that was never reserved")
+        reserved -= 1
+    }
+
+    private func deny(_ reason: DenialReason, request: HTTPRequest, status: Int,
+                      operation: GatewayOperation? = nil) -> GatewayReply {
+        // Odmítnutí musí být v auditu, pokud je místo; zaplněná kapacita se
+        // nezahazuje, jen se odmítne další požadavek.
+        guard reserve() else { return .response(.error(503)) }
+        commit(operation: operation, request: request, decision: .denied,
+               reason: reason.rawValue, status: status)
+        return .response(.error(status))
+    }
+
+    /// Zapíše záznam do **držené** rezervace a tím ji spotřebuje. Volá se jen po
+    /// úspěšném `reserve()`, takže zápis nemůže selhat a nezahodí se.
+    @discardableResult
+    private func commit(operation: GatewayOperation?, request: HTTPRequest, decision: AuditDecision,
+                        reason: String, status: Int) -> UInt64 {
+        precondition(reserved > 0, "commit without reservation")
+        records.append(AuditRecord(
+            sequence: UInt64(records.count + 1),
+            operation: operation?.rawValue ?? "unknown",
+            method: request.method,
+            path: request.path,
+            decision: decision,
+            reason: reason,
+            status: status
+        ))
+        reserved -= 1
+        return UInt64(records.count)
+    }
+
+    private func auditedStream(_ producer: @escaping SSEProducer, sequence: UInt64,
+                               finishingStream: @escaping @Sendable () async throws -> Void) -> SSEProducer {
+        let ticket = StreamTicket()
+        return { [self] emit in
+            guard ticket.consume() else { throw ModelAPIFailure.replay }
+            do {
+                try Task.checkCancellation()
+                try await producer(emit)
+                try Task.checkCancellation()
+                try await finishingStream()
+                await finishStream(sequence, outcome: .completed)
+            } catch {
+                await finishStream(sequence, outcome: .failure(error))
+                throw error
+            }
+        }
+    }
+
+    private func finishStream(_ sequence: UInt64, outcome: StreamOutcome) {
+        let index = Int(sequence - 1)
+        let pending = records[index]
+        precondition(pending.decision == .pending, "stream finalized twice")
+        records[index] = AuditRecord(sequence: pending.sequence, operation: pending.operation,
+                                     method: pending.method, path: pending.path,
+                                     decision: outcome.decision, reason: outcome.reason, status: outcome.status)
+    }
+}
