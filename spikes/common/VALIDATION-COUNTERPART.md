@@ -68,3 +68,21 @@ Navíc obě hotové binárky odmítly všechny čtyři původní JSONL reprodukc
 2 UDP; **8 kontrol**): exit 3, `complete=false`, zachovaný jeden kontakt bez bajtů.
 Velké build/cache adresáře byly po ověření kopií binárek odstraněny. Omezení parseru
 a důkazů uvedená výše se nemění.
+
+## Nezávislé předslučovací review (2026-11-13)
+
+Ověřený zdroj: `97b966c9b1c0ad06c12c4e98c83e124e8551a9dc`; review životního cyklu,
+identity a domén endpointů, zachování pozorování při chybě a mezí parseru nenašlo další
+blokující závadu. **Debug i Release: 55 testů prošlo, 0 selhání** (30 counterpart,
+18 ProbeKit a 7 provenance), včetně 29 CLI regresí v každé konfiguraci.
+Prostředí: arm64, macOS 27.2.1 (26B131), Xcode 27.2 (27B52), Apple Swift 6.4.2;
+stejné build příkazy s novým dočasným adresářem jako výše. První běh v omezeném
+sandboxu nemohl bindovat sockety (`Operation not permitted`); úplné ověření proběhlo
+mimo toto omezení a nepotřebovalo privilegované operace.
+
+Navíc čtyři skutečné Debug CLI běhy `listen` → syntetická loopback data → SIGTERM →
+`report` ověřily bindy `127.0.0.1`, `0.0.0.0`, `::1` a `::`; poslední přijal IPv4 i IPv6.
+Celkem pět TCP spojení, pět UDP datagramů a 100 bajtů: všechny reporty byly úplné,
+vrátily exit 1 a správné počty bajtů, kontaktů i raw souborů. Všechny vlastní listenery
+byly zastaveny a běhové soubory uklizeny. Jde o dokončený implementační follow-up
+podle GUIDE §11; bez nového verdiktu S3/S5/S7, autentizace logů nebo změn starých důkazů.
