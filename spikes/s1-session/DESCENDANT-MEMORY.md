@@ -94,6 +94,10 @@ to the collector. The harness reads the recursive truth protocol only **after co
 compares identities, parent relations, allocation/lifetime times, samples and explicit exit states.
 It also exercises native wrong-start, exited-root, invalid collector identity and process-count limits;
 `--unsafe-binary` optionally tests a separately prepared own non-hardened binary's rejection.
+Two additional runs signal only the harness's own collector child with SIGTERM/SIGALRM after its
+first durable poll. Both must retain a contiguous journal prefix without final recording/report;
+the unchanged fixed-registry inspector must reject a staged copy of this distinct journal format.
+These are explicit interruption checks, not a natural-expiry test of the duration + 30s watchdog.
 
 The internal `owned-descendant-fixture` protocol cannot launch caller-selected code. It checks own
 credentials/signature, requires parent pipes and current parent PID, has fixed depth/allocation/lifetime,

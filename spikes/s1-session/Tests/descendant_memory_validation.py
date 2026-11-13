@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import select
+import signal
 import stat
 import subprocess
 import time
@@ -154,6 +155,57 @@ def run(binary, expectation, output, unsafe_binary=None):
         assert len(value['bindings']) == 1 and any(p['state'] == 'processLimit' for p in value['observations'])
         root2.stdin.close(); truth2 = line(root2); assert root2.wait(timeout=5) == 0 and truth2['childCleanupComplete']
         keep('limited-posthoc-truth.json', truth2)
+        # Interrupt only our direct collector child, never a sampled target. Each durable prefix
+        # remains partial: no final recording/report, and the fixed-registry inspector rejects it.
+        for interrupt in [signal.SIGTERM, signal.SIGALRM]:
+            interrupted_root, interrupted_hello = fixture()
+            interrupted_plan = copy.deepcopy(plan)
+            interrupted_plan.update(runID=ns+'-'+interrupt.name.lower(), root=interrupted_hello['process'])
+            interrupted_root.stdin.write(b'G'); interrupted_root.stdin.flush()
+            interrupted = subprocess.Popen([str(binary), *arguments(interrupted_plan), '--apply'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={})
+            children.append(interrupted)
+            interrupted_path = path_for(interrupted_plan)
+            interrupted_journal = interrupted_path / 'descendants.jsonl'
+            deadline = time.monotonic() + 3
+            while time.monotonic() < deadline:
+                if interrupted_journal.exists() and interrupted_journal.read_bytes().endswith(b'\n'):
+                    break
+                assert interrupted.poll() is None
+                time.sleep(0.01)
+            else:
+                raise AssertionError('interrupted collector did not persist a poll')
+            interrupted.send_signal(interrupt)
+            stdout, stderr = interrupted.communicate(timeout=5)
+            prefix = interrupted_journal.read_bytes()
+            partial_rows = [json.loads(row) for row in prefix.splitlines()]
+            assert interrupted.returncode == -interrupt and partial_rows
+            assert [row['sequence'] for row in partial_rows] == list(range(len(partial_rows)))
+            assert not (interrupted_path/'recording.json').exists() and not (interrupted_path/'report.json').exists()
+            interrupted_root.stdin.close()
+            interrupted_truth = line(interrupted_root)
+            assert interrupted_root.wait(timeout=5) == 0 and interrupted_truth['childCleanupComplete']
+            item = dict(label=interrupt.name+'-partial-journal', exit=interrupted.returncode,
+                        expectedExit=-interrupt, rows=len(partial_rows), stdout=stdout.decode(), stderr=stderr.decode(),
+                        finalArtifactsAbsent=True, fixtureCleanupComplete=True)
+            results.append(item); keep(interrupt.name+'-partial-journal.json', item)
+            keep(interrupt.name+'-posthoc-truth.json', interrupted_truth)
+            datasets.append(str(interrupted_path))
+        stage_name = ns+'-descendant-format'
+        stage = Path(f'/private/tmp/sanjbox-a2-journal-{os.geteuid()}-{stage_name}.jsonl')
+        fd = os.open(stage, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'wb') as stream:
+            stage_inode = os.fstat(stream.fileno()).st_ino
+            stream.write(prefix)
+        try:
+            inspected = subprocess.run([str(binary), 'inspect-process-journal', '--fixture', stage_name, '--apply'], capture_output=True, text=True, env={}, timeout=8)
+            inspection = json.loads(inspected.stdout)
+            assert inspected.returncode == 2 and inspection['structuralError'] and not inspection['acquisitionComplete']
+            assert inspection['status'] == 'incomplete-unverified' and stage.read_bytes() == prefix
+            item = dict(label='fixed-registry-inspector-rejects-descendants', exit=inspected.returncode, expectedExit=2, report=inspection)
+            results.append(item); keep('fixed-registry-inspector-rejects-descendants.json', item)
+        finally:
+            assert stage.lstat().st_ino == stage_inode and stage.lstat().st_nlink == 1
+            stage.unlink()
         keep('passed.json', dict(checks=len(results), datasets=datasets, nativeNormalCLI=True))
         print(json.dumps(dict(checks=len(results), output=str(output), datasets=datasets)))
     finally:

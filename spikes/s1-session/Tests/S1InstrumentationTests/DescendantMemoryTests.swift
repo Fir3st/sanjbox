@@ -252,3 +252,41 @@ private final class TreeMock {
     #expect(collector.bindings.count == 1 && mock.memoryCalls == [10] && mock.listCalls == [10])
     #expect(rows[1].before.isEmpty && rows[1].physicalFootprintBytes == nil)
 }
+
+@Test func descendantsJournalFailureStopsBeforeNewDescendantReads() throws {
+    let mock = TreeMock(); mock.tree[11] = relation(11, parent: 10); mock.lists[10] = [11]
+    var collector = DescendantCollector(plan: descendantPlan(), reader: mock.reader, started: 100)
+    var durable: [DescendantObservation] = []
+    #expect(throws: InstrumentError.self) {
+        try collector.tick(deadline: 101) { point in
+            if point.operation == "discover" { throw InstrumentError("synthetic journal failure") }
+            durable.append(point)
+        }
+    }
+    #expect(durable.count == 1 && durable[0].state == .sampled)
+    #expect(mock.memoryCalls == [10] && mock.listCalls == [10])
+}
+
+@Test func descendantsJournalPreservesPrefixOnRowBoundAndRefusesReuse() throws {
+    let runID = "fixture-descendant-journal-" + UUID().uuidString
+    let dataset = try Dataset(runID: runID, role: "descendant-memory")
+    let journal = try dataset.descendantJournal(runID: runID)
+    let point = DescendantObservation(operation: "poll", index: 0, readStarted: 100, time: 100.001,
+        state: .sampled, physicalFootprintBytes: 1024, residentBytes: 2048)
+    try journal.append(point)
+    let url = URL(fileURLWithPath: dataset.path).appendingPathComponent("descendants.jsonl")
+    let prefix = try Data(contentsOf: url)
+    let entry = try JSONSerialization.jsonObject(with: prefix) as! [String: Any]
+    #expect(entry["mode"] as? String == "descendant-memory" && entry["sequence"] as? Int == 0)
+    var oversized = point; oversized.children = Array(1...4096)
+    #expect(throws: InstrumentError.self) { try journal.append(oversized) }
+    #expect(try Data(contentsOf: url) == prefix)
+    #expect(throws: InstrumentError.self) { try dataset.descendantJournal(runID: runID) }
+    #expect(try Data(contentsOf: url) == prefix)
+    #expect(!FileManager.default.fileExists(atPath: dataset.path + "/recording.json"))
+    // A rejected row consumes neither bytes nor a sequence number.
+    try journal.append(point)
+    let rows = try Data(contentsOf: url).split(separator: 10)
+    let last = try JSONSerialization.jsonObject(with: Data(rows[1])) as! [String: Any]
+    #expect(rows.count == 2 && last["sequence"] as? Int == 1)
+}
