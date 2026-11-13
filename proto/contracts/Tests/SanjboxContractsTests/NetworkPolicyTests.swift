@@ -85,7 +85,8 @@ struct NetworkPolicyTests {
 
     @Test func rejectsMalformedUpstream() {
         for upstream in ["registry.npmjs.org:443", "https://registry.npmjs.org", "registry.npmjs.org/path",
-                          "*.npmjs.org", "localhost", "Registry.npmjs.org", "-bad.example.com"] {
+                          "*.npmjs.org", "localhost", "Registry.npmjs.org", "-bad.example.com",
+                          "127.0.0.1", "127.1", "0177.0.0.1", "0x7f.0x0.0x0.0x1", "[::1]"] {
             do {
                 _ = try NetworkPolicy.decode(policyJSON(gates: "[\(gateJSON(upstream: upstream))]"))
                 Issue.record("upstream '\(upstream)' must be rejected")

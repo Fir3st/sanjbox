@@ -3,7 +3,7 @@ import Foundation
 /// Helper message set, version 1. Every kind names its body keys explicitly; a kind that is not in
 /// this enum is rejected before any handler sees bytes. This is a prototype contract: no message
 /// is ever sent to a real helper and no system operation is behind any of them.
-public enum HelperMessageKind: String, CaseIterable, Sendable {
+public enum HelperMessageKind: String, Codable, CaseIterable, Sendable {
     case capabilities = "helper.capabilities"
     case createZone = "zone.create"
     case startZone = "zone.start"
@@ -11,6 +11,11 @@ public enum HelperMessageKind: String, CaseIterable, Sendable {
     case stopZone = "zone.stop"
     case zoneStatus = "zone.status"
     case applyNetworkPolicy = "policy.apply"
+    case shell = "zone.shell"
+    case run = "zone.run"
+    case resumeZone = "zone.resume"
+    case snapshot = "zone.snapshot"
+    case rollback = "zone.rollback"
 }
 
 public enum HelperMessage: Equatable, Sendable {
@@ -21,6 +26,11 @@ public enum HelperMessage: Equatable, Sendable {
     case stopZone(ZoneRef)
     case zoneStatus(ZoneRef)
     case applyNetworkPolicy(ApplyNetworkPolicyRequest)
+    case shell(ShellRequest)
+    case run(RunRequest)
+    case resumeZone(ZoneRef)
+    case snapshot(SnapshotRequest)
+    case rollback(SnapshotRequest)
 
     public var kind: HelperMessageKind {
         switch self {
@@ -31,6 +41,23 @@ public enum HelperMessage: Equatable, Sendable {
         case .stopZone: .stopZone
         case .zoneStatus: .zoneStatus
         case .applyNetworkPolicy: .applyNetworkPolicy
+        case .shell: .shell
+        case .run: .run
+        case .resumeZone: .resumeZone
+        case .snapshot: .snapshot
+        case .rollback: .rollback
+        }
+    }
+
+    public var zoneID: String? {
+        switch self {
+        case .capabilities: nil
+        case .createZone(let r): r.zoneID
+        case .startZone(let r), .pauseZone(let r), .stopZone(let r), .zoneStatus(let r), .resumeZone(let r): r.zoneID
+        case .applyNetworkPolicy(let r): r.zoneID
+        case .shell(let r): r.zoneID
+        case .run(let r): r.zoneID
+        case .snapshot(let r), .rollback(let r): r.zoneID
         }
     }
 
@@ -39,8 +66,11 @@ public enum HelperMessage: Equatable, Sendable {
         switch kind {
         case .capabilities: .object([:])
         case .createZone: CreateZoneRequest.shape
-        case .startZone, .pauseZone, .stopZone, .zoneStatus: ZoneRef.shape
+        case .startZone, .pauseZone, .stopZone, .zoneStatus, .resumeZone: ZoneRef.shape
         case .applyNetworkPolicy: ApplyNetworkPolicyRequest.shape
+        case .shell: ShellRequest.shape
+        case .run: RunRequest.shape
+        case .snapshot, .rollback: SnapshotRequest.shape
         }
     }
 
@@ -66,6 +96,16 @@ public enum HelperMessage: Equatable, Sendable {
             message = .stopZone(try decodeBody(envelope, kind, as: ZoneRef.self))
         case .zoneStatus:
             message = .zoneStatus(try decodeBody(envelope, kind, as: ZoneRef.self))
+        case .shell:
+            message = .shell(try decodeBody(envelope, kind, as: ShellRequest.self))
+        case .run:
+            message = .run(try decodeBody(envelope, kind, as: RunRequest.self))
+        case .resumeZone:
+            message = .resumeZone(try decodeBody(envelope, kind, as: ZoneRef.self))
+        case .snapshot:
+            message = .snapshot(try decodeBody(envelope, kind, as: SnapshotRequest.self))
+        case .rollback:
+            message = .rollback(try decodeBody(envelope, kind, as: SnapshotRequest.self))
         case .applyNetworkPolicy:
             message = .applyNetworkPolicy(try decodeBody(envelope, kind, as: ApplyNetworkPolicyRequest.self))
         }
@@ -86,10 +126,13 @@ public enum HelperMessage: Equatable, Sendable {
             return
         case .createZone(let request):
             try request.validate()
-        case .startZone(let ref), .pauseZone(let ref), .stopZone(let ref), .zoneStatus(let ref):
+        case .startZone(let ref), .pauseZone(let ref), .stopZone(let ref), .zoneStatus(let ref), .resumeZone(let ref):
             try ref.validate()
         case .applyNetworkPolicy(let request):
             try request.validate()
+        case .shell(let request): try request.validate()
+        case .run(let request): try request.validate()
+        case .snapshot(let request), .rollback(let request): try request.validate()
         }
     }
 
@@ -104,10 +147,13 @@ public enum HelperMessage: Equatable, Sendable {
             body = Data("{}".utf8)
         case .createZone(let request):
             body = try encoder.encode(request)
-        case .startZone(let ref), .pauseZone(let ref), .stopZone(let ref), .zoneStatus(let ref):
+        case .startZone(let ref), .pauseZone(let ref), .stopZone(let ref), .zoneStatus(let ref), .resumeZone(let ref):
             body = try encoder.encode(ref)
         case .applyNetworkPolicy(let request):
             body = try encoder.encode(request)
+        case .shell(let request): body = try encoder.encode(request)
+        case .run(let request): body = try encoder.encode(request)
+        case .snapshot(let request), .rollback(let request): body = try encoder.encode(request)
         }
         return try XPCEnvelope(kind: kind.rawValue, body: body).encoded()
     }
