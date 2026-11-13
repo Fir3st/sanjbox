@@ -38,3 +38,29 @@ Limits and embedding contract:
 - Setup/spawn, OS scheduling/suspension, `getpwuid`, membership and CoreGraphics calls are not given
   hard wall-clock limits. `capture()` remains synchronous and does not cooperate with Swift Task
   cancellation. This change makes no hard deadline claim for total context capture or any lab gate.
+
+
+## Independent native review (2026-11-13)
+
+Original production source reviewed and tested: `a77802876f50fee0477054f115355aa5b8b63736`.
+Configuration: macOS 27.2.1 (26B131), arm64, Xcode 27.2 (27B52), Apple Swift 6.4.2.
+No actionable production defect was found in exact-child ownership, nonblocking I/O,
+output/deadline bounds, spawn setup, or the documented SIGCHLD preconditions.
+
+- Common suite: **53 tests passed in Debug and Release**; tools: **63 tests passed**.
+- Added [isolated native audit](Tests/context_child_native_audit.swift): **18 scenarios passed**
+  with both unoptimized and `-O` builds. Each mode runs in its own disposable process, so closing
+  descriptors, setting an fd limit or changing signal disposition never affects the test runner.
+- The audit covers 32 repeated captures without fd drift; exact child fd inventory `[0, 1, 2]`
+  despite a borrowed non-CLOEXEC fd; all seven combinations of closed standard descriptors;
+  ignored/custom SIGCHLD and `SA_NOCLDWAIT` refusal before spawn; blocked SIGCHLD; blocked/ignored
+  SIGTERM requiring escalation; preservation of a separate direct child's wait status; and ten
+  descriptor-exhaustion setup points, including failed low-fd relocation. Exact-child `ECHILD`
+  checks follow every successful or timed-out echo; parent descriptor inventories remain unchanged.
+
+To repeat from `spikes/common`, compile the three files named in the audit header, then run
+its binary separately with each mode: `repeat`, `child-descriptors`, `closed-1` through `closed-7`,
+`ignored-chld`, `custom-chld`, `no-cldwait`, `blocked-chld`, `blocked-term`, `ignored-term`,
+`unrelated-child`, `exhaustion`, `exhaustion-closed`. Repeat compilation with `-O` for optimized code.
+These are local implementation checks, not lab or gate evidence. Integration validation against
+main after the preceding PR is recorded separately below when available.
