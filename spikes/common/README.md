@@ -152,7 +152,9 @@ prázdné výstupy, aby úklid nesmazal mezitím vyměněnou cestu; pro opaková
 
 To není neměnnost důkazu vůči procesu se stejným UID, atomická kontrola metadat a zápisu ani záruka
 odolnosti proti výpadku napájení (`fsync` se neprovádí). Cizí změny obsahu stejného inode, práv nebo
-hardlinků souběžně s kontrolou takto nelze vyloučit. [Validace opravy WP0.4](VALIDATION-COUNTERPART-OUTPUT.md)
+hardlinků souběžně s kontrolou takto nelze vyloučit. Kontroly práv čtou pouze POSIX mode bits;
+rozšířené ACL adresářů ani souborů (včetně zděděných oprávnění) se nekontrolují. `0600`/`0700` proto
+samy o sobě nedokládají vyloučení zápisu jiným UID přes ACL. [Validace opravy WP0.4](VALIDATION-COUNTERPART-OUTPUT.md)
 obsahuje regresní testy a přesnou testovanou revizi; brány ani historické důkazy nemění.
 
 ## Návratové kódy

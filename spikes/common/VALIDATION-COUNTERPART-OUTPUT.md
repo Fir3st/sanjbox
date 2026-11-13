@@ -61,3 +61,32 @@ Nezávislý reviewer ověřil shodný source/test commit a dokumentační HEAD `
 startů bez úniku a souběžného close/write. Release nezávisle neopakoval; výše je běh implementátora.
 Malý nezávislý souhrn a harnessy: `/private/tmp/sanjbox-output-independent.HZI0Og/review-summary.txt`;
 reviewerovy velké cache jsou odstraněny. Tato následná aktualizace mění jen dokumentaci a vlastní řádek coverage.
+
+## Opakované nezávislé review před integrací PR #69 (2026-11-13)
+
+Codex Astra xhigh zkontroloval HEAD `8396013e455b1c68a09dd4f58172549f6532f947` bez dalšího nálezu
+P0–P2 v rozsahu vlastnictví deskriptorů a přesměrování cest. Source ani produkční testy se nemění.
+Na macOS 27.2.1 build 26B131, arm64, Apple Swift 6.4.2 proběhlo:
+
+- **47/47 testů Debug i Release** celého `spikes/common` (7 XCTest + 18 ProbeKit + 22 counterpart).
+- **10/10 skutečných CLI scénářů v každé konfiguraci:** výměna logu za symlink, výměna raw adresáře
+  před prvními daty, výměna společného předka, výměna TCP capture mezi zápisy, zero-byte UDP,
+  hardlink logu, nebezpečný mode logu, raw symlink konflikt, odlinkovaný log a neúspěšný start.
+  První čtyři zachovaly zápisy v původních objektech; konflikty skončily bez `stopped`, dostupné
+  neúplné logy měly report exit 3 a syntetické cíle symlinků se nezměnily.
+- **3/3 doplňkové kontroly Debug:** `FD_CLOEXEC`, uzavření deskriptorů po úspěchu a 500 konfliktních
+  inicializacích; 512 souběžných write/close operací; 512 souběžných create/close operací. Uzavřené
+  objekty nezasáhly následně otevřené náhradní deskriptory. Dočasný testovací soubor byl po běhu
+  odstraněn z balíku; jeho kopie zůstává s logem review.
+
+Review upřesňuje hranici dokumentace: validace práv kontroluje **jen POSIX mode bits**, nikoli
+rozšířené ACL. Vlastní syntetický adresář s dědičným `allow` ACL byl přijat a nové objekty zachovaly
+zděděný ACL i při `0600`/`0700`. To není důkaz vyloučení zápisu jiným UID; přístup jiného UID se
+netestoval. ACL hardening je samostatný rozsah. Držený deskriptor stále brání přesměrování pozdějšího
+zápisu výměnou cesty; neměnnost stejného inode ani laboratorní izolační verdict se netvrdí.
+
+Lokální reprodukce a malé záznamy jsou v `/private/tmp/sanjbox-pr69-review.eeQ7AUVv/`:
+`debug-all.log`, `release-all.log`, `cli-review.py`, `cli-debug/receipt.json`, `cli-release/receipt.json`,
+`OutputReviewChecks.swift`, `descriptor-checks.log` a `acl-boundary/receipt.txt`. Všechny CLI procesy
+skončily; šlo pouze o vlastní syntetické soubory a loopback TCP/UDP. Review bylo provedeno před
+integrací PR #64; kontrolu společného výsledku a CI po aktualizaci větve musí dokončit integrátor.
