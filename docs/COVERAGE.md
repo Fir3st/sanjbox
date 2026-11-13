@@ -328,7 +328,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.H1 | Kontrakty v0 (prototyp) | | ⬜ | `proto/contracts/`; k převzetí, IMPLEMENTATION §0 |
 | WP1.H2 | Životní cyklus (prototyp) | | ⬜ | `proto/lifecycle/`; po H1 |
 | WP1.H3 | CLI (prototyp) | | ⬜ | `proto/cli/`; po H1 |
-| WP1.H4 | Brána jako služba (prototyp) | | ⬜ | `proto/gateway/` |
+| WP1.H4 | Brána jako služba (prototyp) | janfiedler / Codex + Astra | 🟨 rozpracováno | [Složení npm/PyPI/git/model](../proto/gateway/README.md), striktní draft, mock klíč, bounded loopback a audit; [ověření](../proto/gateway/VALIDATION.md) zahrnuje skutečné lokální sockety/CLI. Chybí ověřený převod H1 NetworkPolicy/TypedGate a jejich limitů do draftu; identita klienta, produkční integrace a S5/GW zůstávají Neověřeno. |
 | WP1.H5 | Řízený export (prototyp) | Codex | ✅ | [Prototyp](../proto/export/README.md): výběr, preview, kopie, karanténa a audit; [validace](../proto/export/VALIDATION.md) 80 testů v Debug i Release a 9 CLI scénářů v každém sestavení. Bez důkazu brány či izolace; reálné UID/ACL a konsolidace auditu čekají na WP2.11. |
 | WP1.H6 | Harness únikových testů (prototyp) | | ⬜ | `proto/escape/`; po H1 |
 | WP2.0 | Kontrakty | | ⬜ | čeká na vstup F2 |
