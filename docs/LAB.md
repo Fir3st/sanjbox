@@ -56,7 +56,8 @@ prezentace 96,6 / 99,0 / 99,8 fps. Aktivní hlavní externí displej měl 3440×
 druhý interní 1680×1050 bodů / 3360×2100 pixelů, 60 Hz, 2×. Napájení AC. Tyto údaje doplňují registr r1.
 Pozadí ani cache nebyly řízené, sonda běžela na běžném pracovním hostu. Nejde o S1/A2, měření RAM oblasti
 ani o přímé výkonnostní srovnání s M5; oba záznamy zůstávají samostatné. Podrobné zdroje, identita,
-sanitizované raw výstupy a review jsou v protokolu. P1–P6 zůstávají návrhem.
+sanitizované raw výstupy a review jsou v protokolu. V době protokolu byly P1–P6 návrhem;
+jejich pozdější přijetí v F0.8 nemění rozsah ani verdikt této host diagnostiky.
 
 ### Slot na konkrétním stroji
 
@@ -289,23 +290,30 @@ ne jako 60 Hz; cílových 60 fps musí prokázat časová řada. WebGL rAF je po
 stavem slotu připraveno; nejde o runtime změny dodané WP0.5. Lze předem registrovat dílčí diagnostický
 běh, ale nesmí být označen za kompletní bránu S1.
 
+Inventář přípravy aktualizovaný 2026-11-13: A2 dodalo [presentation/system-RAM instrumentaci](../spikes/s1-session/INSTRUMENTATION.md),
+[řady registrovaných procesů](../spikes/s1-session/PROCESS-SERIES.md) a [dynamický sběr vlastních potomků](../spikes/s1-session/DESCENDANT-MEMORY.md).
+Historické texty a validační záznamy z doby před F0.8 nemění přijaté prahy v §1.
+Další práce a její konečná podmínka jsou v [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál).
+
 | Důkaz / případ | Co již existuje | Co ještě vyžaduje L1 |
 |---|---|---|
 | GUI-01/03/04 | Identita/session, pozorování domén, forwarder, standardní přihlášení | Tři různé relace + host ve společném okně; zaznamenat limit HP samostatným pokusem bez narušení standardní série. |
-| GUI-02/13 | Watch procesů a krátká prezentace | 3×600 s kontinuita s odpovídajícími časovými řadami; případný keeper samostatně, včetně pádu a režie. |
-| GUI-05 | Offscreen výpočet a souhrn prezentace | Sběr časů jednotlivých prezentací, hranic fází a viditelnosti. Dnešní JSON má jediný timestamp před prací a jen souhrn; nelze z něj dopočítat max gap, podíl výpadků ani souběh fází. |
+| GUI-02/13 | Watch procesů, presentation recorder a omezené časové řady registrovaných procesů/potomků | 3×600 s skutečné kontinuity relací s odpovídajícími časovými řadami; případný keeper samostatně, včetně pádu a režie. |
+| GUI-05 | Offscreen výpočet; nový recorder jednotlivých prezentací, hranic fází a viditelnosti s offline výpočtem známých řad | Platné společné měření hosta a tří relací v předepsaném profilu; starý souhrnný JSON sondy nadále nestačí pro max gap, výpadky ani souběh. |
 | GUI-06…09 | Návod a 5s WebGL stránka | Stejné aplikace/fixtures ve všech třech relacích, skutečný výstup a akcelerace podle §4; WebGL callback není důkaz prezentace. |
 | GUI-10 | Vyvolání Screen Recording a preflight | Prompt a udělení uživatelem v **každé** relaci, 3× odpojení/znovupřipojení se zachovaným grantem a správnou identitou. To nedokazuje S8 stabilní podpis. |
 | GUI-11 | Očekávání v `run-probe.sh`, kontrola sondou | Pevné očekávání i pro host/ruční TCC měření, log kontextu před každou fází; žádné měření s `valid: null`. |
 | GUI-12 čas | Sekundové `observe.sh` | Kalibrovaný recorder start/ready podle §5; watch lze použít jako podpůrný důkaz, ne k < 2 s. |
-| GUI-12 RAM | Jednorázový footprint UID před zátěží, včetně samotné sondy; RSS a počet WindowServerů ve watch | Systémový sběrač podle §6, baseline a unikátní atribuce procesů. Dnešní sonda není idle monitor a opakované spouštění samo přidává GPU zátěž. |
+| GUI-12 RAM | Samostatný systémový RAM recorder a fixed-window výpočet; footprint explicitně registrovaných same-UID procesů a vlastních potomků | Úplná a unikátní atribuce UID/WindowServeru/klienta/keeperu podle §6 a skutečné baseline i zátěžové série. Omezený strom vlastních potomků nepokrývá celou relaci; stará GPU sonda není idle monitor. |
 
 Manuální záznam může doložit prompt, přihlášení, přežití a akci aplikace, pokud obsahuje jen syntetická
 data a má doložený čas. Pro jemné frame intervaly a RAM je potřeba skutečný sběrač; lidský odhad nestačí.
-Před paralelním voláním `run-probe.sh` oddělit výstupy per UID a zajistit sériovou instalaci téže binárky:
-současný skript instaluje na společnou cestu a připojuje JSON do společného souboru. Starty z několika
-terminálů samy o sobě nezaručují překryv krátké offscreen fáze. Konkrétní orchestraci a instrumentaci
-musí doplnit příprava A2, s ověřením recorderu na známém syntetickém výsledku.
+Nová instrumentace má create-new výstupy per run/UID a společný harmonogram; jeho skutečné provedení
+ve třech relacích zatím nebylo ověřeno. Při použití starého `run-probe.sh` je stále nutné oddělit
+výstupy per UID a zajistit sériovou instalaci téže binárky: skript instaluje na společnou cestu
+a připojuje JSON do společného souboru. Starty z několika terminálů nezaručují překryv krátké offscreen
+fáze. Před L1 musí být každá mezera pokrytá ověřeným nástrojem nebo přípustným ručním záznamem;
+již existující recordery se znovu neimplementují jen proto, že chybí laboratorní výsledek.
 
 Po běhu reviewer kontroluje každý GUI-01…13, konfiguraci, raw a použitelnost fallbacku vůči F0.6.
 Zápis do [spikes.md](spikes.md) a [COVERAGE.md](COVERAGE.md) přijde až po skutečném výsledku;

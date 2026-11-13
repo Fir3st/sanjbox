@@ -68,12 +68,26 @@ Tests/Escape/           únikový test suite                               (WP2.
 
 ## 5. Paralelní práce
 
-- **Jeden balík = jedna větev** `wp/<id>-<slug>`, např. `wp/1.D2-npm-typed`. Pro souběh na jednom stroji
-  použij git worktree: `git worktree add ../sanjbox-wp-1.D2 -b wp/1.D2-npm-typed`.
+- **Výběr práce:** začni aktuálním [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál), potom ověř
+  COVERAGE §4 na aktuálním `main` a otevřené PR daného balíku. Pořadí v plánu neznamená, že balík je
+  volný; zkontroluj vlastníka, závislosti i přesnou podmínku dokončení. Sloučené částečné PR neznamená
+  hotový balík a hotová příprava neznamená prošlou bránu.
+- **Jeden vymezený balík nebo follow-up = jedna větev**, pro agenty `codex/<id>-<slug>`, např.
+  `codex/wp1-h1-broker-manifest`. Existující přidělenou větev lze dokončit pod původním názvem.
+  Pro souběh na jednom stroji použij samostatný worktree; sdílený checkout nesmí přepínat dvě práce současně.
 - **Vlastnictví adresářů:** balík mění jen svůj adresář, svůj řádek v COVERAGE.md a případně vlastní protokoly.
   Změny `spikes/common/`, `Contracts/` a PLAN.md jsou samostatné balíky/commity s review.
-- **Převzetí balíku:** v COVERAGE.md §4 nastav stav `🟨 rozpracováno` a vlastníka; commitni to jako první
-  commit větve. Tím je vidět, kdo na čem dělá.
+- **Převzetí volného balíku:** jen při splněných závislostech nastav v COVERAGE.md §4 stav
+  `🟨 rozpracováno` a vlastníka; první commit větve uvede rozsah a podmínku dokončení. Claim zveřejni
+  ve větvi/PR, aby ho ostatní viděli. Samotný lokální commit ani dva souběžné claimy nejsou zámek;
+  před implementací vyřeš kolizi.
+- **Obsazený balík:** pokračuje jeho vlastník. Jiný agent potřebuje výslovné zadání/předání od uživatele
+  nebo dohodu s vlastníkem o konkrétní části, větvi a hranicích změn; existující zadání stačí.
+  V COVERAGE zachovej původní autorství a zaznamenej navazujícího vlastníka/rozsah, nepřebírej cizí
+  rozpracovanou větev tiše. Změnu rozhraní H1 koordinuj s H4/A6 a budoucími H2/H3/H6 před jejich implementací.
+- **Čekání:** pokud je balík hotový, čeká na lab/rozhodnutí nebo nemá splněné závislosti, není automaticky
+  k převzetí. Uveď konkrétní blokátor a pokračuj jiným dostupným zadáním; pokud žádné není, ohlas stav
+  podle §11. Nevytvářej další přípravný follow-up bez nálezu a konečné podmínky dokončení.
 - **Laboratoř:** každý vývojář testuje na svém stroji zapsaném v registru `docs/LAB.md`. Před během zapiš
   rezervaci slotu (stroj, slot, kdo, kdy). Na jednom stroji dva sloty nikdy neběží současně; různé stroje
   mohou běžet paralelně. Slot končí ověřeným úklidem. Neměř na stroji se skutečnými tajemstvími v cestách,
@@ -158,7 +172,7 @@ Pravidla:
 
 ## 11. Kdy přípravu ukončit
 
-1. **Přípravný balík končí podmínkou dokončení** z [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál-revize-2026-11-07)
+1. **Přípravný balík končí podmínkou dokončení** z [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál)
    nebo ze svého výstupu v §3. Po jejím splnění je balík ✅. Další práce je nový balík s důvodem
    z laboratorního běhu nebo review, ne pokračování přípravy.
 2. **Neměnné záznamy podle §7 patří k laboratorním během** (L1-D až L8) a k host diagnostice, ze které se

@@ -10,6 +10,10 @@ se skutečnými projekty, účty nebo tajemstvími, dokud příslušné brány v
 **[Status](https://fir3st.github.io/sanjbox/)**: stav ověřovacích bran, fáze a poslední změny,
 generované automaticky z [COVERAGE.md](docs/COVERAGE.md) ([jak](docs/PROGRESS.md)).
 
+**Další práce:** [IMPLEMENTATION §0](docs/IMPLEMENTATION.md#0-co-dál) uvádí aktuální priority,
+podmínky dokončení, závislosti a čekání na uživatele. Před převzetím ověř vlastníka v COVERAGE
+a postup v [GUIDE §5](docs/GUIDE.md#5-paralelní-práce).
+
 | Dokument | Obsah |
 |---|---|
 | [PLAN.md](PLAN.md) | Autoritativní kontrakt: požadavky R1–R8, threat model, architektura, brány S0–S8 |
@@ -17,7 +21,7 @@ generované automaticky z [COVERAGE.md](docs/COVERAGE.md) ([jak](docs/PROGRESS.m
 | [docs/GUIDE.md](docs/GUIDE.md) | Pravidla práce, struktura repa, jak psát spiky a evidovat důkazy |
 | [docs/COVERAGE.md](docs/COVERAGE.md) | Co je hotovo a co ne: požadavky, brány, testy, balíky, blokátory |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Rozhodnutí F0 a změny kontraktu |
-| [docs/LAB.md](docs/LAB.md) | Registr strojů, rezervace slotů, návrh metodiky a šablony běhů (F0.8 otevřené) |
+| [docs/LAB.md](docs/LAB.md) | Registr strojů, rezervace slotů, přijatá metodika LAB-v1 a šablony běhů (F0.8; Docker start/stop zbývá před S7) |
 | [docs/spikes.md](docs/spikes.md) | Verdikty bran F1 |
 | [docs/PROGRESS.md](docs/PROGRESS.md) | Web se stavem vývoje, historie, pravidla počítání a nasazení na Pages |
 | [docs/CI.md](docs/CI.md) | Automatické testy v GitHub Actions a povinné kontroly před sloučením PR |
