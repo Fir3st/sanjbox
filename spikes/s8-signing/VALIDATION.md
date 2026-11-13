@@ -177,3 +177,128 @@ registrace ve stejné živé session. Napříč restartem UI/login/reboot není 
 scénáře se nesmějí zahájit bez doplnění přezkoumaného úklidu. Same-status cizí změna není detekovatelná;
 serial LAB slot je předpoklad, nikoli enforcement. **A6 zůstává partial, A7/L2 neprovedené, S8/SG-01…11
 Neověřeno; F1 aggregate se nemění.** Úplný postup a další omezení: [SERVICES.md](SERVICES.md).
+
+## WP1.A6 signing handoff — 2026-11-08
+
+Omezená příprava z `main` `7b20c41`, claim `b237e37`; měřený code commit
+`5adefab06813d92c8674df5aa1fd88f280e2f22c`. Původní záznamy a hash snapshoty výše se nemění.
+Postup: [HANDOFF.md](HANDOFF.md). Celé A6 zůstává partial (H1 fuzzer čeká na H1); A7/L2 a S8/SG-01…11
+zůstávají Neověřeno. Tato poznámka je offline validace podle GUIDE §11, nikoli nový laboratorní běh.
+
+- macOS 27.2 `26B123`, arm64, Swift 6.4.2 `swiftlang-6.4.2.1.9`, systémový Python 3.9.6.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools -v`: **51 testů, 0 failures,
+  0 skips** (15 původních + 36 nových). Skutečný nový planner/copy/inventory/preflight/cleanup;
+  pozitivní non-ad-hoc metadata jsou výslovně **tool stubs**, nikoli Personal Team či self-signed.
+  Negativy zahrnují obsah/load-command změny, cesty, linky, flags/módy/inodes, duplicate JSON,
+  source drift, částečný handoff zápis, write-before-output, ad-hoc/runtime/entitlement chyby,
+  timeout a odmítnutí přepsat signed inventory. Malformovaný testovací Mach-O a počáteční syntax
+  testu byly opraveny během vývoje; nejde o výsledky brány.
+- Native Release `swift test` s izolovaným scratch/cache: **42 existujících Swift testů, 0 failures**.
+  Native backend nadále vydává deprecation warning. Nový Python modul automaticky patří do
+  stávajícího macOS spike discovery v CI; GitHub kontrola se ověří až po pushi PR.
+- Skutečný vlastní ad-hoc Release app (čtyři targets) prošel původním strict/runtime/empty-entitlement
+  verifierem. Jeho Swift zdroje jsou beze změny proti měřenému commitu; build si zapsal tehdejší
+  source manifest. **12 smoke kontrol na měřeném commitu**: konkrétní dry-run/new-copy apply,
+  nezměněný původní manifest, handoff preview, pre-handoff cleanup dry/apply/repeat, u druhé kopie
+  persisted handoff + `bash -n` snippet a očekávané odmítnutí ad-hoc jako reálného podpisu i obou
+  post-handoff cleanup režimů. Žádný signing snippet ani fixture executable se nespustil.
+- Zdrojový build/cache root `/private/tmp/sanjbox-s8-services-49530FC7-97BF-4BFB-B642-336F080ED806`
+  odstraněn původním manifest cleanup dry/apply/repeat; původní manifest zůstal až do cleanup beze
+  změny. První copy `…signing-0FC5B2F9-C2A7-489F-A346-6E7F030C4A77` odstraněna novým pre-handoff
+  cleanup. Vlastní Swift scratch `/private/tmp/s8-a6-handoff-swift-20261108-4D79F2C1` odstraněn
+  po validaci (147 731 258 bytes). Zachována malá ad-hoc kopie pro review:
+  `/private/tmp/sanjbox-s8-signing-9C012AF0-5A3B-4B13-A03D-F6A960FBA787`; její handoff marker záměrně
+  blokuje produktový cleanup. Je to vlastní testovací fixture bez vykonaného podpisu či služby.
+  Krátké lokální diagnostiky: `/private/tmp/s8-a6-handoff-{python-final.log,swift-final.log,real-smoke.json,cache-cleanup.json}`.
+
+**Neověřeno a neprovedeno:** skutečný Personal Team/self-signed podpis a jeho kompatibilita s úzkým
+Mach-O delta pravidlem, certifikáty/Keychain/identity lookup, registrace/unregister, status API,
+spuštění UI/helperů, service ownership, login/reboot/daemon, TCC/attach a H1 XPC fuzzer.
+`record-signed` ověřuje statické properties a inventuru, nikoli druh účtu (`profileVerified=false`).
+Po vydání handoffu zůstává registration state unknown a automatický artifact cleanup **odmítá**;
+podepsaná inventura neodblokovává L2 ani odstraňování potenciálně registrované aplikace.
+
+### Oprava souběhu po nezávislém review — 2026-11-08
+
+Review prokázalo P2: handoff vložený při druhé kontrole rootu v cleanup mohl vydat příkazy a zapsat
+marker, zatímco cleanup pokračoval se starou inventurou, odstranil app a selhal až na novém markeru.
+Měřená oprava `1af8925d41c9a3ea61c8cbafb833056d1aa55cad` drží inode-bound directory-fd `flock`
+před inventurou až do konce každé operace (včetně dry-run); nový prepare root je zamčen před kopírováním
+po zápis inventury. Souběžná operace odmítne `busy` bez inventury nebo změn, další pokus znovu ověří
+aktuální stav. Zámek je advisory mezi spolupracujícími příkazy, ne ochrana před ručním codesign či nespolupracujícími změnami téhož UID.
+
+`/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools -v`: **59 testů, 0 failures,
+0 skips**, 4,369 s na stejném macOS/Python prostředí; log `/private/tmp/s8-a6-handoff-lock-final.log`.
+Osm regresí navíc: přesný review counterexample, šest testů se skutečnými samostatnými procesy
+(obě pořadí handoff/cleanup, souběžné handoff a signed-inventory zápisy, prepare/partial-state/exit,
+dry-run bez lockfile) a uvolnění po refusal. Codesign v těchto syntetických procesových testech
+zůstává stub; žádné fixture executable ani služby neběžely. Všechny nové vlastní test roots uklidil
+teardown včetně ukončení child procesů; původní nativní review fixture zůstala beze změny.
+Swift zdroje se nemění: předchozích **42 Release testů** platí pro stejný Swift kód, znovu zde neběžely.
+GitHub CI/re-review následují po předání koordinátorovi; signing/L2/cleanup limity výše zůstávají.
+
+## Review PR #61 po integraci main — 2026-11-13
+
+Původní PR head `d8c01c217a8d7e21d74dbf2afcb15f58e8794ac1` byl lokálně sloučen s
+`main` `f301bf398720d8cae78e6e124d4b2a7225aec0e2`. Testovaná revize:
+`c0612a48186b580471622ed2e976eaae9bfc4025`; následující změna pouze zapisuje výsledky.
+Review nenašlo nový implementační defekt v copy/provenance, čtyřech inside-out příkazech,
+statickém preflightu, oddělených inventurách ani konfliktovém úklidu. Existující oprava souběhu
+byla znovu ověřena skutečnými oddělenými procesy. Aktuální README/SERVICES/COVERAGE už neoznačují
+H1 za nepřítomné: `proto/contracts` je sloučený částečný prototyp, broker v0 odmítá všechny
+zprávy a A6 fuzzer na H1 dosud není napojený. Historické záznamy výše zůstávají původní.
+
+Prostředí: arm64, macOS **27.2.1 `26B131`**, Swift **6.4.2 `swiftlang-6.4.2.1.9`**,
+systémový Python **3.9.6**. Žádné externí závislosti, síťové testy ani systémové změny.
+
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools -v`:
+  **59 testů, 0 failures, 0 skips**, včetně skutečných process/lock regresí; codesign metadata
+  v unit testech zůstávají stub, nejde o skutečný Personal Team/self-signed podpis.
+- `swift test --configuration debug` a `release`, oba s `--build-system native`, vlastními
+  scratch/cache/module-cache cestami a `--disable-sandbox`: **42 + 42 testů, 0 failures**.
+  Zůstávají warnings pro nepřístupné user-level SwiftPM cache a deprecated native backend;
+  výsledek není warning-free. Buildy zahrnují všechny čtyři service targets.
+- `/usr/bin/python3 -B -m unittest discover -s tools/tests -v`: **63 testů, 0 failures**.
+  První pokus s `-I` selhal na importu `tools.lab_evidence`, protože izolovaný režim odstraní
+  repo root z import path; správný režim podle CI výše prošel. Není to selhání S8.
+  `tools/progress.py --history-ref HEAD` vytvořil výstup (**22/63 balíků, 0/155 případů**);
+  `git diff --check origin/main...HEAD` prošel.
+- Čerstvý vlastní ad-hoc Release app se čtyřmi targets prošel builderem a následnou opakovanou
+  `verify`: strict/all-architectures, runtime, ad-hoc a prázdné entitlements. **22 CLI/syntax
+  kontrol** nad tímto skutečným artefaktem ověřilo dry-run/new-copy apply, byteově nezměněný
+  původní manifest, handoff preview, cleanup dry/apply/repeat, odmítnutí existujícího cíle,
+  nekonzistentních profile/fallback voleb, obecné cesty a identity argumentu. Skutečné ACL na
+  vlastním rootu a vnořené binárce odmítly handoff i cleanup před změnami; po odstranění pouze
+  právě přidané testovací ACL šel původní cleanup dokončit.
+- Druhá vlastní kopie ověřila uložení handoff markeru před vydáním čtyř příkazů a `bash -n`
+  jejich syntaxe, odmítnutí opakovaného handoffu, ad-hoc `record-signed` a obou režimů úklidu
+  po handoffu. **Žádný signing snippet ani fixture executable nebyl spuštěn.** Neproběhl
+  identity lookup, práce s certifikáty/Keychain, service/status API, UI, register/unregister,
+  login/reboot, attach ani TCC.
+
+Nový source root `…services-1FE1E14B-3AC8-49C1-AA0D-62CCD0FA9301` byl ověřen a odstraněn
+původním manifest cleanup dry/apply/repeat; první kopie `…signing-3467F551-9869-4E9E-84D2-1F00EDD87652`
+novým pre-handoff cleanup. Druhou kopii `…signing-01813F65-ABE8-4661-93A8-63F1B772AE90` odstranil
+výhradně testovací teardown po opětovné kontrole přesné inventury, nezměněného prepared baseline,
+markeru a ad-hoc podpisů. Proces ji právě vytvořil a nespustil žádný snippet, executable ani službu;
+nejde o podporovanou výjimku pro předané uživatelské artefakty a produktový cleanup nadále odmítal.
+Vlastní Swift scratch/cache byly inventarizovány a odstraněny; malé lokální logy zůstávají v
+`/private/tmp/s8-pr61-review-7BE0306D-D48E-486C-A283-1C58C5DB60B4` (včetně `smoke-summary.json`).
+
+**Omezení se nemění:** `profileVerified=false`, registration state unknown; statická validace
+nedokazuje konkrétního signera, kompatibilitu skutečného Personal Team/self-signed podpisu ani
+lifecycle/TCC. Advisory zámek koordinuje pouze příkazy nástroje; hostile same-UID TOCTOU a obecná
+crash-atomicity zůstávají mimo garanci. H1 fuzzer a přezkoumaný L2 ownership/cleanup stále chybějí.
+**A6 zůstává 🟨, A7/L2 neprovedené, S8 a SG-01…11 Neověřeno; žádná brána se nepovyšuje.**
+GitHub CI bude posouzena na finálním PR head po předání koordinátorovi.
+
+### Následná integrace PR #60 — 2026-11-13
+
+Po sloučení D5 byl integrován nový `main` `b9a080a26d3cccc6b41997edd46ba312bc9d3398`;
+testovaný merge commit je `f88612e4e2bdac9ca2bedbbc9e182bc899007bcc`. Merge změnil pouze D5
+rešerši a její řádek COVERAGE. Byteově beze změny zůstaly S8 `Package.swift`, `Sources`, `Tests`,
+`tools` a common package/zdroje proti výše testovanému `c0612a4`; native Debug/Release a ad-hoc
+smoke se proto neopakovaly. Znovu prošlo **59 S8 Python testů** a **63 tools testů**, progress
+build (**22/63 balíků, 0/155 případů**) i `git diff --check origin/main...HEAD`.
+COVERAGE zachovává **D5 🟨, B2 ✅, A6 🟨 a F1 17 hotových / 7 rozpracovaných / 12 nezahájených**;
+S8/SG ani jiná brána se nemění. Následující commit pouze doplňuje tento validační záznam.
