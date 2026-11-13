@@ -46,7 +46,7 @@ func registryError(_ error: Error) -> HTTPResponse {
     switch error {
     case RegistryFailure.target: return .error(400)
     case RegistryFailure.tooLarge: return .error(413)
-    case RegistryFailure.busy: return .error(503)
+    case RegistryFailure.busy: return .error(503, rejection: .capacity)
     case RegistryFailure.denied, RegistryFailure.changed: return .error(403)
     default: return .error(502)
     }
