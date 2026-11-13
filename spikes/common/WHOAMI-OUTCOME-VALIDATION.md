@@ -66,4 +66,16 @@ report a nesoulad whoami s očekáváním nadále znamenají neplatné měření
 a ruční porovnání všech dalších předregistrovaných polí, včetně kernel groups, pozitivního
 ASID a auditUID. Opraveno je pouze jeho chybné tvrzení o `valid: null`: klíč se vynechává.
 Tyto výsledky neprokazují izolaci ani průchod brány; historické protokoly a akceptace jsou
-beze změny. Následná integrace PR #65 a vzdálené CI finální větve patří integrátorovi.
+beze změny. Tento běh předcházel integraci PR #65, jejíž kontrola je níže.
+
+## Ověření po integraci PR #65 (2026-11-13)
+
+Po sloučení `main` `8273c63282289688166f62284a8d99fd590d66b9` byl z čistého integračního
+commitu `b0447537b1c5db08fe883497cb8e6d8cdc16b14f` opakován celý common Debug/Release
+suite (**74/74 v každé konfiguraci**), všech **15/15 dalších CLI scénářů v každé konfiguraci**
+a Python tools (**63/63**), bez selhání. Použito stejné prostředí, příkazy a izolované cache;
+nové záznamy ve výše uvedeném adresáři mají prefix `integrated-`. Source/test soubory common
+jsou totožné s `0af9d69`, takže negativní kontrola výše stále míří na stejnou implementaci.
+Integrace převzala nový WP1.A2 stav z main beze změny; proti tomuto main se v COVERAGE mění
+jen WP0.3. `git diff --check` a kontrola zachování bran, akceptace a historických důkazů prošly.
+Následný commit pouze zaznamenává toto ověření; push a vzdálené CI zbývají integrátorovi.
