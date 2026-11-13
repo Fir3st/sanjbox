@@ -160,4 +160,20 @@ final class LifecycleTests: XCTestCase {
         XCTAssertThrowsError(try c.inspect(zone: "t999")); XCTAssertThrowsError(try c.recover(zone: "t999"))
         XCTAssertThrowsError(try c.audit(zone: "t999")); XCTAssertThrowsError(try c.execute(.start, zone: "t999"))
     }
+    func testCleanedZoneInspectionCannotAdvertiseUIDAlreadyReboundElsewhere() throws {
+        let fixture = try Fixture(), store = try fixture.open(), c = LifecycleCoordinator(store: store)
+        try c.register(manifest: fixtureManifest())
+        try c.register(manifest: fixtureManifest("t002"))
+        try c.execute(.start, zone: "t001")
+        try c.execute(.stop, zone: "t001")
+        try c.execute(.cleanup, zone: "t001")
+        XCTAssertTrue(try c.inspect(zone: "t001").uidReusable)
+        try c.execute(.start, zone: "t002")
+        XCTAssertFalse(try c.inspect(zone: "t001").uidReusable)
+        XCTAssertEqual(try c.inspect(zone: "t002").reservedUID, 750)
+        try c.execute(.stop, zone: "t002")
+        try c.execute(.cleanup, zone: "t002")
+        XCTAssertTrue(try c.inspect(zone: "t001").uidReusable)
+    }
+
 }

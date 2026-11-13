@@ -135,7 +135,8 @@ public final class LifecycleCoordinator {
         return .init(state: record.machine.state, reservedUID: record.machine.uid, operation: record.progress?.operation,
                      completedSteps: record.progress?.completed ?? 0, requiresReview: !valid,
                      mockAdmissionAllowed: valid && record.machine.state == .running && record.progress == nil,
-                     uidReusable: valid && record.machine.uidAvailableForReuse)
+                     uidReusable: valid && record.machine.uidAvailableForReuse &&
+                        !all.values.contains(where: { $0.machine.uid == record.manifest.zone.uid }))
     }
     /// Denial on any corruption, missing data, pause, stop, pending operation or backend drift.
     /// Represents all synthetic login/job/fork paths; it is not a transferable launch capability.

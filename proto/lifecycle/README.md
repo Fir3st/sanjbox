@@ -52,7 +52,9 @@ Výchozí timestamp je pevný syntetický čas; volající může dodat validova
 
 - Globální deník rezervuje UID atomicky s `begin(start)`, před první mock operací. Registrace
   manifestu ještě UID nevlastní. Jiná oblast smí UID skutečně získat až po platném `finish(cleanup)`.
-  Kontroluje se také replay; správný hash zfalšovaného přechodu nestačí. GID není alokátor UID.
+  Kontroluje se také replay; správný hash zfalšovaného přechodu nestačí. `uidReusable` zohlední také
+  nové přidělení UID jiné oblasti. Jedna fixture je jeden celý syntetický control-plane namespace;
+  nezávislé fixtures nekoordinují skutečná UID. GID není alokátor UID.
 - `mockAdmissionAllowed` čte celý deník a ověří celý mock svět při každém požadavku. Povolení platí
   pouze pro `running` bez rozpracované operace. Není to přenositelná capability ani launch API.
   Během stop a po něm jsou start/resume zakázané; vyčištěná oblast je terminální, nová musí mít nové ID.
