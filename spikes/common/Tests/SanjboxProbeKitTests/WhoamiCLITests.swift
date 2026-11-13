@@ -101,7 +101,13 @@ final class WhoamiCLITests: XCTestCase {
         process.waitUntilExit()
         XCTAssertEqual(process.terminationReason, .exit)
         XCTAssertTrue(try boundedRead(stderr).isEmpty, "whoami wrote to stderr")
-        let report = try JSONLines.decoder.decode(Report.self, from: boundedRead(stdout))
+        let stdoutData = try boundedRead(stdout)
+        let stdoutObject = try XCTUnwrap(JSONSerialization.jsonObject(with: stdoutData) as? [String: Any])
+        // Decoding Bool? alone accepts both an absent key and JSON null. Keep the existing wire shape.
+        let stdoutKeys: Set<String> = expectation == nil
+            ? ["context", "mismatches"] : ["context", "mismatches", "valid"]
+        XCTAssertEqual(Set(stdoutObject.keys), stdoutKeys)
+        let report = try JSONLines.decoder.decode(Report.self, from: stdoutData)
         XCTAssertEqual(report.context.pid, process.processIdentifier)
         XCTAssertEqual(report.context.parentPID, getpid())
         XCTAssertEqual(report.context.effectiveUID, geteuid())
@@ -110,9 +116,13 @@ final class WhoamiCLITests: XCTestCase {
         if logging {
             let lines = try boundedRead(log).split(separator: 0x0A)
             XCTAssertEqual(lines.count, 1)
-            record = try JSONLines.decoder.decode(RunRecord.self, from: Data(XCTUnwrap(lines.first)))
+            let recordData = Data(try XCTUnwrap(lines.first))
+            let recordObject = try XCTUnwrap(JSONSerialization.jsonObject(with: recordData) as? [String: Any])
+            XCTAssertEqual(Set(recordObject.keys), ["timestamp", "probe", "caseID", "outcome", "context", "mismatches", "details"])
+            record = try JSONLines.decoder.decode(RunRecord.self, from: recordData)
             XCTAssertEqual(record?.probe, "sanjbox-whoami")
             XCTAssertEqual(record?.caseID, "WHOAMI-CLI")
+            XCTAssertEqual(record?.details, [:])
             // Compare without printing personal context fields on assertion failure.
             XCTAssertTrue(record?.context == report.context, "log and stdout contexts differ")
             XCTAssertTrue(record?.mismatches == report.mismatches, "log and stdout mismatches differ")
