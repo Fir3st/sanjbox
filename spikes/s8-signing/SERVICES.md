@@ -4,7 +4,9 @@
 nativními Release targets, bez externích balíčků. Implementátor pouze sestavuje, ad-hoc podepisuje
 vlastní artefakty a kontroluje strukturu. Neregistruje služby, nespouští helpers/UI ani nemění systém.
 Personal Team a podmíněná self-signed varianta zůstávají uživatelské experimenty po S1 v L2.
-A6/SG-01…11 zůstávají částečné/Neověřeno; attach oracle, skutečný Broker a Contracts dále chybějí.
+A6/SG-01…11 zůstávají částečné/Neověřeno; attach oracle a skutečný broker/XPC transport dále chybějí.
+[H1 kontrakty v0](../../proto/contracts/README.md) jsou sloučené jen jako částečný prototyp: broker
+odmítá všechny zprávy a A6 fuzzer na jeho kontrakty není napojený.
 
 | Target | Umístění v app | Identifikátor / chování |
 |---|---|---|
@@ -132,12 +134,14 @@ unlink. Konflikt/partial write se uchová pro ruční review; opakování úpln�
 
 1. Až po S1: rezervovat L2, potvrdit LAB/F0.8 a předregistrovat samostatné SG-04 varianty pro tři
    služby. Prázdné profily, žádné skutečné účty či data. Vyjasnit cleanup ještě **před** registrací.
-2. Vytvořit novou disposable app/run ID, připnout zdrojové a executable hashe. Podepisující identitu
-   připraví a použije výhradně uživatel mimo tuto automatiku; žádná zdejší volba nepřijímá identity.
-   Podepsat zevnitř ven, runtime a nikdy get-task-allow; znovu auditovat všechny čtyři targets.
-   Re-signing původního rootu záměrně poruší jeho cleanup manifest. Pro skutečný L2 mít vlastní
-   schválenou instalaci/removal inventuru. Daemon boot experiment potřebuje aplikaci dostupnou před
-   loginem (Apple doporučuje `/Applications`); builder ji nikam neinstaluje.
+2. Pro konkrétní user signing použít [nový copy/handoff postup](HANDOFF.md): dry-run i apply
+   připraví **novou kopii** s vlastní provenance/inventurou a zachovají původní ad-hoc manifest.
+   Identitu vybírá a používá jen uživatel; čtyři cíle se podepisují zevnitř ven a samostatně ověří.
+   Po vydání podpisových příkazů je registration state unknown a automatický artifact cleanup
+   odmítá. Podepsaná inventura není vlastnictví služby ani unregister. Kroky 3–6 níže jsou budoucí
+   L2 postup a vyžadují přezkoumanou lifecycle cleanup cestu; nový handoff je neodblokovává.
+   Daemon boot experiment potřebuje aplikaci dostupnou před loginem (Apple doporučuje
+   `/Applications`); builder ani handoff ji nikam neinstalují.
 3. Zafixovat očekávání pro konkrétní uživatelskou relaci. Spustit user-level UI, ověřit status a
    pouze v připraveném scénáři výslovně zvolit registraci. Uchovat intent/result a startup marker.
    Same-session register/unregister smoke je oddělený od následného login/reboot.
