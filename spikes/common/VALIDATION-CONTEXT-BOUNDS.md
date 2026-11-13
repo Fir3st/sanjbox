@@ -62,5 +62,27 @@ To repeat from `spikes/common`, compile the three files named in the audit heade
 its binary separately with each mode: `repeat`, `child-descriptors`, `closed-1` through `closed-7`,
 `ignored-chld`, `custom-chld`, `no-cldwait`, `blocked-chld`, `blocked-term`, `ignored-term`,
 `unrelated-child`, `exhaustion`, `exhaustion-closed`. Repeat compilation with `-O` for optimized code.
-These are local implementation checks, not lab or gate evidence. Integration validation against
-main after the preceding PR is recorded separately below when available.
+These are local implementation checks, not lab or gate evidence.
+
+
+## Integrated review after PR #66 (2026-11-13)
+
+Tested source: `cf8ed23de58eb627d0b686aade50e0eb4646dbd7`, integrating main
+`b5e6bf1bba259ea34b8620cb06747b64aa626c4b`. Same native configuration as above.
+The integration preserves the whoami outcome/schema changes and both validation histories;
+`ContextChild.swift` and `ProbeContext.swift` match the originally reviewed production source.
+
+- `swift test --package-path spikes/common --scratch-path <isolated-build> --configuration debug`
+  and the corresponding `release` command each passed **95/95 tests**: 39 ProbeKit tests,
+  4 whoami CLI XCTest cases, 7 Provenance XCTest cases, and 45 Counterpart tests.
+- The isolated native audit passed **18/18 scenarios in each build mode**, including all ten
+  descriptor-exhaustion points. Each invocation had an external 10 s harness deadline.
+- Both newly built whoami binaries matched independently invoked fixed launchctl name/UID queries;
+  under inherited `SIGCHLD=SIG_IGN`, both reported an unknown manager without errors. Diagnostic
+  `valid` remained absent and `mismatches` empty in all four CLI checks.
+- `python3 -m unittest discover -s tools/tests -v`: **63/63 passed**.
+- `git diff --check` passed. Only the WP0.3 row differs in COVERAGE from integrated main; all
+  requirement, gate, acceptance and other package states are unchanged. No historical evidence
+  or source from the preceding whoami review was altered; no additional production finding.
+
+The following validation-note commit changes only this document and the WP0.3 coverage summary.
