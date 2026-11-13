@@ -291,3 +291,14 @@ lifecycle/TCC. Advisory zámek koordinuje pouze příkazy nástroje; hostile sam
 crash-atomicity zůstávají mimo garanci. H1 fuzzer a přezkoumaný L2 ownership/cleanup stále chybějí.
 **A6 zůstává 🟨, A7/L2 neprovedené, S8 a SG-01…11 Neověřeno; žádná brána se nepovyšuje.**
 GitHub CI bude posouzena na finálním PR head po předání koordinátorovi.
+
+### Následná integrace PR #60 — 2026-11-13
+
+Po sloučení D5 byl integrován nový `main` `b9a080a26d3cccc6b41997edd46ba312bc9d3398`;
+testovaný merge commit je `f88612e4e2bdac9ca2bedbbc9e182bc899007bcc`. Merge změnil pouze D5
+rešerši a její řádek COVERAGE. Byteově beze změny zůstaly S8 `Package.swift`, `Sources`, `Tests`,
+`tools` a common package/zdroje proti výše testovanému `c0612a4`; native Debug/Release a ad-hoc
+smoke se proto neopakovaly. Znovu prošlo **59 S8 Python testů** a **63 tools testů**, progress
+build (**22/63 balíků, 0/155 případů**) i `git diff --check origin/main...HEAD`.
+COVERAGE zachovává **D5 🟨, B2 ✅, A6 🟨 a F1 17 hotových / 7 rozpracovaných / 12 nezahájených**;
+S8/SG ani jiná brána se nemění. Následující commit pouze doplňuje tento validační záznam.
