@@ -79,7 +79,8 @@ jejich zvláštní kontext, ovládání, výstupy a úklid je zpřesňují.
    UID/GID a `requiredGroups`/`forbiddenGroups`; pro A/B/C zahrnout staff/admin mezi zakázané.
    Jen tak collector vyplní autoritativní `groupMembership` pro všechny požadované skupiny;
    `false` znamená nečlenství, `null`/chybějící položka je neplatné měření. Bez argumentů má
-   `valid: null` a prázdné `groupMembership`, takže samotný výpis není tento preflight.
+   nevyhodnocené `valid` (klíč se v JSON vynechá) a prázdné `groupMembership`, takže samotný
+   výpis není tento preflight; případný common log má outcome `unclear`.
    Common `--expect` nekontroluje přesnou množinu kernel groups, pozitivní ASID ani auditUID;
    O proto navíc ručně porovná **všechna** pole s předregistrací a uchová původní výstup.
    Nestačí `valid:true`, jiné ASID než host nebo úspěšné `id`. Důvěryhodná systémová
