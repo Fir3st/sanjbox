@@ -49,7 +49,9 @@ private struct PublicDNS: DestinationResolver {
     let release = DispatchSemaphore(value: 0)
     defer { release.signal() }
     let resolver = SystemDestinationResolver(maximumConcurrentLookups: 1, timeout: .milliseconds(100)) { _ in
-        _ = release.wait(timeout: .now() + 5)
+        // Only the test releases the worker; scheduler delay must not make the
+        // subsequent capacity assertion race a fixture's automatic release.
+        release.wait()
         return [try IPAddress("8.8.8.8")]
     }
     await #expect(throws: UpstreamFailure.timedOut) { _ = try await resolver.addresses(for: "api.example") }
@@ -61,9 +63,11 @@ private struct PublicDNS: DestinationResolver {
     let release = DispatchSemaphore(value: 0)
     let (started, notice) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
     defer { release.signal(); notice.finish() }
-    let resolver = SystemDestinationResolver(maximumConcurrentLookups: 1, timeout: .seconds(2)) { _ in
+    // This tests cancellation, not a two-second race against a loaded executor.
+    // The separate timeout test above keeps its 100 ms deadline.
+    let resolver = SystemDestinationResolver(maximumConcurrentLookups: 1, timeout: .seconds(30)) { _ in
         notice.yield(())
-        _ = release.wait(timeout: .now() + 5)
+        release.wait()
         return [try IPAddress("8.8.8.8")]
     }
     let task = Task { try await resolver.addresses(for: "api.example") }
