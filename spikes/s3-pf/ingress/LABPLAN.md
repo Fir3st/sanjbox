@@ -50,8 +50,9 @@ UDP portu téhož čísla; každý transport potřebuje vlastní negativní i po
 ## Prerekvizity před jakoukoli aktivací
 
 **[uživatel]** Teprve po doložení testovacích relací z L1 a S0 pass, doplnění C1 integrace, zvoleného
-mechanismu ochrany a potvrzení metodiky F0.8 zaregistruje oddělený L4 slot, zálohu a reviewerem prošlý
-přesný plán. Dodá syntetické LAN protistrany, endpointy, UID/GID/skupiny/audit/bootstrap mapu, kód/OS
+mechanismu ochrany a doplnění konkrétní předregistrace podle přijaté metodiky F0.8 zaregistruje
+oddělený L4 slot, zálohu a reviewerem prošlý přesný plán. Dodá syntetické LAN protistrany,
+endpointy, UID/GID/skupiny/audit/bootstrap mapu, kód/OS
 verze a hashe. Privilegované kroky, případný capture a změny systému provádí uživatel dle samostatně
 reviewované implementace. Tento package k nim nemá příkaz.
 
@@ -77,8 +78,9 @@ Před měřením zafixovat povolenou/zakázanou operaci, každý směr/transport
 host endpoint rezervaci, ochrannou hranici a umístění capture vůči ní,
 reuse/dual-stack varianty, nové i existující flows, retry upper bound, 2× RTT a clock uncertainty,
 intervaly před/test/drain/po a opakování. Návrh LAB §9: nejméně 3 běhy na buňku, 60 s před poruchou,
-600 s během/po; dočtení nejméně 60 s a delší než retry upper bound + 2× RTT. Tyto návrhy čekají na
-konkrétní schválení; 8s transport smoke je nenahrazuje. Chybějící TCP/UDP/IPv6/LAN/oblast/SDK je missing,
+600 s během/po; dočtení nejméně 60 s a delší než retry upper bound + 2× RTT, s rezervou pro clock uncertainty.
+LAB-v1 je přijaté v [DECISIONS F0.8](../../../docs/DECISIONS.md); tyto síťové návrhy z LAB §9 se
+zafixují v konkrétní předregistraci L4. 8s transport smoke je nenahrazuje. Chybějící TCP/UDP/IPv6/LAN/oblast/SDK je missing,
 nikoli N/A nebo pass. Neověřená horní mez retry znamená neúplnou observation window.
 
 Pozitivní controls před i po musí obsahovat správný peer a nonce, skutečný přijatý a vrácený kanárek,
