@@ -40,10 +40,15 @@ let mismatches = expectation?.mismatches(in: context) ?? []
 let report = Report(context: context, mismatches: mismatches, valid: expectation.map { _ in mismatches.isEmpty })
 
 if let logPath = arguments.options["log"] {
+    let outcome: RunRecord.Outcome = switch report.valid {
+    case nil: .unclear
+    case true?: .passed
+    case false?: .invalidMeasurement
+    }
     let record = RunRecord(
         probe: "sanjbox-whoami",
         caseID: arguments.options["case"],
-        outcome: mismatches.isEmpty ? .passed : .invalidMeasurement,
+        outcome: outcome,
         context: context,
         mismatches: mismatches
     )

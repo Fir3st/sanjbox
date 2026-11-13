@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "scope": "Public primary source research; upstream code was read, never executed or vendored. SHA-256 pins fetched bytes, not the truth of timestamps. saved_at is local storage time where response metadata was not retained. OCI sources are version + content-hash pinned, not commit-pinned.",
+  "sources": [
+    {
+      "id": "brew-github-packages",
+      "repository": "Homebrew/brew",
+      "commit": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+      "path": "Library/Homebrew/github_packages.rb",
+      "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/Library/Homebrew/github_packages.rb",
+      "reviewed_locations": "143–154, 241–268, 278–290, 353–425, 527–573, 592–600",
+      "bytes": 24680,
+      "sha256": "b43813fab8b61a64e0923712a5b9de4610f4cdc0707daa6de03791c6893db527",
+      "retrieved_at": "2026-11-08T10:32:42.317424+00:00"
+    },
+    {
+      "id": "brew-bottle",
+      "repository": "Homebrew/brew",
+      "commit": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+      "path": "Library/Homebrew/dev-cmd/bottle.rb",
+      "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/Library/Homebrew/dev-cmd/bottle.rb",
+      "reviewed_locations": "738–776, 945–959",
+      "bytes": 40063,
+      "sha256": "85085997b110bc106ac548fd995d4fe62926ed9173c721bc01b3c84c43d5d3e1",
+      "retrieved_at": "2026-11-08T10:33:18.497772+00:00"
+    },
+    {
+      "id": "brew-pr-upload",
+      "repository": "Homebrew/brew",
+      "commit": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+      "path": "Library/Homebrew/dev-cmd/pr-upload.rb",
+      "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/Library/Homebrew/dev-cmd/pr-upload.rb",
+      "reviewed_locations": "58–65, 88–122",
+      "bytes": 9587,
+      "sha256": "a7c2af792cdd4ad5e9bc027e977d01c4c8e1c5de2bf31644c87d6f7e05b943eb",
+      "saved_at": "2026-11-08T10:36:38.323259+00:00"
+    },
+    {
+      "id": "core-publish",
+      "repository": "Homebrew/homebrew-core",
+      "commit": "5c4fe351541e0aa5d426937c5badf6da8630c109",
+      "path": ".github/workflows/publish-commit-bottles.yml",
+      "url": "https://raw.githubusercontent.com/Homebrew/homebrew-core/5c4fe351541e0aa5d426937c5badf6da8630c109/.github/workflows/publish-commit-bottles.yml",
+      "reviewed_locations": "353–418",
+      "bytes": 28662,
+      "sha256": "cc74b31cf7eceaabd53143da6fd2b4b39f698de161e48f27db90c769e3f26ca5",
+      "saved_at": "2026-11-08T10:34:47.830631+00:00"
+    },
+    {
+      "id": "brew-bottles-doc",
+      "repository": "Homebrew/brew",
+      "commit": "8b0b7e44193854e22b84bcf2f58d65f21408d458",
+      "path": "docs/Bottles.md",
+      "url": "https://raw.githubusercontent.com/Homebrew/brew/8b0b7e44193854e22b84bcf2f58d65f21408d458/docs/Bottles.md",
+      "reviewed_locations": "Rebuild version; Checksum",
+      "bytes": 5652,
+      "sha256": "d82114f919aca9a614ba1c9c06efe02f34b4aac501f6f7db17a96fc7abe7d5ef",
+      "retrieved_at": "2026-11-08T10:33:18.445428+00:00"
+    },
+    {
+      "id": "core-hello",
+      "repository": "Homebrew/homebrew-core",
+      "commit": "5c4fe351541e0aa5d426937c5badf6da8630c109",
+      "path": "Formula/h/hello.rb",
+      "url": "https://raw.githubusercontent.com/Homebrew/homebrew-core/5c4fe351541e0aa5d426937c5badf6da8630c109/Formula/h/hello.rb",
+      "reviewed_locations": "8–16",
+      "bytes": 1401,
+      "sha256": "5b7509fca45647cc02a4cf9bb7937809f32e8ccb014f255d45dcede17e38bcbf",
+      "retrieved_at": "2026-11-08T10:33:18.639870+00:00"
+    },
+    {
+      "id": "hello-build-formula",
+      "repository": "Homebrew/homebrew-core",
+      "commit": "29209e1690e20fc7ef2211d24e7d61ce27b087e3",
+      "path": "Formula/h/hello.rb",
+      "url": "https://raw.githubusercontent.com/Homebrew/homebrew-core/29209e1690e20fc7ef2211d24e7d61ce27b087e3/Formula/h/hello.rb",
+      "reviewed_locations": "8–17",
+      "bytes": 1613,
+      "sha256": "2066a2b9a51f0a8449ccd526aa2689ec6c1dd6f67fe58260df304418c108fd64",
+      "saved_at": "2026-11-08T10:36:38.730853+00:00"
+    },
+    {
+      "id": "git-environment",
+      "repository": "git/git",
+      "commit": "94f057755b7941b321fd11fec1b2e3ca5313a4e0",
+      "path": "Documentation/git.adoc",
+      "url": "https://raw.githubusercontent.com/git/git/94f057755b7941b321fd11fec1b2e3ca5313a4e0/Documentation/git.adoc",
+      "reviewed_locations": "615–631",
+      "bytes": 46740,
+      "sha256": "36e6b4d8a44c244672e1bf8729e1a731f31542b40397174e1433356c921c8afa",
+      "saved_at": "2026-11-08T10:34:48.471080+00:00"
+    },
+    {
+      "id": "oci-annotations",
+      "repository": "opencontainers/image-spec",
+      "version": "v1.1.1",
+      "path": "annotations.md",
+      "url": "https://raw.githubusercontent.com/opencontainers/image-spec/v1.1.1/annotations.md",
+      "reviewed_locations": "5, 22",
+      "bytes": 6032,
+      "sha256": "e080458d943cb404387adbb1a0d5b95362340203ee98ab50525f07aef7cb02ad",
+      "retrieved_at": "2026-11-08T10:33:18.768850+00:00"
+    },
+    {
+      "id": "oci-config",
+      "repository": "opencontainers/image-spec",
+      "version": "v1.1.1",
+      "path": "config.md",
+      "url": "https://raw.githubusercontent.com/opencontainers/image-spec/v1.1.1/config.md",
+      "reviewed_locations": "95–97, 230–232",
+      "bytes": 15479,
+      "sha256": "0504e056297a41dd14cf2ec276d53fab4321d2b08a3e7fd98b2f87792f3f0a57",
+      "retrieved_at": "2026-11-08T10:33:18.786982+00:00"
+    },
+    {
+      "id": "oci-distribution",
+      "repository": "opencontainers/distribution-spec",
+      "version": "v1.1.0",
+      "path": "spec.md",
+      "url": "https://raw.githubusercontent.com/opencontainers/distribution-spec/v1.1.0/spec.md",
+      "reviewed_locations": "Pulling manifests/blobs; Pushing manifests; Listing Tags",
+      "bytes": 44964,
+      "sha256": "7f7187ea9bca572a4c9514e4dd2f92ca6b1078369fcf77d88caecfea417fa89b",
+      "retrieved_at": "2026-11-08T10:33:18.926612+00:00"
+    },
+    {
+      "id": "github-packages-rest",
+      "url": "https://docs.github.com/en/rest/packages/packages?apiVersion=2026-03-10",
+      "method": "GET",
+      "status": 200,
+      "retrieved_at": "2026-11-08T10:36:38.624509+00:00",
+      "bytes": 842847,
+      "sha256": "19796def6bbb2d1c252f5b1ab0195df873c91157b3a90f66129df7018c8ce311",
+      "response_headers": {
+        "content-type": "text/html; charset=utf-8",
+        "date": "Sun, 08 Nov 2026 10:36:38 GMT"
+      },
+      "api_version": "2026-03-10",
+      "reviewed_locations": "List package versions for a package owned by an organization; Get a package version for an organization; Restore a package version for an organization"
+    }
+  ],
+  "web_only_consulted": [
+    {
+      "url": "https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry",
+      "accessed_on": "2026-11-08",
+      "purpose": "Official distinction between anonymous public image reads and account/package authentication; visibility changes."
+    },
+    {
+      "url": "https://github.com/Homebrew/homebrew-core/pkgs/container/core%2Fcurl/versions",
+      "accessed_on": "2026-11-08",
+      "purpose": "Official public UI example of Published plus registry-version digest; not the hello specimen, not used as its clock."
+    }
+  ]
+}

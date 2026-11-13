@@ -10,7 +10,7 @@ public final class Dataset {
     private let device: dev_t
     private let inode: ino_t
     public init(runID: String, role: String) throws {
-        try require(identifier(runID) && ["presentation", "ram", "report", "offscreen", "login-marker", "process-memory", "process-series"].contains(role), "invalid dataset name")
+        try require(identifier(runID) && ["presentation", "ram", "report", "offscreen", "login-marker", "process-memory", "process-series", "descendant-memory"].contains(role), "invalid dataset name")
         let name = "sanjbox-a2-\(runID)-uid\(geteuid())-\(role)"
         path = "/private/tmp/" + name
         let parent = open("/private/tmp", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
@@ -26,11 +26,12 @@ public final class Dataset {
         device = info.st_dev; inode = info.st_ino
     }
     deinit { close(fd) }
-    public func write<T: Encodable>(_ name: String, _ value: T) throws {
+    public func write<T: Encodable>(_ name: String, _ value: T, compact: Bool = false) throws {
         try require(["intent.json", "recording.json", "report.json", "registry.json", "registry-1.json", "registry-2.json"].contains(name), "unsupported output name")
         var info = stat()
         try require(fstat(fd, &info) == 0 && info.st_dev == device && info.st_ino == inode && info.st_uid == geteuid() && info.st_mode & 0o777 == 0o700, "dataset changed; preserving conflict")
-        let data = try encoded(value)
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        let data = try compact ? encoder.encode(value) : encoded(value)
         try require(data.count <= 32 * 1024 * 1024, "output exceeds 32 MiB")
         let output = openat(fd, name, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
         try require(output >= 0, "output exists or cannot be created; preserving conflict")
@@ -55,6 +56,13 @@ public final class Dataset {
         let output = openat(fd, "samples.jsonl", O_WRONLY | O_APPEND | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
         try require(output >= 0, "journal exists or cannot be created; preserving conflict")
         return ProcessSeriesJournal(fd: output, runID: runID)
+    }
+    func descendantJournal(runID: String) throws -> DescendantJournal {
+        var info = stat()
+        try require(fstat(fd, &info) == 0 && info.st_dev == device && info.st_ino == inode && info.st_uid == geteuid() && info.st_mode & 0o777 == 0o700, "dataset changed before journal creation")
+        let output = openat(fd, "descendants.jsonl", O_WRONLY | O_APPEND | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
+        try require(output >= 0, "descendant journal exists or cannot be created")
+        return DescendantJournal(fd: output, runID: runID)
     }
     /// Explicitly staged own synthetic/recording JSON; never reads a caller-supplied path.
     public static func readFixture(name: String) throws -> Data {
@@ -118,5 +126,37 @@ final class ProcessSeriesJournal {
         try require(fsync(fd) == 0, "process journal sync failed; partial evidence retained")
         bytesWritten += bytes.count
         count += 1
+    }
+}
+
+/// Separate format: the fixed-registry journal inspector intentionally does not accept this stream.
+final class DescendantJournal {
+    private let fd: Int32
+    private let runID: String
+    private var count = 0, bytesWritten = 0
+    init(fd: Int32, runID: String) { self.fd = fd; self.runID = runID }
+    deinit { close(fd) }
+    private struct Entry: Encodable {
+        var schemaVersion = 1
+        var mode = "descendant-memory"
+        var runID: String
+        var sequence: Int
+        var observation: DescendantObservation
+    }
+    func append(_ point: DescendantObservation) throws {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        var data = try encoder.encode(Entry(runID: runID, sequence: count, observation: point)); data.append(10)
+        try require(count < 180_000 && data.count <= 8192 && bytesWritten + data.count <= 32 * 1024 * 1024, "descendant journal resource bound")
+        try data.withUnsafeBytes { bytes in
+            var offset = 0
+            while offset < bytes.count {
+                let n = Darwin.write(fd, bytes.baseAddress!.advanced(by: offset), bytes.count - offset)
+                if n < 0 && errno == EINTR { continue }
+                try require(n > 0, "descendant journal write failed")
+                offset += n
+            }
+        }
+        try require(fsync(fd) == 0, "descendant journal sync failed")
+        count += 1; bytesWritten += data.count
     }
 }

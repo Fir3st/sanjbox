@@ -373,3 +373,90 @@ velké vlastní native-build/cache z předchozího scratch byly pro build znovu 
 validovaný zdrojový commit a hash finální podepsané binárky. Při zabalení publikace do jiné větve rozhoduje
 shoda uvedených source/test bytů; nový veřejný commit není vydáván za revizi původního měření. Kód i data
 stále neposkytují autentizaci historické identity/provenance, úplnou acquisition ani S1/P4 verdict.
+
+## 2026-11-08 — dynamický sběr potomků test rootu (offline příprava)
+
+Zdroj **`e5e1b203239b0ae4f4c7e6bc0b559aab770b0097`** přidává samostatný
+[descendant-memory](DESCENDANT-MEMORY.md): skutečné `proc_listchildpids` pouze nad registrovaným
+same-UID rootem a ověřenými potomky, kontrolu celé ancestry před/po čtení, footprint/resident a
+explicitní chyby, exit/reparent/PID reuse, limity a mezery. Pevný registr/journal i staré výsledky beze změny.
+
+Na aktuálním Macu: explicitní native SwiftPM Debug **91/91**, Release **91/91** (17 nových syntetických
+případů); po ad-hoc hardened podpisu bez entitlements skutečné CLI **9/9 v každé konfiguraci** a původní
+CLI regrese **30/30**. Normální acquisition CLI v obou bězích samo objevilo root → pozdní dítě → vnuka:
+3 instance, 11 ticks, 29 observations; známé dotčené alokace 4/8/12 MiB, raw/report jednotky a exity
+ověřeny proti fixture truth čtené až po skončení collectoru. Úklid vlastních potomků ověřen. Exit 3 a
+`unreadableBefore` po ukončení dětí jsou očekávané neúplné pozorování, nikoli nulová RAM nebo S1 pass.
+
+První preflight byl správně odmítnut bez target reads: nezávisle připravené očekávání použilo 17 skupin
+z Python/Darwin EXT API; samostatná kontrola native `getgroups` potvrdila 16 skupin. Nové předregistrované
+V2 očekávání má SHA-256 `3c2abcaf1af3119cb3b37e77cbc8464ec4a5c5dcb6a13ac5af263294d35622c3`;
+gate ani společný identity kód se neoslabily. Před finálním zdrojem byla opravena i reportová konverze
+UInt64→Double; nové oracles porovnávají report přímo s raw byty. Dřívější pokusy zůstaly zachované.
+
+Malé logy, podepsané binárky, souhrn a původní pokusy:
+`/private/tmp/sanjbox-a2-descendants-20261108-5bwaXeVW` (`validation-summary.json`, `bin/`,
+`debug-07.log`, `release-03.log`, `native-debug-03/`, `native-release-02/`, `legacy-cli-release-02/`).
+Přesné nové datasety jsou v jejich `datasets.json`; vlastní build/cache (~340 MiB) byly po ověření
+zdroje a logů odstraněny. Polling nezaručuje zachycení krátkých procesů; žádné whole-UID, cross-UID,
+WindowServer, session, L1, P4 ani S1 tvrzení. Systémové ΔM se s footprint/RSS nesčítá.
+
+## 2026-11-08 — review fix: deadline před každým procesním čtením
+
+Nezávislé review zdroje `e5e1b203` našlo P2: metadata mohla spotřebovat celý tick budget a původní
+kontrola před celým pollem přesto dovolila další memory/enumeration volání. Zdroj
+**`464f1fff0cd9b857f5550b1be62b514e1abf829c`** kontroluje deadline před i po každém jednotlivém
+metadata/memory/list volání, včetně každého prvku ancestry a kandidáta. Rovnost s deadline již
+nepovolí čtení; overrun ukončí traversal s `timeLimit`, bez metrik nebo nové binding po timeoutu.
+Již běžící kernel call tím nelze přerušit: jde o omezení mezi operacemi, nikoli hard per-call timeout.
+
+Nové vlastní ověření na témže Macu, beze změny V2 identity očekávání: native SwiftPM Debug
+**95/95**, Release **95/95** (4 nové regresní testy: všech 9 pozic volání, rovnost deadline, ancestry
+loop a pomalý journal emit). Po ověřeném ad-hoc hardened podpisu bez entitlements normální signed
+native CLI **9/9 v obou konfiguracích**; každá pozitivní acquisition opět 3 instance, 11 ticks,
+29 observations, posthoc fixture truth, explicitní exity a ověřený úklid. Žádný S1/P4 ani úplný UID
+nebo session závěr. Původní testy, odmítnuté preflighty a reviewer repro zůstávají beze změny.
+
+Nové malé logy, `validation-summary.json`, `cache-cleanup.json` a ověřené kopie `bin/debug-instrument`,
+`bin/release-instrument` jsou v `/private/tmp/sanjbox-a2-deadline-fix-20261108-EcrkVmZm`;
+finální logy `debug-01.log`, `release-01.log`, `native-debug-01/`, `native-release-01/`.
+Přesné acquisition cesty jsou v `datasets.json` obou native sad. Vlastní build/cache byly po
+ověření zdroje, logů a kopií binárek odstraněny; žádné starší scratch nebo sdílené cache se neměnily.
+
+## 2026-11-13 — nezávislé review PR #65 po integraci main
+
+Testovaný zdroj **`cae5c611e3163d4279c4fc5b562a5bbc75ad1e10`** obsahuje main
+**`ebfc1ded94d0514f328a535c437c3611862e3e8e`**, včetně PR #61 a forwarderu PR #70.
+Review registrace rootu, známých rodičů, PID/UID/start/ancestry, limitů, deadline před/po každém
+čtení, částečných výstupů a úklidu nenašlo další nález P0–P2 vyžadující opravu v deklarovaném rozsahu.
+Kód collectoru se při tomto review neměnil. Dva nové syntetické testy kontrolují zastavení
+při selhání journal emit před čtením potomka a zachování prefixu/sequence po odmítnutí nadlimitního
+řádku i opětovného otevření. Native harness nově skutečně přeruší jen vlastní collector child
+SIGTERM a SIGALRM po prvním durable pollu a ověří odmítnutí formátu původním offline inspektorem.
+
+Na macOS **27.2.1 / 26B131**, arm64, Apple Swift **6.4.2 (swiftlang-6.4.2.1.9)**, explicitní
+native SwiftPM backend, 2 jobs, vlastní scratch/cache: **97/97 S1InstrumentationTests v Debug
+i Release**, **6/6 ForwarderLifecycleTests v obou konfiguracích**, **63/63 tools/tests**.
+Po posledním buildu vlastní ad-hoc hardened podpis s prázdnými entitlements, strict verify a
+kontrola runtime/absence obou get-task-allow: **12/12 nativních CLI kontrol v každé konfiguraci**,
+Release **30/30 legacy** a **41/41 offline journal CLI**. Oba pozitivní sběry objevily pouze z root
+registrace 3 instance, 11 ticks a 29 observations; 4/8/12 MiB alokace, parent/instance identita,
+explicitní exity a úklid jsou porovnané s fixture truth až po skončení collectoru. Očekávané exity
+dětí znamenají exit 3, nikoli úplnou atribuci.
+
+Každá ze čtyř přerušených acquisition zanechala 1 celý journal řádek, bez `recording.json` a
+`report.json`, s exitem −15/−14 a ověřeným úklidem vlastního fixture stromu. SIGALRM byl poslán
+explicitně vlastním harness parentem: toto **není** nový natural-expiry důkaz duration + 30s
+watchdogu. První legacy pokus v sandboxu skončil na nedostupném boot clock metadata s exit 2;
+je zachován, následný nový native běh prošel 30/30, gate se neoslaboval. Native identity očekávání
+bylo předregistrováno po samostatné kontrole vlastních číselných credentials, 16 kernel groups,
+audit/window session a Aqua manageru; žádné host/account nastavení, Keychain ani certifikáty.
+
+Malé logy, podepsané binárky, nezměněný neúspěšný sandbox pokus, přesné dataset cesty, jejich
+posthoc truth/cleanup, SHA-256 binárek a source souborů jsou zachovány ve vlastním scratch
+`/private/tmp/sanjbox-pr65-review-20261113-wi2nlBr8` (`validation-summary.json`,
+`tested-source-sha256.json`, `bin/`, `native-debug/`, `native-release/`). Přístup se týkal pouze
+vlastních řízených fixture procesů; polling může minout krátké/reparentované procesy a sekvenční
+kontroly nejsou atomický snapshot ani obrana proti hostile fork/reparent race. Úplná UID/session,
+WindowServer a cross-UID atribuce, kalibrovaný login a tři skutečné relace zůstávají neověřené;
+A2 zůstává dílčí a žádný verdikt L1/S1/P4 se nemění.

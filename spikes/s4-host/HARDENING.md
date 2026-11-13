@@ -1,25 +1,29 @@
-# S4 — omezené zpevnění a uninstall (WP1.B2, částečně)
+# S4 — omezené zpevnění a uninstall (WP1.B2, příprava)
 
 `harden-host.sh` a `uninstall.sh` spouštějí nativní Swift CLI bez externích závislostí. Oba mají
-**výchozí dry-run**. B2 implementuje konzervativní podmnožinu: změnu mode explicitně vybraných vlastních
-adresářů na `0700` podle metadat [B1 reportu](README.md), trvalý deník a podmíněné vrácení vlastní změny.
-**ACL se nikdy neupravuje. B2 zůstává částečný; S4, R2/R7, RB-09 a RB-10 zůstávají Neověřeno.**
+**výchozí dry-run**. Explicitně vybrané vlastní adresáře podle metadat [B1 reportu](README.md) mohou
+dostat mode `0700` (plán v1) nebo prefix nedědičných deny ACE (plán v2). Původní i výsledná ACL je
+v trvalém deníku; uninstall vrací pouze dokončené a přesně nezměněné vlastní zásahy.
+**Příprava ACL plánu, deníku a úklidu podle IMPLEMENTATION §0 je dokončena v tomto omezeném rozsahu.
+Kompatibilita host nástrojů čeká na L3; S4, R2/R7, RB-09 a RB-10 zůstávají Neověřeno.**
 
 ## Rozsah a odmítnuté operace
 
 - Plán obsahuje 1–16 ID kořenů z B1 reportu; mění se pouze jejich položka `.`. Žádná rekurze,
-  automatické hledání kořenů ani výchozí home. Překrývající se kořeny se odmítají.
+  automatické hledání kořenů ani výchozí home. Překrývající se kořeny se odmítají podle cest
+  i device/inode připnutých adresářů a jejich ancestorů; různé APFS zápisy téhož adresáře
+  ani jeho potomka nesmějí obejít kontrolu.
 - Podporován je adresář vlastněný skutečným/efektivním volajícím (shodné nenulové UID), owner mode
-  `0700`, bez special mode bitů a file flags; group/other bity mohou být odstraněny. Již `0700`
-  je odmítnuto jako změna, kterou tento běh nemůže vlastnit. Vlastník, skupina a ACL se nemění.
+  bity `0700`, bez special mode bitů a file flags. V1 odstraní group/other bity; již `0700` odmítá
+  jako změnu, kterou nemůže vlastnit. V2 zachová mode přesně, i `0700`. Vlastník a skupina se nemění.
 - Pouze lokální zapisovatelný APFS s účinným vlastnictvím. Read-only APFS ancestor je povolen,
-  read-only cíl ne. ExFAT/FAT, síťové FS, unknown ACL/mount a libovolné ACL entries/flags jsou odmítnuty.
-  To zahrnuje běžný home s existující ACL: nástroj ji nesmaže, nepřepíše ani neprohlásí za bezpečnou.
-- Každá komponenta cesty je připnutá descriptor-em a má prázdnou ACL. Ancestors musí vlastnit root nebo
+  read-only cíl ne. ExFAT/FAT, síťové FS a unknown ACL/mount jsou odmítnuty. V1 vyžaduje prázdnou ACL;
+  V2 zachová existující podporované ACE včetně pořadí a dědičnosti, nikdy je nemaže ani neslučuje.
+- Každá komponenta cesty je připnutá descriptor-em. Ancestors mají prázdnou ACL, musí je vlastnit root nebo
   volající a nesmějí být group/world writable; výjimkou je rootem vlastněný sticky adresář, například
   `/private/tmp`. Kořen `/`, nenormalizované cesty, symlinky, hloubka nad 64 a omezené názvy z B1
   jsou odmítnuty. Root/setuid spuštění není podporováno. Skripty nespouštějí `sudo`.
-- Nejsou podporovány soubory, hardlinky na soubory, sockety, FIFO, zařízení, ACL deny/inheritance,
+- Nejsou podporovány soubory, hardlinky na soubory, sockety, FIFO, zařízení, rekurzivní změny/dědění nových ACE,
   mounty, kvóty, účty, služby, nastavení systému, Keychain ani databáze. Žádný obsah chráněných dat
   se nečte; čtou se pouze explicitní vlastní schema vstupy a vlastní deník.
 
@@ -60,11 +64,61 @@ Vlastní `run.s4-harden.json` (max. 64 KiB; soubor není group/world writable, s
 existovat v baseline. Stejně jako v B1 jsou schema vstupy důvěryhodné vlastní soubory, nikdy
 nalezené soubory z chráněného stromu. Nejde o autentizaci souboru příponou.
 
+Alternativa v2 mění **pouze ACL**, bez položky `mode`:
+
+```json
+{
+  "schema": "sanjbox.host-harden.plan.v2",
+  "roots": ["synthetic"],
+  "deny": [{
+    "principalUUID": "13600F21-0F7B-4FD2-9D59-FF33C10A9BA7",
+    "permissions": ["list", "search", "add_file", "add_subdirectory", "delete_child"]
+  }]
+}
+```
+
+UUID výše je neexistující ilustrace, nikoli skutečná skupina `sanjbox`; s právy potřebnými pro
+znovuotevření bude odmítnuto. **[uživatel]** dodá ověřené UUID zamýšleného uživatele/skupiny a zkontroluje
+dry-run. UUID není jméno ani UID; použití správného UUID, členství oblasti ve skupině a účinek na
+konkrétní UID vyžaduje L3. Nástroj nevyhledává účty podle jmen ani nevytváří skupiny.
+
+`deny` má 1–16 jedinečných nenulových UUID v kanonickém uppercase zápisu. Každá položka má neprázdný
+seznam jedinečných práv z `list`, `search`, `add_file`, `add_subdirectory`, `delete`, `delete_child`,
+`readattr`, `writeattr`, `readextattr`, `writeextattr`. Nepřijímá allow, `readsecurity`, `writesecurity`,
+změnu vlastníka, numerické masky ani inheritance flags. Neznámé klíče plánu/deny se odmítají.
+Jeden plán aplikuje stejný prefix na každý kořen. Kombinace mode+ACL v jedné operaci se odmítá;
+každá položka deníku tak vlastní jedinou metadata operaci.
+
+Nové ACE se přidají **před všechny původní ACE**, v pořadí plánu. Původní allow/deny, jejich relativní
+pořadí a příznaky `inherited`, `file_inherit`, `directory_inherit`, `limit_inherit`, `only_inherit`
+zůstávají přesně zachované. Z globálních flags je podporován pouze `no_inherit`; `defer_inherit`
+a neznámé bity se odmítají. Výsledná ACL smí mít nejvýše 128 položek. Již přítomná přesně stejná
+deny ACE se odmítá, i když je zastíněna dřívějším allow; nástroj ji nepřesouvá ani neprohlašuje za svou.
+Serializace nativní ACL se porovnává s rekonstrukcí z metadat, takže nezachycený bit neprojde tiše.
+
+Nové deny **nejsou dědičné**. Nástroj nemění existující potomky; nově vzniklý potomek může dědit pouze
+původní dědičné ACE. Uninstall žádného potomka neprochází a neodstraňuje jeho ACL. Případný deny
+`search` na nadřazeném kořeni je jiná věc než dědění ACE a není zárukou ochrany přes existující fd,
+jinou cestu nebo službu. Proto tato příprava nedokazuje průběžnou ochranu nových dat.
+
+**Ochrana možnosti uninstallu:** na testované konfiguraci i `O_EVTONLY` otevření adresáře potřebuje
+právo list. Pro nové deny `list`, `search` nebo `readattr` se před deníkem a znovu před mutací ověří
+`mbr_uuid_to_id`; uživatel nesmí být volající a skupina musí mít výsledek `mbr_check_membership == 0`
+s nulovým členstvím volajícího. Vlastní skupina, everyone, neznámý typ nebo nevyřešené členství se
+odmítají. Jde o bounded metadata dotazy na systémovou membership službu, nikoli čtení databází či
+credential stores. Mohou použít directory service a její cache; nejde o atomickou záruku, že se
+členství později nezmění. Klidný namespace zahrnuje stabilní identitu/členství. Další deny práva
+mohou omezit i volajícího, takže před aplikací je stále nutná kontrola dopadu na host nástroje.
+
 ## Dry-run, apply a uninstall
 
 **[uživatel]** Připrav samostatný existující run directory s mode `0700`, prázdnou ACL a vlastnictvím
 volajícího. `--state` musí končit `/state`; při hardeningu ještě nesmí existovat. Run directory,
 jeho `state` ani cíl se nesmějí překrývat. Cesty v příkladu jsou záměrně neexistující zástupné hodnoty:
+
+Před vytvořením deníku se ověří také identity celé cesty jeho parenta vůči cílům, v obou směrech
+vnoření. Na case-insensitive APFS je například `TARGET/run/state` uvnitř cíle `target` odmítnuto
+už při preflight, bez změny ACL/mode a bez vytvoření `state`.
 
 ```bash
 spikes/s4-host/harden-host.sh \
@@ -75,7 +129,7 @@ spikes/s4-host/harden-host.sh \
 ```
 
 Dry-run nic nevytvoří ani nepřepíše. JSON vypíše přesné cesty, aktuální `before` včetně původního
-mode, ancestry metadata a nový mode. `--dry-run` lze uvést explicitně. Pro skutečné použití
+mode/ACL, ancestry metadata a nový mode/případně úplnou výslednou `acl`. `--dry-run` lze uvést explicitně. Pro skutečné použití
 **[uživatel]** zkontroluje tento výstup a stejný příkaz spustí s `--apply --acknowledge-quiescent`.
 Druhý přepínač je výslovné potvrzení provozní podmínky klidného jmenného prostoru, **nikoli technický
 zámek nebo důkaz quiescence**. Bez něj je `--apply` usage error. Dry-run a apply nelze kombinovat.
@@ -87,7 +141,7 @@ spikes/s4-host/uninstall.sh \
 ```
 
 Uninstall ve výchozím dry-run otevře a zamkne již existující deník, nic do něj nezapisuje.
-JSON `before.stat.mode` označuje původní mode každé změny. Po kontrole **[uživatel]** přidá stejné
+JSON `before.stat.mode` a `before.acl` označují původní stav každé změny. Po kontrole **[uživatel]** přidá stejné
 `--apply --acknowledge-quiescent`. Všechny aktuálně obnovitelné položky se předem ověří, takže
 předem viditelný konflikt kterékoliv položky zabrání všem obnovám tohoto spuštění.
 Při závodu/pádu během sekvence mohou být některé položky již změněny; nejde o atomickou transakci.
@@ -108,17 +162,26 @@ zámek cílů mezi různými deníky, ani obrana proti důvěryhodnému host pro
 
 1. `manifest.json` zaznamená UUID transakce, boot session UUID, UID, identitu/cestu deníku a všech
    cílových kořenů, původní stat/ACL/mount, birth time/generation a ochranu/identitu ancestorů.
-2. `NN-intent.json` se plně zapíše a flushne **před** `fchmod`. Zápis používá `fsync` + `F_FULLFSYNC`,
+2. `NN-intent.json` se plně zapíše a flushne **před** změnou mode/ACL. Zápis používá `fsync` + `F_FULLFSYNC`,
    poté `fsync` adresáře a znovu `F_FULLFSYNC` souboru; selhání flush znamená konec bez další mutace.
-3. Po opětovné kontrole cesty a původního stavu proběhne `fchmod` pouze na připnutém descriptoru.
+3. Po opětovné kontrole cesty a původního stavu proběhne `fchmod` (v1) nebo `acl_set_fd_np` (v2) pouze na připnutém descriptoru.
    Ověří se výsledek a vazba do parenta, `fsync` cíle, potom vznikne trvalý `NN-applied.json`
-   s přesným skutečným stavem po změně. Měnit se smí pouze mode a automatické ctime.
+   s přesným skutečným stavem po změně. Měnit se smí pouze mode **nebo** naplánovaná ACL a automatické ctime.
 4. Restore vyžaduje přesný zaznamenaný `applied.after` včetně ctime, owner/group, link count,
    flags, birth time/generation, ACL a mount. Ancestors musí mít shodnou identitu a ochranu.
    Jejich ctime/link count nejsou stabilní, protože se mění i vytvořením nesouvisejícího sourozence.
-5. Před restore vznikne `NN-restore-intent.json`; po ověření, `fchmod`, kontrole a flush
+5. Před restore vznikne `NN-restore-intent.json`; po ověření, obnově původního mode/ACL, kontrole a flush
    `NN-restored.json`. Při opakovaném uninstallu se dokončeně obnovený cíl už nemění ani
    nepovažuje za vlastněnou změnu, i když na něm uživatel později něco změnil.
+
+V2 manifest má schema `sanjbox.host-harden.journal.v2` a položku `changes[].acl` s přesným zamýšleným
+výsledkem. Staré plány a kanonické mode-only deníky v1 zůstávají čitelné; v1 nemůže obsahovat ACL
+mutaci a stará binárka odmítne v2 manifest. Události nadále používají v1 schema s již existujícími
+úplnými `before`/`after` stamps. Restore ACL neodstraňuje ACE hledáním podobnosti: při přesné shodě
+celého aktuálního stavu s completion obnoví celý původní ACL snapshot. Pozdější změna jediné ACE,
+pořadí, dědičnosti nebo mode je konflikt. Původní absence ACL se obnoví pomocí descriptorového
+`fchmodx_np` s `FILESEC_ACL`/`_FILESEC_REMOVE_ACL`, nikoli prázdnou náhradní ACL. APFS může prázdnou
+ACL normalizovat na absenci; zaznamenává se skutečný stav a nepřesný výsledek se nepovažuje za úspěch.
 
 Čtení je omezené na 1 MiB na záznam, nejvýše 66 položek v deníku. Neočekávané soubory, symlinky,
 hardlinky, nesprávná ochrana, neplatné přechody a identity se odmítají. Deník musí mít **přesně
@@ -142,7 +205,7 @@ podadresáře může změnit ctime cíle a konzervativně zabránit obnově. Ná
 i když do nového parenta někdo přesune původní cílový inode. Při pooperaci zjištěném závodě se
 neprovádí automatické vracení, které by mohlo přepsat další změnu.
 
-**`fchmod` nemá atomický compare-and-swap.** Závod v posledním intervalu mezi kontrolou a syscall
+**`fchmod`, `acl_set_fd_np` ani `fchmodx_np` nemají atomický compare-and-swap.** Závod v posledním intervalu mezi kontrolou a syscall
 může změnit práva, která syscall následně přepíše, nebo přesunout připnutý inode, na němž syscall
 stále působí. Kontrola po operaci takový zásah neumí vzít zpět a krátký ABA závod může uniknout.
 Ani birth time/generation ani kontrola ancestry nejsou atomický namespace snapshot. Vyžadovaný
@@ -156,7 +219,7 @@ počet/velikost/hloubka nejsou hard wall-clock timeout.
 | Akceptační případ | Dodaný podklad | Zbývá |
 |---|---|---|
 | RB-09 | Native mode/ACL drift, ABA ctime, inode/parent změny; uninstall konflikt bez přepsání pozorované změny | Skutečný laboratorní důkaz, souběh oblastí, poslední check/syscall race |
-| RB-10 | Mode-only before/after deník, přesný restore, idempotence, odmítnutí nejednoznačného přerušení | ACL hardening/restore a kompatibilita host nástrojů po změně home |
+| RB-10 | Mode/ACL before/after deník, přesný restore, idempotence, native pořadí/dědičnost, odmítnutí částečné operace a nejednoznačného přerušení | L3 kompatibilita host nástrojů po změně home a skutečný laboratorní důkaz |
 | FS-10/11, R2 | Žádné průběžné vynucování | Nová data, přesuny/obnovy, instalace, nové/odemčené mounty a nulové okno přístupu |
 
 Audit ani tento jednorázový hardening neprokazují efektivní přístup, TCC/IPC ochranu, existující otevřené
@@ -164,7 +227,7 @@ fd, životní cyklus ani průběžnou ochranu R2. Chybějící mechanismus zůst
 
 ## Ověření a úklid
 
-[VALIDATION-B2.md](VALIDATION-B2.md) uvádí skutečné lokální příkazy, konfiguraci, výsledky i neúspěšné
+[VALIDATION-B2-ACL.md](VALIDATION-B2-ACL.md) a historická [mode validace](VALIDATION-B2.md) uvádějí skutečné lokální příkazy, konfiguraci, výsledky i neúspěšné
 vývojové pokusy. Testy používají jen vlastní syntetická data; nejsou evidence uzavírající bránu.
 Každý test ověřuje před cleanup přesnou `mkdtemp` cestu, UID, typ, mode a původní device/inode
 kořene. Testovací podsložky, kanárky i deníky se odstraní pouze uvnitř této ověřené fixture.
@@ -178,3 +241,8 @@ Implementace ověřila deklarace v lokálním SDK `sys/fcntl.h` (`O_NOFOLLOW_ANY
 `sys/stat.h` (`fchmod`, birth time/generation), `sys/acl.h` a `sys/mount.h`. Nativní test ukázal,
 že kombinace `O_NOFOLLOW | O_NOFOLLOW_ANY` je na této konfiguraci odmítnuta; používá se samotné
 `O_NOFOLLOW_ANY` a `O_DIRECTORY`. API opora není důkaz brány.
+
+Pořadí ACE, práva vlastníka a dědičnost popisuje [Apple File System Programming Guide](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemDetails/FileSystemDetails.html).
+Descriptorové ACL API bylo ověřeno v SDK `sys/acl.h`, `sys/fcntl.h` a `membership.h`; oporu pro
+serializaci a append pořadí poskytuje [Apple Libc](https://github.com/apple-oss-distributions/Libc/tree/main/posix1e).
+Native fixtures ověřují konkrétní chování aktuálního APFS; nenahrazují test pod UID oblasti.
