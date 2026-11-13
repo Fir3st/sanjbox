@@ -1,10 +1,12 @@
-# S0 boundary preparation — WP1.A4 (partial)
+# S0 boundary preparation — WP1.A4
 
 Samostatná příprava proti `main`, závislá pouze na místním `../common`. **S0 ani žádný akceptační
 případ tím neprošel.** Aktivní CLI pracuje výhradně v rozsahu `synthetic-self-fixture`; tento rozsah
 není schválená oblast ani běh L2. Neobsahuje nástroj k libovolnému spuštění příkazu, připojení ke službě,
 čtení cesty nebo signalizaci PID. `tcc-probe` a `capture-probe` mají jen identitní bránu a výslovné
-`notImplemented`, nikoli falešný pozitivní výsledek. WP1.A4 zůstává rozpracovaný.
+`notImplemented`, nikoli falešný pozitivní výsledek. Praktické [postupy všech 31 případů](LAB-PLAN.md)
+vymezují ruční kroky, kontroly, oracles a přesné blokátory; dokončení přípravy scénářů neznamená,
+že všech 31 případů lze dnes spustit. Skutečné cross-session/TCC měření čeká na uživatelský L2.
 
 ## Co je skutečně implementované
 
@@ -210,5 +212,9 @@ akceptace. Žádný z 155 případů se syntetickými unit testy neuzavírá.
 
 XPC nyní zachová pozorovanou zakázanou odpověď jako `fixtureFailed`/kód 1 i při sekundární chybě úklidu. Runner ukládá bounded stdout/stderr, dostupný server journal a stav chyby/úklidu také při neplatném měření; podrobnosti v [XPC-FIXTURE.md](XPC-FIXTURE.md).
 
-Další práci a oracles sedmi sond popisuje [LAB-PLAN.md](LAB-PLAN.md). Tento plán nespouští systémové
-operace a jeho existence není náhradou chybějící implementace ani rezervace L2.
+Praktický [LAB-PLAN](LAB-PLAN.md) má přesný index 31 případů a společné ověření kontextu/podpisu.
+Každý [FS případ](CASES-FS.md), [ID případ](CASES-ID.md) a [LC případ](CASES-LC.md) má vlastní
+prerekvizity, nástroj/API, pozitivní kontroly před/po, zakázanou operaci, nezávislý oracle,
+klasifikaci chyby a úklid. Ruční krok nikdy nepřidává argumenty současným CLI. Chybějící receiver,
+collector, helper nebo lifecycle controller je skutečný stop; FS-04/FS-08/LC-11 zachovávají
+vazbu na S4/S8/F2. Nejde o systémový runner, rezervaci L2 ani náhradu chybějícího mechanismu.

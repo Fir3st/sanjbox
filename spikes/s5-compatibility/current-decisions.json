@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "layer": "f0.7-c003-v1",
+  "reviewed_on": "2026-11-08",
+  "decision_date": "2026-11-07",
+  "purpose": "offline_inventory_not_runtime_policy",
+  "historical": {
+    "baseline_revision": "afae1ca7dfe78f03d5006c42b6b01093772eba0c",
+    "proposed_d5_revision": "9ddb62e2efde534d7057a1ce01aa9bd942156ee8",
+    "report": "REPORT.md"
+  },
+  "gate_status": {
+    "S5": "unverified",
+    "GW-19": "unverified",
+    "R3": "unverified",
+    "R8": "unverified"
+  },
+  "sources": [
+    {
+      "id": "f0.7",
+      "revision": "740593d8d9e66e719c179572354f634c2ed85457",
+      "path": "docs/DECISIONS.md",
+      "locator": "F0.7 — rozsah integrací (2026-11-07)"
+    },
+    {
+      "id": "c003",
+      "revision": "740593d8d9e66e719c179572354f634c2ed85457",
+      "path": "docs/DECISIONS.md",
+      "locator": "Změny kontraktu / C-003"
+    },
+    {
+      "id": "git-code",
+      "revision": "7b20c41496f9a8d2a8e49604e31c7598a4943adb",
+      "path": "spikes/s5-gateway/Sources/SanjboxGatewayCore/GitGateway.swift",
+      "locator": "GitConfiguration and GitGateway.response: no real credentials"
+    },
+    {
+      "id": "model-code",
+      "revision": "7b20c41496f9a8d2a8e49604e31c7598a4943adb",
+      "path": "spikes/s5-gateway/Sources/SanjboxGatewayCore/ModelAPIPolicy.swift",
+      "locator": "ModelAPITestKey: synthetic laboratory values only"
+    },
+    {
+      "id": "historical",
+      "revision": "7b20c41496f9a8d2a8e49604e31c7598a4943adb",
+      "path": "spikes/s5-compatibility/REPORT.md",
+      "locator": "Historical D6 baseline/provisional D5, no current-decision evidence"
+    }
+  ],
+  "integrations": [
+    {
+      "id": "claude-oauth",
+      "client": "Claude",
+      "provider_scope": "Claude subscription",
+      "auth_mode": "oauth",
+      "decision_status": "accepted",
+      "contract": {
+        "route": "tls_passthrough",
+        "opt_in": "required_per_area",
+        "domain_scope": "closed_provider_integration_allowlist",
+        "key_insertion": "none",
+        "credential_custody": "area_assumed_compromisable",
+        "account_scope": "not_restricted_by_area",
+        "operation_scope": "opaque_provider_tls_including_project_exfiltration_risk",
+        "revocation": "documented_on_disable_and_delete_required",
+        "other_r3_tests": "unchanged"
+      },
+      "known_gaps": {
+        "reviewed_provider_domains": "missing",
+        "per_area_opt_in_enforcement": "unverified",
+        "account_identity_and_actual_scopes": "unverified",
+        "disable_and_delete_revocation": "undocumented",
+        "live_compatibility": "unverified",
+        "s5_provider_domain_exfiltration_measurement": "missing"
+      },
+      "implementation_status": "blocked",
+      "implementation_evidence": [],
+      "live_status": "unverified",
+      "live_evidence": [],
+      "full_r3": "not_met_under_c003",
+      "basis": {
+        "text": "User-accepted Claude subscription OAuth under C-003. The token is inside the area and assumed compromisable. No reviewed provider domains, revocation procedure or live client evidence is recorded; integration implementation remains blocked, and full R3 is not met under the exception.",
+        "refs": [
+          "f0.7",
+          "c003",
+          "historical"
+        ]
+      }
+    },
+    {
+      "id": "codex-oauth",
+      "client": "Codex",
+      "provider_scope": "ChatGPT account",
+      "auth_mode": "oauth",
+      "decision_status": "accepted",
+      "contract": {
+        "route": "tls_passthrough",
+        "opt_in": "required_per_area",
+        "domain_scope": "closed_provider_integration_allowlist",
+        "key_insertion": "none",
+        "credential_custody": "area_assumed_compromisable",
+        "account_scope": "not_restricted_by_area",
+        "operation_scope": "opaque_provider_tls_including_project_exfiltration_risk",
+        "revocation": "documented_on_disable_and_delete_required",
+        "other_r3_tests": "unchanged"
+      },
+      "known_gaps": {
+        "reviewed_provider_domains": "missing",
+        "per_area_opt_in_enforcement": "unverified",
+        "account_identity_and_actual_scopes": "unverified",
+        "disable_and_delete_revocation": "undocumented",
+        "live_compatibility": "unverified",
+        "s5_provider_domain_exfiltration_measurement": "missing"
+      },
+      "implementation_status": "blocked",
+      "implementation_evidence": [],
+      "live_status": "unverified",
+      "live_evidence": [],
+      "full_r3": "not_met_under_c003",
+      "basis": {
+        "text": "User-accepted Codex ChatGPT account OAuth under C-003. The token is inside the area and assumed compromisable. No reviewed provider domains, revocation procedure or live client evidence is recorded; integration implementation remains blocked, and full R3 is not met under the exception.",
+        "refs": [
+          "f0.7",
+          "c003",
+          "historical"
+        ]
+      }
+    },
+    {
+      "id": "opencode-oauth",
+      "client": "OpenCode",
+      "provider_scope": "integration provider not yet reviewed",
+      "auth_mode": "oauth",
+      "decision_status": "accepted",
+      "contract": {
+        "route": "tls_passthrough",
+        "opt_in": "required_per_area",
+        "domain_scope": "closed_provider_integration_allowlist",
+        "key_insertion": "none",
+        "credential_custody": "area_assumed_compromisable",
+        "account_scope": "not_restricted_by_area",
+        "operation_scope": "opaque_provider_tls_including_project_exfiltration_risk",
+        "revocation": "documented_on_disable_and_delete_required",
+        "other_r3_tests": "unchanged"
+      },
+      "known_gaps": {
+        "reviewed_provider_domains": "missing",
+        "per_area_opt_in_enforcement": "unverified",
+        "account_identity_and_actual_scopes": "unverified",
+        "disable_and_delete_revocation": "undocumented",
+        "live_compatibility": "unverified",
+        "s5_provider_domain_exfiltration_measurement": "missing"
+      },
+      "implementation_status": "blocked",
+      "implementation_evidence": [],
+      "live_status": "unverified",
+      "live_evidence": [],
+      "full_r3": "not_met_under_c003",
+      "basis": {
+        "text": "User-accepted OpenCode OAuth under C-003. The decision does not identify a reviewed provider selection or domain set. No provider/domain list or actual scopes are invented here. Token exposure, per-area opt-in, documented revocation and the full-R3 exception remain explicit.",
+        "refs": [
+          "f0.7",
+          "c003",
+          "historical"
+        ]
+      }
+    },
+    {
+      "id": "opencode-api-key",
+      "client": "OpenCode",
+      "provider_scope": "existing typed gateway providers only",
+      "auth_mode": "api_key",
+      "decision_status": "accepted",
+      "contract": {
+        "route": "typed_gateway_only",
+        "credential_custody": "host_keychain_only",
+        "key_insertion": "host_gateway_only",
+        "provider_scope": "existing_typed_adapter_only",
+        "caller_auth": "denied",
+        "passthrough_fallback": "denied"
+      },
+      "known_gaps": {
+        "live_host_key_custody_and_insertion": "unimplemented_in_reviewed_spike",
+        "exact_client_adapter_compatibility": "unverified",
+        "account_identity_and_actual_scopes": "unverified",
+        "revocation": "undocumented",
+        "live_compatibility": "unverified"
+      },
+      "implementation_status": "blocked",
+      "implementation_evidence": [],
+      "live_status": "unverified",
+      "live_evidence": [],
+      "full_r3": "unverified",
+      "basis": {
+        "text": "User-accepted API-key mode only for providers with an existing typed gateway. Keys remain in the host gateway, which inserts them; keys never enter the area. C-003 does not change this path. The reviewed model spike accepts synthetic test keys only and the historical OpenCode row is unsupported; accepted scope does not establish full-agent compatibility or live key custody.",
+        "refs": [
+          "f0.7",
+          "model-code",
+          "historical"
+        ]
+      }
+    },
+    {
+      "id": "github-classic-pat",
+      "client": "Git",
+      "provider_scope": "GitHub",
+      "auth_mode": "classic_pat",
+      "decision_status": "accepted",
+      "contract": {
+        "route": "git_smart_http_only",
+        "credential_custody": "host_keychain_only",
+        "key_insertion": "host_gateway_only",
+        "repository_scope": "project_repository_only",
+        "operations": [
+          "fetch",
+          "push"
+        ],
+        "account_scope": "classic_pat_is_not_repo_scoped",
+        "area_token": "denied",
+        "gh_cli": "unsupported",
+        "github_api": "unsupported",
+        "alternate_protocol_fallback": "denied"
+      },
+      "known_gaps": {
+        "live_host_pat_custody_and_insertion": "unimplemented_in_reviewed_spike",
+        "project_repository_authorization": "unverified",
+        "account_identity_and_actual_scopes": "unverified",
+        "revocation": "undocumented",
+        "live_compatibility": "unverified"
+      },
+      "implementation_status": "blocked",
+      "implementation_evidence": [],
+      "live_status": "unverified",
+      "live_evidence": [],
+      "full_r3": "unverified",
+      "basis": {
+        "text": "User-accepted GitHub classic PAT only in the host Keychain/gateway, inserted for git smart HTTP fetch/push of the project repository. A classic PAT is not repo-scoped; the gateway must enforce the project restriction. The area never receives it. gh CLI, GitHub API and alternate protocol access are unsupported. The reviewed Git spike has a project transport fixture but no real credential insertion/custody, and that fixture is not live GitHub evidence.",
+        "refs": [
+          "f0.7",
+          "git-code",
+          "historical"
+        ]
+      }
+    },
+    {
+      "id": "xcode-simulator",
+      "client": "Xcode",
+      "provider_scope": "Apple Simulator only",
+      "auth_mode": "none",
+      "decision_status": "accepted",
+      "contract": {
+        "operations": [
+          "simulator"
+        ],
+        "signing": "unsupported",
+        "apple_id": "denied",
+        "app_store_connect_key": "denied",
+        "device_signing": "requires_future_user_decision"
+      },
+      "known_gaps": {
+        "area_session_and_simulator_compatibility": "unverified"
+      },
+      "implementation_status": "blocked",
+      "implementation_evidence": [],
+      "live_status": "unverified",
+      "live_evidence": [],
+      "full_r3": "unverified",
+      "basis": {
+        "text": "User-accepted Xcode Simulator only, without signing. No Apple ID or App Store Connect key enters the area. Device signing requires a future user decision. No area/session Simulator compatibility or gate evidence is supplied by this inventory.",
+        "refs": [
+          "f0.7"
+        ]
+      }
+    },
+    {
+      "id": "unlisted",
+      "client": "Unlisted integrations",
+      "provider_scope": "unlisted",
+      "auth_mode": "unlisted",
+      "decision_status": "unsupported",
+      "contract": {
+        "operations": [],
+        "fallback": "denied"
+      },
+      "known_gaps": {
+        "user_decision": "missing"
+      },
+      "implementation_status": "unsupported",
+      "implementation_evidence": [],
+      "live_status": "unverified",
+      "live_evidence": [],
+      "full_r3": "unverified",
+      "basis": {
+        "text": "Unlisted integrations remain unsupported, including npm publish, cloud and database integrations. Acceptance of the named scopes is not a catch-all permission for other clients, providers, accounts or protocols.",
+        "refs": [
+          "f0.7"
+        ]
+      }
+    }
+  ]
+}
