@@ -106,3 +106,35 @@ as errors; none occurred. Bash syntax and `git diff --check` also passed. The
 preceding fix at `bd7fc3d` passed the same count before the inherited-alarm-mask
 fixture was strengthened; both runs were retained. This validation update changes
 only documentation.
+
+Independent PR #68 review on 2026-11-13 reproduced two further failures against
+`c6ddb360ae4be912f24cffa42aa122529c5b6c0f`: a failed anchor-reap report changed a
+timeout from 124 to 125, and socketpair/fork allocation errors could block while
+the interpreter printed a traceback to a full stderr pipe. The fix distinguishes
+actual timeout from a command merely returning 124 and reports startup failures
+through the bounded reporter. `StartupError` is raised only before a successful
+fork; post-fork failures remain subject to scope cleanup.
+
+Source/tests at `22fb88674a1a60f6079de4d84a92743455ef343c` passed **87/87 tools
+tests**, including **24 watchdog tests**, on system Python 3.9.6 (41.503 s) and
+Python 3.11.4 (37.857 s), macOS 27.2.1 / build 26B131, arm64. The commands above
+treated resource warnings as errors; none occurred. Bash 3.2.57 syntax and
+`git diff --check` passed. Added coverage checks stopped-root cleanup, final
+directory symlink and hardlink canaries, timeout/ordinary-status precedence on
+reap failure, and bounded startup failure with an explicit no-command-started
+marker and stderr EOF. Allocation/reap failures are injected; this does not
+claim a real resource-exhaustion or uninterruptible-kernel experiment.
+
+A controlled negative test ran the old shell wrapper from `33657f7` against a
+root that exits 0 while its child blocks opening a fixture-owned FIFO. The old
+wrapper returned 0 with stdout still held by that live child (2.125 s); the
+harness had to release the FIFO. The reviewed wrapper returned 125 and stdout
+EOF without release (1.418 s). The fixture had an independent eight-second
+alarm and used only its temporary files/processes.
+
+The initial sandboxed baseline could not execute `/bin/ps` and failed scope
+verification; it is an environment restriction, not a source regression. The
+authorized baseline rerun outside that sandbox passed all original 20 watchdog
+tests (31.220 s). The full passing review runs above used the same process-query
+permission. Linux and the hosted Swift matrix still require remote CI. These
+offline checks do not advance any laboratory gate or acceptance status.
