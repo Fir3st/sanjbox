@@ -7,59 +7,93 @@ Při rozporu platí PLAN.md; tento dokument se opraví.
 - Postupy a pravidla práce: [GUIDE.md](GUIDE.md)
 - Stav požadavků, bran, testů a balíků: [COVERAGE.md](COVERAGE.md)
 - Rozhodnutí F0: [DECISIONS.md](DECISIONS.md)
-- Laboratoř, návrh akceptace a šablony: [LAB.md](LAB.md)
+- Laboratoř, přijatá metodika a šablony: [LAB.md](LAB.md)
 - Výsledky bran F1: [spikes.md](spikes.md)
 
-## 0. Co dál (revize 2026-11-07)
+## 0. Co dál
 
-**Proč se práce zastavila.** Všechny brány jsou Neověřeno. Přípravné balíky jsou hotové nebo se rozšiřují
-o další offline důkazy, které žádnou bránu neposunou. Kritická cesta začíná během L1 a ten spouští uživatel.
-Vše za ním je sériové (L1 → L2 → …) a F2 čeká na všechny brány F1. Agent bez laboratoře proto neměl
-co převzít.
+**Revize 2026-11-13, podklad `main` na `4a3f541` po sloučení PR #52–#71.**
+[COVERAGE §4](COVERAGE.md#4-pracovní-balíky) vede stav a vlastníky; tato sekce určuje další krok.
+F0 má **5/5 hotových balíků**, F1 **17 hotových / 7 rozpracovaných / 12 nezahájených**.
+Všech **10 bran a 155 akceptačních případů zůstává Neověřeno**. Sloučený prototyp ani zelené CI
+nejsou laboratorní důkaz. Mezi sedmi rozpracovanými jsou i D5 čekající na rozhodnutí a zmrazený G2.
 
-**Co se mění.**
-1. Kritická cesta začíná krátkým diagnostickým během **L1-D** (§4). Rozhodne, jestli architektura vůbec
-   může fungovat, dřív než se dokončí plná akceptace S1.
-2. Nový **proud H** (§3): prototypy komponent jádra proti mockům. PLAN je povoluje jako izolované prototypy
-   (§Akceptační kontrakt); nesmějí se sestavit do MVP ani spustit ve skutečné oblasti. Ve F2 je převezmou
-   balíky WP2.x.
-3. Každý rozpracovaný přípravný balík má níže podmínku dokončení. Co je za ní, patří do laboratorního běhu,
-   ne do přípravy. Pravidla: [GUIDE §11](GUIDE.md#11-kdy-přípravu-ukončit).
+**Když agent dostane „co teď dělat“:**
 
-### Čeká na uživatele (kritická cesta)
+1. Ověř aktuální `main`, řádek balíku v COVERAGE a jeho otevřené PR; tato revize není rezervací práce.
+2. První priorita bez laboratoře je **dokončení H1**, které odblokuje H2/H3/H6 a rozhraní H4/A6.
+   H1 už má vlastníka, stejně jako H4/A2/A3/A6. Pokračuj v přiděleném balíku nebo dohodni konkrétní
+   navazující část/předání podle [GUIDE §5](GUIDE.md#5-paralelní-práce); cizí vlastnictví nepřepisuj.
+3. Bez takového zadání nyní **není volný nezahájený offline balík se splněnými závislostmi**.
+   H2/H3/H6 jsou následující fronta, nikoli práce před dokončením H1. Ohlásit tuto závislost je správný
+   výsledek; neotvírej znovu hotovou přípravu ani neobnovuj D5/G2 jen kvůli vyplnění čekání.
 
-| # | Co | Proč | Odblokuje |
+### Práce agentů nyní — pokračování již obsazených balíků
+
+Vlastníci zůstávají podle COVERAGE. Tabulka vymezuje zbytek práce; převzetí ani souběžnou změnu
+sdíleného rozhraní nepovoluje sama. Dokončení zahrnuje výstup, dokumentaci, cílené testy a aktualizaci
+COVERAGE podle [GUIDE §8–11](GUIDE.md#8-definice-hotového); pro odblokování dalšího balíku musí být
+rozhraní a jeho ověření sloučené v `main`.
+
+| Pořadí / balík | Konkrétní další krok | Podmínka dokončení | Závislost a hranice |
 |---|---|---|---|
-| U1 | Spustit **L1-D** podle [s1-session README](../spikes/s1-session/README.md#běh-l1-wp1a2), kroky 0–4 a úklid 8 | Go/no-go celé architektury: souběžné relace, přežití bez klienta, tři relace, akcelerované renderování | L1, A3 živý klient, celý proud A |
-| ~~U2~~ | ✅ 2026-11-07: [LAB-v1](LAB.md#1-návrh-rozhodnutí-f08) přijato v [DECISIONS F0.8](DECISIONS.md#rozhodnuté-podotázky) se změnami P4 a P5 | — | L1 a všechny další sloty |
-| ~~U3~~ | ✅ 2026-11-07: [F0.7](DECISIONS.md#rozhodnuté-podotázky) rozhodnuto, předplatné a OAuth v oblasti jsou změna kontraktu C-003 | — | GW-13, POS-03, WP2.5 |
+| 1. **WP1.H1** — `proto/contracts/` | Doplnit skutečnou množinu broker zpráv a převzetí pravidel manifestu B3; [současný rozsah](../proto/contracts/README.md) má broker odmítající vše a neúplnou duplikaci manifestu. | Celý výstup H1 z §3: helper i broker mají typy a striktní validaci velikostí/polí/verzí, automat a body pádu, síťovou politiku/typované brány, audit a manifest s pravidly B3; negativní test každé validace. Shoda manifestu je doložená společným zdrojem nebo parity testy, ne jen shodným názvem schématu. | Bez labu. Změny B3 či sdílených rozhraní vymezit a koordinovat zvlášť. Prázdný broker a vynechaná pravidla nejsou hotové H1. |
+| 2. **WP1.H4** — `proto/gateway/` | S vlastníkem H1 určit a implementovat převod `NetworkPolicy`/`TypedGate` do handlerů, včetně [chybějících hodnot a rozdílných limitů](../proto/gateway/README.md#draft-politiky-a-mezera-vůči-h1). | Politika z H1 skutečně řídí složení npm/PyPI/git/model; testy dokazují, že převod nerozšíří cíle, metody ani limity. Nepodporované nebo neúplné konfigurace se odmítnou; klíče zůstávají mock. | Návrh mapování lze dělat nyní, uzavření vyžaduje sloučený kontrakt H1. Homebrew bez důvěryhodného času zůstává odmítnutý; identita klienta a produkční integrace patří do F2/L5. |
+| 3. **WP1.A2** — `spikes/s1-session/` | Zavřít zbývající instrumentaci: úplnou a jednoznačnou atribuci UID/WindowServeru a kalibrovaný recorder start/ready; navázat na [existující sběr potomků](../spikes/s1-session/DESCENDANT-MEMORY.md). | **Příprava** končí, když každý řádek [LAB §8](LAB.md#8-připravenost-a2-a-mapování-s1) má nástroj ověřený na známém syntetickém výsledku, nebo předepsaný ruční záznam tam, kde ho metodika dovoluje; nechybí orchestrace hosta a tří relací s oddělenými výstupy. **Celý A2** končí až protokolem a reviewed verdiktem S1 z L1. | WP0.3/A1 jsou hotové. Lokální sběr vlastních potomků není úplná atribuce ani tři skutečné relace; jemné intervaly/RAM nelze nahradit ručním odhadem. Po uzavření přípravy čekat na L1, nepřidávat další offline evidence bez konkrétní mezery. |
+| 4. **WP1.A3** — `spikes/s1-rfb/` | Doplnit Apple auth provider a výběr relace podle připnutých zdrojů; nyní existuje jen [type-30 framing a package-local session fixtures](../spikes/s1-rfb/README.md). | Apple auth se syntetickými údaji a skutečné délkově rámované S5 selection records jsou implementované a ověřené fixtures, včetně odmítnutí konzolového fallbacku; dokumentace odděluje zdrojový kontrakt od hypotéz. Pouhé injekční rozhraní kryptografie a lokální fixture protokol tuto podmínku nesplňují. | Bez labu lze dokončit prototyp; živou interoperabilitu ověří uživatel podle [LAB-NEXT](../spikes/s1-rfb/LAB-NEXT.md). L1-D může použít Screen Sharing.app a nečeká na vlastní RFB klient. |
+| 5. **WP1.A6** — `spikes/s8-signing/` | Napojit fuzzer na zprávy H1; doplnit host-only autorizační cestu daemonu, vlastnictví/úklid registrace přes restart a same-UID attach runner s pozitivní kontrolou podle [mezer SG](../spikes/s8-signing/README.md#rozsah-a-oracle). [Podpisové předání](../spikes/s8-signing/HANDOFF.md) už existuje. | Fuzzer testuje skutečné helper/broker kontrakty H1; SG-06 má srovnatelnou pozitivní i negativní kontrolu bez porušení zákazu `get-task-allow`. Personal Team a podmíněná self-signed varianta mají uživatelské kroky, dry-run, původní stav, ověření a úklid pro celý plánovaný L2 běh. | H1 pro fuzzer; uživatel/S1 pro živé L2. Po vydání handoffu současný automatický cleanup odmítá neznámý stav registrace: bez navazující ownership/cleanup cesty nepokračovat do registrace/restartů. Ad-hoc test není Personal Team ani S8. |
 
-### Paralelní práce bez laboratoře (k převzetí hned)
+### Následující volné balíky — až po H1
 
-Každý řádek je samostatný adresář, takže se větve nepřekrývají. Převzetí: GUIDE §5.
+V COVERAGE jsou bez vlastníka a nezahájené. Po sloučení úplného H1 je lze převzít samostatně
+podle GUIDE §5; mezi sebou mohou běžet paralelně. Vše zůstává izolovaným prototypem proti mockům (§3).
 
-| Balík | Adresář | Hotovo, až | Závisí na |
-|---|---|---|---|
-| WP1.H1 Kontrakty v0 | `proto/contracts/` | Typy, validace a testy podle §3 jsou v `main` | — |
-| WP1.H5 Řízený export | `proto/export/` | Podle §3 | — |
-| WP1.H4 Brána jako služba | `proto/gateway/` | Podle §3 | formát politiky z H1 (do té doby lokální návrh) |
-| WP1.H2 Životní cyklus | `proto/lifecycle/` | Podle §3 | H1 |
-| WP1.H3 CLI | `proto/cli/` | Podle §3 | H1 |
-| WP1.H6 Harness únikových testů | `proto/escape/` | Podle §3 | H1 |
-| WP1.A2 dokončení přípravy L1 | `spikes/s1-session/` | Každý řádek [LAB §8](LAB.md#8-připravenost-a2-a-mapování-s1) má nástroj ověřený na syntetickém výsledku, nebo předepsaný ruční záznam | — |
-| WP1.A3 RFB klient | `spikes/s1-rfb/` | Apple auth a výběr relace proti fixtures; živé připojení ověří uživatel v L1-D | — |
-| WP1.A6 S8 příprava | `spikes/s8-signing/` | Fuzzer XPC míří na zprávy z H1; kroky Personal Team a self-signed pro uživatele s dry-run | H1 (fuzzer) |
-| WP1.B4 Rollback | `spikes/s4-state/` | Skript uživatelského APFS pilotu s dry-run, záznamem stavu a úklidem | — |
-| WP1.D5 PyPI, Homebrew, git | `spikes/s5-gateway/` | Homebrew cooldown má zdroj data publikace (např. čas commitu formule nebo metadata bottle v registru), nebo je doloženo, že spolehlivý zdroj neexistuje; pak rozhoduje uživatel | — |
-
-### Podmínky dokončení ostatních rozpracovaných balíků
-
-| Balík | Hotovo, až | Už nepatří do přípravy |
+| Balík | Přesný výstup a podmínka dokončení | Závislost |
 |---|---|---|
-| WP1.A4 | Každý případ FS-01…09, ID-01…11, LC-01…11 má sondu nebo ruční krok s oraclem | Cross-session a TCC důkazy: patří do L2 |
-| WP1.B2 | ACL hardening v dry-run s deníkem a úklidem | Kompatibilita host nástrojů: L3 |
-| WP1.C3 | Návrh bind policy je zapsaný | Další offline provenance; zbytek je L4 |
-| WP1.G2 | Zmrazeno, Docker je mimo MVP (C-002) | Vše do rozhodnutí budgetu F0.8 |
+| **WP1.H2** — `proto/lifecycle/` | Automat H1 nad mock operacemi uživatele/svazku/bootstrapu/zastavení UID a ověření nuly procesů; trvalý model deníku a obnova otestovaná při pádu v každém kroku. Testy vynutí LC-06/LC-11 i přidělování UID mezi oblastmi: zákaz startu při vypínání a reuse před úklidem. | H1 automat, manifest a audit v `main`; žádné skutečné systémové operace. |
+| **WP1.H3** — `proto/cli/` | `sanjbox shell/run/pause/snapshot/rollback` jako XPC klient proti mock helperu ve stejném uživateli; všechny příkazy, odmítnutí chybných zpráv a chyby odpovědí jsou otestované podle H1. | H1; dnešní helper ještě nemá zprávy pro celý tento seznam. Chybějící operace nejdřív výslovně doplnit do H1 s vlastníkem, nevytvořit druhé nekompatibilní schéma. |
+| **WP1.H6** — `proto/escape/` | Katalog všech případů COVERAGE §3 (ID → sonda/ruční krok → oracle) a runner na syntetické oblasti, vlastních testovacích stromech a `sanjbox-counterpart`; nepodporovaný nebo ruční případ se nikdy nezapočte jako pass. Testy ověří katalog i vyhodnocení známých výsledků. | H1 audit v `main`, hotové WP0.3/WP0.4; skutečný UID oblasti a akceptace až WP2.8/lab. |
+
+### Čeká na uživatele — laboratoř a rozhodnutí
+
+| # | Nejbližší akce a podmínka dokončení | Co odblokuje / co neprokazuje |
+|---|---|---|
+| **U0 — připravit stroj** | Doplnit a potvrdit [LAB §2](LAB.md#2-registr-strojů-a-rezervace): aktuální konfiguraci/revizi, GPU, místo, zálohu s ověřenou obnovou, dry-run konkrétního commitu a proveditelný úklid; rezervovat L1-D a dokončit předregistraci. M1 `LAB-janfiedler-01/r1` je stále vedený jako nepřipravený a žádný slot není rezervovaný. | Připravený L1-D. Rozhodnutí F0.8 o dostupnosti M1 samo nepotvrzuje provozní připravenost. |
+| **U1 — L1-D, pak L1** | Po U0 spustit diagnostiku podle [S1 README](../spikes/s1-session/README.md#běh-l1-wp1a2), kroky 0–4 a úklid 8; předem určit dílčí rozsah. Zapsat skutečné credentials, souběh tří relací s hostem, přežití bez klienta, akceleraci a ověřený úklid do nového protokolu a indexu `spikes.md`. Plné L1 teprve po dokončení přípravy A2 a předregistraci celé akceptace. | L1-D ověří proveditelnost, **neuzavírá S1**. Selhání souběhu/akcelerace znamená stop a nové rozhodnutí podle F0.6; fallback F0.6 se stálým klientem pokrývá pouze selhání přežití bez klienta. L2 se otevře až po S1 pass. |
+| **U4 — Homebrew publication time (D5)** | Rozhodnout nad [uzavřenou rešerší a přesnými variantami](../spikes/s5-gateway/research/wp1-d5-publication-time/README.md#zbývající-rozhodnutí-a-pokrytí): přijmout současné odmítání bottle s neprokázaným časem, zadat konkrétní nový provider kontrakt včetně autority/scopes, nebo výslovně změnit cooldown kontrakt v DECISIONS. | Vymezí další D5 a HB-04/S5/S6. Commit date ani OCI `created` nejsou důvěryhodný čas publikace; nedoložený kandidát Packages REST není důkaz neexistence zdroje. Do rozhodnutí Homebrew zůstává fail-closed a D5 rozpracované; další neomezená rešerše se nezadává. |
+| **U5 — rozsah L4 a bind policy** | Před C4/L4 vyřešit [otázky Q1–Q7](../spikes/s3-pf/ingress/BIND-POLICY.md#6-otevřené-otázky-pro-uživatele): kandidát host endpointů/proxy, same-zone loopback, devserver `HOST`/`PORT`, povolené experimentální mechanismy, vlastník rezervace portů a wildcard rozsah. Případnou změnu požadavků/kompatibility zapsat výslovně do DECISIONS; žádná není touto revizí schválena. | Umožní předregistrovat konkrétní L4 experimenty; C3 zůstává hotová příprava a S3/S3b neověřené. C3-T1 je zvlášť podnět k review technického zdůvodnění PLAN, nikoli souhlas s oslabením R2/R3. |
+
+**U2 a U3 jsou uzavřené:** F0.8/LAB-v1 (P4/P5 upravené) a F0.7/C-003 byly rozhodnuté 2026-11-07
+v [DECISIONS](DECISIONS.md#rozhodnuté-podotázky). Z F0.8 zbývá pouze Docker start/stop před S7.
+Skutečné podpisy/TCC, účty/scopes/revokace a další sloty provádí uživatel po jejich závislostech;
+schválená metodika není souhlas s konkrétním systémovým zásahem.
+
+### Hotová příprava — neotvírat znovu bez konkrétního nálezu
+
+| Balík | Splněná podmínka | Další práce patří do |
+|---|---|---|
+| **WP1.A4** | [Postupy všech 31 FS/ID/LC případů](../spikes/s0-boundary/LAB-PLAN.md): sonda nebo ruční krok s controls/oraclem, výstupem a úklidem. | L2: cross-session/TCC; FS-04/08/LC-11 mají navazující závislosti S4/S8/F2 podle runbooku. |
+| **WP1.B2** | [Mode/ACL hardening](../spikes/s4-host/HARDENING.md) s dry-run, trvalým deníkem a úklidem vlastních nezměněných zásahů. | L3: skutečné zpevnění, host kompatibilita a uninstall. |
+| **WP1.B4** | [APFS pilot planner](../spikes/s4-state/TOOLING.md) s dry-run, záznamem stavu, uživatelským předáním a úklidem. | L3: native APFS, oprávnění snapshotů, whole-UID admission/crash/reboot. |
+| **WP1.C3** | [Bind policy](../spikes/s3-pf/ingress/BIND-POLICY.md) a [L4 scénáře](../spikes/s3-pf/ingress/LABPLAN.md) zapsané. | C4/L4: autentizace peeru, nezávislý capture, vynucení politiky; C3-T1 zůstává otevřený. |
+| **WP1.H5** | [Export prototyp](../proto/export/README.md): výběr, preview, bezpečná kopie, karanténa a audit s testy. | WP2.11: skutečná UID/ACL, konsolidace auditu a akceptace POS-09. |
+
+A1, D6 a follow-up opravy common/CI jsou také sloučené, nikoli práce čekající na první review.
+Úplný seznam hotových balíků je v COVERAGE §4. Nový nález může založit vymezený follow-up, ale samotné
+čekání na lab není důvod k dalšímu rozšiřování ([GUIDE §11](GUIDE.md#11-kdy-přípravu-ukončit)).
+
+### Odloženo a laboratorní závislosti
+
+- **WP1.F1/F2 (Coherence):** mimo MVP, výzkum pro F3; WP1.F1 potřebuje uživatelský TCC grant,
+  WP1.F2/L7 prošlé S0/S8 a WP1.F1. Není výplní volné kapacity kritické cesty.
+- **G2/G3 (Docker):** G1 rešerše je hotová, G2 zůstává částečné a zmrazené. Obnovit až po rozhodnutí
+  budgetu start/stop a vymezení runtime práce pro F4; G3/L8 navíc potřebuje S5 pass. C-002 beze změny.
+- **WP2.x:** skutečná integrace čeká na S0, S1, S3/S3b, S4, S5, S6 a S8 pass. S2 ani S7 nejsou vstupem
+  F2; izolované H prototypy tuto podmínku neobcházejí. F3/F4 mají své další brány podle §3.
+- **Laboratoř:** po S1 následuje L2 (S0/S8); po S0 se větví L3 (S4) → L6 (S6) a L4 (S3/S3b) → L5 (S5).
+  Nejde o povinný řetěz všech L1…L8. Na jednom stroji se sloty včetně úklidu nepřekrývají; přesné
+  přípravy a předchůdci jsou v §3–4. Otevřené bezpečnostní blokátory z [COVERAGE §5](COVERAGE.md#5-otevřené-blokátory-plan-otevřené-blokátory)
+  zůstávají otevřené, zejména ochrana nezávislá na pf; dokončená rešerše C2 ji neprokazuje.
 
 ## 1. Principy rozdělení práce
 
@@ -70,7 +104,7 @@ Každý řádek je samostatný adresář, takže se větve nepřekrývají. Pře
    Macy mohou běžet sloty souběžně, každý na svém stroji (F0.8).
 2. **Výsledek platí pro konfiguraci, na které byl změřen.** Sanďbox cílí na obecný Mac (F0.8). Každý běh
    zapisuje konfiguraci stroje; brána prošla jen pro konfigurace, kde prošla. Výkonové brány se měří i na
-   minimální podporované konfiguraci (po jejím potvrzení v DECISIONS.md).
+   minimální podporované konfiguraci podle přijatého F0.8 v DECISIONS.md.
 3. **Rozsah MVP podle F0:** CLI + jedno okno s plochou oblasti (C-001), bez Dockeru (C-002), data z oblasti
    ven jen řízeným exportem (F0.3). R4 a R6 zůstávají požadavky produktu pro F3/F4.
 4. **Privilegované kroky spouští uživatel.** Agent připraví skript s výchozím režimem `--dry-run`, popisem
@@ -258,15 +292,15 @@ slot L2 na stroji X vyžaduje, aby S1 prošla na stroji X (nebo na stejné konfi
 
 | Slot | Obsah | Předchozí podmínka |
 |---|---|---|
-| L1-D | Diagnostika proveditelnosti S1: uživatelé, jedna relace, přežití bez klienta, tři relace, akcelerované renderování. Ruční záznam povolen ([LAB §8](LAB.md#8-připravenost-a2-a-mapování-s1)); zapisuje se do spikes.md jako diagnostika a stav S1 nemění. Neprojde-li souběh relací nebo renderování, platí DECISIONS F0.6: stop a nové rozhodnutí | WP1.A1 |
-| L1 | S1: tři testovací relace | F0, WP1.A1, WP0.5 |
-| L2 | S0 + S8 v relacích z L1 | S1 prošla |
-| L3 | S4: zpevnění, mounty, rollback, uninstall | S0 prošla |
-| L4 | S3/S3b: pf a ingress | testovací uživatelé z L1, S0 prošla |
-| L5 | S5 integrace přes pf | S3/S3b prošly |
-| L6 | S6: Homebrew per oblast | S4 prošla |
-| L7 | S2-B: Coherence v relacích oblastí | S0 a S8 prošly |
-| L8 | S7: Docker | S5 prošla, budget rozhodnutý |
+| L1-D | Diagnostika proveditelnosti S1: uživatelé, jedna relace, přežití bez klienta, tři relace, akcelerované renderování. Ruční záznam povolen ([LAB §8](LAB.md#8-připravenost-a2-a-mapování-s1)); zapisuje se do spikes.md jako diagnostika a stav S1 nemění. Neprojde-li souběh relací nebo renderování, platí DECISIONS F0.6: stop a nové rozhodnutí | WP1.A1; stroj, rezervace, záloha, dry-run, úklid a předregistrace připravené podle LAB §2–3 (U0) |
+| L1 | S1: tři testovací relace | F0, WP1.A1, WP0.5; uzavřená příprava A2 dle LAB §8 a připravený slot |
+| L2 | S0 + S8 v relacích z L1 | S1 prošla; WP1.A4 a WP1.A6, včetně přezkoumaného úklidu registrace |
+| L3 | S4: zpevnění, mounty, rollback, uninstall | S0 prošla; WP1.B2 a WP1.B4 |
+| L4 | S3/S3b: pf a ingress | testovací uživatelé z L1, S0 prošla; WP1.C1, WP1.C3 a vymezené experimenty dle U5 |
+| L5 | S5 integrace přes pf | S3/S3b prošly; WP1.D2–D6, včetně vyřešení blokátoru D5/U4 |
+| L6 | S6: Homebrew per oblast | S4 prošla; WP1.E1, předregistrované řešení cooldownu dle D5/U4 a schválené příkazy stahování |
+| L7 | S2-B: Coherence v relacích oblastí | S0 a S8 prošly; WP1.F1 |
+| L8 | S7: Docker | S5 prošla; WP1.G2, Docker start/stop budget rozhodnutý |
 
 ## 5. Graf závislostí
 
