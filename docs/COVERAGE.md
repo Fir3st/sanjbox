@@ -31,7 +31,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 5 | 0 | 0 | 0 |
-| F1 | 36 | 16 | 8 | 12 | 0 |
+| F1 | 36 | 17 | 7 | 12 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -303,7 +303,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.A6 | S8 příprava | janfiedler / Codex + Astra | 🟨 rozpracováno | [Pokračování 2026-11-04](../spikes/s8-signing/SERVICES.md): compiled disposable app + tři service targets, typované user UI, bounded common-identity markers a conflict-refusing cleanup; Release 42 testů + 15 Python boundary testů, pouze statická/ad-hoc validace. Daemon mutace a cleanup přes restart UI/login/reboot jsou záměrně nedostupné bez host-only/provenance konstrukce; Personal Team/self-signed, attach oracle a skutečný XPC fuzzer (Contracts/Broker neexistují) chybějí. [Historie 2026-11-03](../spikes/s8-signing/VALIDATION.md): původní 28 testů, static fixtures/mock fuzzer/šest plánů zachovány. S8 a SG-01…11 Neověřeno |
 | WP1.A7 | S8 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.B1 | Audit hosta | janfiedler / Codex + Astra | ✅ | [metadata audit](../spikes/s4-host/README.md); 17 syntetických testů, S4/R2/R7 Neověřeno |
-| WP1.B2 | Zpevnění a uninstall | janfiedler / Codex + Astra | 🟨 | [Částečný mode-only hardening/uninstall](../spikes/s4-host/HARDENING.md): dry-run, trvalý before/after deník, konflikty a syntetické testy; ACL hardening, host kompatibilita, poslední TOCTOU mezera a S4/RB-09/10 Neověřeno |
+| WP1.B2 | Zpevnění a uninstall | janfiedler / Astra | ✅ | [Příprava mode/ACL hardeningu a uninstallu](../spikes/s4-host/HARDENING.md): explicitní dry-run, trvalý původní/výsledný ACL deník a obnova pouze nezměněných zásahů; [review/validace](../spikes/s4-host/VALIDATION-B2-ACL.md#review-pr-59--2026-11-13) opravuje APFS alias overlap před mutací, 55 native testů v Debug/Release. Omezený adresářový rozsah bez nového dědění; host kompatibilita čeká na L3, S4/RB-09/10 Neověřeno. |
 | WP1.B3 | Manifest a topologie | janfiedler / Codex + Astra | ✅ | [návrhový manifest a validátor](../spikes/s4-state/README.md); 21 syntetických testů, skutečná topologie/kvóty/rollback a S4 Neověřeno |
 | WP1.B4 | Snapshot/rollback prototyp | janfiedler / Codex + Astra | ✅ hotovo (příprava) | [Read-only APFS planner](../spikes/s4-state/TOOLING.md) má dry-run, záznam stavu, ruční hand-off a úklid; [validace](../spikes/s4-state/VALIDATION-B4.md) doplňuje recovery mock a feasibility studii. Native APFS, snapshot oprávnění a whole-UID admission/crash/reboot adaptér čekají na L3; S4/RB-02…08 zůstávají Neověřeno |
 | WP1.B5 | S4 běh (L3) | uživatel + impl. | ⬜ | |
