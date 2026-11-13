@@ -1,0 +1,162 @@
+import Foundation
+
+public enum CommandFailure: Error, Equatable, Sendable, CustomStringConvertible {
+    case usage(String)
+    case policy(PolicyError)
+    case composition(CompositionError)
+    case io
+
+    public var description: String {
+        switch self {
+        case .usage(let text): return text
+        case .policy(let error): return "policy rejected: \(error.description)"
+        case .composition(let error): return "composition rejected: \(error.description)"
+        case .io: return "cannot read policy file"
+        }
+    }
+}
+
+public struct CommandResult: Sendable, Equatable {
+    public let exitCode: Int32
+    public let output: [String]
+
+    public init(exitCode: Int32, output: [String]) {
+        self.exitCode = exitCode
+        self.output = output
+    }
+}
+
+/// Příkazová obálka prototypu. Sama o sobě nic neotevírá: bez explicitního
+/// `--listen 127.0.0.1:<port>` jen vypíše složení a skončí.
+public enum GatewayCommand {
+    public enum Invocation: Sendable, Equatable {
+        case help
+        case compose(policyPath: String)
+        case serve(policyPath: String, address: LoopbackListener.Address)
+    }
+
+    public static let usageLines: [String] = [
+        "usage: sanjbox-gateway-service --policy <file> [--listen 127.0.0.1:<port>]",
+        "  --policy <file>   verzovaný draft politiky (schemaVersion \(GatewayPolicy.currentSchemaVersion))",
+        "  --listen          opt-in reálný loopback listener; bez něj se žádný socket neotevře",
+        "  --help            tato nápověda",
+        "prototyp: otevřený socket ani běžící celek nejsou součástí MVP (IMPLEMENTATION §3)",
+    ]
+
+    public static func parse(_ arguments: [String]) throws -> Invocation {
+        if arguments.contains("--help") || arguments.contains("-h") { return .help }
+        var policyPath: String?
+        var address: LoopbackListener.Address?
+        var index = 0
+        while index < arguments.count {
+            let argument = arguments[index]
+            switch argument {
+            case "--policy":
+                guard policyPath == nil, index + 1 < arguments.count else { throw CommandFailure.usage("--policy needs one file") }
+                policyPath = arguments[index + 1]
+                index += 2
+            case "--listen":
+                guard address == nil, index + 1 < arguments.count else {
+                    throw CommandFailure.usage("--listen needs one 127.0.0.1:<port>")
+                }
+                guard let parsed = LoopbackListener.Address(text: arguments[index + 1]) else {
+                    throw CommandFailure.usage("listener must be 127.0.0.1:<port> with port 1...65535")
+                }
+                address = parsed
+                index += 2
+            default:
+                throw CommandFailure.usage("unknown argument \"\(argument)\"")
+            }
+        }
+        guard let policyPath else { throw CommandFailure.usage("--policy <file> is required") }
+        guard let address else { return .compose(policyPath: policyPath) }
+        return .serve(policyPath: policyPath, address: address)
+    }
+
+    /// Vrací výstup a kód, nikdy netiskne sám (testy tak nepotřebují stdout).
+    ///
+    /// `emit` reports composition and `listener starting` before entering the runner.
+    /// The real listener emits `ready` only after bind/listen succeed. Final errors
+    /// are returned once in `output`; the CLI caller prints them before exiting.
+    /// An injected runner exercises CLI composition without opening a socket.
+    public static func run(
+        _ arguments: [String],
+        emit: @escaping @Sendable (String) -> Void = { _ in },
+        listener: (@Sendable (LoopbackListener.Address) -> any ListenerRunner)? = nil
+    ) async -> CommandResult {
+        let invocation: Invocation
+        do {
+            invocation = try parse(arguments)
+        } catch let failure as CommandFailure {
+            return CommandResult(exitCode: 2, output: [failure.description] + usageLines)
+        } catch {
+            return CommandResult(exitCode: 2, output: ["invalid arguments"] + usageLines)
+        }
+        switch invocation {
+        case .help:
+            return CommandResult(exitCode: 0, output: usageLines)
+        case .compose(let path):
+            return await compose(policyPath: path, address: nil, emit: emit, listener: listener)
+        case .serve(let path, let address):
+            return await compose(policyPath: path, address: address, emit: emit, listener: listener)
+        }
+    }
+
+    private static func compose(
+        policyPath: String, address: LoopbackListener.Address?,
+        emit: @escaping @Sendable (String) -> Void,
+        listener: (@Sendable (LoopbackListener.Address) -> any ListenerRunner)?
+    ) async -> CommandResult {
+        let data: Data
+        do {
+            let file = try FileHandle(forReadingFrom: URL(fileURLWithPath: policyPath))
+            defer { try? file.close() }
+            data = try file.read(upToCount: PolicyJSON.maximumBytes + 1) ?? Data()
+        } catch {
+            return CommandResult(exitCode: 2, output: ["cannot read policy file: \(policyPath)"])
+        }
+        let policy: GatewayPolicy
+        do {
+            policy = try GatewayPolicy.decode(data)
+        } catch let error as PolicyError {
+            return CommandResult(exitCode: 3, output: ["policy rejected: \(error.description)"])
+        } catch {
+            return CommandResult(exitCode: 3, output: ["policy rejected: \(PolicyError.malformed.description)"])
+        }
+        let service: GatewayService
+        do {
+            service = try GatewayService(policy: policy)
+        } catch let error as CompositionError {
+            return CommandResult(exitCode: 3, output: ["composition rejected: \(error.description)"])
+        } catch {
+            return CommandResult(exitCode: 3, output: ["composition rejected"])
+        }
+        var lines = service.runtime.summaryLines
+        lines.append("active: " + service.runtime.activeOperations.map(\.rawValue).joined(separator: ","))
+        if service.runtime.activeOperations.contains(.model) {
+            // Modelový mount se skládá s mockem; CLI to musí říct nahlas, aby
+            // "state=enabled" nevypadalo jako skutečná Klíčenka.
+            lines.append("model key source: \(String(describing: MockKeyProvider()))"
+                         + "; real Keychain is not implemented (GUIDE §3)")
+        }
+        guard let address else {
+            lines.append("listener disabled: no socket opened; pass --listen 127.0.0.1:<port> to enable one")
+            return CommandResult(exitCode: 0, output: lines)
+        }
+        lines.append("listener starting: \(address.text)"
+                     + " (prototype opt-in; no production use, IMPLEMENTATION §3)")
+        for line in lines { emit(line) }
+        let runner = listener?(address) ?? LoopbackListener(address: address, ready: {
+            emit("listener ready: \(address.text)")
+        })
+        do {
+            try await runner.run(serving: service)
+        } catch {
+            let stopped = "listener stopped: \(String(describing: error))"
+            return CommandResult(exitCode: 4, output: [stopped])
+        }
+        // Reálný `LoopbackListener` se z accept smyčky nevrací; sem se dostane
+        // jen injektovaný runner, takže není co hlásit.
+        return CommandResult(exitCode: 0, output: [])
+    }
+}

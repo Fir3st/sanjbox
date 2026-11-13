@@ -71,10 +71,10 @@ private struct Run {
     var log: URL { directory.appendingPathComponent("events.jsonl") }
     var raw: URL { directory.appendingPathComponent("raw") }
 
-    init(canaries: [Canary], tcp: Bool = true, udp: Bool = true) throws {
+    init(canaries: [Canary], tcp: Bool = true, udp: Bool = true, bindAddress: String = "::ffff:127.0.0.1") throws {
         directory = try temporaryDirectory()
         counterpart = try Counterpart.start(.init(
-            bindAddress: "::", tcpPorts: tcp ? [0] : [], udpPorts: udp ? [0] : [],
+            bindAddress: bindAddress, tcpPorts: tcp ? [0] : [], udpPorts: udp ? [0] : [],
             logURL: directory.appendingPathComponent("events.jsonl"),
             rawDirectory: directory.appendingPathComponent("raw"), canaries: canaries
         ))
@@ -105,7 +105,10 @@ private func count(_ kind: CounterpartEvent.Kind, in events: [CounterpartEvent])
     let canary = try Canary.make(label: "net")
     let unregistered = try Canary.make(label: "late")
     let run = try Run(canaries: [canary])
-    defer { try? FileManager.default.removeItem(at: run.directory) }
+    defer {
+        run.counterpart.stop()
+        try? FileManager.default.removeItem(at: run.directory)
+    }
 
     let half = canary.token.utf8.count / 2
     let payload = Array(canary.token.utf8)
@@ -120,7 +123,9 @@ private func count(_ kind: CounterpartEvent.Kind, in events: [CounterpartEvent])
     #expect(report.receivedAnything)
     #expect(report.tcpConnections == 1)
     #expect(report.udpDatagrams == 2)
-    #expect(report.remoteHosts == ["::ffff:127.0.0.1"])
+    // Darwin can report plain IPv4 for UDP on an IPv4-mapped IPv6 bind.
+    #expect(report.remoteHosts.contains("::ffff:127.0.0.1"))
+    #expect(report.remoteHosts.allSatisfy { ["127.0.0.1", "::ffff:127.0.0.1"].contains($0) })
     #expect(report.findings.contains(.init(token: canary.token, encoding: "raw")))
     #expect(report.findings.contains(.init(token: canary.token, encoding: "dns-qname-hex")))
     #expect(report.findings.contains(.init(token: Canary.tokenPrefix, encoding: "raw")))
@@ -133,7 +138,10 @@ private func count(_ kind: CounterpartEvent.Kind, in events: [CounterpartEvent])
 
 @Test func stopClosesAndCountsOpenConnections() throws {
     let run = try Run(canaries: [], udp: false)
-    defer { try? FileManager.default.removeItem(at: run.directory) }
+    defer {
+        run.counterpart.stop()
+        try? FileManager.default.removeItem(at: run.directory)
+    }
 
     // Left open: the sender never closes, the counterpart must still count what arrived.
     let open = try (0..<3).map { _ in try tcpSend(port: try run.port(.tcp), chunks: [Data("held".utf8)], close: false) }
@@ -151,7 +159,10 @@ private func count(_ kind: CounterpartEvent.Kind, in events: [CounterpartEvent])
 
 @Test func contactWithoutBytesStillCounts() throws {
     let run = try Run(canaries: [], udp: false)
-    defer { try? FileManager.default.removeItem(at: run.directory) }
+    defer {
+        run.counterpart.stop()
+        try? FileManager.default.removeItem(at: run.directory)
+    }
 
     _ = try tcpSend(port: try run.port(.tcp), chunks: [], close: true)
     try run.waitFor { count(.closed, in: $0) == 1 }
@@ -165,7 +176,10 @@ private func count(_ kind: CounterpartEvent.Kind, in events: [CounterpartEvent])
 
 @Test func quietRunIsCompleteAndEmpty() throws {
     let run = try Run(canaries: [])
-    defer { try? FileManager.default.removeItem(at: run.directory) }
+    defer {
+        run.counterpart.stop()
+        try? FileManager.default.removeItem(at: run.directory)
+    }
     run.counterpart.stop()
     run.counterpart.stop()
 
@@ -173,6 +187,60 @@ private func count(_ kind: CounterpartEvent.Kind, in events: [CounterpartEvent])
     #expect(report.complete)
     #expect(!report.receivedAnything)
     #expect(report.listeners.count == 2)
+}
+
+@Test func nativeIPv6TCPProducerReportsNativeEndpoints() throws {
+    let run = try Run(canaries: [], udp: false, bindAddress: "::1")
+    defer {
+        run.counterpart.stop()
+        try? FileManager.default.removeItem(at: run.directory)
+    }
+    let fd = socket(AF_INET6, SOCK_STREAM, 0)
+    try #require(fd >= 0)
+    defer { close(fd) }
+    var address = sockaddr_in6()
+    address.sin6_len = UInt8(MemoryLayout<sockaddr_in6>.size)
+    address.sin6_family = sa_family_t(AF_INET6)
+    address.sin6_port = try run.port(.tcp).bigEndian
+    try #require(inet_pton(AF_INET6, "::1", &address.sin6_addr) == 1)
+    let connected = withUnsafePointer(to: &address) {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+            connect(fd, $0, socklen_t(MemoryLayout<sockaddr_in6>.size))
+        }
+    }
+    try #require(connected == 0)
+    let payload = Data("native-ipv6".utf8)
+    try #require(payload.withUnsafeBytes { send(fd, $0.baseAddress, $0.count, 0) } == payload.count)
+    try #require(shutdown(fd, SHUT_WR) == 0)
+    try run.waitFor { count(.closed, in: $0) == 1 }
+    run.counterpart.stop()
+    let events = try run.events()
+    let report = CounterpartReport(events: events)
+    #expect(report.complete, "\(report.problems)")
+    #expect(report.receivedAnything)
+    #expect(report.tcpConnections == 1)
+    #expect(report.bytes == payload.count)
+    for event in events where event.kind == .accepted || event.kind == .closed {
+        #expect(event.local?.host == "::1")
+        #expect(event.remote?.host == "::1")
+    }
+}
+
+@Test func emptyUDPDatagramStillCountsAsContact() throws {
+    let run = try Run(canaries: [], tcp: false)
+    defer {
+        run.counterpart.stop()
+        try? FileManager.default.removeItem(at: run.directory)
+    }
+    try udpSend(port: try run.port(.udp), Data())
+    try run.waitFor { count(.datagram, in: $0) == 1 }
+    run.counterpart.stop()
+    let report = CounterpartReport(events: try run.events())
+    #expect(report.complete, "\(report.problems)")
+    #expect(report.receivedAnything)
+    #expect(report.udpDatagrams == 1)
+    #expect(report.bytes == 0)
+    #expect(try FileManager.default.contentsOfDirectory(atPath: run.raw.path).isEmpty)
 }
 
 @Test func existingLogOrRawCapturesAreNeverReused() throws {
@@ -200,8 +268,10 @@ private func count(_ kind: CounterpartEvent.Kind, in events: [CounterpartEvent])
 }
 
 @Test func incompleteLogsAreReported() {
-    let started = CounterpartEvent(kind: .started, listeners: [])
-    let accepted = CounterpartEvent(kind: .accepted, flowID: 1, transport: .tcp)
+    let local = Endpoint(host: "127.0.0.1", port: 43210)
+    let started = CounterpartEvent(kind: .started, listeners: [.init(transport: .tcp, endpoint: local)])
+    let accepted = CounterpartEvent(kind: .accepted, flowID: 1, transport: .tcp,
+        local: local, remote: .init(host: "127.0.0.1", port: 54321))
     let stopped = CounterpartEvent(kind: .stopped)
 
     #expect(CounterpartReport(events: []).complete == false)
