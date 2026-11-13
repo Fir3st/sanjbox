@@ -52,12 +52,12 @@ public enum GatewayCommand {
             let argument = arguments[index]
             switch argument {
             case "--policy":
-                guard index + 1 < arguments.count else { throw CommandFailure.usage("--policy needs a file") }
+                guard policyPath == nil, index + 1 < arguments.count else { throw CommandFailure.usage("--policy needs one file") }
                 policyPath = arguments[index + 1]
                 index += 2
             case "--listen":
-                guard index + 1 < arguments.count else {
-                    throw CommandFailure.usage("--listen needs 127.0.0.1:<port>")
+                guard address == nil, index + 1 < arguments.count else {
+                    throw CommandFailure.usage("--listen needs one 127.0.0.1:<port>")
                 }
                 guard let parsed = LoopbackListener.Address(text: arguments[index + 1]) else {
                     throw CommandFailure.usage("listener must be 127.0.0.1:<port> with port 1...65535")
@@ -75,16 +75,13 @@ public enum GatewayCommand {
 
     /// Vrací výstup a kód, nikdy netiskne sám (testy tak nepotřebují stdout).
     ///
-    /// `emit` dostane řádky, které musí operátor vidět **před** tím, než se
-    /// spustí listener: potvrzení, že listener naběhl. Návratová hodnota se
-    /// u úspěšného listeneru nikdy nevrátí (accept smyčka), takže potvrzení
-    /// patří do `emit`, ne do `output`.
-    ///
-    /// `listener` je injektovatelný jen kvůli testům: mock runner neotevře
-    /// socket a hned se vrátí, takže test ověří pořadí bez portu.
+    /// `emit` reports composition and `listener starting` before entering the runner.
+    /// The real listener emits `ready` only after bind/listen succeed. Final errors
+    /// are returned once in `output`; the CLI caller prints them before exiting.
+    /// An injected runner exercises CLI composition without opening a socket.
     public static func run(
         _ arguments: [String],
-        emit: @Sendable (String) -> Void = { _ in },
+        emit: @escaping @Sendable (String) -> Void = { _ in },
         listener: (@Sendable (LoopbackListener.Address) -> any ListenerRunner)? = nil
     ) async -> CommandResult {
         let invocation: Invocation
@@ -107,12 +104,14 @@ public enum GatewayCommand {
 
     private static func compose(
         policyPath: String, address: LoopbackListener.Address?,
-        emit: @Sendable (String) -> Void,
+        emit: @escaping @Sendable (String) -> Void,
         listener: (@Sendable (LoopbackListener.Address) -> any ListenerRunner)?
     ) async -> CommandResult {
         let data: Data
         do {
-            data = try Data(contentsOf: URL(fileURLWithPath: policyPath))
+            let file = try FileHandle(forReadingFrom: URL(fileURLWithPath: policyPath))
+            defer { try? file.close() }
+            data = try file.read(upToCount: PolicyJSON.maximumBytes + 1) ?? Data()
         } catch {
             return CommandResult(exitCode: 2, output: ["cannot read policy file: \(policyPath)"])
         }
@@ -144,15 +143,16 @@ public enum GatewayCommand {
             lines.append("listener disabled: no socket opened; pass --listen 127.0.0.1:<port> to enable one")
             return CommandResult(exitCode: 0, output: lines)
         }
-        lines.append("listener ready: \(address.text)"
+        lines.append("listener starting: \(address.text)"
                      + " (prototype opt-in; no production use, IMPLEMENTATION §3)")
         for line in lines { emit(line) }
-        let runner = listener?(address) ?? LoopbackListener(address: address)
+        let runner = listener?(address) ?? LoopbackListener(address: address, ready: {
+            emit("listener ready: \(address.text)")
+        })
         do {
             try await runner.run(serving: service)
         } catch {
             let stopped = "listener stopped: \(String(describing: error))"
-            emit(stopped)
             return CommandResult(exitCode: 4, output: [stopped])
         }
         // Reálný `LoopbackListener` se z accept smyčky nevrací; sem se dostane

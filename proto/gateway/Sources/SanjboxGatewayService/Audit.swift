@@ -82,7 +82,7 @@ public struct AuditRecord: Sendable, Equatable, Codable {
               let sequence = UInt64(fields[0]),
               let decision = AuditDecision(rawValue: unescape(String(fields[4]))),
               let status = Int(fields[6]) else { return nil }
-        return AuditRecord(
+        let record = AuditRecord(
             sequence: sequence,
             operation: unescape(String(fields[1])),
             method: unescape(String(fields[2])),
@@ -91,6 +91,8 @@ public struct AuditRecord: Sendable, Equatable, Codable {
             reason: unescape(String(fields[5])),
             status: status
         )
+        guard record.canonicalLine == line else { return nil }
+        return record
     }
 
     /// Pole kanonického řádku tak, jak jdou za sebou (bez oddělovače).

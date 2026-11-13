@@ -458,10 +458,11 @@ public enum GatewayRule: Sendable, Equatable, Decodable {
 
 // MARK: - Politika
 
-/// Provizorní návrh politiky brány (draft v1) čekající na formát z WP1.H1.
-/// Výměna formátu se dotkne jen tohoto souboru a dekodéru; složení handlerů
-/// (`Composition.swift`) pracuje s typy `GatewayPolicy`/`GatewayRule`, ne s JSON.
-public struct GatewayPolicy: Sendable, Equatable, Codable {
+/// Local gateway draft v1. H1 NetworkPolicy is now available, but a reviewed
+/// mapping of its typed gates and these handler-specific limits is still missing.
+/// Only `decode` accepts wire input; Encodable does not expose a JSONDecoder path
+/// which could bypass duplicate-key / exact-integer preflight.
+public struct GatewayPolicy: Sendable, Equatable, Encodable {
     public static let currentSchemaVersion = 1
     public static let allowedKeys: Set<String> = ["schemaVersion", "zoneID", "auditCapacity", "gateways"]
 
@@ -480,7 +481,7 @@ public struct GatewayPolicy: Sendable, Equatable, Codable {
         self.gateways = gateways
     }
 
-    public init(from decoder: Decoder) throws {
+    private init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: AnyCodingKey.self)
         try PolicyStrictness.rejectUnknown(container, allowed: Self.allowedKeys, path: "policy")
         let schemaVersion = try container.decode(Int.self, forKey: AnyCodingKey("schemaVersion"))
@@ -509,11 +510,18 @@ public struct GatewayPolicy: Sendable, Equatable, Codable {
         for rule in gateways { try items.encode(RuleEnvelope(rule: rule)) }
     }
 
+    private struct Decoded: Decodable {
+        let value: GatewayPolicy
+        init(from decoder: Decoder) throws { value = try GatewayPolicy(from: decoder) }
+    }
+
     /// Dekóduje a validuje politiku. Neznámá pole, neznámé operace i chybějící
     /// pole jsou odmítnuty; nikdy se nedoplňují implicitní hodnoty.
     public static func decode(_ data: Data) throws -> GatewayPolicy {
         do {
-            return try JSONDecoder().decode(GatewayPolicy.self, from: data)
+            var preflight = try PolicyJSON(data)
+            try preflight.check()
+            return try JSONDecoder().decode(Decoded.self, from: data).value
         } catch let error as PolicyError {
             throw error
         } catch let error as DecodingError {

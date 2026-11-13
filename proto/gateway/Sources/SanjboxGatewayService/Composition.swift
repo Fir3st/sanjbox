@@ -115,6 +115,13 @@ public actor GatewayService {
     /// handlerem a když není místo, požadavek dostane 503 a handler se nezavolá.
     /// Záznam se tak nikdy nezahodí poté, co už klient dostal odpověď.
     public func dispatch(_ request: HTTPRequest) async throws -> GatewayReply {
+        try await dispatch(request, finishingStream: {})
+    }
+
+    /// Transport finalization belongs inside the audited producer: failure to send
+    /// the terminal HTTP chunk must not leave a successful stream audit.
+    func dispatch(_ request: HTTPRequest,
+                  finishingStream: @escaping @Sendable () async throws -> Void) async throws -> GatewayReply {
         // `path` a `method` jdou do `|`-odděleného auditu; cokoli, co by rozbilo
         // sedmipolí řádek, se odmítne dřív, než vznikne záznam nebo se zavolá handler.
         guard Self.isAuditSafe(request.method), Self.isAuditSafe(request.path) else {
@@ -138,7 +145,7 @@ public actor GatewayService {
                 let sequence = commit(operation: operation, request: request, decision: .pending,
                                       reason: "streamPending", status: 0)
                 committed = true
-                return .events(auditedStream(producer, sequence: sequence))
+                return .events(auditedStream(producer, sequence: sequence, finishingStream: finishingStream))
             }
             guard case .response(let response) = reply else { preconditionFailure("unexpected reply") }
             let status = response.status
@@ -205,6 +212,7 @@ public actor GatewayService {
                         cooldown: npm.cooldownSeconds,
                         maximumMetadataBytes: npm.limits.metadataBytes,
                         maximumArtifactBytes: npm.limits.artifactBytes,
+                        maximumVersions: npm.limits.files,
                         maximumAuditRecords: npm.limits.auditRecords,
                         maximumOperations: npm.limits.operations,
                         lifetime: .seconds(npm.limits.lifetimeSeconds)
@@ -362,7 +370,8 @@ public actor GatewayService {
         return UInt64(records.count)
     }
 
-    private func auditedStream(_ producer: @escaping SSEProducer, sequence: UInt64) -> SSEProducer {
+    private func auditedStream(_ producer: @escaping SSEProducer, sequence: UInt64,
+                               finishingStream: @escaping @Sendable () async throws -> Void) -> SSEProducer {
         let ticket = StreamTicket()
         return { [self] emit in
             guard ticket.consume() else { throw ModelAPIFailure.replay }
@@ -370,6 +379,7 @@ public actor GatewayService {
                 try Task.checkCancellation()
                 try await producer(emit)
                 try Task.checkCancellation()
+                try await finishingStream()
                 await finishStream(sequence, outcome: .completed)
             } catch {
                 await finishStream(sequence, outcome: .failure(error))

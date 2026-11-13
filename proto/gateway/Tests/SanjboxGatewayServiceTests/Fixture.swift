@@ -3,7 +3,7 @@ import SanjboxGatewayCore
 import SanjboxGatewayService
 import Synchronization
 
-// Fixtures a mocky pro WP1.H4. Žádný test neotevírá port ani nečte tajemství;
+// Fixtures a mocky pro WP1.H4. Žádný test nečte tajemství;
 // klíče i obsahy jsou syntetické kanárky.
 
 let zoneID = "zone-fixture-01"
@@ -220,6 +220,8 @@ final class MockChannel: ByteChannel, @unchecked Sendable {
     func close() {
         state.withLock { $0.closed = true }
     }
+
+    var sendCallCount: Int { state.withLock { $0.sendCalls } }
 
     var sent: Data { state.withLock { $0.outbound } }
 

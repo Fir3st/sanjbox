@@ -12,10 +12,11 @@ public enum ConnectionFailure: Error, Equatable, Sendable {
     case acceptFailed
     case receiveFailed
     case sendFailed
+    case timedOut
+    case originMismatch
 }
 
-/// Minimální obousměrný byte kanál. Testy používají in-memory mock, takže CI
-/// neotevírá žádný port; `POSIXChannel` je jen doplněk pro explicitní `--listen`.
+/// Bounded byte transport; fixtures use memory and listener tests use loopback only.
 public protocol ByteChannel: Sendable {
     /// Prázdná data znamenají konec proudu (EOF).
     func receive(maximumBytes: Int) async throws -> Data
@@ -58,6 +59,8 @@ public struct LoopbackConnection: Sendable {
                 }
                 request = try decoder.append(chunk)
             }
+        } catch is CancellationError {
+            throw CancellationError()
         } catch let error as ConnectionFailure {
             throw error
         } catch let error as HTTPFailure {
@@ -66,10 +69,11 @@ public struct LoopbackConnection: Sendable {
             throw ConnectionFailure.malformedRequest
         }
         guard let request else { throw ConnectionFailure.incompleteRequest }
-        let reply = try await service.dispatch(request)
+        let writer = EventWriter(channel: channel, maximumEventBytes: maximumEventBytes)
+        let reply = try await service.dispatch(request, finishingStream: { try await writer.finish() })
         switch reply {
         case .response(let response): try await write(response)
-        case .events(let producer): try await write(events: producer)
+        case .events(let producer): try await write(events: producer, writer: writer)
         }
     }
 
@@ -89,11 +93,9 @@ public struct LoopbackConnection: Sendable {
 
     /// SSE se posílá po chuncích. Selhání producenta ukončí spojení bez
     /// koncového chunku, takže klient pozná zkrácení místo tichého úspěchu.
-    private func write(events: SSEProducer) async throws {
-        let writer = EventWriter(channel: channel, maximumEventBytes: maximumEventBytes)
+    private func write(events: SSEProducer, writer: EventWriter) async throws {
         do {
             try await events { try await writer.send($0) }
-            try await writer.finish()
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -167,8 +169,8 @@ public protocol ListenerRunner: Sendable {
     func run(serving service: GatewayService) async throws
 }
 
-/// Reálný loopback listener. Není součástí prototypu: konstruuje se jen na
-/// explicitní `--listen 127.0.0.1:<port>` a žádný test ho nespouští.
+/// Opt-in test listener, not a zone-authentication boundary. All syscalls are
+/// nonblocking, children are structured and bounded, and cancellation drains them.
 public struct LoopbackListener: ListenerRunner {
     public struct Address: Sendable, Equatable, CustomStringConvertible {
         public let port: UInt16
@@ -195,40 +197,79 @@ public struct LoopbackListener: ListenerRunner {
     }
 
     private let address: Address
+    private let maximumConnections: Int
+    private let ioTimeout: Duration
+    private let lifetime: Duration
+    private let ready: @Sendable () -> Void
 
-    public init(address: Address) {
+    public init(address: Address, maximumConnections: Int = 16,
+                ioTimeout: Duration = .seconds(10), lifetime: Duration = .seconds(120),
+                ready: @escaping @Sendable () -> Void = {}) {
+        precondition((1...64).contains(maximumConnections))
+        precondition(ioTimeout > .zero && lifetime > .zero)
         self.address = address
+        self.maximumConnections = maximumConnections
+        self.ioTimeout = ioTimeout
+        self.lifetime = lifetime
+        self.ready = ready
     }
 
-    /// Blokující accept smyčka; každé spojení obslouží jeden Task. Blokující
-    /// syscall v async kontextu je vědomé omezení prototypu, ne produkční vzor.
     public func run(serving service: GatewayService) async throws {
-        let descriptor = try Self.open(port: address.port)
+        try Task.checkCancellation()
+        for rule in service.policy.enabledRules {
+            let origin: String?
+            switch rule {
+            case .npm(let npm): origin = npm.publicOrigin
+            case .pypi(let pypi): origin = pypi.publicOrigin
+            default: origin = nil
+            }
+            guard origin == nil || origin == "http://\(address.text)" else {
+                throw ConnectionFailure.originMismatch
+            }
+        }
+        try await run(serving: service, descriptor: Self.open(port: address.port))
+    }
+
+    /// Takes ownership of a pre-bound descriptor; permits race-free ephemeral-port tests.
+    func run(serving service: GatewayService, descriptor: Int32) async throws {
         defer { Darwin.close(descriptor) }
-        while true {
-            var peer = sockaddr_in()
-            var length = socklen_t(MemoryLayout<sockaddr_in>.size)
-            let client = withUnsafeMutablePointer(to: &peer) { pointer in
-                pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                    accept(descriptor, $0, &length)
+        ready() // bind/listen succeeded; never claim readiness before this point.
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            defer { group.cancelAll() }
+            var outstanding = 0
+            while true {
+                try Task.checkCancellation()
+                if outstanding == maximumConnections {
+                    _ = try await group.next()
+                    outstanding -= 1
+                }
+                let client = accept(descriptor, nil, nil)
+                if client < 0 {
+                    if errno == EINTR { continue }
+                    if errno == EAGAIN || errno == EWOULDBLOCK {
+                        try await Task.sleep(for: .milliseconds(5))
+                        continue
+                    }
+                    throw ConnectionFailure.acceptFailed
+                }
+                let channel: POSIXChannel
+                do { channel = try POSIXChannel(descriptor: client, ioTimeout: ioTimeout, lifetime: lifetime) }
+                catch { Darwin.close(client); throw error }
+                outstanding += 1
+                group.addTask {
+                    // A malformed/idle/disconnected client ends only its own connection.
+                    try? await LoopbackConnection(channel: channel).serve(serving: service)
+                    channel.close()
                 }
             }
-            if client < 0 {
-                if errno == EINTR { continue }
-                throw ConnectionFailure.acceptFailed
-            }
-            let channel = POSIXChannel(descriptor: client)
-            Task {
-                try? await LoopbackConnection(channel: channel).serve(serving: service)
-                channel.close()
-            }
-            try Task.checkCancellation()
         }
     }
 
     static func open(port: UInt16) throws -> Int32 {
         let descriptor = socket(AF_INET, SOCK_STREAM, 0)
         guard descriptor >= 0 else { throw ConnectionFailure.socketFailed }
+        do { try POSIXChannel.configure(descriptor) }
+        catch { Darwin.close(descriptor); throw error }
         var reuse: Int32 = 1
         _ = setsockopt(descriptor, SOL_SOCKET, SO_REUSEADDR, &reuse,
                        socklen_t(MemoryLayout<Int32>.size))
@@ -250,44 +291,71 @@ public struct LoopbackListener: ListenerRunner {
     }
 }
 
-final class POSIXChannel: ByteChannel, @unchecked Sendable {
+final class POSIXChannel: ByteChannel, Sendable {
     private let descriptor: Int32
     private let state = Mutex(false)
+    private let ioTimeout: Duration
+    private let deadline: ContinuousClock.Instant
 
-    init(descriptor: Int32) {
+    /// The caller owns the descriptor until construction succeeds.
+    init(descriptor: Int32, ioTimeout: Duration = .seconds(10), lifetime: Duration = .seconds(120)) throws {
+        try Self.configure(descriptor)
         self.descriptor = descriptor
+        self.ioTimeout = ioTimeout
+        deadline = ContinuousClock.now.advanced(by: lifetime)
+    }
+
+    static func configure(_ descriptor: Int32) throws {
+        let flags = fcntl(descriptor, F_GETFL)
+        let fdFlags = fcntl(descriptor, F_GETFD)
         var one: Int32 = 1
-        _ = setsockopt(descriptor, SOL_SOCKET, SO_NOSIGPIPE, &one,
-                       socklen_t(MemoryLayout<Int32>.size))
+        guard flags >= 0, fdFlags >= 0,
+              fcntl(descriptor, F_SETFL, flags | O_NONBLOCK) == 0,
+              fcntl(descriptor, F_SETFD, fdFlags | FD_CLOEXEC) == 0,
+              setsockopt(descriptor, SOL_SOCKET, SO_NOSIGPIPE, &one,
+                         socklen_t(MemoryLayout<Int32>.size)) == 0 else {
+            throw ConnectionFailure.socketFailed
+        }
+    }
+
+    private func check(_ deadline: ContinuousClock.Instant) throws {
+        try Task.checkCancellation()
+        guard ContinuousClock.now < deadline else { throw ConnectionFailure.timedOut }
     }
 
     func receive(maximumBytes: Int) async throws -> Data {
-        var buffer = [UInt8](repeating: 0, count: max(1, Swift.min(maximumBytes, 65_536)))
+        let limit = min(deadline, ContinuousClock.now.advanced(by: ioTimeout))
+        var buffer = [UInt8](repeating: 0, count: max(1, min(maximumBytes, 65_536)))
         while true {
-            let count = Darwin.read(descriptor, &buffer, buffer.count)
-            if count > 0 { return Data(buffer[0..<count]) }
-            if count == 0 { return Data() }
-            if errno == EINTR { continue }
-            throw ConnectionFailure.receiveFailed
+            try check(limit)
+            let result: Int? = try state.withLock { closed in
+                guard !closed else { throw ConnectionFailure.receiveFailed }
+                let count = Darwin.read(descriptor, &buffer, buffer.count)
+                if count >= 0 { return count }
+                if errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK { return nil }
+                throw ConnectionFailure.receiveFailed
+            }
+            if let result { return Data(buffer.prefix(result)) }
+            try await Task.sleep(for: .milliseconds(5))
         }
     }
 
     func send(_ bytes: Data) async throws {
-        try state.withLock { closed in
-            guard !closed else { throw ConnectionFailure.sendFailed }
-            try bytes.withUnsafeBytes { raw in
-                var offset = 0
-                while offset < raw.count {
-                    guard let base = raw.baseAddress else { throw ConnectionFailure.sendFailed }
-                    let written = Darwin.write(descriptor, base.advanced(by: offset), raw.count - offset)
-                    if written > 0 {
-                        offset += written
-                        continue
-                    }
-                    if written < 0, errno == EINTR { continue }
+        let limit = min(deadline, ContinuousClock.now.advanced(by: ioTimeout))
+        var offset = 0
+        while offset < bytes.count {
+            try check(limit)
+            let count: Int? = try state.withLock { closed in
+                guard !closed else { throw ConnectionFailure.sendFailed }
+                return try bytes.withUnsafeBytes { raw in
+                    let written = Darwin.write(descriptor, raw.baseAddress!.advanced(by: offset), raw.count - offset)
+                    if written > 0 { return written }
+                    if written < 0, errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK { return nil }
                     throw ConnectionFailure.sendFailed
                 }
             }
+            if let count { offset += count }
+            else { try await Task.sleep(for: .milliseconds(5)) }
         }
     }
 
@@ -298,4 +366,6 @@ final class POSIXChannel: ByteChannel, @unchecked Sendable {
             Darwin.close(descriptor)
         }
     }
+
+    deinit { close() }
 }

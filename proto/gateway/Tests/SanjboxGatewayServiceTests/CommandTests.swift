@@ -73,9 +73,8 @@ final class CommandTests: XCTestCase {
         XCTAssertFalse(withoutModel.output.contains { $0.contains("model key source") })
     }
 
-    /// MINOR: potvrzení o listeneru se musí vypsat **před** vstupem do smyčky.
-    /// Mock runner neotevírá socket a hned se vrátí, takže test ověří pořadí.
-    func testServeEmitsListenerConfirmationBeforeEnteringTheLoop() async throws {
+    /// Startup intent is visible before the runner; real readiness is tested over sockets.
+    func testServeEmitsStartingBeforeEnteringInjectedRunner() async throws {
         let url = try temporaryPolicy(Fixture.policyJSON)
         let log = Mutex<[String]>([])
         let result = await GatewayCommand.run(
@@ -97,7 +96,7 @@ final class CommandTests: XCTestCase {
             "active: git,model,npm,pypi",
             "model key source: <mock key provider: synthetic model key>"
                 + "; real Keychain is not implemented (GUIDE §3)",
-            "listener ready: 127.0.0.1:18765 (prototype opt-in; no production use, IMPLEMENTATION §3)",
+            "listener starting: 127.0.0.1:18765 (prototype opt-in; no production use, IMPLEMENTATION §3)",
         ])
         XCTAssertFalse(emitted.contains { $0.contains("prototype listener opt-in") })
     }
@@ -112,8 +111,9 @@ final class CommandTests: XCTestCase {
             listener: { _ in FailingListener() })
         XCTAssertEqual(result.exitCode, 4)
         XCTAssertEqual(result.output, ["listener stopped: bindFailed"])
-        XCTAssertEqual(log.withLock { $0 }.last,
-                       "listener stopped: bindFailed", "selhání musí být vidět i v emit")
+        XCTAssertFalse(log.withLock { $0 }.contains { $0.hasPrefix("listener ready:") })
+        XCTAssertFalse(log.withLock { $0 }.contains { $0.hasPrefix("listener stopped:") },
+                       "final result is printed once by the CLI caller")
     }
 
     func testInvalidPolicyIsRejectedWithExitCodeThree() async throws {

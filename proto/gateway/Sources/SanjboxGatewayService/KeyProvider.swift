@@ -13,7 +13,7 @@ public protocol KeyProvider: Sendable {
 /// Mock poskytovatele klíčů. Drží jen syntetické laboratorní hodnoty a nikdy
 /// je nevrací přes `description`; prototyp neumí číst skutečnou Klíčenku.
 public struct MockKeyProvider: KeyProvider, Sendable {
-    /// Syntetická hodnota pro testy; splňuje `ModelAPITestKey` a nikam se neposílá.
+    /// Syntetická hodnota pro testy; typovaný modelový handler ji může vložit do upstream requestu.
     public static let defaultModelKeyText = "sanjbox-test-mock000000000000"
     public static let defaultModelKey: ModelAPITestKey = {
         do {
