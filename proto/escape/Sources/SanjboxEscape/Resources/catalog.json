@@ -1189,8 +1189,8 @@
     "requirements": "R2, R7",
     "gate": "S4",
     "mode": "manual",
-    "step": "Create a synthetic startup/job canary in home, snapshot baseline, mutate, then restore.",
-    "oracle": "Restored home lacks the post-snapshot startup state and no job can relaunch from it.",
+    "step": "First snapshot a quiescent baseline of the complete restore unit with no startup/job canary; then create a synthetic startup/job canary in home and confirm that persistence exists before quiescing again and restoring the baseline.",
+    "oracle": "The pre-restore control confirms the added startup/job state; restored home matches the baseline without that state, and no job can relaunch from it.",
     "reference": "spikes/s4-state/TOOLING.md",
     "limitation": "Not executed by H6; requires the named lab workflow, platform capability or user evidence."
   },
@@ -1200,8 +1200,8 @@
     "requirements": "R7",
     "gate": "S4",
     "mode": "manual",
-    "step": "Mutate independent canaries in project, prefix and cache, then restore the whole unit.",
-    "oracle": "All roots return to the same snapshot generation; partial restore is rejected.",
+    "step": "Record baseline canary values in project, prefix and cache and snapshot the quiescent complete restore unit; then mutate each canary, confirm the changed values, quiesce again and restore the whole unit.",
+    "oracle": "Every root returns to its recorded baseline values from the same snapshot generation; post-snapshot mutations disappear and partial restore is rejected.",
     "reference": "spikes/s4-state/TOOLING.md",
     "limitation": "Not executed by H6; requires the named lab workflow, platform capability or user evidence."
   },
@@ -1266,9 +1266,9 @@
     "requirements": "R2, R7",
     "gate": "S4",
     "mode": "manual",
-    "step": "Apply/revert only declared owned hardening changes and run the host compatibility controls.",
-    "oracle": "Original unchanged settings are restored, unrelated changes stay intact and declared host tools still work.",
-    "reference": "spikes/s4-state/TOOLING.md",
+    "step": "Record original settings and host-tool controls; apply declared owned hardening changes and rerun the controls while protection is active, then revert only unchanged owned settings and rerun the controls.",
+    "oracle": "Declared host tools work both while hardening is active and after cleanup; original unchanged settings are restored and unrelated or later legitimate changes stay intact.",
+    "reference": "spikes/s4-host/HARDENING.md",
     "limitation": "Not executed by H6; requires the named lab workflow, platform capability or user evidence."
   },
   {

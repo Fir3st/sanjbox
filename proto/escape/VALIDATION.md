@@ -61,3 +61,31 @@ patří až do WP2.8/laboratoře s příslušnými branami, přeregistrací a ne
 COVERAGE se mění pouze v řádku **WP1.H6**. Jeho ✅ znamená dokončený katalog, runner a testy;
 všech 155 akceptací, brány a R1–R8 zůstávají beze změny. Sdílené kontrakty/WP0.3/WP0.4 ani
 historické protokoly nebyly upraveny. Podrobné bezpečné spuštění a omezení: [README](README.md).
+
+## Oprava katalogu po nezávislém review PR #76 — 2026-11-14
+
+Review verze `2920b24` odhalilo nesprávné pořadí RB-03: vytvoření startup/job kanárku před baseline
+snapshotem by jej při správné obnově zachovalo. Opravený postup nejdřív snímkuje quiescent celou
+restore unit bez této perzistence, potom ji vytvoří a kontrolou potvrdí její existenci a nakonec
+po dalším quiescence obnoví baseline. Oracle požaduje odstranění přidaného startup stavu a
+nemožnost jeho opětovného spuštění.
+
+Při kontrole sousedních RB-01…10 a souvisejícího HB-07 byly zpřesněny ještě dva ruční postupy:
+RB-04 nyní výslovně zaznamená a snímkuje baseline před mutacemi všech kořenů; RB-10 provede
+kontroly host nástrojů před změnou, během aktivního zpevnění i po úklidu a odkazuje přímo na
+`spikes/s4-host/HARDENING.md`. Ostatní kontrolované kroky neobsahovaly obdobné obrácené pořadí.
+Opora: PLAN §stav/rollback a S4, B4 `RECOVERY.md`/`TOOLING.md` a B2 `HARDENING.md`.
+
+Testovaný opravený katalog má Git blob **`5c92516f03fe70a2fd11684edab841b57eac4434`**:
+
+| Příkaz | Výsledek |
+|---|---|
+| `swift test --package-path proto/escape --scratch-path /private/tmp/h6-swift-build -c debug --filter CatalogTests` | **7 testů, 1 suite, 0 selhání**. |
+| `swift test --package-path proto/escape --scratch-path /private/tmp/h6-swift-release -c release --filter CatalogTests` | **7 testů, 1 suite, 0 selhání**. |
+| `git diff --check` | Bez chyby whitespace. |
+
+Tyto testy znovu ověřily načtení změněného resource, přesný katalog, unikátnost a nemožnost
+povýšit ruční případ na pass. Sémantické pořadí ručních kroků je výsledkem review, nikoli testu
+porovnávajícího pořadí slov. Runtime, schéma, sondy a testy se nezměnily; předchozí úplné běhy
+18 testů zůstávají zaznamenané výše. Oprava mění pouze tři ruční položky katalogu a tuto poznámku;
+COVERAGE, všech 155 akceptačních stavů i historická evidence zůstávají beze změny.
