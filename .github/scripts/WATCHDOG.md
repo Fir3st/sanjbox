@@ -138,3 +138,33 @@ authorized baseline rerun outside that sandbox passed all original 20 watchdog
 tests (31.220 s). The full passing review runs above used the same process-query
 permission. Linux and the hosted Swift matrix still require remote CI. These
 offline checks do not advance any laboratory gate or acceptance status.
+
+After PR #67 merged, exact main `802fb0b1f6500fc02db810c0f8b8aecbc142b4d2`
+was integrated as `403f00712138c6eea27ce2a016b1393cf1d7ce25`. The coverage
+conflict preserved main verbatim except the intended WP0.2 note, including the
+reviewed WP0.3 whoami/context and WP0.4 counterpart entries. The coverage parser
+confirmed identical package counts and unchanged requirements, gates, cases and
+blockers. On that integrated source, both full tooling suites passed **87/87**:
+Python 3.9.6 in 41.189 s and Python 3.11.4 in 38.025 s, with resource warnings
+treated as errors and none emitted. The exact isolated macOS CI command also
+passed **24/24 watchdog tests** in 41.159 s. Bash syntax and diff checks passed.
+
+The workflow's discovery code was executed against the actual 14 tracked Swift
+packages and their local dependencies. PR, main push, merge queue and manual
+events each selected all **14 packages / 28 Debug–Release jobs**. The PR check
+modeled GitHub's merge-parent order using the actual diff from the exact base
+above. The required-status shell passed **15/15** combinations covering success,
+each dependency failing/cancelling/skipping, and the permitted no-Swift-change
+skip. Both Python jobs remain required, and the test pipeline retains
+`set -euo pipefail` and `tee`.
+
+A real `swift test --package-path spikes/common --configuration debug` run,
+through the Bash/system-Python watchdog with a 90-second limit and the CI-style
+`tee`/xUnit arguments, passed **95/95 tests** and returned 0 without a hung-process
+diagnostic (Xcode 27.2 / 27B52, Swift 6.4.2). A post-run check initially expected
+literal `tests.xml`; this toolchain emitted `tests-swift-testing.xml`, which was
+then parsed successfully and is covered by the workflow's whole-directory
+artifact upload. The test log records the complete run. This local Debug smoke
+does not replace Linux validation or the full hosted 28-job matrix; remote CI
+remains required before merge. The integrated review found no further defect
+within the documented process-group and trusted-path contract.
