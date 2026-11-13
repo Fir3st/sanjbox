@@ -29,6 +29,18 @@ public enum Identifier {
         guard (1...253).contains(value.utf8.count) else { return false }
         let labels = value.split(separator: ".", omittingEmptySubsequences: false)
         guard labels.count >= 2 else { return false }
+        // A DNS upstream is never an IPv4 literal, including inet_aton-style shortened,
+        // octal or hexadecimal dotted forms. IPv6 syntax already fails the LDH rule below.
+        let numericLabels = labels.allSatisfy { label in
+            if label.hasPrefix("0x") {
+                let digits = label.dropFirst(2)
+                // Darwin's legacy numeric parser also treats a bare "0x" component as zero.
+                // Empty digits must therefore remain numeric-looking and be excluded here.
+                return digits.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+            }
+            return label.utf8.allSatisfy { (48...57).contains($0) }
+        }
+        guard !numericLabels else { return false }
         return labels.allSatisfy { label in
             let bytes = Array(label.utf8)
             guard (1...63).contains(bytes.count) else { return false }

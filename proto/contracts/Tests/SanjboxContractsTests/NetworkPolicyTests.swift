@@ -85,7 +85,8 @@ struct NetworkPolicyTests {
 
     @Test func rejectsMalformedUpstream() {
         for upstream in ["registry.npmjs.org:443", "https://registry.npmjs.org", "registry.npmjs.org/path",
-                          "*.npmjs.org", "localhost", "Registry.npmjs.org", "-bad.example.com"] {
+                          "*.npmjs.org", "localhost", "Registry.npmjs.org", "-bad.example.com",
+                          "127.0.0.1", "127.1", "0177.0.0.1", "0x7f.0x0.0x0.0x1", "[::1]"] {
             do {
                 _ = try NetworkPolicy.decode(policyJSON(gates: "[\(gateJSON(upstream: upstream))]"))
                 Issue.record("upstream '\(upstream)' must be rejected")
@@ -94,6 +95,30 @@ struct NetworkPolicyTests {
             } catch {
                 Issue.record("unexpected error: \(error)")
             }
+        }
+    }
+
+    @Test func legacyNumericIPv4IsRejectedOnTypedAndWirePaths() throws {
+        // Synthetic strings only: no resolver or socket operation. The first case is the
+        // independently reviewed Darwin inet_aton loopback spelling with bare hex components.
+        for upstream in ["127.0x.0x.1", "0x7f.0x.0x.1", "127.0x.1", "0177.0x.0x.01",
+                         "0x.0x.0x.0x", "0x.0x", "0x", "0x7f000001", "2130706433",
+                         "127.0.0.1", "127.1", "0177.0.0.1", "0x7f.0x0.0x0.0x1",
+                         "127.0X.0X.1", "0X7F.0X.0X.1"] {
+            #expect(!Identifier.isValidHostname(upstream))
+            let gate = TypedGate(id: "fixture", type: .npm, upstream: upstream)
+            rejection("invalid-policy") { try gate.validate() }
+            let policy = NetworkPolicy(zoneID: "a1b2", gates: [gate])
+            rejection("invalid-policy") { _ = try policy.encoded() }
+            rejection("invalid-policy") {
+                _ = try NetworkPolicy.decode(policyJSON(gates: "[\(gateJSON(upstream: upstream))]"))
+            }
+        }
+        // Numeric-looking labels remain legal within an actual DNS name; exclusion applies
+        // to the entire numeric address form, not every occurrence of the label "0x".
+        for upstream in ["0x.example.com", "127.0x.example.com", "0xg.example.com"] {
+            let policy = NetworkPolicy(zoneID: "a1b2", gates: [TypedGate(id: "fixture", type: .npm, upstream: upstream)])
+            #expect(try NetworkPolicy.decode(policy.encoded()) == policy)
         }
     }
 

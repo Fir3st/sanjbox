@@ -1,157 +1,113 @@
 # Kontrakty v0 (WP1.H1)
 
 Izolovaný prototyp jádrových kontraktů podle [IMPLEMENTATION §3](../../docs/IMPLEMENTATION.md#proud-h--prototypy-jádra-proti-mockům-bez-laboratoře).
-Balík **nedokazuje žádnou bránu**, nikdy se nesestavuje do běžícího celku a neprovádí žádnou systémovou
-operaci: žádný uživatel, svazek, proces, `pf` anchor, socket ani soubor. Všechny vstupy v testech jsou
-syntetické fixtures a mocky; nic se nečte z reálného systému a nic se nezapisuje na disk.
+**Hotový H1 není průchod žádné brány ani běžící MVP.** Knihovna neprovádí systémové operace,
+nečte deklarované cesty, nevytváří uživatele/svazky/procesy a neposílá XPC ani síťový provoz.
+Testy používají syntetické dokumenty a mock kontexty; parity oracle navíc kompiluje čisté zdroje B3.
 
-- Swift 6 (`swift-tools-version: 6.0`), `.macOS(.v15)`, **nula externích závislostí** a žádná
-  `.package(path:)` hrana. Balík jde sestavit samostatně a záměrně nemá žádného závislého.
-- Veřejná knihovna: `SanjboxContracts`. Testy používají Swift Testing (`import Testing`, `@Test`),
-  stejně jako `spikes/s3-pf`.
+- Swift 6, `.macOS(.v15)` jako minimum balíku; knihovna `SanjboxContracts` bez externích závislostí
+  a bez `.package(path:)` hran. Runtime integrace patří do dalších balíků.
+- Původní prototyp Pi z PR #52 obsahoval prázdný broker v0 a podmnožinu pravidel B3. Uživatelské
+  předání Codex + Astra 2026-11-13 doplnilo níže uvedený rozsah; původní autorství zůstává zachované.
+- [VALIDATION.md](VALIDATION.md) uvádí skutečně spuštěné offline kontroly a jejich omezení.
 
-## Rozsah a co tu záměrně není
-
-| Oblast | Stav v0 |
+| Oblast | Výstup |
 |---|---|
-| XPC obálka helperu + striktní validace zpráv | hotovo, negativní test na každé pravidlo |
-| Broker | **jen** verzovaná obálka `broker-v0`, zprávy odmítány (viz níže) |
-| Stavový automat oblasti | hotovo, explicitní tabulka přechodů, body pádu, LC-06/LC-11 |
-| Formát síťové politiky a typovaných bran | hotovo, uzavřená množina klíčů, validace |
-| Formát audit logu | hotovo, stabilní klíče, striktní decoding |
-| Manifest stavu | **duplikované** schema `sanjbox.state-manifest.v1` (viz níže) |
-| Skutečná XPC komunikace, podpisy, audit token, sandbox, `pf` | **není** — patří WP2.x |
+| Helper | 12 typů požadavků, včetně všech H3 příkazů, a korelované typované odpovědi |
+| Broker | Tři úzké zprávy frames/input, verze 1, kontextové kontroly a explicitní Mach příloha |
+| Lifecycle | Povolené/zakázané přechody, body pádu, LC-06/LC-11 |
+| Síť | Deny-default `NetworkPolicy` a pět typů `TypedGate` |
+| Audit | Bounded `sanjbox.audit.v1`, monotónní sekvence a stabilní slovník |
+| Manifest | Všechna sémantická pravidla B3, úplný report a parity test proti aktuálním zdrojům B3 |
 
-## Veřejné rozhraní
-
-```swift
-// Chyby: stabilní kód + volný popis. Kódy jsou součást kontraktu.
-public struct ContractError: Error, Equatable, Sendable { public let code: String; public let detail: String }
-
-// Lexikální identifikátory (žádné OS lookup).
-public enum Identifier {
-    static func isValidZoneID(_:) -> Bool      // přesně 4 lowercase ASCII [a-z0-9]
-    static func isValidPlanID(_:) -> Bool      // 1...32 [a-z0-9-]
-    static func isValidFileName(_:) -> Bool    // 1...128 B, bez "/", "." a ".."
-    static func isValidHostname(_:) -> Bool    // lowercase LDH, bez scheme/portu/cesty/wildcardu
-}
-
-// Obálka a zprávy helperu (protokol verze 1).
-public struct XPCEnvelope: Codable, Equatable, Sendable {
-    static let helperProtocolVersion: UInt32   // 1
-    static let maxBytes: Int                   // 73 728 (72 KiB)
-    static let maxBodyBytes: Int               // 49 152 (48 KiB, surové tělo)
-    var version: UInt32; var kind: String; var body: Data
-    static func decode(_:) throws -> XPCEnvelope
-    func headerProblem() -> ContractError?
-    func encoded() throws -> Data
-}
-public enum HelperMessageKind: String, CaseIterable, Sendable
-public enum HelperMessage: Equatable, Sendable {            // .capabilities, .createZone(..), ...
-    var kind: HelperMessageKind
-    static func decode(_:) throws -> HelperMessage
-    func validate() throws
-    func encoded() throws -> Data
-}
-public struct CreateZoneRequest: Codable, Equatable, Sendable  // zoneID, uid, gid
-public struct ZoneRef: Codable, Equatable, Sendable           // zoneID
-public struct ApplyNetworkPolicyRequest: Codable, Equatable, Sendable // zoneID, policy
-
-// Broker v0: prázdná množina zpráv.
-public enum BrokerContract {
-    static let protocolVersion: UInt32   // 0
-    static let maxBytes: Int             // 4 096
-    static let acceptedKinds: Set<String> = []
-    static func decode(_:) throws -> BrokerEnvelope
-}
-public struct BrokerEnvelope: Codable, Equatable, Sendable
-
-// Stavový automat oblasti.
-public enum ZoneState: String, CaseIterable, Codable, Sendable
-public enum ZoneEvent: String, CaseIterable, Sendable
-public struct ZoneTransition: Equatable, Sendable
-public struct ForbiddenTransition: Equatable, Sendable
-public enum ZoneCrashPoint: String, CaseIterable, Sendable
-public enum ZoneRecoveryAction: String, CaseIterable, Sendable   // permitsStart, permitsUIDReuse
-public struct ZoneStateMachine: Equatable, Sendable {
-    static let allowedTransitions: [ZoneTransition]
-    static var forbiddenTransitions: [ForbiddenTransition]
-    static func target(from:on:) -> ZoneState?
-    var zoneID: String; var state: ZoneState; var uid: UInt32?; var gid: UInt32?
-    init(zoneID:) throws
-    var uidAvailableForReuse: Bool
-    func canApply(_:) -> Bool
-    mutating func assignIdentity(uid:gid:) throws
-    mutating func apply(_:) throws
-    func assertInvariants() throws
-}
-
-// Síťová politika a typované brány.
-public struct NetworkPolicy: Codable, Equatable, Sendable        // schema, zoneID, defaultAction, gates
-public struct TypedGate: Codable, Equatable, Sendable            // id, type, upstream, methods, limity
-public enum GateType: String, CaseIterable, Codable, Sendable    // npm, pypi, git, brew, model-api
-public static func NetworkPolicy.decode(_:) throws -> NetworkPolicy
-public func NetworkPolicy.encoded() throws -> Data
-public func NetworkPolicy.validate() throws
-
-// Audit log.
-public enum AuditAction: String, CaseIterable, Codable, Sendable
-public enum AuditOutcome: String, CaseIterable, Codable, Sendable
-public struct AuditRecord: Codable, Equatable, Sendable
-public enum AuditLog {                                           // decode, encode, validate
-    static let maxBytes: Int                  // 1 MiB
-    static let maxRecords: Int                // 4 096
-}
-
-// Manifest stavu (duplikace, viz riziko driftu).
-public enum StateManifestSchema { static func decode(_:), encode(_:), validate(_:) }
-public struct StateManifestDocument: Codable, Equatable, Sendable
-public struct ManifestZone, ManifestContainer, ManifestQuota, ManifestVolume,
-              ManifestRoot, ManifestRollback, ManifestHostControl, ManifestReadOnlyInput
-```
+Vstupní wire API jsou `HelperMessage.decode`, `HelperReply.decode`, `BrokerMessage.decode`,
+`BrokerContract.decode`, `NetworkPolicy.decode`, `AuditLog.decode` a `StateManifestSchema.decode`.
+Přímý `JSONDecoder` nad veřejnými `Codable` DTO **neprovádí** striktní preflight ani sémantickou
+validaci a nesmí být vstupem receiveru. `ContractError.code` je stabilní strojový důvod;
+`detail` je diagnostika, nikoli autorizační rozhodnutí.
 
 ## XPC obálka a zprávy helperu
 
-Obálka je jeden JSON objekt s **uzavřenou množinou klíčů** `version`, `kind`, `body`. `body` je
-base64 JSON dokument, který se dekóduje až podle `kind`. Pořadí kontrol je pevné:
+`XPCEnvelope` má přesně `version`, `kind`, `body`. Helper verze je **1**; jiná verze se odmítne.
+`body` je base64 JSON, nikoli shell příkaz nebo libovolný payload. Limit obálky je 72 KiB,
+surového těla 48 KiB. Encoder kontroluje skutečné výsledné bajty i base64 expanzi a používá
+`sortedKeys` + `withoutEscapingSlashes`.
 
-1. velikost vstupu (`input-too-large`, limit 72 KiB; surové tělo 48 KiB),
-2. JSON preflight: prázdný vstup, gramatika, trailing bytes, duplicitní klíč, hloubka > 16,
-   pole > 128 prvků (audit log si explicitně zvedá strop na `maxRecords`), řetězec > 4096 B
-   (base64 `body` obálky si zvedá strop na limit obálky),
-3. uzavřená množina klíčů obálky (`unknown-field`, `missing-field`),
-4. verze protokolu (`invalid-version`; jiná verze se neinterpretuje „best effort"),
-5. syntaxe `kind` a členství v množině zpráv (`unknown-message-kind`),
-6. uzavřená množina klíčů těla podle `kind`,
-7. typová dekce (`invalid-value`) a rozsahy (`invalid-range`),
-8. sémantická validace (`invalid-identifier`, `invalid-policy`).
+Pořadí: byte limit → striktní JSON preflight → uzavřené klíče obálky → verze → známý typ →
+uzavřené klíče a typy těla → rozsahy a sémantika. Preflight odmítá duplicitní dekódované klíče,
+trailing bytes, hloubku >16, pole >128 a řetězce >4096 UTF-8 B; obálka povoluje base64 řetězec do
+svého byte limitu. Celočíselná pole přijímají jen desetinné číslice, bez znaménka, tečky a exponentu,
+s přesným `UInt64` převodem, nikdy přes `Double`. Neznámá pole, typy i verze se odmítají.
 
-Množina zpráv v0 (`HelperMessageKind`): `helper.capabilities` (tělo musí být přesně `{}`),
-`zone.create`, `zone.start`, `zone.pause`, `zone.stop`, `zone.status`, `policy.apply`. Tělo bez
-deklarovaných klíčů je odmítnuto; neznámý `kind` se odmítá **před** čtením těla. Číselné rozsahy:
-`uid`/`gid` 501…`UInt32.max` (nula i přetečení jsou chyba), limity velikostí 1…8 MiB / 16 MiB.
-Celočíselná JSON pole přijímají pouze desetinné číslice bez znaménka, tečky a exponentu
-(`0` nebo `[1-9][0-9]*`). To platí i pro verze, limity, audit a manifest. Hodnoty se kontrolují
-z původního lexému přes přesný převod na `UInt64`, nikdy přes `Double`: například
-`501.00000000000000001`, `4294967295.0000001`, ale i `501.0` a `501e0` jsou `invalid-range`.
-Neplatná JSON gramatika (např. `01`) zůstává `invalid-json`.
-Kanonické kódování (`sortedKeys`) je deterministické; platné typované hodnoty se při round-tripu
-nezmění a opakované zakódování dává stejné bajty.
+| Kind / případ `HelperMessage` | Tělo |
+|---|---|
+| `helper.capabilities` / `capabilities` | Přesně `{}` |
+| `zone.create` / `createZone` | `CreateZoneRequest`: `zoneID`, návrhové `uid`, `gid` v 501…UInt32.max |
+| `zone.start/pause/resume/stop/status` | `ZoneRef`: jen `zoneID` |
+| `policy.apply` / `applyNetworkPolicy` | `ApplyNetworkPolicyRequest`: `zoneID`, validní `policy` stejné oblasti |
+| `zone.shell` / `shell` | `ShellRequest`: `zoneID`, `workingRootID`, `workingDirectory` |
+| `zone.run` / `run` | `RunRequest`: stejné tři položky + `executableRootID`, `executablePath`, `arguments` |
+| `zone.snapshot/rollback` | `SnapshotRequest`: `zoneID`, `snapshotID`, `rollbackUnitID` |
 
-Tělo se na drátě kóduje jako base64, takže jeho text má až 4/3 surových bajtů. Preflight proto pro
-`body` používá strop obálky, ale surový limit 48 KiB vynucuje `headerProblem()` až po dekódování.
-Hraniční testy ověřují tělo na `48 KiB − 1`, `48 KiB` a `48 KiB + 1`: první dvě se round-tripují,
-třetí je odmítnuto. Encoder obálky používá `withoutEscapingSlashes`, aby `/` v base64
-nezdvojnásobovalo počet bajtů, a před návratem ověřuje i konečný limit 72 KiB. Hraniční testy
-zahrnují také JSON s opakovaným U+FFFF, jehož base64 obsahuje mnoho lomítek.
+`zoneID` je přesně čtyřznakové lowercase ASCII `[a-z0-9]`. Root/snapshot/unit/execution IDs mají
+1…32 znaků `[a-z0-9-]`. Pracovní adresář je normalizovaná relativní cesta nebo `.`; executable
+je relativní soubor, nikdy `.`. Cesty mají nejvýše 1024 UTF-8 B, bez traversal, backslash a control
+znaků. `arguments` je doslovný argv vektor (max. 64 argumentů, každý 1024 B, celkem 32 KiB, bez NUL),
+ne parsovaný shell text. Shell používá konfiguraci oblasti, požadavek nevybírá host shell.
+Žádné pole nepřijímá caller UID, env, host path, bootstrap doménu nebo privilegovaný příznak.
 
-## Broker `broker-v0`
+**H3 mapování:** `sanjbox shell/run/pause/snapshot/rollback` používá příslušný kind výše; `resume`
+je explicitní protějšek pause. Receiver musí před operací ověřit host-only autorizaci, lifecycle,
+manifest root IDs a descriptor-relative rozlišení uvnitř autentizované oblasti. Run executable
+může být jen z manifestu oblasti nebo explicitního veřejného read-only vstupu. Textové ověření
+cesty neřeší symlinky/TOCTOU. Snapshot a rollback odkazují na **celou** manifestovou restore unit;
+helper musí ověřit její shodu, snapshot binding a whole-UID quiescence. B4
+[RECOVERY.md](../../spikes/s4-state/RECOVERY.md) určuje durable fáze obnovy; H1 nevytváří druhý journal.
 
-**Broker message set je záměrně prázdná podmnožina** budoucího brokeru: Broker/WP3.2 neexistuje,
-takže v0 fixuje jen verzovanou obálku a pravidla odmítnutí. `BrokerContract.acceptedKinds` je prázdná
-množina, `decode` tedy u každé dobře utvořené obálky skončí `unknown-message-kind`; chybná verze se
-hlásí jako `invalid-version` **dřív** než neznámý typ, aby se záměna verze nepletla s neimplementovanou
-zprávou. Až broker vznikne, rozšíří se `acceptedKinds` a volající místa zůstanou stejná.
+`HelperReply` používá stejnou obálku s kind `helper.reply` a uzavřené tělo
+`requestKind, zoneID?, outcome, executionID?, state?, errorCode?`:
+
+- Shell/run mají úspěch `accepted` a povinné `executionID`; je to přijetí operace, **nikoli exit status**.
+  H3 mock může ověřit admission; budoucí stdio/PTY adaptér musí použít tento zone-bound handle,
+  ne libovolný PID. Žádné skutečné spuštění ani streamování zde není.
+- Ostatní úspěchy jsou `completed`; pouze status vyžaduje `state`. Capabilities nemá zoneID,
+  všechny ostatní odpovědi jej vyžadují.
+- `failed` vyžaduje `errorCode` z `invalid-request|unauthorized|invalid-state|unavailable|operation-failed`
+  a zakazuje success data. Success zakazuje errorCode.
+- Po decode musí klient volat `reply.validate(for: request)` na XPC reply kanálu daného požadavku;
+  nesouhlas kind/zone je chyba. Požadavkový decoder odmítne reply kind a obráceně.
+
+## Broker `broker-v1`
+
+První neprázdný broker používá **verzi 1**; původní verze 0 se odmítá. `BrokerEnvelope` má stejné
+uzavřené klíče jako helper, ale limit **4096 B** obálky a **2048 B** surového těla. Oba encode/decode
+ověřují i tělo; `BrokerContract.decode` už nikdy nevrátí nezkontrolovaný payload.
+
+| Kind | Směr / přesné tělo |
+|---|---|
+| `broker.frame` | Session agent → host: `zoneID, streamID, sequence, width, height, surfaceAttachmentIndex` |
+| `broker.input.key` | Host controller → session agent: `zoneID, streamID, sequence, keyCode, action, modifiers` |
+| `broker.input.pointer` | Host controller → session agent: `zoneID, streamID, sequence, x, y, action, button` |
+
+Společné ID mají výše uvedená pravidla; `sequence` je 1…UInt64.max. Frame má šířku/výšku 1…8192,
+`surfaceAttachmentIndex` přesně **0**, odkaz na jediný **mimo JSON přenesený IOSurface Mach send right**.
+Není to globální IOSurface ID ani číselný název Mach portu. Key code je 0…127, action `down|up`,
+modifiers je pětibitová maska shift/control/option/command/caps-lock. Pointer x/y je 0…8191,
+action `move|down|up`; move vyžaduje button 0, down/up button 1 nebo 2 (primary/secondary).
+Scroll, text, clipboard, menu, obecné event blobs, PID, host path ani privilegované helper operace
+nejsou součástí této úzké podmnožiny a odmítají se. Další zprávy vyžadují explicitní rozšíření kontraktu.
+
+`message.validateDelivery(in: BrokerDeliveryContext)` vyžaduje důvěryhodný role/zone/stream binding,
+přesný počet příloh (frame 1, input 0), novější sekvenci pro daný stream a směr, shodu frame rozměrů
+s registrovaným streamem a pointer uvnitř jeho hranic. Kontext **nepochází ze zprávy**. Adaptér musí:
+
+1. autentizovat peer audit tokenem, podpisem a session, ověřit vlastnictví registrovaného streamu;
+2. ověřit skutečný typ/práva/rozměry/size přijaté Mach přílohy, nikoli jen počet;
+3. atomicky svázat kontrolu sekvence s jejím posunem a při odmítnutí uvolnit přijatá práva.
+
+Metadata, počet příloh ani mock kontext **nedokazují** autentizaci, existenci/platnost Mach práva,
+izolaci relací nebo doručení vstupu. Tyto části zůstávají A6/WP2/S2; testy zde dokazují pouze
+odmítnutí chybného kontextu a wire formátu. Runtime nesmí callerovi z oblasti zpřístupnit helper operace; samotné H1 decode není autorizace.
 
 ## Stavový automat oblasti
 
@@ -211,7 +167,7 @@ Stabilní formát `sanjbox.network-policy.v1` (`NetworkPolicy`, `Codable`, `sort
 Pravidla: uzavřená množina klíčů na všech úrovních (neznámé pole = `unknown-field`, chybějící
 povinné = `missing-field`); `defaultAction` jen `deny` (formát neumí „povolit zbytek");
 `type` z uzavřené množiny `npm|pypi|git|brew|model-api`; `upstream` je lowercase DNS jméno bez
-scheme, portu, cesty a wildcardu; `id` je plánovací identifikátor a v rámci politiky unikátní;
+scheme, portu, cesty, wildcardu a IP literálu (včetně zkrácených/octal/hex IPv4 zápisů); `id` je plánovací identifikátor a v rámci politiky unikátní;
 `methods` smí být jen u `model-api` a jen z `{GET, POST}`, jinde musí být prázdné; limity velikostí
 1…8 MiB (`requestBytesLimit`) a 1…16 MiB (`responseBytesLimit`); nejvýše 16 bran, dokument 16 KiB.
 Politika nenese žádný klíč, schválení ani credential a **není** důkaz vynucení ani bind policy.
@@ -235,54 +191,71 @@ Politika nenese žádný klíč, schválení ani credential a **není** důkaz v
   zakódovaných bajtů nepočítá. Hraniční testy pokrývají přesně 1 MiB / 1 MiB + 1 B při encode i decode,
   přesně 4 096 / 4 097 záznamů a odmítnutí 4 096 validních záznamů s 512 B `detail`.
 
-## Manifest stavu — duplikace schématu
+## Manifest stavu — shoda s B3
 
-`sanjbox.state-manifest.v1` **přebírá** `spikes/s4-state`, ale tamní typy `StateManifest` jsou
-`internal`, a proto balík schéma **duplikuje** (typy `StateManifestDocument` a `Manifest*`
-odpovídají `spikes/s4-state/SCHEMA.md`). Do `spikes/s4-state/` se nesahá.
+`StateManifestDocument` a `Manifest*` reprezentují `sanjbox.state-manifest.v1` ze
+[SCHEMA.md](../../spikes/s4-state/SCHEMA.md). B3 typy jsou internal; H1 proto zůstává izolovanou
+kopií schématu. B3 soubory se nemění, žádná runtime package dependency se nepřidává.
 
-> **Duplikace schématu, drift riziko.** Konsolidace (společný balík, ze kterého by čerpal spike i
-> `proto/`) patří do samostatného balíku s review. Do té doby platí: změna ve `spikes/s4-state/SCHEMA.md`
-> musí být zrcadlena sem a naopak, jinak se obě schémata rozejdou.
+`StateManifestSchema.report(document)` vrací **úplný B3 report**: `consistentDesign`,
+`requiredRolesDeclared`, všechny `findings` s `severity/code/location/explanation`, `plannedRoots`,
+`plannedVolumes`, `containerBudgets` a explicitní nezměřený stav/požadované další důkazy.
+`ManifestValidation.swift` přebírá celou sémantiku B3, včetně:
 
-Decoding je striktní (uzavřené klíče, duplicitní klíč, přetečení čísel) a validace je **záměrně
-podmnožina** B3 validátoru ve spiku: kontroluje jen offline strukturální pravidla (schema/intent/phase,
-tvary identifikátorů, kolekce, kvóty a rezervy, role kořenů, prefix layout, rollback jednotku, host
-control, read-only vstupy, přetečení součtů). Nic nemountuje, nic neměří a nevydává se za deployment.
-Kapacity `planningBudgetBytes`, `limitBytes` a `reserveBytes` zachovávají celý rozsah `UInt64`
-ze zdrojového schématu B3, včetně hodnot nad `2^53` a `UInt64.max`; kladnost/null pravidla zůstávají
-stejná. Validace, encode a decode mají shodné rozsahy. Součty rezerv i konečných kvót se kontrolují
-proti přetečení `UInt64` bez zaokrouhlení, saturace nebo wrapu.
+- nepoužitých kontejnerů/svazků, všech referencí, rolí, runtime fáze a celé restore unit;
+- host control owner odlišného od UID oblasti, mode, policy/recovery jmen a vyloučení z obnovy;
+- 1024 B limitu jednotlivých **i sestavených** cest, Unicode control znaků, case/normalization aliasů,
+  překryvů mountů/kořenů/read-only vstupů a známých absolutních host aliasů;
+- přesných UInt64 kapacit, overflow, reserve/budget vztahů a chybějících/duplicitních UUID;
+- warning `quota-unverified`, `container-budget-unresolved`, `quotas-oversubscribed`,
+  `multi-volume-recovery`. Varování se neztrácejí ani se nepřeklasifikují na error.
 
-Z B3 validátoru jsou navíc převzatá tato pravidla a mají negativní testy:
+`validate`, `encode` a `decode` odmítnou každou sémantickou error finding; warning samotný zůstává
+platným **návrhem**, nikoli ověřenou kapacitou nebo deployem. Původní `ContractError` slovník je
+zachován; podrobný kód B3 a severity jsou v reportu, nikoli v obecném `invalid-value`.
+Wire decoding je navíc přísný na pole, velikosti a celočíselný zápis; jeho dřívější odmítnutí některých
+neplatných dokumentů není změnou sémantiky B3. Report nad typovanou hodnotou může zobrazit více
+chyb najednou. Encode kontroluje 256 KiB konečných bajtů a wire shape stejně jako decode.
 
-- párový překryv `volumes[].mountPoint` (rovnost, case/Unicode alias i vnoření),
-- disjunktnost plánovaných cest `roots` (`mountPoint` + `relativePath`, case/Unicode folded),
-- case/Unicode folding všech porovnávaných cest,
-- odmítnutí absolutních hostitelských aliasů `/tmp`, `/var`, `/etc`, `/System/Volumes/Data`
-  (a jejich podcest) jako mountpointu, control adresáře nebo read-only vstupu.
+**Executable parity oracle:** [tools/test_manifest_parity.py](tools/test_manifest_parity.py) zkompiluje
+aktuální `Manifest.swift`, `Paths.swift`, `Validation.swift` z B3 a aktuální H1 do dvou nezávislých
+čistých programů. Na 140 syntetických případech porovná **celý JSON report**, včetně závažnosti,
+textů, odvozených cest/svazků/rozpočtů, a připíná pokrytí všech 48 B3 finding kódů. Nevyužívá
+zlatou kopii B3 výsledků, proto zachytí i budoucí drift originálu. Změny B3/H1 se musí koordinovat;
+parity test je povinný před sloučením změny manifestu a `B3ParityTests` jej spouští i v běžném Swift test targetu/CI.
+[CI výběr balíků](../../docs/CI.md) vybírá H1 také při B3-only změně zdrojů, příkladů nebo SCHEMA.md;
+tato testovací vazba nepřidává runtime package dependency. H1 Swift testy navíc ověřují odmítnutí
+nových chyb všemi admission API a přijetí návrhů s varováními.
 
-Záměrně vynechaná pravidla B3 (proto je tento balík **nevynucuje**; doplnění patří do konsolidačního
-balíku s review): `unused-container` a `unused-volume`, `hostControl.ownerUID != zone.uid`,
-kombinovaný limit 1024 B pro `mountPoint` + `relativePath`, varování `quota-unverified`,
-`container-budget-unresolved`, `quotas-oversubscribed` a `multi-volume-recovery`, plnění
-`plannedRoots`/`plannedVolumes` a rozlišení severity error/warning. Duplicitní UUID se nadále
-odmítá bez ohledu na case (kanonická podoba `UUID`).
+## Předání navazujícím balíkům
 
-## Co tento balík nedokazuje
+- **H2:** použije existující lifecycle automat, report/manifest, audit a B4 recovery kontrakt;
+  globální UID allocator, durable operace, start admission a mock systémových efektů jsou jeho práce.
+- **H3:** příkaz/reply mapování výše je jediné H1 schéma; žádné lokální alternativní wire DTO.
+  Žádný úspěšný decode nepovoluje spustit příkaz pod host UID. Skutečná stdio/PTY vrstva není implementovaná.
+- **H4:** `NetworkPolicy`/`TypedGate` formát, metody a limity se nerozšiřují. H4 musí výslovně dodat
+  chybějící cooldown, artifact origins, repo/push scope, rate/budget a další konfiguraci uvedenou v
+  [jeho README](../gateway/README.md#draft-politiky-a-mezera-vůči-h1), nebo konfiguraci odmítnout;
+  nesmí odvodit neomezené oprávnění z hostname. Převod do H4 není součást H1 a není tímto dokončen.
+- **A6:** fuzzer může přímo volat helper/reply/broker decode a trusted-context check; prefix helper
+  a broker verze jsou nezávislé. Živá host-only autorizace, podpisy a Mach rights nejsou zde ověřené.
+- **H6:** audit formát zůstává stabilní; stejné záznamy/protokoly nepředstavují laboratorní pass.
 
-- Žádnou bránu (S0–S8) a žádný požadavek R1–R8. Kontrakty v0 se mohou po F1 změnit.
-- Žádné skutečné XPC, podpis, audit token, sandbox, `pf`, APFS ani síťové vynucení.
-- Žádnou ochranu proti útočníkovi, který umí obejít volající kód; to je práce WP2.1 a WP2.4.
-- Duplicitní schéma manifestu není náhrada `spikes/s4-state` ani jeho testovací sady.
-
-## Brány balíku
+## Ověření a hranice
 
 ```sh
 swift build --package-path proto/contracts -c debug
-swift build --package-path proto/contracts -c release
-swift test  --package-path proto/contracts -c release --scratch-path /private/tmp/h1-contracts-test
-/usr/bin/python3 -m unittest discover -s tools/tests
+swift test --package-path proto/contracts -c release --scratch-path /private/tmp/h1-contracts-test
+python3 proto/contracts/tools/test_manifest_parity.py
 ```
 
-Testy jsou mocky: fixtures jsou syntetické dokumenty v paměti, nic se nečte z hostitele.
+Swift unit testy používají paměťové fixtures. `B3ParityTests` vyžaduje checkout tohoto repozitáře
+a `/usr/bin/python3` + Swift compiler; samotná knihovna zůstává samostatně sestavitelná.
+Parity harness čte pouze zdroje a dva checked-in
+syntetické příklady B3, kompiluje ve vlastním novém `/private/tmp/sanjbox-h1-parity-*` adresáři a po
+běhu jej odstraní; nic nečte z cest deklarovaných manifestem. Nespouští B3 CLI ani identity sondy.
+
+Žádné skutečné XPC, audit token/signature/session ověření, Mach rights, UID/process isolation,
+APFS, snapshot/rollback, síťové vynucení ani stdio/PTY nebyly otestovány. `deploymentReady` zůstává
+false, všechny brány a R1–R8 zůstávají Neověřeno. Runtime fail-closed vlastnosti musí prokázat
+navazující implementace a laboratoř; zelené offline testy je nenahrazují.
