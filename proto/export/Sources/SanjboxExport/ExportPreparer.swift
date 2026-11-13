@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-/// Fáze 1 a 2: selekce a preview. Nikdy nezapisuje — ani do kořene, ani do cíle.
+/// Fáze 1 a 2: selekce a preview nemění zdroj ani cíl. Explicitní auditní sink může zapisovat.
 ///
 /// Vstupem je explicitní seznam relativních cest. Žádný průchod adresářem: co není
 /// vyjmenované, se neexportuje. Každá cesta se vyhodnotí samostatně a odmítnutí

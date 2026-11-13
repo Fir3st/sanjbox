@@ -16,7 +16,7 @@ a znovu ověří proti prošlým branám.
 | Fáze | Rozhraní | Chování |
 |---|---|---|
 | 1. selekce | `ExportPreparer` | Explicitní seznam relativních cest. Žádný průchod adresářem: co není vyjmenované, se neexportuje. Stejná identita `(dev, inode)` se sloučí; kolize cílových jmen se odmítne. |
-| 2. preview | `ExportPlan` | Strukturovaný popis (cesta, velikost, SHA-256, mode, rozhodnutí, důvod). **Nikdy nezapisuje.** |
+| 2. preview | `ExportPlan` | Strukturovaný popis (cesta, velikost, SHA-256, mode, rozhodnutí, důvod). Zdroj a cíl nemění; explicitně předaný auditní sink může zapisovat. CLI dry-run na disk nezapisuje. |
 | 3. kopie | `ExportCopier` | `openat` + `O_NOFOLLOW` + `fstat` na fd, kontrola metadat i SHA-256 proti preview, nový cílový strom. |
 | 4. karanténa | `QuarantineWriter` | `com.apple.quarantine` na fd **prázdného** výsledku hned po `O_CREAT|O_EXCL`, pak zápis obsahu, na konci jen re-verify. Selhání = **chyba**, žádný fallback. |
 | 5. audit | `FileAuditSink` / `RecordingAuditSink` | Append-only JSON Lines: jeden záznam na řádek, `fsync` po každém. Dokončené záznamy zůstanou po pádu procesu; nejde o transakci celé kopie. |

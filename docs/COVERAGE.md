@@ -329,7 +329,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.H2 | Životní cyklus (prototyp) | | ⬜ | `proto/lifecycle/`; po H1 |
 | WP1.H3 | CLI (prototyp) | | ⬜ | `proto/cli/`; po H1 |
 | WP1.H4 | Brána jako služba (prototyp) | | ⬜ | `proto/gateway/` |
-| WP1.H5 | Řízený export (prototyp) | Codex | 🟨 | [Prototyp a hranice důvěry](../proto/export/README.md): výběr, preview, kopie, karanténa a audit; dokončuje se lokální Debug/Release ověření PR #53. Bez důkazu brány nebo reálné oblasti. |
+| WP1.H5 | Řízený export (prototyp) | Codex | ✅ | [Prototyp](../proto/export/README.md): výběr, preview, kopie, karanténa a audit; [validace](../proto/export/VALIDATION.md) 80 testů v Debug i Release a 9 CLI scénářů v každém sestavení. Bez důkazu brány či izolace; reálné UID/ACL a konsolidace auditu čekají na WP2.11. |
 | WP1.H6 | Harness únikových testů (prototyp) | | ⬜ | `proto/escape/`; po H1 |
 | WP2.0 | Kontrakty | | ⬜ | čeká na vstup F2 |
 | WP2.1 | Helper | | ⬜ | |
