@@ -35,7 +35,10 @@ Binárky leží ve složce, kterou vypíše `swift build --show-bin-path`.
 sanjbox-whoami [--expect FILE] [--log FILE] [--case ID]
 ```
 
-Vypíše JSON `{context, mismatches, valid}`. Bez `--expect` je `valid` `null` (kontext se jen zaznamená).
+Vypíše JSON s kontextem a neshodami. Bez `--expect` je výsledek nevyhodnocený (`valid == nil`, pole
+`valid` se v JSON vynechá): exit `0`, při `--log` outcome `unclear`. Shoda s `--expect` znamená
+`valid: true`, `passed`, exit `0`; neshoda `valid: false`, `invalidMeasurement`, exit `3`.
+Úspěšná diagnostika bez očekávání nepotvrzuje platnost měření. [Regresní ověření](WHOAMI-OUTCOME-VALIDATION.md).
 
 Příklad očekávání pro sondu v oblasti (hodnoty určí běh S1, tady jsou jen ilustrační):
 
