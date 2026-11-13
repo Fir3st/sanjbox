@@ -222,7 +222,9 @@ aktuální `Manifest.swift`, `Paths.swift`, `Validation.swift` z B3 a aktuální
 čistých programů. Na 140 syntetických případech porovná **celý JSON report**, včetně závažnosti,
 textů, odvozených cest/svazků/rozpočtů, a připíná pokrytí všech 48 B3 finding kódů. Nevyužívá
 zlatou kopii B3 výsledků, proto zachytí i budoucí drift originálu. Změny B3/H1 se musí koordinovat;
-parity test je povinný před sloučením změny manifestu a `B3ParityTests` jej spouští i v běžném Swift test targetu/CI. H1 Swift testy navíc ověřují odmítnutí
+parity test je povinný před sloučením změny manifestu a `B3ParityTests` jej spouští i v běžném Swift test targetu/CI.
+[CI výběr balíků](../../docs/CI.md) vybírá H1 také při B3-only změně zdrojů, příkladů nebo SCHEMA.md;
+tato testovací vazba nepřidává runtime package dependency. H1 Swift testy navíc ověřují odmítnutí
 nových chyb všemi admission API a přijetí návrhů s varováními.
 
 ## Předání navazujícím balíkům

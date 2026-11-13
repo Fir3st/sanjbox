@@ -33,6 +33,14 @@ Nový commit zruší starší běh stejného PR.
 **Výběr balíků.** Pull request sestaví a otestuje jen Swift balíky, ve kterých mění soubory, a balíky,
 které na nich přes `.package(path:)` závisejí (změna `spikes/common` tedy spustí téměř všechny).
 Soubor patří nejhlubšímu balíku, ve kterém leží (`spikes/s3-pf/ingress` je samostatný balík).
+Výslovná testovací vazba navíc vybírá `proto/contracts` při změně pod
+`spikes/s4-state/Sources/`, pod `spikes/s4-state/examples/` nebo v `spikes/s4-state/SCHEMA.md`.
+H1 tak spustí svůj source-backed B3 parity test v debug i release i pro B3-only PR; případní
+SwiftPM dependenti H1 se přidají stejným průchodem grafu. Nejde o runtime `.package(path:)` hranu.
+Diff používá `--no-renames`, takže smazání nebo přejmenování zdroje mimo původní adresář neztratí
+původní B3 cestu. Chybějící H1 balík při takové změně je chyba discovery, nikoli tiché přeskočení.
+Regrese [test_ci_selection.py](../tools/tests/test_ci_selection.py) vykonává skutečný Python blok
+z workflow nad syntetickými Git výstupy a manifesty; nekopíruje selekční algoritmus do testu.
 Změna pod `.github/` spustí všechny balíky. Pull request bez změny Swift balíku (např. dokumentace)
 Swift joby přeskočí a `CI required` toto přeskočení přijme. Push do `main`, `merge_group` a ruční
 spuštění testují vždy všechny balíky, takže `main` zůstává ověřený celý.

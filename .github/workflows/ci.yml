@@ -65,18 +65,25 @@ jobs:
           selected, reason = set(packages), f"{os.environ['EVENT']}: every package"
           parents = git("rev-list", "--parents", "-n", "1", "HEAD").split()
           if os.environ["EVENT"] == "pull_request" and len(parents) == 3:
-              changed = [path for path in git("diff", "--name-only", "HEAD^1", "HEAD").splitlines() if path]
+              changed = [path for path in git("diff", "--no-renames", "--name-only", "HEAD^1", "HEAD").splitlines() if path]
               if any(path.startswith(".github/") for path in changed):
                   reason = "pull request changes CI: every package"
               else:
                   owners = {max((p for p in packages if path.startswith(p + "/")), key=len, default=None) for path in changed}
                   selected, pending = set(), [owner for owner in owners if owner]
+                  # H1 compiles B3 sources/examples as an independent parity oracle. This is a
+                  # test-only dependency, deliberately absent from SwiftPM's runtime graph.
+                  if any(path.startswith(("spikes/s4-state/Sources/", "spikes/s4-state/examples/"))
+                         or path == "spikes/s4-state/SCHEMA.md" for path in changed):
+                      if "proto/contracts" not in dependents:
+                          raise SystemExit("B3 changes require the proto/contracts parity test package")
+                      pending.append("proto/contracts")
                   while pending:
                       package = pending.pop()
                       if package not in selected:
                           selected.add(package)
                           pending.extend(dependents[package])
-                  reason = f"pull request changes {len(changed)} files: affected packages and their dependents"
+                  reason = f"pull request changes {len(changed)} files: affected packages, parity consumers and their dependents"
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
               output.write("matrix=" + json.dumps({"package": sorted(selected)}) + "\n")
               output.write(f"run={'true' if selected else 'false'}\n")
