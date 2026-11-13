@@ -13,7 +13,7 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-13 (sloučené PR #52–#71; aktuální priority a podmínky dokončení
+Poslední aktualizace: 2026-11-13 (sloučené PR #52–#73; H2 dokončeno v PR #74; aktuální priority a podmínky dokončení
 v [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál)). F0.7/C-003 a F0.8/LAB-v1 jsou rozhodnuté
 podle [DECISIONS](DECISIONS.md); Docker start/stop zbývá před S7. Žádná brána ani akceptační případ neprošly.
 
@@ -32,7 +32,7 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 5 | 0 | 0 | 0 |
-| F1 | 36 | 17 | 7 | 12 | 0 |
+| F1 | 36 | 19 | 6 | 11 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
@@ -327,7 +327,7 @@ Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní
 | WP1.G2 | S7 příprava | janfiedler / Codex + Astra | 🟨 | [Částečná offline příprava](../spikes/s7-docker/README.md): bounded manifest/planner, 64 scénářů × 3 oblasti, syntetické oracle, registry/toy-frame mocky a vlastní fixture cleanup; 63 native Python tests ([validace](../spikes/s7-docker/VALIDATION.md)). Zmrazeno podle [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál): runtime/VM/Engine/bridge a S5 integrace chybí; z F0.8 čeká Docker start/stop budget, S7/DK-01…10 Neověřeno, mimo MVP. |
 | WP1.G3 | S7 běh (L8) | uživatel + impl. | ⬜ | |
 | WP1.H1 | Kontrakty v0 (prototyp) | janfiedler / Pi (agent); předání Codex + Astra 2026-11-13 | ✅ | [Dokončené kontrakty](../proto/contracts/README.md): úzký broker v1, helper příkazy/odpovědi pro H3, úplná pravidla a report B3, lifecycle, síť a audit. [Validace](../proto/contracts/VALIDATION.md): 125 Swift testů v debug/release, source parity 140 případů / 48 B3 kódů i pro B3-only CI a 94 repo testů po opravách review; runtime integrace a všechny brány Neověřeno. |
-| WP1.H2 | Životní cyklus (prototyp) | janfiedler / Codex + Astra | ✅ | [Lifecycle nad H1](../proto/lifecycle/README.md): mock uživatel/svazky/bootstrap/celé UID, trvalý globální deník, konzervativní obnova a přidělování UID mezi oblastmi. [Validace](../proto/lifecycle/VALIDATION.md): 37 testů Debug/Release, 116 procesních crash hranic, všechny H1 recovery body a LC-06/LC-11 v mocku; skutečné OS admission, lifecycle a brány zůstávají Neověřeno. |
+| WP1.H2 | Životní cyklus (prototyp) | janfiedler / Codex + Astra | ✅ | [Lifecycle nad H1](../proto/lifecycle/README.md): mock uživatel/svazky/bootstrap/celé UID, trvalý globální deník, konzervativní obnova a přidělování UID mezi oblastmi. [Validace](../proto/lifecycle/VALIDATION.md): 37 testů v Debug i Release, v každém sestavení 116 procesních crash hranic přes 24 kroků, všechny H1 recovery body a LC-06/LC-11 v mocku; nativní OS admission, lifecycle a reboot čekají na WP2.2/lab, brány zůstávají Neověřeno. |
 | WP1.H3 | CLI (prototyp) | | ⬜ | `proto/cli/`; po H1 |
 | WP1.H4 | Brána jako služba (prototyp) | janfiedler / Codex + Astra | 🟨 rozpracováno | [Složení npm/PyPI/git/model](../proto/gateway/README.md), striktní draft, mock klíč, bounded loopback a audit; [ověření](../proto/gateway/VALIDATION.md) zahrnuje skutečné lokální sockety/CLI. Chybí ověřený převod H1 NetworkPolicy/TypedGate a jejich limitů do draftu; identita klienta, produkční integrace a S5/GW zůstávají Neověřeno. |
 | WP1.H5 | Řízený export (prototyp) | Codex | ✅ | [Prototyp](../proto/export/README.md): výběr, preview, kopie, karanténa a audit; [validace](../proto/export/VALIDATION.md) 80 testů v Debug i Release a 9 CLI scénářů v každém sestavení. Bez důkazu brány či izolace; reálné UID/ACL a konsolidace auditu čekají na WP2.11. |

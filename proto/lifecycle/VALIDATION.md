@@ -2,7 +2,8 @@
 
 Datum: **2026-11-13**. Základ `main`: `6c80c8f378c8658b4d80abde061dcb32a744cb8d` (H1 po PR #73).
 Implementace: `1d9917f`; finální zdroj a testy: **`ba306985cae3e41d3deae0fe9117f7e3fd0fd562`**.
-Dokumentační commit přidává tento záznam a mění pouze H2 řádek COVERAGE.
+Původní dokumentační commit `98736fe` přidal tento záznam a změnil pouze H2 řádek COVERAGE;
+navazující review a předání plánu jsou zaznamenané níže.
 
 **Výsledek je mock/offline příprava H2.** Žádný skutečný uživatel, svazek, launchd job, proces oblasti,
 síť, systémové nastavení ani TCC nebyly vytvořeny či změněny. Jediné procesy jsou build/test runner
@@ -69,3 +70,44 @@ adresáře `sanjbox-h2-build`, `sanjbox-h2-fast`, `sanjbox-h2-release` byly po v
 
 Závěrečné potvrzení nezávislého review a CI jsou samostatné kontroly PR; tato poznámka jejich výsledek nepředjímá.
 Provozní hranice a neimplementované nativní adaptéry jsou výslovně popsány v [README](README.md).
+
+## Nezávislé review PR #74 — 2026-11-13
+
+Na žádost vlastníka proběhla další nezávislá kontrola celého diffu
+`6c80c8f378c8658b4d80abde061dcb32a744cb8d…98736fed0cd340e5cf8adaf5fbfd4ae2a2912048`:
+zdroje, testové oracle, vazba na H1 a rozsah PLAN/IMPLEMENTATION. Po opravě named-lock bindingu
+z `ba30698` nebyl nalezen další problém P0–P2; zdroje ani testy se při tomto review neměnily.
+Ověřena byla rezervace před efektem, replay přechodů a auditu, fail-closed pending intent/drift,
+uvolnění UID až při potvrzeném cleanup, vazba locku i meze syntetického backendu.
+
+Na stejném macOS/Swift prostředí jako výše byly nezávisle znovu spuštěny:
+
+| Kontrola | Výsledek |
+|---|---|
+| Všechny produkty Debug/Release | Sestaveny bez varování |
+| XCTest Debug | **37/37**, 0 failures, 63,49 s |
+| XCTest Release | **37/37**, 0 failures, 45,42 s |
+| Matice obnovy v každém sestavení | **116** skutečných ukončení workeru přes **24** kroků a fresh-store recovery; všech **9** H1 bodů a cross-zone LC-06/LC-11 scénáře |
+| Repo `tools/tests` | **94/94**, 38,74 s; včetně CI selection, status generátoru, evidence a watchdogu |
+| Generátor stavu nad upravenou dokumentací | **24/63** hotových balíků, **0/155** prošlých akceptací; F1 **19/6/11** |
+| Kontrola dokumentace | Lokální odkazy existují; vlastníci a všechny ostatní řádky balíků, požadavky, brány a akceptační případy beze změny; `git diff --check` prošel |
+
+```sh
+swift build --package-path proto/lifecycle --scratch-path /private/tmp/sanjbox-pr74-review-build -c debug
+swift test --package-path proto/lifecycle --scratch-path /private/tmp/sanjbox-pr74-review-build -c debug
+swift build --package-path proto/lifecycle --scratch-path /private/tmp/sanjbox-pr74-review-build -c release
+swift test --package-path proto/lifecycle --scratch-path /private/tmp/sanjbox-pr74-review-build -c release
+python3 -B -m unittest discover -s tools/tests -v
+python3 -I -B tools/progress.py --out /private/tmp/sanjbox-pr74-review-progress --history-ref origin/main --repository Fir3st/sanjbox
+git diff --check
+```
+
+První lokální sandboxové pokusy nebyly platným výsledkem těchto sad: Swift nemohl zapsat module
+cache, Python `-I` vyloučil repo import `tools` a sandbox zakázal watchdogu `/bin/ps`. Výsledky v tabulce
+pocházejí z následného úplného běhu se správným importem a běžnými oprávněními, bez změny zdrojů.
+
+Dokumentační follow-up opravuje souhrn COVERAGE a [IMPLEMENTATION §0](../../docs/IMPLEMENTATION.md#0-co-dál):
+H2 je dokončený offline balík, H3 první volná práce a H6 paralelní možnost; H4/A2/A3/A6 zachovávají
+vlastníky. H3 dostává konkrétní H1 wire/reply kontroly, H6 úplný katalog 155 případů. Provozní důkazy
+admission, whole-UID a crash/reboot zůstávají v S0/S4/labu, produkční integrace ve WP2.2 po vstupu F2.
+Toto review ani zelené testy neuzavírají žádnou bránu; konečný CI a merge ověřuje vlastník PR.
