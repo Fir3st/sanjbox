@@ -2,8 +2,8 @@ import Darwin
 import Foundation
 
 /// Kontrola umístění cílového stromu. Cílový strom uvnitř zdrojového kořene by
-/// znamenal zápis do zdroje, který se právě exportuje; proto se odmítá ještě před
-/// jakýmkoli zápisem.
+/// znamenal zápis do zdroje. Jde jen o časnou diagnostiku cest; autoritativní kontrola
+/// před zápisem používá `DestinationParent.requireOutside` nad připnutými fd.
 public enum ExportPathPolicy {
     /// Kanonická absolutní cesta podle `realpath` existujícího předka.
     /// `..` se nesmí odstranit před vyhodnocením symlinků: `alias/..` je rodič

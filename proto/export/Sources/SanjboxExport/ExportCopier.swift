@@ -51,7 +51,10 @@ public struct ExportResult: Codable, Sendable, Equatable {
 /// - cílový soubor vzniká `O_CREAT|O_EXCL`, takže nikdy nepřepíše existující soubor,
 /// - karanténa se nastaví na fd prázdného souboru hned po vytvoření, obsah se pak zapíše
 ///   a na konci se karanténa jen znovu ověří; selhání = `quarantineFailed`,
-/// - selhání uprostřed kopie odstraní částečný cílový soubor.
+/// - selhání kopie nebo auditu uklidí aktuální soubor, pokud jeho jméno stále odpovídá fd.
+///
+/// Volající musí zajistit soukromý a stabilní cílový prostor. Kontroly fd nejsou atomická
+/// obrana proti aktérovi, který smí přesouvat připnuté rodiče nebo nahrazovat jejich obsah.
 ///
 /// Co prototyp **nedělá**: nekopíruje ACL, rozšířené atributy kromě karantény, vlastníka ani
 /// časové značky. Neuklízí částečný cílový strom po chybě (volající ho smaže sám, protože
@@ -117,8 +120,12 @@ public struct ExportCopier: Sendable {
         }
         defer { close(rootFD) }
 
-        let destinationFD = try createDestinationRoot(destinationRoot)
-        defer { close(destinationFD) }
+        guard try DirectoryIdentity.read(rootFD) == plan.rootIdentity else {
+            throw ExportError.invalidRoot(path: plan.root, errno: ESTALE)
+        }
+        let destinationParent = try DestinationParent(path: destinationRoot)
+        try destinationParent.requireOutside(rootFD: rootFD, rootPath: plan.root)
+        let destination = try DestinationTree(parent: destinationParent)
 
         var copied: [CopiedFile] = []
         copied.reserveCapacity(plan.accepted.count)
@@ -135,45 +142,15 @@ public struct ExportCopier: Sendable {
                 parsed: parsed,
                 expected: expected,
                 rootFD: rootFD,
-                destinationFD: destinationFD,
-                destinationRoot: destinationRoot
+                destination: destination,
+                destinationRoot: destinationRoot,
+                audit: audit,
+                sequence: index
             )
             copied.append(file)
-            try audit?.append(
-                AuditRecord(
-                    phase: .copy,
-                    sequence: index,
-                    candidate: candidate,
-                    destination: file.relativePath,
-                    bytesCopied: file.bytesCopied
-                )
-            )
         }
 
         return ExportResult(destinationRoot: destinationRoot, copied: copied)
-    }
-
-    private func createDestinationRoot(_ path: String) throws -> Int32 {
-        let created = path.withCString { mkdir($0, 0o700) }
-        guard created == 0 else {
-            let code = errno
-            if code == EEXIST {
-                throw ExportError.destinationExists(path: path)
-            }
-            throw ExportError.destinationInvalid(path: path, errno: code)
-        }
-        let fd = path.withCString { open($0, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC) }
-        guard fd >= 0 else {
-            let code = errno
-            throw ExportError.destinationInvalid(path: path, errno: code)
-        }
-        var status = stat()
-        guard fstat(fd, &status) == 0, FileKind(mode: status.st_mode) == .directory else {
-            let code = errno
-            close(fd)
-            throw ExportError.destinationInvalid(path: path, errno: code)
-        }
-        return fd
     }
 
     private func copyOne(
@@ -181,8 +158,10 @@ public struct ExportCopier: Sendable {
         parsed: RelativePath,
         expected: FileSnapshot,
         rootFD: Int32,
-        destinationFD: Int32,
-        destinationRoot: String
+        destination: DestinationTree,
+        destinationRoot: String,
+        audit: (any AuditSink)?,
+        sequence: Int
     ) throws -> CopiedFile {
         let chain: (opened: [Int32], name: String)
         switch SafePath.openDirectoryChain(rootFD: rootFD, components: parsed.components) {
@@ -216,18 +195,14 @@ public struct ExportCopier: Sendable {
             throw ExportError.identityMismatch(path: candidate.relativePath, expected: expected, actual: actual)
         }
 
-        let destChain = try openDestinationDirectories(
-            destinationFD: destinationFD,
-            components: Array(parsed.components.prefix(max(parsed.components.count - 1, 0))),
+        let destParentFD = try destination.directory(
+            components: Array(parsed.components.dropLast()),
             relativePath: candidate.relativePath
         )
-        // Zavíráme všechny otevřené mezilehlé adresáře, jinak by každý soubor prosakoval fd.
-        defer { for fd in destChain.opened.reversed() { close(fd) } }
-        let destParentFD = destChain.deepest
 
         let destinationPath = destinationRoot + "/" + parsed.path
         let flags = O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC
-        let destFD = chain.name.withCString { openat(destParentFD, $0, flags, mode_t(expected.mode)) }
+        let destFD = chain.name.withCString { openat(destParentFD, $0, flags, mode_t(0o600)) }
         guard destFD >= 0 else {
             let code = errno
             if code == EEXIST {
@@ -240,8 +215,15 @@ public struct ExportCopier: Sendable {
         var completed = false
         defer {
             if !completed {
-                // Selhání kteréhokoli kroku po vytvoření nesmí nechat částečný soubor v cíli.
-                _ = chain.name.withCString { unlinkat(destParentFD, $0, 0) }
+                // Úklid pouze vlastního inode; známou náhradu pod stejným jménem nemažeme.
+                // Předpoklad stabilního cílového prostoru viz dokumentace typu.
+                var linked = stat()
+                var opened = stat()
+                if fstat(destFD, &opened) == 0,
+                   fstatat(destParentFD, chain.name, &linked, AT_SYMLINK_NOFOLLOW) == 0,
+                   linked.st_dev == opened.st_dev, linked.st_ino == opened.st_ino {
+                    _ = unlinkat(destParentFD, chain.name, 0)
+                }
             }
         }
 
@@ -295,6 +277,14 @@ public struct ExportCopier: Sendable {
             throw ExportError.io(path: destinationPath, operation: "verify-destination-size", errno: EINVAL)
         }
 
+        _ = try destination.directory(components: Array(parsed.components.dropLast()), relativePath: candidate.relativePath)
+        var linked = stat()
+        guard fstatat(destParentFD, chain.name, &linked, AT_SYMLINK_NOFOLLOW) == 0,
+              linked.st_dev == destStatus.st_dev, linked.st_ino == destStatus.st_ino else {
+            throw ExportError.io(path: destinationPath, operation: "destination-file-changed", errno: ESTALE)
+        }
+        try audit?.append(AuditRecord(phase: .copy, sequence: sequence, candidate: candidate,
+                                      destination: candidate.relativePath, bytesCopied: copy.bytes))
         completed = true
         return CopiedFile(
             relativePath: candidate.relativePath,
@@ -303,35 +293,6 @@ public struct ExportCopier: Sendable {
             snapshot: expected,
             quarantineValue: configuration.quarantineValue
         )
-    }
-
-    /// Vytvoří mezilehlé adresáře v novém cílovém stromu a vrátí fd nejhlubšího z nich
-    /// spolu se seznamem fd k zavření. Cílový strom je nový, takže `EEXIST` znamená kolizi.
-    private func openDestinationDirectories(
-        destinationFD: Int32,
-        components: [String],
-        relativePath: String
-    ) throws -> (deepest: Int32, opened: [Int32]) {
-        var currentFD = destinationFD
-        var opened: [Int32] = []
-        for component in components {
-            let created = component.withCString { mkdirat(currentFD, $0, 0o700) }
-            if created != 0 && errno != EEXIST {
-                for fd in opened.reversed() { close(fd) }
-                throw ExportError.io(path: relativePath, operation: "mkdirat \(component)", errno: errno)
-            }
-            let fd = component.withCString {
-                openat(currentFD, $0, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
-            }
-            guard fd >= 0 else {
-                let code = errno
-                for openFD in opened.reversed() { close(openFD) }
-                throw ExportError.io(path: relativePath, operation: "openat-destination \(component)", errno: code)
-            }
-            opened.append(fd)
-            currentFD = fd
-        }
-        return (currentFD, opened)
     }
 
     private func applyQuarantine(fileDescriptor fd: Int32, destinationPath: String) throws {
@@ -395,7 +356,7 @@ public struct ExportCopier: Sendable {
                 } catch {
                     throw ExportError.io(path: path, operation: "write", errno: EIO)
                 }
-                guard written > 0 else {
+                guard written > 0, written <= readCount - offset else {
                     throw ExportError.io(path: path, operation: "write", errno: EIO)
                 }
                 offset += written

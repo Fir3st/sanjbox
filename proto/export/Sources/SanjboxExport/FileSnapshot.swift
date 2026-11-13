@@ -49,7 +49,7 @@ public struct FileSnapshot: Codable, Sendable, Equatable {
     }
 
     /// Porovnává identitu, velikost i obsah. Změna práv mezi preview a kopií není
-    /// výměna inode; kopie práva stejně bere z fd. Jiný hash je jiný obsah.
+    /// výměna inode; kopie používá schválená práva z preview. Jiný hash je jiný obsah.
     public func matchesIdentity(_ other: FileSnapshot) -> Bool {
         matchesMetadata(other) && contentHash == other.contentHash
     }

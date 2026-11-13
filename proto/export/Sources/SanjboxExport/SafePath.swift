@@ -7,7 +7,7 @@ import Foundation
 /// - kořen se otevře jednou jako fd a všechny relativní cesty se otevírají přes `openat`,
 /// - žádná komponenta se neotevírá přes `O_NOFOLLOW`-obejití, `..` se nikdy neposílá do jádra,
 /// - typ souboru se zjišťuje `fstatat(AT_SYMLINK_NOFOLLOW)` **před** otevřením, aby se FIFO
-///   nebo zařízení vůbec neotevřelo,
+///   nebo zařízení v okamžiku klasifikace nebylo otevřeno; souběžná změna typu se znovu odmítá na fd,
 /// - autoritativní metadata jsou z `fstat` na otevřeném fd, ne z cesty.
 enum SafePath {
     struct Rejection: Error, Equatable {
@@ -18,6 +18,9 @@ enum SafePath {
     /// Otevře kořen exportu. Symlink v cestě ke kořeni je povolený (např. `/tmp` →
     /// `/private/tmp`); rozhoduje fd, se kterým se dál pracuje.
     static func openRoot(_ path: String) -> Result<Int32, ExportError> {
+        guard !path.isEmpty, !path.utf8.contains(0) else {
+            return .failure(.invalidRoot(path: path, errno: EINVAL))
+        }
         let fd = open(path, O_RDONLY | O_DIRECTORY | O_CLOEXEC)
         guard fd >= 0 else {
             return .failure(.invalidRoot(path: path, errno: errno))
@@ -117,7 +120,7 @@ enum SafePath {
         case let .success(opened):
             defer { close(opened.fd) }
             let hash: String
-            switch ContentHash.sha256(fileDescriptor: opened.fd) {
+            switch ContentHash.sha256(fileDescriptor: opened.fd, maximumBytes: opened.snapshot.size) {
             case let .success(value): hash = value
             case let .failure(rejection): return .failure(rejection)
             }

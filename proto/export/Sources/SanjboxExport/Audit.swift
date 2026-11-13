@@ -72,7 +72,7 @@ public struct AuditRecord: Codable, Sendable, Equatable {
         self.init(
             phase: phase,
             sequence: sequence,
-            relativePath: candidate.relativePath,
+            relativePath: candidate.relativePath.hasPrefix("/") ? "<absolute-path>" : candidate.relativePath,
             decision: candidate.accepted ? .accept : .reject,
             reason: candidate.reason,
             detail: candidate.detail,
@@ -126,10 +126,39 @@ public final class FileAuditSink: AuditSink, @unchecked Sendable {
     private let lock = NSLock()
     private let fd: Int32
 
-    public init(path: String) throws {
+    public convenience init(path: String, excludingRoot rootPath: String? = nil) throws {
+        try self.init(path: path, rootPath: rootPath, expectedRootIdentity: nil)
+    }
+
+    /// CLI binds the audit exclusion to the same source root approved by preview.
+    public convenience init(path: String, excluding plan: ExportPlan) throws {
+        guard plan.isAuthorizedForCopy, let identity = plan.rootIdentity else {
+            throw ExportError.planNotPrepared
+        }
+        try self.init(path: path, rootPath: plan.root, expectedRootIdentity: identity)
+    }
+
+    private init(path: String, rootPath: String?, expectedRootIdentity: DirectoryIdentity?) throws {
         self.path = path
-        let flags = O_WRONLY | O_CREAT | O_EXCL | O_APPEND | O_CLOEXEC
-        let opened = path.withCString { open($0, flags, mode_t(0o600)) }
+        let parent: DestinationParent
+        do { parent = try DestinationParent(path: path) }
+        catch let ExportError.destinationInvalid(_, code) {
+            throw ExportError.io(path: path, operation: "write-audit", errno: code)
+        }
+        if let rootPath {
+            let rootFD: Int32
+            switch SafePath.openRoot(rootPath) {
+            case let .success(fd): rootFD = fd
+            case let .failure(error): throw error
+            }
+            defer { close(rootFD) }
+            if let expectedRootIdentity, try DirectoryIdentity.read(rootFD) != expectedRootIdentity {
+                throw ExportError.invalidRoot(path: rootPath, errno: ESTALE)
+            }
+            try parent.requireOutside(rootFD: rootFD, rootPath: rootPath)
+        }
+        let flags = O_WRONLY | O_CREAT | O_EXCL | O_APPEND | O_NOFOLLOW | O_CLOEXEC
+        let opened = openat(parent.fd, parent.name, flags, mode_t(0o600))
         if opened >= 0 {
             self.fd = opened
             return
@@ -139,7 +168,7 @@ public final class FileAuditSink: AuditSink, @unchecked Sendable {
             // Pouze metadata: otevření existujícího FIFO pro zápis by blokovalo
             // a symlink by mohl otevřít cizí objekt. Vše existující se odmítá.
             var status = stat()
-            let isDirectory = path.withCString { lstat($0, &status) } == 0
+            let isDirectory = fstatat(parent.fd, parent.name, &status, AT_SYMLINK_NOFOLLOW) == 0
                 && FileKind(mode: status.st_mode) == .directory
             throw ExportError.io(path: path, operation: "write-audit", errno: isDirectory ? EISDIR : EEXIST)
         }
@@ -155,11 +184,13 @@ public final class FileAuditSink: AuditSink, @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         var offset = 0
+        var failureCode: Int32 = EIO
         line.withUnsafeBytes { raw in
             while offset < raw.count {
                 let written = Darwin.write(fd, raw.baseAddress!.advanced(by: offset), raw.count - offset)
-                if written < 0 {
-                    if errno == EINTR { continue }
+                if written <= 0 {
+                    if written < 0 && errno == EINTR { continue }
+                    failureCode = written < 0 ? errno : EIO
                     // Není jak pokračovat: částečný audit nesmí tvrdit úplnost.
                     return
                 }
@@ -167,7 +198,7 @@ public final class FileAuditSink: AuditSink, @unchecked Sendable {
             }
         }
         guard offset == line.count else {
-            throw ExportError.io(path: path, operation: "append-audit", errno: errno == 0 ? EIO : errno)
+            throw ExportError.io(path: path, operation: "append-audit", errno: failureCode)
         }
         guard fsync(fd) == 0 else {
             throw ExportError.io(path: path, operation: "fsync-audit", errno: errno)

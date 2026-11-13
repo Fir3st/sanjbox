@@ -150,19 +150,26 @@ public struct ExportCLI: Sendable {
             return ExportExitCode.usage.rawValue
         }
 
+        if parsed.apply, let auditPath = parsed.auditPath,
+           ExportPathPolicy.isDestination(auditPath, insideRoot: parsed.rootPath) {
+            stderr("sanjbox-export: --audit must be outside --root\n")
+            return ExportExitCode.usage.rawValue
+        }
+
         let recording = RecordingAuditSink()
         do {
+            let plan = try ExportPreparer(rootPath: parsed.rootPath)
+                .prepare(relativePaths: parsed.relativePaths, audit: recording)
             // U apply+--audit jde audit na disk append-only hned od prvního záznamu.
             // Dry-run nikdy nezapisuje: audit jde jen na stdout.
             let auditSink: any AuditSink
             if parsed.apply, let auditPath = parsed.auditPath {
-                auditSink = try FileAuditSink(path: auditPath)
+                auditSink = try FileAuditSink(path: auditPath, excluding: plan)
+                for record in recording.records { try auditSink.append(record) }
             } else {
                 auditSink = recording
             }
 
-            let plan = try ExportPreparer(rootPath: parsed.rootPath)
-                .prepare(relativePaths: parsed.relativePaths, audit: auditSink)
             stdout(try plan.jsonString() + "\n")
 
             if !parsed.apply, parsed.auditPath != nil {

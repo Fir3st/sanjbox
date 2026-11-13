@@ -16,17 +16,30 @@ enum TargetNames {
     /// Kolizní skupiny podle klíče cílového jména. Vrací detail pro každou kolidující
     /// cestu; pořadí jmen v detailu je UTF-8 deterministické.
     static func collisionDetails(for candidates: [Candidate]) -> [String: String] {
-        var groups: [String: [Candidate]] = [:]
+        struct Entry {
+            let path: String
+            let spelling: Data
+            let isFile: Bool
+        }
+        var groups: [String: [Entry]] = [:]
         for candidate in candidates where candidate.accepted {
-            groups[key(for: candidate.relativePath), default: []].append(candidate)
+            let components = candidate.relativePath.split(separator: "/").map(String.init)
+            for count in 1...components.count {
+                let prefix = components.prefix(count).joined(separator: "/")
+                groups[key(for: prefix), default: []].append(Entry(
+                    path: candidate.relativePath, spelling: Data(prefix.utf8), isFile: count == components.count
+                ))
+            }
         }
         var details: [String: String] = [:]
-        for group in groups.values where group.count > 1 {
-            let names = group.map(\.relativePath).sorted(by: compare)
+        for key in groups.keys.sorted(by: compare) {
+            guard let group = groups[key], group.count > 1 else { continue }
+            // A target cannot be both a file and a directory. Different spellings
+            // of a directory are also refused instead of merging source subtrees.
+            guard group.contains(where: \.isFile) || Set(group.map(\.spelling)).count > 1 else { continue }
+            let names = group.map(\.path).sorted(by: compare)
             let detail = "target names collide: \(names.joined(separator: ", "))"
-            for candidate in group {
-                details[candidate.relativePath] = detail
-            }
+            for entry in group { details[entry.path] = detail }
         }
         return details
     }

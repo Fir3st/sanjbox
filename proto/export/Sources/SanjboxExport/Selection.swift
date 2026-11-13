@@ -49,7 +49,7 @@ public struct Candidate: Codable, Sendable, Equatable {
 
 /// Výsledek fáze preview: co by se zkopírovalo a co ne. Preview nikdy nezapisuje.
 public struct ExportPlan: Codable, Sendable, Equatable {
-    /// Kanonická cesta kořene, vůči které se relativní cesty vyhodnocují.
+    /// Absolutní cesta kořene, vůči které se relativní cesty vyhodnocují.
     public let root: String
     /// Kandidáti seřazení podle UTF-8 bajtů cesty. Pořadí je součástí kontraktu auditu.
     public let candidates: [Candidate]
@@ -58,17 +58,19 @@ public struct ExportPlan: Codable, Sendable, Equatable {
     /// Kopie přijímá jen plán připravený v tomto procesu, aby snapshot nebyl jen
     /// důvěřivě převzatý z cizího souboru.
     public let isAuthorizedForCopy: Bool
+    let rootIdentity: DirectoryIdentity?
 
     public init(root: String, candidates: [Candidate]) {
         self.init(root: root, candidates: candidates, preparedForCopy: false)
     }
 
-    init(root: String, candidates: [Candidate], preparedForCopy: Bool) {
+    init(root: String, candidates: [Candidate], preparedForCopy: Bool, rootIdentity: DirectoryIdentity? = nil) {
         self.root = root
         self.candidates = candidates.sorted { lhs, rhs in
             lhs.relativePath.utf8.lexicographicallyPrecedes(rhs.relativePath.utf8)
         }
         self.isAuthorizedForCopy = preparedForCopy
+        self.rootIdentity = rootIdentity
     }
 
     private enum CodingKeys: String, CodingKey {

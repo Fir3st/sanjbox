@@ -18,8 +18,9 @@ public struct ExportPreparer: Sendable {
     }
 
     public func prepare(relativePaths: [String], audit: (any AuditSink)?) throws -> ExportPlan {
+        let absoluteRoot = rootPath.hasPrefix("/") ? rootPath : FileManager.default.currentDirectoryPath + "/" + rootPath
         let rootFD: Int32
-        switch SafePath.openRoot(rootPath) {
+        switch SafePath.openRoot(absoluteRoot) {
         case let .success(fd): rootFD = fd
         case let .failure(error): throw error
         }
@@ -57,7 +58,8 @@ public struct ExportPreparer: Sendable {
         // case-insensitive APFS), pak odmítnout skutečné kolize různých identit.
         let deduplicated = TargetNames.deduplicateByIdentity(candidates)
         let validated = TargetNames.rejectCollisions(deduplicated)
-        let plan = ExportPlan(root: rootPath, candidates: validated, preparedForCopy: true)
+        let plan = ExportPlan(root: absoluteRoot, candidates: validated, preparedForCopy: true,
+                              rootIdentity: try DirectoryIdentity.read(rootFD))
 
         if let audit {
             for (index, candidate) in plan.candidates.enumerated() {
