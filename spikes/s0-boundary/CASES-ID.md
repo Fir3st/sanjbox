@@ -114,8 +114,9 @@ jsou cíle konkrétních ručních experimentů, nikoli tvrzení o jejich implem
   soubory jen v H/A/B/C; H má vlastní kontrolní okno se syntetickým markerem. Zafixovat původní
   otevřená okna a každou self identitu; Terminal ani shell nesmějí načítat osobní konfiguraci.
 - **Nástroj / dostupnost:** přesný existující příkaz `/usr/bin/open -a Terminal` (bez URL, dokumentu
-  nebo `--args`). V nově otevřeném Terminalu ručně spustit podepsaný `sanjbox-whoami` bez argumentů
-  a úplně porovnat výstup podle LAB-PLAN; `open` exit 0 sám neurčuje cílovou relaci.
+  nebo `--args`). V nově otevřeném Terminalu ručně spustit podepsaný `sanjbox-whoami --expect`
+  s vlastním předregistrovaným role JSON včetně skupin a úplně porovnat výstup podle LAB-PLAN;
+  `open` exit 0 sám neurčuje cílovou relaci.
 - **Postup a kontroly:** H stejným příkazem ověří vlastní launch/activate a kontext. A jej vykoná
   ve svém ověřeném shellu: vyzkoušet prázdnou session bez Terminal procesu a zvlášť již běžící
   Terminal A. U v očekávané oblasti otevře nové prázdné shell okno a zachytí jeho přesné UID/ASID.

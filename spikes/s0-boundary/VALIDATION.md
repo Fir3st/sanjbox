@@ -339,3 +339,36 @@ Kontrolována jen dokumentace/hlavičky a statické deklarace, žádné cílové
 registrace nebo příprava fixture se nespouštěly. Všech 68 sealed souborů, starý text VALIDATION
 a root COVERAGE zůstaly beze změn; `git diff --check` prošel. Kód se nezměnil, 12 + 63 testů
 z předchozí poznámky se bez nového důvodu neopakovalo; žádný nový build či evidence balík.
+
+
+## Nezávislé review PR #62 (2026-11-13)
+
+Review nad `b1b89ff` porovnalo všechny karty s PLAN, COVERAGE a podmínkou IMPLEMENTATION §0.
+Opraveny dvě věcné mezery: FS-03 nově zahrnuje `/private/var/tmp` a společně s FS-06 samostatné
+unlink/rename-replace pokusy (FS-03 i rmdir), protože zákaz přímého zápisu nevylučuje mutaci přes
+rodičovské `delete_child`; společný preflight a ID-06 nyní vyžadují `sanjbox-whoami --expect`
+s konkrétními required/forbidden groups, protože samotný výpis bez argumentů členství nezjišťuje.
+Ruční porovnání přesných kernel groups, pozitivního ASID/auditUID a session profilu zůstává povinné.
+
+Všech 31 případů má konkrétní operaci a oracle včetně předpokladů, controls, výstupu a úklidu;
+chybějící nástroj či mechanismus je výslovný stop. Tím je splněna **přípravná** podmínka A4:
+COVERAGE označuje A4 ✅ podle GUIDE §11, s odpovídajícím součtem F1. Nejde o splnění mechanismů,
+provedení případů nebo verdikt S0; všechny testové a gate stavy zůstávají beze změny.
+
+- Runner regresní sada: **12/12** na Pythonu 3.11.4 a znovu **12/12** na systémovém Pythonu 3.9.6,
+  bez skips; stejné příkazy jako v předchozí přípravě.
+- `python3 -B -m unittest discover -s tools/tests -v`: **63/63**, bez skips.
+- `python3 -B spikes/s0-boundary/validate-xpc.py`: výchozí dry-run, žádné `--apply`.
+- Dokumentační audit: **31/31** karet i indexových řádků, **108** lokálních odkazů/anchorů ve všech
+  osmi souborech PR; všech **155** akceptačních stavů nezměněno. Součet F1 odpovídá detailním řádkům
+  načteným stávajícím `tools/progress.py`; A4 poznámka má dvě věty a odkazy.
+- Všech **68** sealed souborů byte-for-byte shodných se základem `7b20c414`; původní prefix
+  VALIDATION, `docs/evidence`, PLAN, GUIDE, IMPLEMENTATION, gate index a zdrojový kód beze změn.
+  Ověřeny zdroje common identity collector/parseru, lokální `ioreg(8)` a `MDQuery.h`; všech sedm
+  odkazovaných Apple dokumentačních URL je dostupných (část webových API stránek vyžaduje JS).
+  `git diff --check` prošel; Swift build se u této dokumentační změny neopakoval.
+
+Prostředí: macOS **27.2.1 / 26B131**, arm64. Testovaný zdrojový kód zůstává shodný s `b1b89ff`.
+Žádná uvedená souborová mutace, globální dotaz, capture/TCC/attach, registrace nebo privilegovaný
+krok nebyl při review spuštěn. Navazující L2 po S1 a závislosti FS-04/08/LC-11 na S4/S8/F2 trvají;
+review nepřepisuje historické výsledky ani nevytváří laboratorní důkaz.

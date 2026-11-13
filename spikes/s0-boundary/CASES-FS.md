@@ -14,6 +14,11 @@ pouze na přesně předregistrovaných nových názvech nebo měnitelných kaná
 glob, sken ani automatický vstup z výstupu jiné sondy. Obsah výstupu kontroluje O proti svému
 kanárku. Toto není automatická ochrana před hostile TOCTOU: není-li možné zajistit původ objektu,
 ruční krok se zastaví a potřebuje úzký fixture adapter; nevymění se za obecný path runner.
+Pro zkoušku odstranění/výměny jsou povoleny jen jednotlivé vlastní obětovatelné fixture:
+`/bin/rm` bez `-r/-f` na jednom ověřeném obyčejném souboru, `/bin/rmdir` na jednom ověřeném
+prázdném adresáři a `/bin/mv` mezi dvěma ověřenými obyčejnými soubory ve **stejném rodiči**.
+Žádná rekurze, symlink ani existující host soubor; každá podbuňka dostane nové názvy a oddělený
+O záznam device/inode/hash. Neschopnost ověřit původ/typ obou objektů před operací = stop.
 
 ## FS-01
 
@@ -47,21 +52,27 @@ ruční krok se zastaví a potřebuje úzký fixture adapter; nevymění se za o
 
 ## FS-03
 
-- **Role / prerekvizity:** U předregistruje zvlášť `/Users/Shared`, `/private/tmp` (i alias `/tmp`)
-  a `/Library/Caches` na čistém stroji, původní rodičovská práva a přesné nové fixture názvy.
+- **Role / prerekvizity:** U předregistruje zvlášť `/Users/Shared`, `/private/tmp` (i alias `/tmp`),
+  `/private/var/tmp` a `/Library/Caches` na čistém stroji, původní rodičovská práva a přesné nové fixture názvy.
   H/A/O profily jako FS-01; případné systémové změny provede U s dry-runem S4.
-- **Nástroj / dostupnost:** ruční `cat`, `touch`, `mkdir` a přesměrování pevného syntetického řádku
-  do **vlastního předem existujícího měnitelného** kanárku. Nespouštět nic v osobních shared cestách.
+- **Nástroj / dostupnost:** ruční `cat`, `touch`, `mkdir`, jednotlivé `rm/rmdir/mv` podle úvodního
+  předpisu a přesměrování pevného syntetického řádku do **vlastního předem existujícího měnitelného**
+  kanárku. Nespouštět nic v osobních shared cestách.
 - **Postup a kontroly:** v každém kořeni H provede read, create-file, create-directory a rewrite
   vlastních kontrolních položek; A totéž ve své povolené TMP fixture. A zkusí číst H kanárek,
   přepsat jeho měnitelný protějšek a vytvořit přesné nové file/directory názvy **přímo v testovaném
-  rodiči**, ne pouze pod uměle mode-700 fixture. Po pokusech H/A zopakují povolené operace.
+  rodiči**, ne pouze pod uměle mode-700 fixture. Na dalších vlastních H obětovatelných položkách
+  A zkusí unlink souboru, rmdir prázdného adresáře a přejmenování jednoho H souboru přes druhý
+  v témže rodiči; poslední větev ověřuje výměnu i bez přímého zápisu do cílového inode. H a A
+  každou z těchto operací úspěšně provedou na vlastních oddělených controls před/po.
 - **Zakázáno / oracle:** O drží původní hash a metadata kanárku a inventář očekávaných nepřítomných
-  jmen. Zakázaný read, změna nebo nový file/directory je fail bez ohledu na návratový kód A.
+  jmen. Zakázaný read, změna, odstranění, přejmenování/výměna nebo nový file/directory je fail
+  bez ohledu na návratový kód A; u rename se porovnají oba názvy a identity, nejen hash cíle.
 - **Nejasné / blokátor:** samostatný read-only test nepokrývá write/create; zákaz jen uvnitř
-  testovacího podadresáře nic neříká o `add_file/add_subdirectory` rodiče. Chybějící bezpečný S4
+  testovacího podadresáře nic neříká o `add_file/add_subdirectory/delete_child` rodiče.
+  Odmítnutý rewrite neprokazuje zákaz unlink/rename; každá větev má vlastní výsledek. Chybějící bezpečný S4
   postup změny sdílených kořenů blokuje mutující část; nevymýšlet ad hoc root příkazy.
-- **Výstup / úklid:** tabulka kořen × read/rewrite/create-file/create-directory, pre/post kontroly,
+- **Výstup / úklid:** tabulka kořen × read/rewrite/create-file/create-directory/unlink/rmdir/rename-replace, pre/post kontroly,
   A chyby a O inventář. U odstraní jen identifikované vlastní nově vzniklé objekty i při failu;
   konflikt uchová. Vlastní povolené TMP kořeny musí dál fungovat.
 
@@ -104,17 +115,22 @@ ruční krok se zastaví a potřebuje úzký fixture adapter; nevymění se za o
   `/opt/homebrew`, `/usr/local`, `/Applications`, host `Library/LaunchAgents` a relevantní
   `/Library` startup kořeny podle deklarace. Pouze vlastní inertní textové fixture, žádná funkční
   plist, skutečná binárka, konfigurace shellu nebo načítaný plugin. H/A/O profily jsou přesné.
-- **Nástroj / dostupnost:** ruční create/rewrite přes `touch` a pevný syntetický zápis; metadata S4.
+- **Nástroj / dostupnost:** ruční create/rewrite přes `touch` a pevný syntetický zápis, jednotlivé
+  `rm/mv` vlastních obyčejných souborů podle úvodního předpisu; metadata S4.
   Žádný install, launchctl bootstrap nebo spuštění zápisem vytvořeného obsahu.
 - **Postup a kontroly:** oprávněný vlastník každého kořene provede create/rewrite kontrolu; A totéž
   ve vlastním povoleném prefixu. A zkusí přepsat určenou měnitelnou H fixture a vytvořit nový
-  předregistrovaný inertní název přímo pod chráněným rodičem. Poté obě povolené kontroly opakovat.
+  předregistrovaný inertní název přímo pod chráněným rodičem. Na oddělených obětovatelných H
+  fixtures zkusí unlink a rename jednoho H souboru přes druhý ve stejném rodiči. Oprávněný
+  vlastník kořene i A ve svém prefixu před/po úspěšně ověří také tyto dvě operace.
 - **Zakázáno / oracle:** O porovná hash/inode/metadata a absenci nového názvu. Jakýkoli zápis nebo
-  vytvoření je fail; žádný škodlivý startup payload se kvůli důkazu spouštět nemusí.
+  vytvoření, odstranění nebo přejmenování/výměna je fail; O u rename ověří oba názvy/inode.
+  Žádný škodlivý startup payload se kvůli důkazu spouštět nemusí.
 - **Nejasné / blokátor:** neexistující host prefix je nepokrytá buňka, nikoli denial; potřebný admin
   control čeká na U a konkrétní S4 fixture postup s dry-run/cleanup. Fake prefix v `/private/tmp`
-  nepokrývá skutečný rodič a mode vlastního kanárku sám nepokrývá výměnu/vytvoření souboru.
-- **Výstup / úklid:** kořen × rewrite/create, původní stav a O rozdíl. U odstraní jednotlivé
+  nepokrývá skutečný rodič a mode vlastního kanárku sám nepokrývá výměnu/vytvoření souboru;
+  úspěšný zákaz rewrite/create nenahrazuje chybějící unlink/rename buňku.
+- **Výstup / úklid:** kořen × rewrite/create/unlink/rename-replace, původní stav a O rozdíl. U odstraní jednotlivé
   ověřené inertní položky; žádné reload služeb ani plošné vracení práv host nástrojů.
 
 ## FS-07

@@ -3,6 +3,8 @@
 Podmínka přípravy v [IMPLEMENTATION §0](../../docs/IMPLEMENTATION.md#podmínky-dokončení-ostatních-rozpracovaných-balíků)
 je **sonda nebo ruční krok s oraclem pro každý z 31 případů**. Tento rozcestník a tři runbooky ji
 rozepisují po jednotlivých případech; nejsou runner, nový obecný harness ani výsledek laboratoře.
+Tím je přípravná podmínka A4 splněná podle GUIDE §11; zbývající implementace a skutečné důkazy
+mají níže vlastní stop podmínky a patří do navazujících balíků/slotů.
 Současné CLI nadále umí jen vlastní `synthetic-self-fixture` podle [README](README.md).
 **Všech 31 případů zůstává Neověřeno.** Chybějící komponenta je u konkrétního kroku stop podmínka,
 nikoli pokyn vykonat nepodporovanou operaci přes obecný path/PID/service/command runner.
@@ -72,10 +74,15 @@ jejich zvláštní kontext, ovládání, výstupy a úklid je zpřesňují.
    H: vlastní Aqua, console=true; A/B/C: vlastní různé Aqua/ASID, console=false. Background job:
    předem zjištěný vlastní manager/ASID/window profil, ne domněnka odvozená z labelu `user/<uid>`.
    Systémový helper má samostatný očekávaný profil; root expectation současné A4 CLI nepřijme.
-3. **I ověří skutečný kontext před i po každém bloku.** Existující `sanjbox-whoami` bez argumentů
-   vypíše self metadata, ale `valid: null`; common `--expect` nekontroluje přesnou množinu skupin,
-   pozitivní ASID ani auditUID. Pro ruční postup O porovná **všechna** pole s předregistrací a uchová
-   původní výstup. Nestačí `valid:true`, jiné ASID než host nebo úspěšné `id`. Důvěryhodná systémová
+3. **I ověří skutečný kontext před i po každém bloku.** Existující `sanjbox-whoami --expect
+   <vlastní-role-expect.json>` dostane předregistrovaný common `ProbeExpectation` s konkrétními
+   UID/GID a `requiredGroups`/`forbiddenGroups`; pro A/B/C zahrnout staff/admin mezi zakázané.
+   Jen tak collector vyplní autoritativní `groupMembership` pro všechny požadované skupiny;
+   `false` znamená nečlenství, `null`/chybějící položka je neplatné měření. Bez argumentů má
+   `valid: null` a prázdné `groupMembership`, takže samotný výpis není tento preflight.
+   Common `--expect` nekontroluje přesnou množinu kernel groups, pozitivní ASID ani auditUID;
+   O proto navíc ručně porovná **všechna** pole s předregistrací a uchová původní výstup.
+   Nestačí `valid:true`, jiné ASID než host nebo úspěšné `id`. Důvěryhodná systémová
    utilita se spouští přímo ve stejném ověřeném testovacím shellu bez změny UID/bootstrap; její
    spuštění a kontext zaznamená O. Vlastní budoucí adapter/cíl musí mít self gate v témže procesu
    před API. Chybějící údaje, změna relace nebo možnost nedoloženého přepnutí = neplatné měření.
