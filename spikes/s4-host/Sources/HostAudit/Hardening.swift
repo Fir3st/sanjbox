@@ -69,6 +69,8 @@ public enum HostHardeningCommand {
                     guard !result.changes.contains(where: { overlap($0.path, root.root.path) }) else { throw HardenConflict("overlapping roots are unsupported") }
                     let handle = try HardenPath(root.root.path, allowTargetACL: plan.deny != nil)
                     let current = try handle.requireTarget()
+                    guard !handles.contains(where: { directoryChainsOverlap($0.initial, handle.initial) })
+                    else { throw HardenConflict("aliased or overlapping target directories are unsupported") }
                     guard current.stat == expected, current.acl == acl, current.mount == mount,
                           plan.deny != nil || current.stat.mode != 0o700 else { throw HardenConflict("audit metadata is stale or root already has mode 0700; no change to claim") }
                     let desiredACL = try plan.deny.map { try prepending($0, to: current.acl) }
@@ -76,7 +78,7 @@ public enum HostHardeningCommand {
                                                 mode: plan.mode ?? current.stat.mode, acl: desiredACL))
                     handles.append(handle)
                 }
-                try HardenJournal.checkDestination(statePath, targets: result.changes.map(\.path), creating: true)
+                try HardenJournal.checkDestination(statePath, changes: result.changes, creating: true)
                 if apply { try install(result.changes, handles: handles, statePath: statePath, hooks: hooks) }
                 result.status = apply ? "applied" : "would-apply"
                 result.detail = apply ? "All selected changes have durable before/after records. Retain state for uninstall." : "No writes. Each listed mode and optional acl is the exact proposed result; before contains originals. State would be exclusively created."
@@ -177,12 +179,15 @@ private func validate(_ manifest: HardenManifest, journal: HardenJournal) throws
           manifest.stateIdentity.ancestorGuard == (try journal.directory.requireTarget()).ancestorGuard
     else { throw HardenConflict("journal identity/schema/boot differs; manual review required") }
     try journal.directory.verify(ancestors: manifest.stateAncestors)
-    try HardenJournal.checkDestination(journal.path, targets: manifest.changes.map(\.path), creating: false)
+    try HardenJournal.checkDestination(journal.path, changes: manifest.changes, creating: false)
     for (index, change) in manifest.changes.enumerated() {
         guard validAbsolutePath(change.path), !restrictedPath(change.path),
               change.before.stat.kind == "directory", change.before.stat.uid == geteuid(), change.before.stat.flags == 0,
               change.before.stat.mode & 0o7000 == 0, change.before.stat.mode & 0o700 == 0o700,
-              !manifest.changes.prefix(index).contains(where: { overlap($0.path, change.path) })
+              !manifest.changes.prefix(index).contains(where: {
+                  overlap($0.path, change.path)
+                      || directoryChainsOverlap($0.ancestors + [$0.before], change.ancestors + [change.before])
+              })
         else { throw HardenConflict("unsupported or overlapping journal operation") }
         if let acl = change.acl {
             let added = acl.entries.count - change.before.acl.entries.count

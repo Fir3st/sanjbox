@@ -98,13 +98,24 @@ func forceDurable(_ fd: Int32) throws {
 
 func overlap(_ a: String, _ b: String) -> Bool { a == b || a.hasPrefix(b + "/") || b.hasPrefix(a + "/") }
 
+/// APFS path spellings need not be unique. Compare pinned directory identities as well
+/// as names, including both containment directions, before creating any journal record.
+func directoryChainsOverlap(_ a: [HardenStamp], _ b: [HardenStamp]) -> Bool {
+    guard let aTarget = a.last, let bTarget = b.last else { return true }
+    func sameDirectory(_ x: HardenStamp, _ y: HardenStamp) -> Bool {
+        x.stat.device == y.stat.device && x.stat.inode == y.stat.inode
+    }
+    return a.contains { sameDirectory($0, bTarget) } || b.contains { sameDirectory($0, aTarget) }
+}
+
 /// Read/write only our private journal. Target directory descriptors are never read.
 final class HardenJournal {
     let directory: HardenPath
     private var lockFD: Int32 = -1
     let path: String
 
-    static func checkDestination(_ path: String, targets: [String], creating: Bool) throws {
+    static func checkDestination(_ path: String, changes: [HardenChange], creating: Bool) throws {
+        let targets = changes.map(\.path)
         guard validAbsolutePath(path), path.hasSuffix("/state"), !restrictedPath(path),
               !targets.contains(where: { overlap($0, path) }) else { throw HardenConflict("state must be a separate normalized path ending in /state") }
         let parentPath = String(path.dropLast(6))
@@ -112,6 +123,8 @@ final class HardenJournal {
         let parent = try HardenPath(parentPath)
         let stamp = try parent.requireTarget()
         guard stamp.stat.mode == 0o700 else { throw HardenConflict("journal parent must be caller-owned mode 0700") }
+        guard !changes.contains(where: { directoryChainsOverlap($0.ancestors + [$0.before], parent.initial) })
+        else { throw HardenConflict("journal parent aliases or overlaps a target directory") }
         if creating {
             var value = stat()
             errno = 0

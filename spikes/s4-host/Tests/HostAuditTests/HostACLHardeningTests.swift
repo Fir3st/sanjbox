@@ -242,6 +242,65 @@ final class HostACLHardeningTests: XCTestCase {
         XCTAssertEqual(try stamp(f, "second"), second)
     }
 
+    func testCaseAliasJournalInsideTargetIsRejectedBeforeAnyWrite() throws {
+        let f = try fixture { f in try f.directory("target/run") }
+        var aliased = stat(), original = stat()
+        guard lstat(f.at("TARGET"), &aliased) == 0 else {
+            throw XCTSkip("case-insensitive APFS alias unavailable")
+        }
+        XCTAssertEqual(lstat(f.at("target"), &original), 0)
+        XCTAssertTrue(sameObject(aliased, original))
+        let before = try stamp(f)
+        var arguments = f.args("harden", apply: true)
+        arguments[try XCTUnwrap(arguments.firstIndex(of: "--state")) + 1] = f.at("TARGET/run/state")
+        check(try HostHardeningCommand.run(arguments, capture: { _ in f.context }), 4)
+        XCTAssertEqual(try stamp(f), before)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: f.at("target/run/state")))
+    }
+
+    func testCaseAliasJournalParentContainingTargetIsRejectedBeforeAnyWrite() throws {
+        let f = try fixture(roots: ["run/target"])
+        var aliased = stat(), original = stat()
+        guard lstat(f.at("RUN"), &aliased) == 0 else {
+            throw XCTSkip("case-insensitive APFS alias unavailable")
+        }
+        XCTAssertEqual(lstat(f.at("run"), &original), 0)
+        XCTAssertTrue(sameObject(aliased, original))
+        let before = try stamp(f, "run/target")
+        var arguments = f.args("harden", apply: true)
+        arguments[try XCTUnwrap(arguments.firstIndex(of: "--state")) + 1] = f.at("RUN/state")
+        check(try HostHardeningCommand.run(arguments, capture: { _ in f.context }), 4)
+        XCTAssertEqual(try stamp(f, "run/target"), before)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: f.state))
+    }
+
+    func testCaseAliasTargetEqualityAndContainmentRejectedBeforeAnyWrite() throws {
+        for second in ["TARGET", "TARGET/child"] {
+            let f = try fixture { f in try f.directory("target/child") }
+            var aliased = stat(), original = stat()
+            guard lstat(f.at("TARGET"), &aliased) == 0 else {
+                throw XCTSkip("case-insensitive APFS alias unavailable")
+            }
+            XCTAssertEqual(lstat(f.at("target"), &original), 0)
+            XCTAssertTrue(sameObject(aliased, original))
+            // Exercise both root orders: neither the alias nor its parent can be claimed twice.
+            for roots in [["target", second], [second, "target"]] {
+                let suffix = roots[0] == "target" ? "forward" : "reverse"
+                try f.baseline(roots: roots, name: "run/\(suffix).s4-report.json")
+                try f.json("run/\(suffix).s4-harden.json", HardeningPlan(schema: "sanjbox.host-harden.plan.v2",
+                    roots: ["root-0", "root-1"], mode: nil, deny: [try deny()]))
+                let before = try stamp(f), childBefore = try stamp(f, "target/child")
+                var arguments = f.args("harden", apply: true)
+                arguments[try XCTUnwrap(arguments.firstIndex(of: "--baseline")) + 1] = f.at("run/\(suffix).s4-report.json")
+                arguments[try XCTUnwrap(arguments.firstIndex(of: "--plan")) + 1] = f.at("run/\(suffix).s4-harden.json")
+                check(try HostHardeningCommand.run(arguments, capture: { _ in f.context }), 4)
+                XCTAssertEqual(try stamp(f), before)
+                XCTAssertEqual(try stamp(f, "target/child"), childBefore)
+                XCTAssertFalse(FileManager.default.fileExists(atPath: f.state))
+            }
+        }
+    }
+
     func testACLProcessCrashAfterApplyAndRestoreIsAmbiguous() throws {
         for operation in ["harden", "uninstall"] {
             let f = try fixture()

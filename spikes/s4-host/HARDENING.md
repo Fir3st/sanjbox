@@ -10,7 +10,9 @@ Kompatibilita host nástrojů čeká na L3; S4, R2/R7, RB-09 a RB-10 zůstávaj�
 ## Rozsah a odmítnuté operace
 
 - Plán obsahuje 1–16 ID kořenů z B1 reportu; mění se pouze jejich položka `.`. Žádná rekurze,
-  automatické hledání kořenů ani výchozí home. Překrývající se kořeny se odmítají.
+  automatické hledání kořenů ani výchozí home. Překrývající se kořeny se odmítají podle cest
+  i device/inode připnutých adresářů a jejich ancestorů; různé APFS zápisy téhož adresáře
+  ani jeho potomka nesmějí obejít kontrolu.
 - Podporován je adresář vlastněný skutečným/efektivním volajícím (shodné nenulové UID), owner mode
   bity `0700`, bez special mode bitů a file flags. V1 odstraní group/other bity; již `0700` odmítá
   jako změnu, kterou nemůže vlastnit. V2 zachová mode přesně, i `0700`. Vlastník a skupina se nemění.
@@ -113,6 +115,10 @@ mohou omezit i volajícího, takže před aplikací je stále nutná kontrola do
 **[uživatel]** Připrav samostatný existující run directory s mode `0700`, prázdnou ACL a vlastnictvím
 volajícího. `--state` musí končit `/state`; při hardeningu ještě nesmí existovat. Run directory,
 jeho `state` ani cíl se nesmějí překrývat. Cesty v příkladu jsou záměrně neexistující zástupné hodnoty:
+
+Před vytvořením deníku se ověří také identity celé cesty jeho parenta vůči cílům, v obou směrech
+vnoření. Na case-insensitive APFS je například `TARGET/run/state` uvnitř cíle `target` odmítnuto
+už při preflight, bez změny ACL/mode a bez vytvoření `state`.
 
 ```bash
 spikes/s4-host/harden-host.sh \
