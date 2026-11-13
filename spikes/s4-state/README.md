@@ -1,6 +1,10 @@
 # S4 — manifest a topologie stavu (WP1.B3)
 
 > WP1.B4 přidává oddělený [recovery protokol a file-backed mock](RECOVERY.md). B4 je částečný; skutečný APFS/lifecycle adaptér a S4 zůstávají Neověřeno. Původní B3 rozhraní a výsledky níže zůstávají zachované.
+>
+> [TOOLING.md](TOOLING.md) dodává read-only plánovač uživatelského APFS pilotu `apfs-pilot.sh`
+> (výchozí dry-run, záznam pre-state, plán úklidu, `--apply` jen jako ruční hand-off). Ani ten
+> nemutuje disk a neprokazuje APFS chování.
 
 Tento balík dodává **návrhový manifest**, jeho offline validátor a syntetické příklady. Mapuje home,
 projekt, prefix, cache, TMP a později runtime na plánované APFS svazky, mountpointy a společnou jednotku

@@ -120,7 +120,9 @@ přes `rmdir "$mock_run_dir"`. Žádná systémová konfigurace, uživatelé, AC
 Handler vrací `.response(HTTPResponse(...))` nebo `.events { emit in ... }`. Každé emit musí být awaitované
 sekvenčně. Výjimka před odpovědí dává 500; chyba po začátku SSE zavře spojení bez druhé HTTP odpovědi.
 Obsah výjimek se klientovi nevypisuje.
-Volitelný `HTTPResponse.completion` dostane výsledek lokálního transportního sendu; D2 ho používá
+Transport volá veřejné `HTTPResponse.completeTransport(Bool)` po úspěšném nebo selhaném
+lokálním sendu. Volitelný callback z inicializátoru se provede nejvýše jednou i přes kopie
+odpovědi a souběžná volání; D2 ho používá
 pro audit. Úspěšný callback neprokazuje příjem celé odpovědi klientem ani instalaci.
 
 Registrace mountu **nepovoluje libovolné operace upstreamu**. D2/D3 musí ověřit metodu, cestu, query i tělo,

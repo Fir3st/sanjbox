@@ -154,3 +154,125 @@ consistency, skutečné fd/mappings, nové mounty ani současné tři oblasti. P
 nebo check/unlink interval vyžaduje důvěryhodný výlučný namespace; nejde o atomický CAS.
 Pending intent vyžaduje ruční posouzení; automatická oprava všech přerušení není prokázána.
 Detailní kontrakt a zbývající RB-02…08 jsou v [RECOVERY.md](RECOVERY.md).
+
+## Oprava review APFS pilotu — offline příprava (2026-11-07)
+
+Tato poznámka dokládá offline opravu `apfs-pilot.sh`, `TOOLING.md` a syntetických testů podle
+review PR #56. Nejde o laboratorní běh, APFS důkaz ani verdikt S4: apply cesta se v testech nikdy
+nespouští reálně, žádný `asr`, `diskutil` mutace, mount ani sudo neproběhly. Fixtures jsou syntetické
+a živá sonda používá recording shimy.
+
+Ověřeno na commitu `6f0eb0a5a1b9eed49246bc123d056913f840d00b` (větev
+`wp1/b4-apfs-pilot-dryrun`):
+
+- `bash -n spikes/s4-state/apfs-pilot.sh`: exit 0.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s4-state -p 'test*.py' -v`:
+  **37 testů, 0 failures, 0 errors**.
+- `swift test -c release --package-path spikes/s4-state --scratch-path /private/tmp/fix-b4`:
+  **42 testů, 0 failures** (21 B4 + 21 zachovaných B3).
+- `/usr/bin/python3 -m unittest discover -s tools/tests`: **63 testů, OK**.
+
+Nové regrese pokrývají: `backupDigest` (`sha256:` + 64 malých hex) přijatý i odmítnutý; povinné
+`expectedVolumeUUID` pro apply a `inconclusive` identity gate v dry-runu bez UUID; exit kódy pro
+chybějící/neznámý klíč receiptu a špatný typ (4) versus neexistující soubor, symlink a 0666 (2);
+warn při kterékoli kvótě 0; přesný mode 0700 out-diru; privátní rodičovský adresář plánu; `rootRequired:
+true` u `delete-snapshot`; explicitní P0 krok `asr-switch-support`; a dokumentaci testovacích hooků
+`APFS_PILOT_DISKUTIL`/`_SYSCTL`/`_MOUNT`. `docs/COVERAGE.md`, `PLAN.md`, `spikes/common/`, `Contracts/`
+ani `.pi/` nebyly v této opravě měněny.
+
+
+## Druhé review APFS planneru — identity, mounty a ochrana vstupů (2026-11-07)
+
+Oprava navazuje na HEAD `77c4621d2103def7a47b27a056be0700fc78c139` v PR #56.
+Uzavírá šest reprodukovaných chyb pouze offline planneru: identity `diskutil info` se křížově
+ověřují proti `apfs list`; mount tabulka a info musejí souhlasit a všechny target mounty
+zůstávají v pilot rootu; výstup nesmí kolidovat s plánem, receiptem ani čtenou fixture;
+i byte-identický existující výstup vyžaduje správného vlastníka a mode 0600; neplatné typy
+`coversDevices` deterministicky vracejí exit 4; `createdAt` musí být platné UTC kalendářní datum.
+TOOLING a popis testů nyní přesně uvádějí také pozitivní apply hand-off nad shimy.
+
+Ověření z kořene tohoto worktree:
+
+```bash
+/usr/bin/python3 -I -B -m unittest discover -s spikes/s4-state -p 'test*.py' -v
+git diff --check
+```
+
+Výsledek: **52 testů, 0 failures, 0 errors**, 26,522 s, včetně `bash -n`, původních 37 testů
+a 15 nových regresních metod. Přesné původní reprodukce jsou v nové `ReviewRegressionTests`:
+rozporné UUID/device a prázdné info; target mimo pilot root pouze v mount tabulce; vstupní plán
+na výstupní cestě; opakování se shodným výstupem 0666; `coversDevices: [{}]`; neexistující
+`2026-99-99T99:99:99Z`. Rozšíření zahrnuje chybějící info pole, chybějící/rozporný mount,
+target snapshot mount, kolizi receiptu, hardlink aliasy všech čtených metadata fixtures,
+nepřestupné datum a pozitivní kontrolu přestupného dne. Identity/mounty/receipty se zkoušejí
+v dry-run i apply přes recording shimy. Výstupní kolize a nebezpečný mode ponechávají původní
+soubor i jeho bytes beze změny.
+
+Všechny fixtures byly vlastní dočasné stromy v `/private/tmp`; Python běžel s `-I -B`.
+Žádná skutečná APFS/snapshot/asr/mount/unmount/sudo operace neproběhla. Swift zdroje ani jejich
+kontrakty se nemění, takže Swift sada se v této rundě znovu nespouštěla. Živý APFS pilot,
+G1–G3, L3 a S4 nadále nejsou ověřené. Starší validační záznamy výše zůstaly zachované.
+
+## Integrační review PR #56 — read-only kontrakt a stale stav (2026-11-13)
+
+Původní head `0873a5774d6498818ac6018127d525a835da435d` byl lokálně integrován s main
+`d0ea7bc1c1e04d4c82b6e1fa38489871af73607f` v merge commitu
+`887d2ac02c80b78ca44a94c2d927c86f60b8fec0`. **Přesný otestovaný opravný commit:
+`6a914240dfcf8928d349513c203438eb3cbc1d13`.** Následný commit upravuje pouze dokumentaci
+validace a souhrn COVERAGE; Swift zdroje ani původní laboratorní evidence se neměnily.
+
+Konfigurace: arm64, macOS 27.2.1 / 26B131, Xcode 27.2 / 27B52, Swift 6.4.2
+(`swiftlang-6.4.2.1.9`, `clang-2100.4.1.1`), systémový Python 3.9.
+
+Opravené reprodukovatelné mezery:
+
+- Libovolný executable override mohl mutovat host i pod read-only argv. Distribuovaný skript
+  nyní odmítá všechny tři proměnné a používá pevné systémové cesty; shimy a fault injection žijí
+  pouze v dočasné testové kopii. Default i pozitivní apply hand-off volají jen pět očekávaných
+  read-only argv; žádný vypsaný runbook příkaz se nevykoná.
+- Symlink předka / výměna vstupu při otevření, opětovné čtení receiptu pro hash a přepsání
+  později vloženého výstupu: descriptor-relative `O_NOFOLLOW`, hash validovaných bytes,
+  kontrola vlastníka/mode/hardlinků, odmítnutí jiného existujícího plánu a exkluzivní publikace.
+  Regrese vstřikují výměnu přímo na open/link hranici; cizí bytes se nečtou/nepřepíší a temp se uklidí.
+- Duplicitní nebo špatně typované plisty a tiše přeskočené mount řádky nyní odmítají výsledek.
+  XML i binary plisty mají pozitivní kontrolu; částečná deklarovaná identita už nemá pass verdict.
+- Receipt se váže povinným `planSha256` na konkrétní plán a UUID, ne jen znovupoužitelný device
+  locator. Chybné/future datum, null digest, hluboký/poškozený/oversize JSON a chybné Unicode
+  mají řízené chyby. Úklid je ruční template s revalidovaným parent/snapshot UUID, absent = skip,
+  konflikt = stop; deletion podle samotného názvu se již negeneruje.
+
+Finální příkazy z otestovaného commitu:
+
+```bash
+bash -n spikes/s4-state/apfs-pilot.sh spikes/s4-state/recovery-mock.sh spikes/s4-state/validate-state.sh
+/usr/bin/python3 -I -B -m unittest discover -s spikes/s4-state -p 'test*.py' -q
+/usr/bin/python3 -B -m unittest discover -s tools/tests -q
+# Build byl pro oba režimy vytvořen ze stejného zdrojového stromu; finální běh jej znovu použil.
+CLANG_MODULE_CACHE_PATH="$build_root/module" SWIFTPM_MODULECACHE_OVERRIDE="$build_root/module" \
+  swift test -c debug --skip-build --package-path spikes/s4-state \
+  --scratch-path "$build_root/build" --cache-path "$build_root/cache" --disable-sandbox
+CLANG_MODULE_CACHE_PATH="$build_root/module" SWIFTPM_MODULECACHE_OVERRIDE="$build_root/module" \
+  swift test -c release --skip-build --package-path spikes/s4-state \
+  --scratch-path "$build_root/build" --cache-path "$build_root/cache" --disable-sandbox
+git diff --check
+```
+
+Výsledek: **72/72 Python planner testů** (29,474 s), **63/63 tools testů** (1,867 s),
+**42/42 Swift Debug** (32,246 s), **42/42 Swift Release** (28,677 s), syntax/diff check exit 0.
+Python metody zahrnují skutečné subprocess CLI scénáře pro dry-run, apply hand-off i odmítnutí;
+veškeré APFS vstupy a recording shimy jsou syntetické. Nová sada má 20 regresních metod.
+
+První sandboxovaný Swift běh měl 20 chyb `boot identity unavailable`; systémový read-only
+`kern.bootsessionuuid` byl blokovaný. Opakování mimo sandbox prošlo v obou konfiguracích;
+20 zanechaných vlastních mock stromů bylo odstraněno po kontrole konkrétních cest,
+UID/mode/device/inode a úplného očekávaného obsahu. První tools příkaz s `-I` nemohl importovat
+repozitářový balík `tools`; dokumentovaný příkaz bez `-I` prošel. Čtyři starší mount fixtures
+byly doplněny o root mount, aby dál zkoušely svůj původní rozpor a ne neúplnou tabulku.
+
+Příprava B4 tím splňuje IMPLEMENTATION §0; aktuální F1 souhrn byl přepočten z 36 řádků na
+16 hotových / 7 rozpracovaných / 13 nezahájených. Kromě B4 se stav žádného balíku neměnil.
+**S4 a RB-02…08 zůstávají Neověřeno.** Nebyl spuštěn živý APFS pilot, snapshot/asr/mount/unmount,
+sudo ani jiná systémová mutace. Důvěryhodnost host shellu/binárek, výlučný namespace bez cizích
+write ACL a čerstvá skutečná záloha jsou předpoklady; POSIX mode není ACL audit, metadata nejsou
+atomický snapshot a plán není durable recovery deník. G1–G3, whole-UID interlock a L3 čekají
+na uživatelský laboratorní běh; jeho chybějící důkaz se testy planneru nenahrazuje.
