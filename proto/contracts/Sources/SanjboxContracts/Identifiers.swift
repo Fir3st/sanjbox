@@ -34,7 +34,9 @@ public enum Identifier {
         let numericLabels = labels.allSatisfy { label in
             if label.hasPrefix("0x") {
                 let digits = label.dropFirst(2)
-                return !digits.isEmpty && digits.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+                // Darwin's legacy numeric parser also treats a bare "0x" component as zero.
+                // Empty digits must therefore remain numeric-looking and be excluded here.
+                return digits.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
             }
             return label.utf8.allSatisfy { (48...57).contains($0) }
         }
