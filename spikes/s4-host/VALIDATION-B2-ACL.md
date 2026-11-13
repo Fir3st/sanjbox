@@ -83,3 +83,36 @@ Příprava ACL/dry-run/deníku/úklidu je dokončena v rozsahu [HARDENING.md](HA
 **Zbývá L3 host kompatibilita a laboratorní RB-09/10/S4.** Neověřeno: reálný home, UID oblastí,
 nové mounty, nepřetržitá ochrana, poslední check/set race, souběžná změna členství, výpadek
 napájení, zařízení/flush failure a reboot recovery. Žádná brána ani R2/R7 se nemění.
+
+## Review PR #59 — 2026-11-13
+
+Původní head `01d7bcede958dd936ed1ac5c233ab649dd341dc5`, integrace main
+`c334ef75c20067dc19405bf3b93fc991a6807595` v `9ab8ea92fd9db6bf93b70063983575a1926278ba`.
+Testovaný opravný commit: **`279b8c317b21032adfaa4805957b9c959c042f7a`**. Konfigurace:
+arm64, macOS **27.2.1 (26B131)**, Xcode **27.2 (27B52)**, Swift **6.4.2**, lokální
+case-insensitive APFS. Stejné syntetické fixture/cleanup omezení jako výše; žádné skutečné
+host zpevnění, přepnutí UID, sudo, systémové změny ani nové externí závislosti.
+
+Review našlo obcházení textové kontroly překryvu různým zápisem APFS cesty. Negativní kontrola
+nového native testu nad `9ab8ea9` měla **2 assertion failures**: pro cíl `target` a journal
+`TARGET/run/state` už byla deny ACE nainstalována a `state` vytvořen, než následná kontrola
+ancestor ACL odmítla completion. Fixture se uklidila přes původní připnutou identitu.
+Oprava porovnává device/inode řetězce cílů a parenta deníku před jakýmkoli zápisem. Tři nové
+metody ověřují journal uvnitř cíle, cíl uvnitř parenta journalu a totožné/vnořené aliasované
+cíle v obou pořadích; odmítnutí zachová metadata a nevytvoří `state`. Na case-sensitive FS
+tyto tři alias testy výslovně skipnou; na uvedeném APFS všechny proběhly.
+
+Příkazy odpovídají sekci výše, se samostatnou cache `/private/tmp/sanjbox-pr59-build.0K9BU2`:
+
+| Ověření na opravném commitu | Výsledek |
+|---|---|
+| Debug / Release | **55 / 55 XCTest metod**, 0 failures, 0 skips; 18,044 / 18,733 s |
+| CLI a native oracle | V1/v2 wrapper preview/apply/restore/idempotence, `access(W_OK)`, ACE pořadí/flags/dědičnost, drift a procesní crash případy zahrnuté v obou sadách |
+| Tooling | **63/63** Python testů; syntax všech tří wrapperů a `git diff --check` exit 0 |
+| Coverage | F1 **17 hotovo / 7 rozpracováno / 12 nezahájeno**, 0 z 10 bran prošlo; konflikt agregace při integraci vyřešen podle detailních řádků |
+
+Review dále ověřilo ACL-only v2, zachování mode/původních ACE a absence ACL, kanonické v1/v2
+deníky, odmítnutí nejednoznačného intentu, ochranu znovuotevření a explicitní same-UID/quiescence
+předpoklady. Žádný další nález k opravě v tomto omezeném rozsahu nezůstal. Požadavek stabilního
+host namespace, poslední check/set závod, změna členství, power-loss/flush a skutečné L3/RB-09/10
+zůstávají neověřené; tato validace není verdikt S4 ani důkaz průběžné R2 ochrany.
