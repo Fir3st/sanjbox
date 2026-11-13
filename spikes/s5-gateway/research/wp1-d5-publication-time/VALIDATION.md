@@ -23,9 +23,9 @@ identifikátorem výstupu je commit, který tyto soubory přidává. Bez buildů
 
 ## Review 2026-11-13
 
-Ověřeno nad PR head `b705cfcf3cc3de5f7a2fcd95c13bc2bedce8a992` po lokálním sloučení
-`main` `1763484e67ad4f3e8272e517dc76839fe3dd02dd` v `15f77be`; následující zjištění se vztahují
-k obsahu review commitu, který je zapisuje.
+Ověřeno nad PR head `b705cfcf3cc3de5f7a2fcd95c13bc2bedce8a992` a review `b927a30`
+po lokálním sloučení `main` `f301bf398720d8cae78e6e124d4b2a7225aec0e2` (včetně PR #59);
+následující zjištění se vztahují k obsahu integračního commitu, který je zapisuje.
 
 - Přímý anonymní HTTPS GET všech 12 URL ze `sources.json`: 11 zdrojů kódu/specifikací znovu
   souhlasí velikostí i SHA-256. Živá REST dokumentace má nyní **842 791 bytes**, SHA-256
@@ -41,7 +41,9 @@ k obsahu review commitu, který je zapisuje.
   byly navíc přečteny jako text a jejich hash/digest ověřen proti E1. Bez bottle payloadu,
   vyhodnocení Ruby, účtů či osobních credentials; tag nebyl při review znovu mapován.
 - Offline kontrola níže prošla na Pythonu 3.9.6 i 3.11.4; `tools/tests` **63/63**,
-  lokální Markdown cíle/kotvy a `git diff --check` prošly. Nové Packages REST/UI dotazy pro `hello`
+  všech 12 lokálních Markdown cílů/kotev, E1 cooldown report (398× unknown-time refusal) a
+  `git diff --check` prošly. Coverage ponechává B2 ✅ a F1 **17/7/12** (hotovo/rozpracováno/nezahájeno).
+  Nové Packages REST/UI dotazy pro `hello`
   ani historii formule se neopakovaly; původní chyby z 2026-11-08 zůstávají jen historickým
   pozorováním. Rešerše neprokazuje registry publication time, nemění runtime a ponechává
   D5 🟨 i S5/S6/HB-04 Neověřeno.

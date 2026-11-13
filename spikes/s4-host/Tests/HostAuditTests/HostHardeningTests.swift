@@ -6,7 +6,7 @@ import SanjboxProbeKit
 @testable import HostAudit
 
 /// Every mutation (including simulated hostile changes) stays inside this new synthetic tree.
-private final class HardenFixture: @unchecked Sendable {
+final class HardenFixture: @unchecked Sendable {
     let path: String
     let identity: StatMetadata
     let context: ProbeContext
@@ -33,16 +33,18 @@ private final class HardenFixture: @unchecked Sendable {
             guard write(fd, buffer.baseAddress, buffer.count) == buffer.count else { throw AuditFailure("fixture write failed") }
         }
     }
-    func setup(roots: [String] = ["target"]) throws {
+    func setup(roots: [String] = ["target"], plan: HardeningPlan? = nil,
+               prepare: (HardenFixture) throws -> Void = { _ in }) throws {
         try directory("run")
         for root in roots { try directory(root, mode: 0o755) }
+        try prepare(self)
         let manager = try XCTUnwrap(context.launchdManager)
         let expectation = IdentityInput(expectation: .init(effectiveUID: context.effectiveUID, realUID: context.realUID,
             effectiveGID: context.effectiveGID, realGID: context.realGID, requiredGroups: [], forbiddenGroups: [],
             launchdManagerName: manager.name, launchdManagerUID: manager.uid), auditSessionID: try XCTUnwrap(context.audit?.sessionID))
         try json("run/run.s4-expect.json", expectation)
         try baseline(roots: roots)
-        try json("run/run.s4-harden.json", HardeningPlan(roots: roots.indices.map { "root-\($0)" }))
+        try json("run/run.s4-harden.json", plan ?? HardeningPlan(roots: roots.indices.map { "root-\($0)" }))
     }
     func baseline(roots: [String], name: String = "run/run.s4-report.json") throws {
         let config = Configuration(roots: roots.enumerated().map { .init(id: "root-\($0.offset)", path: at($0.element), purpose: "synthetic B2 fixture") }, limits: .init(maxDepth: 0, maxEntries: 16))
