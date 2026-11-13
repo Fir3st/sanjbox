@@ -266,7 +266,8 @@ func outputWriterFailureCannotBeResumedOrClaimStopped(change: String) throws {
     let fixture = try OutputFixture()
     let output = try CounterpartOutput(log: fixture.log, raw: fixture.raw)
     defer { output.close() }
-    try output.record(.init(kind: .started, listeners: []))
+    let listener = Listener(transport: .udp, endpoint: .init(host: "127.0.0.1", port: 1234))
+    try output.record(.init(kind: .started, listeners: [listener]))
     let alias = fixture.root.appendingPathComponent("log-alias")
     if change == "hardlink" { try #require(link(fixture.log.path, alias.path) == 0) }
     else { try #require(chmod(fixture.log.path, 0o666) == 0) }
@@ -276,8 +277,11 @@ func outputWriterFailureCannotBeResumedOrClaimStopped(change: String) throws {
     #expect(throws: CounterpartError.self) { try output.record(.init(kind: .stopped)) }
     output.close()
     output.close()
-    #expect(try fixture.events().map(\.kind) == [.started])
-    #expect(try !CounterpartReport(events: fixture.events()).complete)
+    let events = try fixture.events()
+    #expect(events.map(\.kind) == [.started])
+    #expect(!CounterpartReport(events: events).complete)
+    // The prefix is otherwise valid: the failed writer, not another schema error, prevents completion.
+    #expect(CounterpartReport(events: events + [.init(kind: .stopped)]).complete)
 }
 
 @Test func outputStandardTemporaryAliasWorks() throws {

@@ -90,3 +90,33 @@ Lokální reprodukce a malé záznamy jsou v `/private/tmp/sanjbox-pr69-review.e
 `OutputReviewChecks.swift`, `descriptor-checks.log` a `acl-boundary/receipt.txt`. Všechny CLI procesy
 skončily; šlo pouze o vlastní syntetické soubory a loopback TCP/UDP. Review bylo provedeno před
 integrací PR #64; kontrolu společného výsledku a CI po aktualizaci větve musí dokončit integrátor.
+
+## Ověření společného výsledku s PR #64 (2026-11-13)
+
+Do výstupní větve `0df36b479965031a48f9c32886aa55703452d24e` byl lokálně sloučen `main`
+`a090bdcfc6005dd62a5c85f466332ec40a6d0fe8`, který už obsahuje opravu reportu z PR #64.
+Oba produkční zásahy se složily beze změn zdrojů: vlastnictví výstupů z PR #69 a sémantická
+validace reportu z PR #64. Sdílený řádek coverage zachovává obě opravy; README obsahuje oba
+kontrakty a úplný význam report exit 3. Regrese neobnovitelné chyby writeru nyní používá platný
+listener a pozitivní kontrolu doplněného `stopped`, aby její neúplnost nebyla vedlejším důsledkem
+neplatného `started`. Dočasné kontroly deskriptorů nejsou součástí commitu.
+
+Ve stejném prostředí a scratch adresáři jako výše prošlo:
+
+- **70/70 testů Debug i Release** (45 counterpart + 18 ProbeKit + 7 provenance), včetně všech
+  29 report CLI regresí v každé konfiguraci.
+- **14/14 dalších skutečných CLI scénářů v každé konfiguraci:** všech deset výše uvedených
+  testů výstupů/chyb a čtyři listen → TCP/UDP → SIGTERM → report běhy s bindy `127.0.0.1`,
+  `0.0.0.0`, `::1` a `::`. Poslední přijal IPv4 i IPv6; všechny čtyři reporty měly správné počty,
+  platný úplný log a exit 1. Syntetické symlink cíle zůstaly nezměněné a chyby writeru dál
+  zabránily `stopped` i platnému reportu.
+- **3/3 kontroly deskriptorů Debug** z předchozího review, včetně 500 konfliktních inicializací
+  a 512 operací v každém souběžném scénáři; `git diff --check` bez nálezu.
+
+Nové záznamy jsou `merged-debug-final.log`, `merged-release-final.log`,
+`merged-cli-debug/receipt.json`, `merged-cli-release/receipt.json`, `merged-listeners-debug.jsonl`,
+`merged-listeners-release.jsonl` a `merged-descriptor-checks.log` v
+`/private/tmp/sanjbox-pr69-review.eeQ7AUVv/`; převzatý listener harness je `cli-listeners-merged.py`.
+Vlastní listenery skončily, dočasný Swift test byl odstraněn a historické důkazy zůstaly nedotčené.
+Omezení ACL, neatomické kontroly metadat, trvanlivosti zápisů a autentizace logů se nemění.
+Plné vzdálené CI společného commitu následuje po publikaci větve; nejde o laboratorní verdict.

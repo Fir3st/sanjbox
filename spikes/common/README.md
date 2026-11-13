@@ -110,8 +110,44 @@ podle případu: jiný stroj v LAN (NET-01), tvoje relace na `127.0.0.1` (NET-02
 |---|---|
 | 0 | Úplný běh, nic nepřišlo |
 | 1 | Něco přišlo; i TCP spojení bez jediného bajtu je kontakt |
-| 3 | Neúplný log: chybí `started`/`stopped`, více běhů nebo nezavřený tok. Protistrana možná neposlouchala, takže měření je neplatné. |
-| 2 | Chyba použití nebo čtení logu |
+| 3 | Neúplný nebo sémanticky neplatný log (viz níže). Měření je neplatné, i když obsahuje kontakt nebo bajty. |
+| 2 | Chyba použití, čtení nebo dekódování JSON logu |
+
+Report ověřuje jeden `started` na začátku s neprázdným seznamem jedinečných numerických
+listenerů (skutečný nenulový port) a jeden `stopped` na konci. Události mezi nimi mají pole
+podle producenta; pole z jiných druhů událostí jsou chyba:
+
+| Událost | Povinná pole navíc k `timestamp` a `kind` |
+|---|---|
+| `started` | `listeners` |
+| `accepted` | `flowID`, `transport`, `local`, `remote` |
+| `closed` | pole `accepted` + `bytes`, `findings`, `rawTruncated`, `endReason` |
+| `datagram` | pole `accepted` + `bytes`, `findings`, `rawTruncated` |
+| `stopped` | žádná |
+
+`closed`/`datagram` mají navíc `rawFile` právě při kladném počtu bajtů; název musí odpovídat
+ID, transportu a portu. Příznak zkrácení odpovídá limitu raw capture. Report raw soubor neotvírá.
+TCP má `accepted` před právě jedním `closed` se stejnými endpointy a transportem; každý datagram
+má vlastní ID. ID jsou kladná, bez opakovaného použití a v úplném běhu tvoří řadu od 1 bez mezer.
+**Pořadí ID ani časových razítek nemusí růst:** vlákna přidělují ID a čas před zamčením logu.
+Lokální endpoint musí odpovídat listeneru a transportu, včetně TCP wildcard/IPv4-mapped IPv6;
+UDP zapisuje přímo endpoint listeneru. Nativní IPv6 a IPv4-mapped IPv6 se rozlišují podle
+binární adresy i při hexadecimálním zápisu: nesmějí tvořit opačné endpointy TCP ani UDP
+s konkrétním bindem. UDP wildcard `::` přijímá obě varianty; mapped UDP listener může podle
+Darwinu hlásit i prostý IPv4 zdroj. Nulový zdrojový port UDP je přípustný.
+
+U neplatného logu zůstávají počty jen pozorování pro diagnostiku: každé `accepted` se počítá,
+stejně jako `closed` bez předchozího `accepted` daného ID, a každý `datagram`. Kladné bajty a
+nálezy se zachovají i z události se špatnými poli; záporné bajty se odmítnou a neodečítají,
+při přetečení se součet zastaví na `Int.max` a měření je neplatné. Diagnostika má nejvýš 100
+položek, další události se stále zpracují. `receivedAnything` zahrnuje i osiřelé uzavření,
+kladné bajty a nálezy. Kód 0 vyžaduje **platný** běh bez jakéhokoli takového kontaktu.
+
+Tato kontrola je sémantická nad již dekódovanými událostmi. Sdílený `JSONLines`/`JSONDecoder`
+zůstává beze změny: načítá celý soubor, ignoruje neznámé klíče a není striktní kontrolou
+zdvojených klíčů JSON objektu. Syntakticky nedekódovatelný log vrací 2. Report neautentizuje
+původ ani úplnost samotného souboru a nepotvrzuje síťovou izolaci. Tu musí doložit kontrolní
+cesta a měření konkrétní brány. Regrese opravy: [VALIDATION-COUNTERPART.md](VALIDATION-COUNTERPART.md).
 
 Postup jednoho negativního případu:
 
@@ -164,7 +200,7 @@ obsahuje regresní testy a přesnou testovanou revizi; brány ani historické d�
 | 0 | V pořádku; `scan` nic nenašel; `report`: úplný běh bez kontaktu |
 | 1 | `scan` našel kanárka; `report`: protistrana něco přijala |
 | 2 | Chyba použití nebo I/O |
-| 3 | Neplatné měření: identita nebo relace neodpovídá očekávání, nebo log protistrany je neúplný; běh je nutné opakovat |
+| 3 | Neplatné měření: identita nebo relace neodpovídá očekávání, nebo log protistrany je neúplný či sémanticky neplatný; běh je nutné opakovat |
 | 4 | `cleanup` něco odmítl smazat; zkontroluj ručně |
 
 ## Bezpečnost
