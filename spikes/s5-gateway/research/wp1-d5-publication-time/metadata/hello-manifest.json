@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "config": {
+    "mediaType": "application/vnd.oci.image.config.v1+json",
+    "digest": "sha256:6b03147913bfa292b8f3366d1f19ae9cdb5e04c056ea2d864dad0f25438356f4",
+    "size": 220
+  },
+  "layers": [
+    {
+      "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+      "digest": "sha256:4dd2596c2e897c81eae2dbf5030da37b43e797d217f0f0892d39343d0b8c2ca7",
+      "size": 54641,
+      "annotations": {
+        "org.opencontainers.image.title": "hello--2.12.3.arm64_golden_gate.bottle.1.tar.gz"
+      }
+    }
+  ],
+  "annotations": {
+    "com.github.package.type": "homebrew_bottle",
+    "org.opencontainers.image.created": "2026-09-12T07:07:25Z",
+    "org.opencontainers.image.description": "Program providing model for GNU coding standards and practices",
+    "org.opencontainers.image.documentation": "https://formulae.brew.sh/formula/hello",
+    "org.opencontainers.image.licenses": "GPL-3.0-or-later",
+    "org.opencontainers.image.ref.name": "2.12.3.arm64_golden_gate.1",
+    "org.opencontainers.image.revision": "29209e1690e20fc7ef2211d24e7d61ce27b087e3",
+    "org.opencontainers.image.source": "https://github.com/homebrew/homebrew-core/blob/29209e1690e20fc7ef2211d24e7d61ce27b087e3/Formula/h/hello.rb",
+    "org.opencontainers.image.title": "hello 2.12.3.arm64_golden_gate.1",
+    "org.opencontainers.image.url": "https://www.gnu.org/software/hello/",
+    "org.opencontainers.image.vendor": "homebrew",
+    "org.opencontainers.image.version": "2.12.3",
+    "sh.brew.bottle.digest": "4dd2596c2e897c81eae2dbf5030da37b43e797d217f0f0892d39343d0b8c2ca7",
+    "sh.brew.bottle.installed_size": "190192",
+    "sh.brew.bottle.size": "54641",
+    "sh.brew.license": "GPL-3.0-or-later",
+    "sh.brew.path_exec_files": "bin/hello",
+    "sh.brew.sbom.supplement": "{\"documentDescribes\":[\"SPDXRef-Compiler\",\"SPDXRef-Bottle-hello\"],\"packages\":[{\"SPDXID\":\"SPDXRef-Compiler\",\"name\":\"clang\",\"versionInfo\":\"27.0\",\"filesAnalyzed\":false,\"licenseDeclared\":\"NOASSERTION\",\"licenseConcluded\":\"NOASSERTION\",\"copyrightText\":\"NOASSERTION\",\"downloadLocation\":\"NOASSERTION\",\"checksums\":[],\"externalRefs\":[]},{\"SPDXID\":\"SPDXRef-Bottle-hello\",\"name\":\"hello\",\"versionInfo\":\"2.12.3\",\"filesAnalyzed\":false,\"licenseDeclared\":\"NOASSERTION\",\"builtDate\":\"2026-09-12T07:07:25Z\",\"licenseConcluded\":\"GPL-3.0-or-later\",\"downloadLocation\":\"https://ghcr.io/v2/homebrew/core/hello/blobs/sha256:4dd2596c2e897c81eae2dbf5030da37b43e797d217f0f0892d39343d0b8c2ca7\",\"copyrightText\":\"NOASSERTION\",\"externalRefs\":[{\"referenceCategory\":\"PACKAGE-MANAGER\",\"referenceLocator\":\"pkg:brew/hello@2.12.3\",\"referenceType\":\"purl\"}],\"checksums\":[{\"algorithm\":\"SHA256\",\"checksumValue\":\"4dd2596c2e897c81eae2dbf5030da37b43e797d217f0f0892d39343d0b8c2ca7\"}]}],\"relationships\":[{\"spdxElementId\":\"SPDXRef-Compiler\",\"relationshipType\":\"BUILD_TOOL_OF\",\"relatedSpdxElement\":\"SPDXRef-Archive-hello-src\"}]}",
+    "sh.brew.tab": "{\"homebrew_version\":\"6.0.22-308-g08da5cf\",\"changed_files\":[],\"linkage_files\":[],\"binary_relocation_files\":[],\"source_modified_time\":1773804383,\"compiler\":\"clang\",\"runtime_dependencies\":[],\"arch\":\"arm64\",\"built_on\":{\"os\":\"Macintosh\",\"os_version\":\"macOS 27\",\"cpu_family\":\"dunno\",\"xcode\":\"27.0\",\"clt\":\"27.0.0.0.1788430756\",\"preferred_perl\":\"5.34\"}}"
+  }
+}

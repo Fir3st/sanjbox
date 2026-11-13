@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "note": "Read-only public GETs. No gh credential, account token, bottle payload, installation, or publication. HTTP 500/504 and timeout are availability failures, not evidence of authentication requirements or absent data. No error HTML or token is retained. Three successful bodies only are stored. Header/response metadata not retained for the final manifest/config reads; saved_at records local storage time.",
+  "requests": [
+    {
+      "id": "packages-list-unauthenticated",
+      "url": "https://api.github.com/orgs/Homebrew/packages/container/core%2Fhello/versions?per_page=1",
+      "method": "GET",
+      "status": 500,
+      "retrieved_at": "2026-11-08T10:33:59.382120+00:00",
+      "bytes": 162,
+      "sha256": "978c72e3261b7ad23748ffc500832a3b5409210530918e56d645925e4e7b9620",
+      "response_headers": {
+        "date": "Sun, 08 Nov 2026 10:33:59 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "content-length": "162"
+      },
+      "request_api_version": "2022-11-28",
+      "account_authentication": false
+    },
+    {
+      "id": "hello-tag",
+      "url": "https://ghcr.io/v2/homebrew/core/hello/manifests/2.12.3-1",
+      "method": "GET",
+      "status": 200,
+      "retrieved_at": "2026-11-08T10:33:59.748702+00:00",
+      "bytes": 15260,
+      "sha256": "c847599789efade500c448e8b302fc9a3f985e1e4370e91b339b839b2205d984",
+      "response_headers": {
+        "content-length": "15260",
+        "content-type": "application/vnd.oci.image.index.v1+json",
+        "docker-content-digest": "sha256:c847599789efade500c448e8b302fc9a3f985e1e4370e91b339b839b2205d984",
+        "etag": "\"sha256:c847599789efade500c448e8b302fc9a3f985e1e4370e91b339b839b2205d984\"",
+        "date": "Sun, 08 Nov 2026 10:33:59 GMT"
+      },
+      "authentication": "Anonymous public pull bearer token, obtained without any account credential; token not retained."
+    },
+    {
+      "id": "hello-index",
+      "url": "https://ghcr.io/v2/homebrew/core/hello/manifests/sha256:c847599789efade500c448e8b302fc9a3f985e1e4370e91b339b839b2205d984",
+      "method": "GET",
+      "status": 200,
+      "retrieved_at": "2026-11-08T10:33:59.933616+00:00",
+      "bytes": 15260,
+      "sha256": "c847599789efade500c448e8b302fc9a3f985e1e4370e91b339b839b2205d984",
+      "response_headers": {
+        "content-length": "15260",
+        "content-type": "application/vnd.oci.image.index.v1+json",
+        "docker-content-digest": "sha256:c847599789efade500c448e8b302fc9a3f985e1e4370e91b339b839b2205d984",
+        "etag": "\"sha256:c847599789efade500c448e8b302fc9a3f985e1e4370e91b339b839b2205d984\"",
+        "date": "Sun, 08 Nov 2026 10:33:59 GMT"
+      },
+      "stored_path": "metadata/hello-index.json",
+      "authentication": "Anonymous public pull bearer token, obtained without any account credential; token not retained."
+    },
+    {
+      "id": "packages-list-unauthenticated-retry",
+      "url": "https://api.github.com/orgs/Homebrew/packages/container/core%2Fhello/versions?per_page=1",
+      "method": "GET",
+      "status": 504,
+      "saved_at": "2026-11-08T10:34:27.827513+00:00",
+      "bytes": 54881,
+      "sha256": "8e8052a0c2d1b3568998cc84bea4b37c23a7db71d547cf8f34b6b109f2f55a30",
+      "request_api_version": "2026-03-10",
+      "account_authentication": false
+    },
+    {
+      "id": "hello-manifest",
+      "url": "https://ghcr.io/v2/homebrew/core/hello/manifests/sha256:f332d571111252e2a27610a7cf85a2533fd5d4eee4217dfd63b34fbe74a7f190",
+      "method": "GET",
+      "status": 200,
+      "saved_at": "2026-11-08T10:34:28.154970+00:00",
+      "bytes": 3400,
+      "sha256": "f332d571111252e2a27610a7cf85a2533fd5d4eee4217dfd63b34fbe74a7f190",
+      "stored_path": "metadata/hello-manifest.json",
+      "authentication": "Anonymous public pull bearer token, obtained without any account credential; token not retained."
+    },
+    {
+      "id": "hello-config",
+      "url": "https://ghcr.io/v2/homebrew/core/hello/blobs/sha256:6b03147913bfa292b8f3366d1f19ae9cdb5e04c056ea2d864dad0f25438356f4",
+      "method": "GET",
+      "status": 200,
+      "saved_at": "2026-11-08T10:34:43.810344+00:00",
+      "bytes": 220,
+      "sha256": "6b03147913bfa292b8f3366d1f19ae9cdb5e04c056ea2d864dad0f25438356f4",
+      "stored_path": "metadata/hello-config.json",
+      "authentication": "Anonymous public pull bearer token, obtained without any account credential; token not retained."
+    },
+    {
+      "id": "hello-history.json",
+      "url": "https://api.github.com/repos/Homebrew/homebrew-core/commits?sha=5c4fe351541e0aa5d426937c5badf6da8630c109&path=Formula/h/hello.rb&per_page=5",
+      "method": "GET",
+      "status": 504,
+      "retrieved_at": "2026-11-08T10:36:50.249319+00:00",
+      "bytes": 54881,
+      "sha256": "8e8052a0c2d1b3568998cc84bea4b37c23a7db71d547cf8f34b6b109f2f55a30",
+      "response_headers": {
+        "content-type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "id": "hello-ui.html",
+      "url": "https://github.com/orgs/Homebrew/packages/container/package/core%2Fhello",
+      "retrieved_at": "2026-11-08T10:36:53.106941+00:00",
+      "transport_error": "TimeoutError"
+    },
+    {
+      "id": "hello-package-page-first-attempt",
+      "url": "https://github.com/Homebrew/homebrew-core/pkgs/container/core%2Fhello",
+      "accessed_on": "2026-11-08",
+      "transport_error": "TimeoutError",
+      "timeout_seconds": 25
+    }
+  ]
+}
