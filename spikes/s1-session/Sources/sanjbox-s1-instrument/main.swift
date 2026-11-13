@@ -8,6 +8,10 @@ import S1Instrumentation
         catch { fputs("s1-instrument: \(error)\n", stderr); exit(2) }
     }
     @MainActor static func run(_ args: [String]) throws -> Int32 {
+        if args.first == "owned-descendant-fixture" {
+            guard args.count == 4 && args[1] == "--fixture-json" && args[3] == "--apply" && args[2].utf8.count <= 16_384 else { throw InstrumentError("internal descendant fixture requires bounded protocol and --apply") }
+            try InstrumentRunner.ownedDescendantFixture(requestJSON: Data(args[2].utf8)); return 0
+        }
         if args.first == "owned-memory-fixture" {
             guard args.count == 4 && args[1] == "--fixture-json" && args[3] == "--apply" && args[2].utf8.count <= 16_384 else { throw InstrumentError("internal fixture requires bounded protocol and --apply") }
             try InstrumentRunner.ownedMemoryFixture(requestJSON: Data(args[2].utf8)); return 0
@@ -20,6 +24,7 @@ import S1Instrumentation
         sanjbox-s1-instrument login-marker --marker-json JSON --expect-json JSON [--apply]
         sanjbox-s1-instrument process-memory --memory-json JSON --expect-json JSON [--apply]
         sanjbox-s1-instrument evaluate-supplement --fixture NAME --run-id ID [--apply]
+        sanjbox-s1-instrument descendant-memory --descendant-json JSON --expect-json JSON [--apply]
         sanjbox-s1-instrument process-series --series-json JSON --expect-json JSON [--apply]
         sanjbox-s1-instrument owned-process-series --run-id ID --expect-json JSON [--apply]
         sanjbox-s1-instrument evaluate-process-series --fixture NAME --run-id ID [--apply]
@@ -31,7 +36,7 @@ import S1Instrumentation
         """
         guard let command = args.first else { print(usage); return 0 }
         if command == "--help" && args.count == 1 { print(usage); return 0 }
-        guard ["record", "plan", "evaluate", "offscreen", "login-marker", "process-memory", "evaluate-supplement", "process-series", "owned-process-series", "evaluate-process-series", "inspect-process-journal"].contains(command), args.count <= 10 else { throw InstrumentError("unsupported command or argument count") }
+        guard ["descendant-memory", "record", "plan", "evaluate", "offscreen", "login-marker", "process-memory", "evaluate-supplement", "process-series", "owned-process-series", "evaluate-process-series", "inspect-process-journal"].contains(command), args.count <= 10 else { throw InstrumentError("unsupported command or argument count") }
         var options: [String: String] = [:]
         var apply = false
         var index = 1
@@ -40,7 +45,7 @@ import S1Instrumentation
             if key == "--apply" {
                 guard !apply else { throw InstrumentError("duplicate --apply") }; apply = true; index += 1; continue
             }
-            guard ["--plan-json", "--expect-json", "--fixture", "--run-id", "--marker-json", "--memory-json", "--series-json"].contains(key), options[key] == nil, index + 1 < args.count else { throw InstrumentError("unknown, missing or duplicate option") }
+            guard ["--descendant-json", "--plan-json", "--expect-json", "--fixture", "--run-id", "--marker-json", "--memory-json", "--series-json"].contains(key), options[key] == nil, index + 1 < args.count else { throw InstrumentError("unknown, missing or duplicate option") }
             let value = args[index + 1]
             guard value.utf8.count <= 16_384 else { throw InstrumentError("option exceeds 16 KiB") }
             options[key] = value; index += 2
@@ -68,8 +73,17 @@ import S1Instrumentation
             }
             return report.structuralError ? 2 : 3
         }
-        let allowed: Set<String> = command == "process-series" ? ["--series-json", "--expect-json"] : command == "owned-process-series" ? ["--run-id", "--expect-json"] : command == "login-marker" ? ["--marker-json", "--expect-json"] : command == "process-memory" ? ["--memory-json", "--expect-json"] : command == "record" ? ["--plan-json", "--expect-json"] : command == "plan" ? ["--plan-json"] : command == "offscreen" ? ["--run-id", "--expect-json"] : ["--fixture", "--run-id"]
+        let allowed: Set<String> = command == "descendant-memory" ? ["--descendant-json", "--expect-json"] : command == "process-series" ? ["--series-json", "--expect-json"] : command == "owned-process-series" ? ["--run-id", "--expect-json"] : command == "login-marker" ? ["--marker-json", "--expect-json"] : command == "process-memory" ? ["--memory-json", "--expect-json"] : command == "record" ? ["--plan-json", "--expect-json"] : command == "plan" ? ["--plan-json"] : command == "offscreen" ? ["--run-id", "--expect-json"] : ["--fixture", "--run-id"]
         guard Set(options.keys) == allowed && !(command == "plan" && apply) else { throw InstrumentError("command requires exactly its documented options") }
+        if command == "descendant-memory" {
+            let expected = try decodeExpectation(options["--expect-json"]!)
+            let plan = try StrictJSON.decodeExact(DescendantMemoryPlan.self, from: Data(options["--descendant-json"]!.utf8))
+            try plan.validate(expectedUID: expected.uid)
+            if !apply { print("dry-run: bounded descendants of one registered same-UID test root; no process read"); return 0 }
+            signal(SIGALRM, SIG_DFL); alarm(UInt32(ceil(plan.seconds)) + 30)
+            let result = try InstrumentRunner.descendantMemory(plan: plan, expected: expected)
+            print(result.path); return result.valid ? 0 : 3
+        }
         if command == "process-series" {
             let plan = try StrictJSON.decodeExact(ProcessSeriesPlan.self, from: Data(options["--series-json"]!.utf8))
             try plan.validate()
