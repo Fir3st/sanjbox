@@ -5,7 +5,9 @@ embedded XPC service spuštěný systémem pro jedinou vlastní dočasnou aplika
 LaunchAgent, `launchctl bootstrap`, LaunchServices registrace, login item, systémová konfigurace
 ani privilegovaný helper se neinstaluje. Jediné service jméno je pevné
 `org.sanjbox.a4.fixture-service` uvnitř vlastního bundle. Příkaz nepřijímá cizí service/path/PID.
-**WP1.A4 je partial; S0/S8, ID-07/11 a R2/R3 zůstávají Neověřeno.**
+**Živý rozsah této sondy je částečný; S0/S8, ID-07/11 a R2/R3 zůstávají Neověřeno.**
+[Runbook A4](LAB-PLAN.md) dodává přípravu všech 31 scénářů včetně zde chybějících kroků;
+nezvětšuje schopnosti této fixture.
 
 ## Identita, autorizace a přesná mez
 

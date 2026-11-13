@@ -40,7 +40,7 @@ public actor GitGateway {
     public func response(to request: HTTPRequest) async throws -> HTTPResponse {
         try Task.checkCancellation()
         guard registryHeadersAllowed(request), !request.headers.keys.contains(where: { $0.lowercased() == "git-protocol" }) else { return .error(403) }
-        guard operations < configuration.limits.operations else { return .error(503) }
+        guard operations < configuration.limits.operations else { return .error(503, rejection: .capacity) }
         operations += 1
         defer { operations -= 1 }
         do {

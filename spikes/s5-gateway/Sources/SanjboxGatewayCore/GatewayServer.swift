@@ -184,9 +184,9 @@ public enum GatewayServerFailure: Error { case alreadyStarted, unavailable }
                                 let wire = try response.encoded()
                                 started = true
                                 try await send(wire)
-                                await response.completion?(true)
+                                await response.completeTransport(true)
                             } catch {
-                                await response.completion?(false)
+                                await response.completeTransport(false)
                                 throw error
                             }
                         case .events(let produce):

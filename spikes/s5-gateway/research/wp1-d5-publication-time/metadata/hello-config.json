@@ -1,0 +1,11 @@
+{
+  "architecture": "arm64",
+  "os": "darwin",
+  "os.version": "macOS 27",
+  "rootfs": {
+    "type": "layers",
+    "diff_ids": [
+      "sha256:736eebe1df08b0cfd8752c646634080066e8ffbd04159a99a07aa6862625b1f4"
+    ]
+  }
+}

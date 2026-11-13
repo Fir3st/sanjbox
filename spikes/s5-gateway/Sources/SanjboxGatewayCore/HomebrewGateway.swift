@@ -57,7 +57,7 @@ public actor HomebrewGateway {
         guard request.target.hasPrefix(prefix), request.target.hasSuffix(".json") else { return .error(403) }
         let formula = String(request.target.dropFirst(prefix.count).dropLast(5))
         guard HomebrewMetadataAssessment.validFormula(formula) else { return .error(400) }
-        guard operations < limits.operations else { return .error(503) }
+        guard operations < limits.operations else { return .error(503, rejection: .capacity) }
         operations += 1
         defer { operations -= 1 }
         do {
