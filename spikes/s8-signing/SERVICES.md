@@ -7,7 +7,7 @@ Personal Team a podmíněná self-signed varianta zůstávají uživatelské exp
 A6/SG-01…11 zůstávají částečné/Neověřeno; attach oracle a skutečný broker/XPC transport dále chybějí.
 [H1 kontrakty](../../proto/contracts/README.md) jsou dokončené offline; nový `h1-fuzz` testuje
 helper/reply/broker v1. [Syntetický host-only seam a restart workflow](A6-H1-FOLLOWUP.md) nemění
-nativní SMAppService/UI ani jeho omezení popsaná níže.
+nativní SMAppService/UI ani jeho omezení popsaná níže. Navazující [native recovery](NATIVE-RECOVERY.md) nyní zapojuje skutečný durable journal do user-service call sites; obnovené receipts stále nejsou oprávnění.
 
 | Target | Umístění v app | Identifikátor / chování |
 |---|---|---|
@@ -66,6 +66,7 @@ CLI nepřijímá registraci, unregister, apply, label, executable ani cestu slu�
 ```text
 OWN_APP/Contents/MacOS/S8ServiceHost status --expect OWN_EXPECTATION
 OWN_APP/Contents/MacOS/S8ServiceHost ui --expect OWN_EXPECTATION
+OWN_APP/Contents/MacOS/S8ServiceHost recovery --expect OWN_EXPECTATION
 ```
 
 `OWN_EXPECTATION` je přesný vlastní expectation JSON z [README](README.md#identita-před-každou-sondou-implementátor--uživatel-v-l2),
@@ -76,15 +77,15 @@ kontrola nevydává ad-hoc za Personal Team ani self-signed. UI je výchozí pre
 read-only tlačítko. Žádné automatické otevření System Settings ani autorizační dialog OS.
 
 Pro LoginItem/LaunchAgent vyžaduje mutace non-ad-hoc profil, nové ověření přesné identity po dialogu,
-explicitní uživatelskou akci a nejvýše 32 eventů v UI session. Před API se uloží `intent` se stavem
-před změnou; pak `result` se stavem, NSError domain/code a skutečnou identitou. Nedostatek evidence
+explicitní uživatelskou akci a nejvýše 32 eventů v UI session. Před API se vedle eventu uloží **nativní durable intent** s úplnou podepsanou inventurou a stavem
+před změnou; pak samostatný durable `result` se stavem, NSError domain/code a skutečnou process/audit identitou. Nedostatek evidence
 kapacity nebo chyba zápisu před API znamená žádnou mutaci. Chyba po API ponechá intent a neúplný
 běh; nesmí se pokládat za úspěšný cleanup. Dialog není trusted host authorization boundary.
 
-**Ownership:** register vyžaduje stav `notRegistered`. Unregister je dostupný jen po doloženém
+**Durable provenance, nikoli důkaz generation:** [nativní journal](NATIVE-RECOVERY.md) používá pevný per-run root v Application Support, inode lock, fsync/full-sync a immutable-name hash chain; register vyžaduje stav `notRegistered` a žádný předchozí cyklus služby v tomto runu. Unregister je dostupný jen po doloženém
 úspěšném register v téže živé UI session, na stejném service enum a při stejném pozorovaném stavu.
-Nejasný API výsledek, neúplný result, restart UI nebo změna statusu znamená odmítnutí a ruční L2
-review. Staré receipts nejsou oprávněním měnit nynější službu; SMAppService neposkytuje vlastní
+Nejasný API výsledek, neúplný result, restart UI nebo změna statusu znamená odmítnutí mutací a ruční L2
+review. `recovery` jen ověří aktuální app a prohlédne trvalé záznamy, bez status API či vytvoření adresářů; autoritu neobnoví. Staré receipts nejsou oprávněním měnit nynější službu; SMAppService neposkytuje vlastní
 registration generation. Stejný status po cizím unregister/re-register nelze zjistit: vyžaduje se
 sériový LAB slot bez souběžných změn, není zde produkční ownership/TOCTOU garance.
 

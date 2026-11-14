@@ -3,7 +3,7 @@
 **WP1.A6 zůstává rozpracované. S8 a SG-01…11 zůstávají Neověřeno.** Balíček dodává
 spustitelnou statickou sondu vlastních syntetických artefaktů, čisté policy testy, omezený mock
 fuzzer, [fuzzer skutečných H1 kontraktů a syntetický service workflow](A6-H1-FOLLOWUP.md) a plán šesti odlišných uživatelských experimentů. Nedodává produkční broker, XPC transport,
-produkční autorizační cestu daemonu ani platný same-UID attach oracle. Nové [disposable service fixtures](SERVICES.md) dodávají sestavitelný SMAppService host, tři samostatné helper targets a úzké uživatelské UI. Nový [copy/signing handoff](HANDOFF.md) předá uživateli čtyři konkrétní podpisové příkazy bez změny původního ad-hoc manifestu; po handoffu automatický cleanup záměrně odmítá neznámý registration state. Konkrétní mezery jsou níže.
+produkční autorizační cestu daemonu ani platný same-UID attach oracle. Nové [disposable service fixtures](SERVICES.md) dodávají sestavitelný SMAppService host, tři samostatné helper targets a úzké uživatelské UI. Nový [copy/signing handoff](HANDOFF.md) předá uživateli čtyři konkrétní podpisové příkazy bez změny původního ad-hoc manifestu; po handoffu automatický cleanup záměrně odmítá neznámý registration state. Nový [nativní journal](NATIVE-RECOVERY.md) váže skutečnou user-service cestu na trvalé intent/result záznamy a úplnou inventuru podepsané app; recovery po restartu neobnovuje autoritu ani neodblokovává cleanup. Konkrétní mezery jsou níže.
 Historický `SOURCES.sha256` patří výhradně revizi a výsledkům 2026-11-03; nepřepisuje se pro dnešní HEAD. `SERVICE-SOURCES-20261104.sha256` je rovněž historický snapshot; aktuální handoff se dokládá testy a krátkou poznámkou ve VALIDATION podle GUIDE §11.
 Autoritativní jsou [PLAN](../../PLAN.md), [GUIDE](../../docs/GUIDE.md) a [LAB](../../docs/LAB.md).
 
@@ -13,7 +13,7 @@ Autoritativní jsou [PLAN](../../PLAN.md), [GUIDE](../../docs/GUIDE.md) a [LAB](
 |---|---|---|
 | SG-01, SG-02 / R2 | `inspect`: Security API, validita všech architektur, runtime flag, explicitní absence obou názvů `get-task-allow`, známý formát entitlements | Agent/helper/sondy v L2; zde původní čtyři thin arm64 fixtures a čtyři staticky ověřené service targets |
 | SG-03 / R6 | Identifikátor a hash ve statickém reportu | Stabilita identity/TCC přes rebuild; žádné granty ani TCC databáze se nečtou |
-| SG-04 / R2 | `experiments`: Personal Team × tři služby; [sestavitelný disposable app](SERVICES.md), typované UI, startup observations, syntetický `service-workflow` a samostatný testovaný host-only daemon model | Uživatelský podpis/registrace, bezpečná host-only cesta daemonu, login/reboot a lifecycle oracle |
+| SG-04 / R2 | `experiments`: Personal Team × tři služby; [sestavitelný disposable app](SERVICES.md), typované UI, [nativní durable journal/recovery](NATIVE-RECOVERY.md), startup observations, syntetický `service-workflow` a samostatný testovaný host-only daemon model | Uživatelský podpis/registrace, bezpečná host-only cesta daemonu, login/reboot a lifecycle oracle |
 | SG-05 / R2 | Tři oddělené podmíněné self-signed scénáře | Žádné certifikáty/identity nebyly čteny ani použity; ad-hoc není self-signed ani Personal Team |
 | SG-06 / R2 | Negativní signing policy testy pouze na hodnotách v paměti | Same-UID attach runner a srovnatelná pozitivní kontrola; viz samostatný postup níže |
 | SG-07 / R2 | Změna jednoho syntetického markeru po podpisu → statická validace musí selhat | Nepřevzetí skutečných TCC grantů, bundle/rebuild scénáře |
@@ -40,8 +40,7 @@ env CLANG_MODULE_CACHE_PATH=/private/tmp/s8-own-clang-cache \
 
 V sandboxu, kde vnořený SwiftPM sandbox nelze spustit, lze pro **tento vlastní lokální balíček**
 přidat `--disable-sandbox`. Žádné balíčky se nestahují. `native` je v Swift 6.4 označené deprecated;
-výchozí `swiftbuild` v Debug na ověřené konfiguraci **vkládá get-task-allow**. Testy jsou čisté
-unit/mock testy; každá následně spuštěná CLI sonda vyžaduje samostatný signing preflight.
+výchozí `swiftbuild` v Debug na ověřené konfiguraci **vkládá get-task-allow**. Testy zahrnují policy/mock i skutečný filesystem, fsync/flock a vlastní process/boot/audit metadata; žádné služby neregistrují; každá následně spuštěná CLI sonda vyžaduje samostatný signing preflight.
 
 Po **každém rebuildu** připrav vlastní binárku (cestu vrátí `swift build` se stejným scratch a
 `--show-bin-path`; u native typicky `/private/tmp/s8-own-build/arm64-apple-macosx/debug/s8-probe`).

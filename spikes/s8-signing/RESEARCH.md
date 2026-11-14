@@ -51,3 +51,35 @@ unregister na vlastní právě proběhlou registraci v téže session; běžný 
 registration generation. Receipt po restartu není trust ani oprávnění k novému unregister.
 Sealed run ID je korelace evidence, nikdy autorizace. Statické codesign kontroly nelze zaměnit za
 TCC stabilitu, identitu živého XPC peeru nebo same-UID attach oracle.
+
+## Native recovery feasibility, 2026-11-14
+
+Aktuální Apple SDK macOS 27.2 (`xcrun --show-sdk-path`) byl znovu přečten; jde o primární
+API kontrakt, nikoli živý výsledek služby. `ServiceManagement.framework/Headers/SMAppService.h`
+má SHA-256 `859ec2a7c4471dc1ac1e36b4de67e76d0a62ce4e4d145c942fd80cc4c2d8f8ff` a
+`Security.framework/Headers/SecCode.h`
+`293ccef2de6c872a4f5a4862a74bf96a9ade0f897f898813cd33e8e1d00459c4`.
+
+- [SMAppService status](https://developer.apple.com/documentation/servicemanagement/smappservice/3945414-status)
+  a SDK poskytují čtyři registrační/autorizační stavy, ne registration generation. **Odvození:**
+  shodný status a vlastní journal nestačí k doložení kontinuity konkrétní registrace. Native
+  recovery proto nepovoluje unregister po zániku původní živé instance.
+- [Apple helper migration](https://developer.apple.com/documentation/servicemanagement/updating-helper-executables-from-earlier-versions-of-macos)
+  odděluje admin autorizaci daemonu. SDK navíc uvádí notarization pro containing app a dostupnost
+  před loginem pro boot. Nejde o doklad funkčnosti Personal Team/self-signed ani o souhlas ke
+  změně projektové politiky bez placeného účtu. Tato kompatibilita zůstává neověřená.
+- [Guest attribute keys](https://developer.apple.com/documentation/security/guest-attribute-dictionary-keys)
+  a [SecCodeCopyGuestWithAttributes](https://developer.apple.com/documentation/security/seccodecopyguestwithattributes(_:_:_:_:))
+  podporují audit-token výběr živého kódu; header vystavuje `kSecGuestAttributeAudit`. Důvěryhodný
+  token musí přijít z OS transportu a approval ze samostatné host/admin autority. Aktuální
+  one-shot daemon nemá takový transport ani approval issuer, takže nativní mutace zůstává vypnutá.
+- [Debugging tool entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.security.cs.debugger)
+  znovu ověřeno: debugger entitlement sám neznamená univerzální task-port přístup; non-root
+  použití může vyžadovat admin dialog. Za současných omezení nemáme srovnatelnou povolenou
+  pozitivní attach kontrolu bez `get-task-allow`. To je konkrétní chybějící důkaz, ne tvrzení,
+  že žádná jiná podporovaná konfigurace nemůže existovat. Žádný attach ani dialog neběžel.
+
+`sys/proc_info.h`/`libproc.h` definují `PROC_PIDTBSDINFO` a process start time; `sysctl.h` a
+`bsm/audit.h` poskytují boot/audit identity. Native journal je čte jen pro vlastní proces.
+`fsync` a `fcntl(F_FULLFSYNC)` jsou skutečné durability requests, ne zde měřená odolnost proti
+výpadku napájení. Storage testy a omezení: [NATIVE-RECOVERY](NATIVE-RECOVERY.md).
