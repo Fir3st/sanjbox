@@ -13,13 +13,13 @@ Autoritativní jsou [PLAN](../../PLAN.md), [GUIDE](../../docs/GUIDE.md) a [LAB](
 |---|---|---|
 | SG-01, SG-02 / R2 | `inspect`: Security API, validita všech architektur, runtime flag, explicitní absence obou názvů `get-task-allow`, známý formát entitlements | Agent/helper/sondy v L2; zde původní čtyři thin arm64 fixtures a čtyři staticky ověřené service targets |
 | SG-03 / R6 | Identifikátor a hash ve statickém reportu | Stabilita identity/TCC přes rebuild; žádné granty ani TCC databáze se nečtou |
-| SG-04 / R2 | `experiments`: Personal Team × tři služby; [sestavitelný disposable app](SERVICES.md), typované UI, startup observations a `service-workflow` s čistým host-only daemon seam | Uživatelský podpis/registrace, bezpečná host-only cesta daemonu, login/reboot a lifecycle oracle |
+| SG-04 / R2 | `experiments`: Personal Team × tři služby; [sestavitelný disposable app](SERVICES.md), typované UI, startup observations, syntetický `service-workflow` a samostatný testovaný host-only daemon model | Uživatelský podpis/registrace, bezpečná host-only cesta daemonu, login/reboot a lifecycle oracle |
 | SG-05 / R2 | Tři oddělené podmíněné self-signed scénáře | Žádné certifikáty/identity nebyly čteny ani použity; ad-hoc není self-signed ani Personal Team |
 | SG-06 / R2 | Negativní signing policy testy pouze na hodnotách v paměti | Same-UID attach runner a srovnatelná pozitivní kontrola; viz samostatný postup níže |
 | SG-07 / R2 | Změna jednoho syntetického markeru po podpisu → statická validace musí selhat | Nepřevzetí skutečných TCC grantů, bundle/rebuild scénáře |
 | SG-08, SG-09 / R2 | `h1-fuzz`: skutečné helper/reply/broker v1 decode API, korelace, trusted delivery context a bounded mutace; původní `mock` zůstává oddělený | Produkční broker/XPC transport, OS audit-token/signature/session autentizace a skutečné Mach rights chybějí |
 | SG-10 / R2 | Mock odmítá globální ID, cizí/chybějící/zastaralou simulovanou capability | Přenos, vlastnictví, zánik a vyčerpání skutečných Mach práv / IOSurface |
-| SG-11 / R2 | Path-like zprávy se nevejdou do mock schématu; vlastní soubory mají scope/type/hash/ACL kontroly | Helper path resolver, symlink/hardlink races a produkční TOCTOU mechanismus |
+| SG-11 / R2 | H1 fuzzer odmítá traversal/absolutní cestu; vlastní soubory mají scope/type/hash/ACL kontroly | Helper path resolver, symlink/hardlink races a produkční TOCTOU mechanismus |
 
 Žádná sonda nepřijímá PID, procesní jméno, libovolný podpisový cíl, příkaz, službu ani certifikát.
 Původní `s8-probe` nevolá `register` ani `unregister`. Nové disposable UI má tyto dvě operace pouze pro LoginItem/LaunchAgent, po explicitní uživatelské akci a mimo ad-hoc profil; v implementátorské validaci se nevolají. Daemon mutace nejsou dostupné. Neexistuje `bootstrap`, `task_for_pid`, `ptrace`, TCC request ani zachytávání obrazu/vstupu. `prepare` nikdy nespustí vytvořenou binárku. Automatické testy nepotřebují

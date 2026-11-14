@@ -17,6 +17,14 @@ změna ani externí síťový experiment nejsou součástí implementace. Git pu
 
 **A6 zůstává částečné. S8/SG-01…11 a Personal Team zůstávají Neověřeno.**
 
+Integrační review 2026-11-14 zahrnulo normální merge aktuálního `main` `8faf648` (H4 #79 a
+částečné A3 #78) do původní PR historie; výsledek a nezávislé testy jsou v
+[VALIDATION](VALIDATION.md#nezávislé-integrační-review-po-h4-a-a3--2026-11-14). H1 wire část je
+dodaná, ostatní níže uvedené výstupy A6 tím nezmizely. Dosavadní vlastník janfiedler / Codex + Astra
+pokračuje podle [IMPLEMENTATION §0](../../docs/IMPLEMENTATION.md#0-co-dál): native host-only/admin
+approval a durable ownership/cleanup, SG-06 kalibrace a runner; skutečné podpisy/TCC a A7/L2
+provádí uživatel po S1 a přezkoumaném úklidu. Další obecný mock není podmínka dokončení.
+
 ## Dodaný výstup a konec tohoto follow-up
 
 - `H1Fuzzer` je přímý klient lokálního `SanjboxContracts`, ne kopie schématu. Dvanáct request
