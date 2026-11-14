@@ -26,7 +26,7 @@ private final class JournalFixture {
         try? FileManager.default.removeItem(atPath: root)
     }
     func inventory() throws -> NativeSignedAppInventory {
-        let appFD = open(app, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        let appFD = open(app, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
         defer { close(appFD) }
         return .init(runID: run, appPath: app, ownerUID: geteuid(), ownerGID: getegid(),
                      hostCodeHash: String(repeating: "a", count: 40), entries: try NativeSignedAppInventory.scan(appFD))
@@ -78,7 +78,7 @@ private func changed<T: Codable>(_ value: T, field: String, replacement: Any) th
     #expect(report.records == 8 && report.services.count == 2)
     #expect(report.services.values.allSatisfy { $0.hasPrefix("unregister returned absent") })
     #expect(!report.mutationAuthorityRestored && !report.artifactCleanupAllowed)
-    let root = open(f.journalPath, O_RDONLY | O_DIRECTORY); defer { close(root) }
+    let root = open(f.journalPath, O_RDONLY | O_DIRECTORY | O_CLOEXEC); defer { close(root) }
     var s = stat(); #expect(fstat(root, &s) == 0 && s.st_mode & 0o7777 == 0o700)
     for name in try FileManager.default.contentsOfDirectory(atPath: f.journalPath) {
         #expect(fstatat(root, name, &s, AT_SYMLINK_NOFOLLOW) == 0 && s.st_mode & 0o7777 == 0o600 && s.st_nlink == 1)
@@ -286,8 +286,9 @@ private func changed<T: Codable>(_ value: T, field: String, replacement: Any) th
     try f.overwrite("001.json", Data("{".utf8))
     for _ in 0..<64 {
         #expect(throws: (any Error).self) { try f.openJournal(create: false) }
-        let fd = open(f.journalPath, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        let fd = open(f.journalPath, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
         #expect(fd >= 0)
+        #expect(fcntl(fd, F_GETFD) & FD_CLOEXEC == FD_CLOEXEC)
         #expect(flock(fd, LOCK_EX | LOCK_NB) == 0)
         close(fd)
     }
