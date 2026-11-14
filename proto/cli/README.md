@@ -108,7 +108,8 @@ F2 a nativní ověření; tento prototyp neřeší otevřené blokátory PLAN.
 
 H3 je po ověření v PR #75 dokončený offline balík. Bez konkrétního nového nálezu se další mock
 vrstva nepřidává. Navazující práci určuje [IMPLEMENTATION §0](../../docs/IMPLEMENTATION.md#0-co-dál);
-H6 má vlastní PR a není závislostí dokončení H3.
+[H6](../escape/README.md) je rovněž dokončený offline balík; H3 bylo sloučeno jako `e21c31d`
+a jeho větev byla začleněna do #76. H6 nepřidává H3 skutečnou identitu, běh workloadu ani důkaz akceptace.
 
 Po splnění vstupu F2 převezme WP2.7 tento parser, H1 kódování/korelaci a explicitní neznámý
 výsledek při ztrátě odpovědi. S WP2.0/2.1/2.2/2.3 musí samostatně vymezit a ověřit:

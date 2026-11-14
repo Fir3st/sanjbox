@@ -16,7 +16,7 @@ struct IdentityGuard {
                                     requiredGroups: baseline.kernelGroups)
     }
     func valid(_ actual: ProbeContext) -> Bool {
-        // No real zone UID, set-ID context or unresolved audit/bootstrap measurement is admitted.
+        // Require the original non-root, same-user context and resolved audit/bootstrap measurements.
         baseline.realUID > 0 && baseline.realUID == baseline.effectiveUID &&
         baseline.realGID == baseline.effectiveGID && baseline.audit != nil && baseline.launchdManager != nil &&
         expected.mismatches(in: actual).isEmpty && actual.kernelGroups.sorted() == baseline.kernelGroups.sorted() &&

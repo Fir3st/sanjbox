@@ -58,7 +58,7 @@ TCC/podpisy, XPC transport/Mach práva, fyzická zařízení nebo skutečné int
 Katalog popisuje cílové kroky, ne potvrzení jejich provedení. Skutečný běh pod UID oblasti
 patří až do WP2.8/laboratoře s příslušnými branami, přeregistrací a nezávislým review.
 
-COVERAGE se mění pouze v řádku **WP1.H6**. Jeho ✅ znamená dokončený katalog, runner a testy;
+Původní implementační balík měnil COVERAGE pouze v řádku **WP1.H6**. Jeho ✅ znamená dokončený katalog, runner a testy;
 všech 155 akceptací, brány a R1–R8 zůstávají beze změny. Sdílené kontrakty/WP0.3/WP0.4 ani
 historické protokoly nebyly upraveny. Podrobné bezpečné spuštění a omezení: [README](README.md).
 
@@ -89,3 +89,58 @@ povýšit ruční případ na pass. Sémantické pořadí ručních kroků je v�
 porovnávajícího pořadí slov. Runtime, schéma, sondy a testy se nezměnily; předchozí úplné běhy
 18 testů zůstávají zaznamenané výše. Oprava mění pouze tři ruční položky katalogu a tuto poznámku;
 COVERAGE, všech 155 akceptačních stavů i historická evidence zůstávají beze změny.
+
+## Review po integraci H3 — 2026-11-14
+
+Základ je sloučené H3 `main` **`e21c31de019c704643eed743b3518959fac34dfb`**. Větev #76 jej
+převzala normálním merge **`6c5b092439c67213242c33171c0f52d2d3adc46b`**, bez přepisování historie.
+Nezávisle znovu zkontrolován celý H6 diff: Package.swift, všechny zdroje/testy, všech 155 položek
+katalogu včetně kroků/oraclů, použitý H1 lifecycle/wire/audit a WP0.3/WP0.4, CLI, řízení potomků,
+identita, souborové/síťové hranice a tvrzení vůči PLAN/IMPLEMENTATION/GUIDE. Původní opravy
+RB-03/RB-04/RB-10 z `05e27f8` zůstávají beze změny; katalog má stále blob `5c92516f03fe70a2fd11684edab841b57eac4434`.
+
+**Výsledek review:** žádná další oprava runtime nebo katalogu není potřeba pro vymezené offline
+dokončení H6. Opraveno zastaralé předání po H3: H6 již není rozpracovaná/volná příprava a skutečný
+součet F1 je **21 hotových / 6 rozpracovaných / 9 nezahájených**. Doplněno konkrétní předání WP2.8
+a zbývající H4/A2/A3/A6 práce. Upřesněn jediný komentář `IdentityGuard` a odpovídající README:
+preflight ověřuje původní non-root same-user kontext, neumí určit, zda UID patří do skutečného
+registru oblastí. Nedokazuje tak autorizaci oblasti; runner nemění ani nevybírá OS identitu.
+Výkonný kód a verzované testy jsou proti uvedenému merge beze změny.
+
+Prostředí: Apple Silicon `arm64`, macOS **27.2.1 (26B131)**, Xcode **27.2 (27B52)**,
+Apple Swift **6.4.2**, repo testy Python **3.15.2**. Čistý scratch
+`/private/tmp/h6-post-h3-review-20261114/build` vznikl pro tuto revizi:
+
+| Ověření | Výsledek |
+|---|---|
+| `swift build --package-path proto/escape --scratch-path /private/tmp/h6-post-h3-review-20261114/build -c debug` a následné `swift test` se stejnými argumenty | Build všech produktů; **18/18 testů, 4 suites**, 16,211 s. |
+| Stejné build/test příkazy s `-c release` | Build všech produktů; **18/18 testů, 4 suites**, 22,784 s. |
+| Nezávislé procesní CLI scénáře v obou sestaveních | **14/14**: explicitní plan, chybějící apply, relativní counterpart, neznámý argument, chybějící executable, předčasný exit, readiness deadline. |
+| `python3 -B -m unittest discover -s tools/tests` s nativním přístupem k vlastním procesům | **94/94**, 39,634 s. |
+| `python3 -B tools/progress.py --out /private/tmp/h6-post-h3-review-20261114/progress` + kontrola skutečných řádků/odkazů | Stránka sestavena; F1 **21/6/9**, přesných **155 ID**, 8 synthetic / 133 manual / 14 unsupported; lokální reference existují. |
+| Read-only `tools.lab_evidence` nad dokumentovaným M1 během a `docs/spikes.md` | **consistent**, 21 souborů, žádný finding; acceptance stále **unverified**, bez zápisu do evidence. |
+| `git diff --check`; porovnání rozsahu vůči `origin/main` | Bez whitespace chyb; PLAN, H1, common, CI, tools a historická evidence beze změny. |
+
+Běhy 18 testů v každém sestavení skutečně znovu sestavily lokální counterpart a ověřily pozitivní
+controls, záměrný TCP leak (`syntheticFailed`/exit 1), odebraný stopped event (`incomplete`/exit 3),
+H1 audit, přesné kanárky a úklid. Doplňkové CLI scénáře s chybějící/předčasně končící/tichou
+protistranou vždy vracejí exit 3, šest syntetických úspěchů a dvě neúplné síťové sondy; nic z toho
+se nemění na skutečný pass. Readiness deadline ukončil vlastní spící child, nevznikl žádný nový
+zbylý `sanjbox-h6-*` strom. Logy a samostatný kontrolní skript jsou lokálně pod
+`/private/tmp/h6-post-h3-review-20261114/`; nejde o laboratorní protokol.
+
+První repo discovery v sandboxu mělo **8 watchdog failures**: `/bin/ps` bylo odmítnuto
+(`Operation not permitted`), navazující scope/readiness assertions nemohly projít. Tento pokus
+zůstává v `repo-tests.log`; úspěšný nativní běh je v `repo-tests-native.log`. Repo testy ani
+watchdog nebyly kvůli tomu změněny. Lokální Python 3.15 výsledek nenahrazuje povinné CI na jeho
+verzích Pythonu/macOS; před merge #76 musí projít kontroly přesného finálního headu.
+
+**Stav a další agent:** README, IMPLEMENTATION §0, COVERAGE a oba H3/H6 handoffy nyní uvádějí
+dokončení pouze offline. Sekce požadavků/bran/akceptací jsou byte-for-byte stejné jako `main`:
+všech **8 požadavků, 10 bran F1 a 155 případů zůstává Neověřeno**. Řádky a vlastníci
+**H4/A2/A3/A6/D5/G2** jsou rovněž beze změny. Pokračovat může přidělený vlastník H4 adaptérem
+H1 politiky nebo vlastník A2/A3/A6 přesně popsaným zbytkem přípravy; nový claim vyžaduje předání.
+D5 čeká na U4 a zůstává fail-closed, G2 je zmrazené, U0/U1/U5 a laboratorní akce patří uživateli.
+WP2.8/2.7 čekají na vstup F2; H2/H3/H6 se před branami nespojují do běžící oblasti.
+Merge #76 lze doporučit po kontrole finálního headu a jeho CI v tomto rozsahu; žádný výsledek
+nedokazuje nativní izolaci, autorizaci, whole-UID admission, APFS, TCC ani síťové failure modes.

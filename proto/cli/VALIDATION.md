@@ -72,8 +72,10 @@ deadline, neznámý výsledek bez retry, rozsah restore unit a tvrzení dokument
 
 **Nález:** plán stále nabízel H3/H6 jako volné a souhrn COVERAGE uváděl F1 19/6/11,
 ačkoli zdejší H3 již bylo hotové. Opraveno na **20 hotových / 6 rozpracovaných /
-10 nezahájených**; H6 je výslovně obsazené v otevřeném, dosud nesloučeném PR #76.
-README, IMPLEMENTATION §0 a předání WP2.7 nyní uvádějí skutečný rozsah a další práci.
+10 nezahájených** pro tehdejší obsah #75. Následná integrace dokončeného H6 v #76 mění
+aktuální souhrn na **21/6/9**; [H6 validace](../escape/VALIDATION.md#review-po-integraci-h3--2026-11-14)
+zaznamenává vlastní kontrolu po merge H3. README, IMPLEMENTATION §0 a předání WP2.7 uvádějí
+skutečný offline rozsah a další práci.
 Ve zdrojovém kódu nebyl nalezen další problém vyžadující opravu; zdroje H3/H1 ani
 verzované testy tento dokumentační commit nemění.
 
@@ -135,11 +137,12 @@ nejsou důvodem přeskočit povinné finální CI. Logy jsou pod `/private/tmp/s
 Projektový stav a handoff jsou ověřené i parsováním skutečných COVERAGE/IMPLEMENTATION a
 sestavením stránky přes `tools/progress.py`: souhrn balíků odpovídá řádkům, všech 10 bran F1
 a 155 akceptačních případů zůstává Neověřeno. `git diff --check` prochází. Řádek H6 se v #75
-nemění; jeho validaci a případné opravy posuzuje samostatné review #76.
+neměnil; jeho dokončení a validaci nyní dokládá samostatné review #76 po integraci H3.
 
 Původní CI na `48c2793` prošlo v
 [běhu 43526047577](https://github.com/Fir3st/sanjbox/actions/runs/43526047577), včetně
-Swift Debug/Release, obou Python jobů a `CI required`. To není potvrzení CI nového
-dokumentačního commitu: před merge musí projít kontroly jeho přesného finálního headu.
-Merge H3 lze doporučit v offline rozsahu po tomto CI; žádný výsledek zde neotevírá F2
+Swift Debug/Release, obou Python jobů a `CI required`. Tento historický běh nepotvrzoval
+následující dokumentační commit ani H6; každý nový head vyžaduje vlastní finální CI.
+H3 bylo následně sloučeno jako `e21c31de019c704643eed743b3518959fac34dfb`; #76 tento commit
+přebírá normálním merge a dokládá vlastní finální validaci. Žádný výsledek zde neotevírá F2
 ani neuzavírá autentizaci helperu, nativní izolaci, APFS/UID/PTY nebo laboratorní brány.

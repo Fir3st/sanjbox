@@ -81,6 +81,8 @@ real/effective UID/GID, kernel groups a autoritativní členství, audit session
 existující window session. Root/set-ID kontext, drift i nerozpoznaný audit/bootstrap znamenají
 neúplnost, žádný automatický pass. Headless kontext bez window session je přípustný pouze pokud
 byl už v baseline; **GUI-11 zůstává ruční**, nevydáváme tím důkaz cílové relace oblasti.
+Baseline zjišťuje identitu volajícího, nikoli členství v registru skutečných oblastí; runner se
+spouští jako běžný implementátor a neprovádí přepnutí ani autorizaci identity oblasti.
 Podproces protistrany dědí identitu; executable nesmí být symlink ani mít set-ID bity.
 
 Protistrana se vždy spouští s `--bind 127.0.0.1 --tcp 0`, bez UDP/wildcard/DNS/externí sítě.
@@ -129,3 +131,24 @@ binárka. Změny H1/common vybírají tento balík přes existující lokální 
 Testy připínají **všech 155 ID samostatným literálem**, porovnávají s ním katalog i aktuální
 COVERAGE §3 a kontrolují titul/požadavky/bránu. Odstranění stejného ID z katalogu i COVERAGE
 proto nemůže tiše projít. Další výsledky jsou v [VALIDATION.md](VALIDATION.md).
+
+## Předání do WP2.8
+
+H6 je po review úplného katalogu, runneru a testů v #76 dokončený offline balík. Větev přebírá
+sloučené H3 `e21c31d`; H6 nadále přímo používá H1/common, nepřidává runtime závislost na H2/H3.
+Bez konkrétního nového nálezu se katalog ani mock sondy dále nerozšiřují. Aktuální práce a
+původní vlastníci H4/A2/A3/A6 jsou v [IMPLEMENTATION §0](../../docs/IMPLEMENTATION.md#0-co-dál).
+
+Po splnění vstupu F2 převezme WP2.8 katalog a konzervativní vyhodnocení; samostatně musí dodat:
+
+1. Nativní adaptéry a běh pod předem určenou skutečnou identitou oblasti, s ověřením credentials
+   před každou CLI/GUI sondou ve třech souběžných oblastech. Dnešní same-user baseline tuto roli nemá.
+2. Pro každý podporovaný případ reálný pokus, pozitivní/negativní kontrolu a úplný oracle;
+   ruční/nepodporované položky zůstávají explicitní. H3 `accepted` ani H1 model nedokazují OS efekt.
+3. Nezávislé měření síťových cest a failure modes podle S3/S3b/S5; TCP loopback a pevný 100ms
+   interval dnešních fixtures nenahrazují capture, IPv6/UDP/resolver ani post-revocation důkaz.
+4. Předregistrované lab běhy, H1 audit, zachované raw, ověřený úklid a nezávislé review podle
+   GUIDE/LAB. Protokol přijme skutečný výsledek; `syntheticPassed` nikdy nepovýší na akceptační pass.
+
+Všechny brány a 155 případů zůstávají Neověřeno. H6 nedává oprávnění k systémovým změnám,
+registraci účtů/podpisů/TCC, odemčení D5/G2 ani spojení prototypů do běžící oblasti před F2.
