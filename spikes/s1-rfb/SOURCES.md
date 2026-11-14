@@ -131,7 +131,8 @@ codecs are independently authored from the record descriptions.
 ### Source-backed records
 
 - Banner and ClientInit remain exactly as S5. S4 challenge framing/response-width check is unchanged;
-  cryptography remains absent behind the mock provider seam.
+  at this selection-only milestone cryptography was absent behind the mock provider seam.
+  The later approved offline provider in S6/[AUTH-PROVIDER](AUTH-PROVIDER.md) supplies that implementation.
 - Extended ServerInit: at least 22 name bytes, byte 0 is NUL (byte 1 unrestricted), flags at 2…5,
   16-byte capability bitmap at 6…21. S5 `ard-constants.js` names flags observe 1, may-control 2,
   session-select 4 and no-virtual-display 8. The bitmap and name are not identity evidence.

@@ -73,14 +73,17 @@ Místní konzervativní pravidla, nikoli tvrzení o serveru:
 
 ## Zbývající přesné mezery A3
 
-1. **Provider a review:** [AUTH-PROVIDER](AUTH-PROVIDER.md) zavádí schválený veřejný backend,
+1. **Dodaná offline část:** [AUTH-PROVIDER](AUTH-PROVIDER.md) implementuje schválený veřejný backend,
    safe-prime profil 1024–4096 efektivních bitů / nejvýš 512 wire bajtů, kontrolu rozsahu peer
-   hodnoty bez obecného order-q tvrzení a nezávislé KATs. Lokální testy jsou syntetické; fresh
-   nezávislé review a exact-head CI mají samostatný záznam ve [VALIDATION](VALIDATION.md).
+   hodnoty bez obecného order-q tvrzení a nezávislé KATs. [Nezávislé integrační review #84](VALIDATION.md#independent-integration-review-of-pr-84-after-pr-83--2026-11-14)
+   proběhlo po merge A6 #83 (`main` `b183737`) do větve. Koordinátor před merge #84 kontroluje CI
+   přesného finálního headu; opakovaný výběr backendu ani další obecný crypto mock nejsou další úkol.
 2. **Selection a identita:** [review #81](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14)
    platí pro lokální selection politiku a command/result tok. Provider neověřuje serverovou
-   autorizaci ani non-console UID/audit identitu. Tyto mezery musí být uzavřeny nezávisle podle
-   [LAB-NEXT](LAB-NEXT.md); A3 jako celek zůstává rozpracované.
+   autorizaci ani non-console UID/audit identitu. Dosavadní vlastník nejprve vymezí trusted zdroj
+   očekávané identity, vazbu na konkrétní spojení a nezávislé pozitivní/negativní kontroly včetně
+   odmítnutí konzole a záměny relace; konkrétní živý postup předloží podle [LAB-NEXT](LAB-NEXT.md).
+   Grant zůstává terminální refusal, dokud tyto důkazy chybí; A3 jako celek zůstává rozpracované.
 3. **Živý klient:** server identity, confidentialita, schválená správa údajů, transport/partial writes,
    naplánované monotónní idle/total wakeups, pixel/encoding interoperabilita a samostatná vazba na
    přesné UID/audit session. To patří do následného review a uživatelského [LAB-NEXT](LAB-NEXT.md).

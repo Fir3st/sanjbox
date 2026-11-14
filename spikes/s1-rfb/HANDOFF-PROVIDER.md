@@ -38,3 +38,28 @@ competing-reaper caller contract, reserved cleanup fallback and independent iden
 Fresh final review and exact-head hosted CI remain required. No push, PR or merge has been
 performed by the implementer; the coordinator owns that next step after review. Own large
 temporary build caches are retained until final review, then removed while keeping logs/state.
+
+
+## Integration review and next owner — 2026-11-14
+
+The preceding no-push instruction describes the original implementation assignment.
+The later explicit integration assignment authorizes final review, documentation,
+commit/push and PR maintenance for [#84](https://github.com/Fir3st/sanjbox/pull/84),
+while the coordinator retains merge control. #83 is now merged in main as `b183737`;
+A3 integrated it normally in `6ff8f2a`, preserving every A6 file and its coverage row.
+The fresh independent [integration review](VALIDATION.md#independent-integration-review-of-pr-84-after-pr-83--2026-11-14)
+found no source defect and reproduced 81/81 Debug/Release, 188 upstream tests, 150
+independent oracle checks, 28 CLI scenarios and 98 repository tests. Failed attempts
+remain separately recorded. Final hosted checks must match the final pushed head;
+old `c324217` CI cannot substitute for that requirement. No merge or automerge is
+performed by this review.
+
+The delivered milestone is the approved offline provider, not completion of A3.
+The next assigned owner remains janfiedler / Codex + Astra and must define trusted
+server identity, the independently obtained expected non-console UID/audit session,
+their connection binding and positive/negative oracles before a concrete live-use
+proposal under LAB-NEXT. Preserve fail-closed grants until identity is proved; no
+server/session label or successful crypto response is authority. Do not reopen backend
+selection or add another general mock in place of that missing identity work. Any new
+dependency version or real authentication remains outside this exact offline approval.
+Screen Sharing.app/L1-D and all 10/155 unverified gate/case states remain unchanged.
