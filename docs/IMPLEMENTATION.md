@@ -12,25 +12,28 @@ Při rozporu platí PLAN.md; tento dokument se opraví.
 
 ## 0. Co dál
 
-**Revize 2026-11-14, podklad `main` na `e21c31d` po merge H3 (#75); H6 dokončeno a ověřeno v #76.**
+**Revize 2026-11-14, podklad `main` na `75f3b5d` po merge H3 (#75) a H6 (#76); H4 dokončeno offline v [PR #79](https://github.com/Fir3st/sanjbox/pull/79).**
 [COVERAGE §4](COVERAGE.md#4-pracovní-balíky) vede stav a vlastníky; tato sekce určuje další krok.
-Zdejší evidence včetně obou offline balíků H3/H6 má F0 **5/5 hotových balíků**, F1 **21 hotových /
-6 rozpracovaných / 9 nezahájených**. H6 zahrnuje úplný katalog, syntetický runner, testy a předání;
-jeho integrace do `main` vyžaduje finální CI a merge [PR #76](https://github.com/Fir3st/sanjbox/pull/76).
+Zdejší evidence včetně offline H3/H4/H6 má F0 **5/5 hotových balíků**, F1 **22 hotových /
+5 rozpracovaných / 9 nezahájených**. Merge #79 přidává H1 policy adaptér pro skutečné typované
+handlery a knihovní listener; samostatné CLI zůstává draft-only. Integrace #79 vyžaduje finální
+nezávislou kontrolu a zelené CI na přesném headu; tento zápis její výsledek nepředjímá.
 Všech **10 bran F1 a 155 akceptačních případů zůstává Neověřeno**. Dokončený prototyp ani zelené CI
-nejsou laboratorní důkaz. Mezi šesti rozpracovanými jsou i D5 čekající na rozhodnutí a zmrazený G2.
+nejsou laboratorní důkaz. Pět rozpracovaných balíků tvoří A2/A3/A6, D5 čekající na rozhodnutí a zmrazený G2.
 
 **Když agent dostane „co teď dělat“:**
 
 1. Ověř aktuální `main`, řádek balíku v COVERAGE a otevřené PR. Neintegrovaný stav větve ani pořadí
    v plánu nedokazují volný balík; vlastníci níže zůstávají platní.
-2. **H1/H2/H3 jsou sloučené; H6 je dokončené offline a přebírá commit H3 `e21c31d` normálním merge.**
-   U #76 před merge ověř přesný finální head a jeho CI; staré zelené CI není důkaz nového headu.
-   Nezadávej další H3/H6 přípravu bez konkrétního nálezu a vymezené podmínky dokončení.
-3. **První navazující implementační práce je H4**, konkrétní H1 policy adaptér
-   popsaný v tabulce níže. H4/A2/A3/A6 však mají vlastníky: pokračuj v přidělené práci, nebo nejprve
-   dohodni vymezené předání podle [GUIDE §5](GUIDE.md#5-paralelní-práce). A2/A3/A6 mohou pokračovat
-   paralelně ve svých adresářích; případnou změnu H1 koordinuj se všemi jeho klienty.
+2. **H1/H2/H3/H5/H6 jsou sloučené; H4 má splněnou offline podmínku v #79.** Před merge #79
+   ověř přesný finální head, aktuální base a CI; staré zelené CI není důkaz nového headu.
+   Po jeho merge nezadávej další H přípravu bez konkrétního nálezu a vymezené podmínky dokončení.
+3. **Navazuje již obsazená příprava A2/A3/A6** podle tabulky níže. A3 má otevřené
+   [#78](https://github.com/Fir3st/sanjbox/pull/78), A6 [#77](https://github.com/Fir3st/sanjbox/pull/77);
+   po H4 je integrační pořadí samostatné review #78, potom #77, vždy proti aktuálnímu `main`.
+   Neintegrované výstupy těchto PR nejsou zde započtené jako hotové. Pokračuj v přidělené práci,
+   nebo nejprve dohodni vymezené předání podle [GUIDE §5](GUIDE.md#5-paralelní-práce); vlastníci
+   mohou pokračovat paralelně ve svých adresářích. Případnou změnu H1 koordinuj se všemi jeho klienty.
 4. Bez takového předání tu není nový volný implementační balík kritické cesty. Ohlas konkrétní
    čekání na U0/U1 nebo rozhodnutí U4/U5; neotvírej hotovou přípravu ani D5/G2 jen kvůli čekání.
    Skutečná integrace WP2.x stále čeká na laboratorní brány. WP1.F1 (Coherence) vyžaduje TCC grant a
@@ -43,24 +46,24 @@ sdíleného rozhraní nepovoluje sama. Dokončení zahrnuje výstup, dokumentaci
 COVERAGE podle [GUIDE §8–11](GUIDE.md#8-definice-hotového); pro odblokování dalšího balíku musí být
 rozhraní a jeho ověření sloučené v `main`.
 
-| Pořadí / balík | Konkrétní další krok | Podmínka dokončení | Závislost a hranice |
+| Balík / vlastník | Konkrétní další krok | Podmínka dokončení | Závislost a hranice |
 |---|---|---|---|
-| 1. **WP1.H4** — `proto/gateway/` | Podle dokončeného H1 určit a implementovat převod `NetworkPolicy`/`TypedGate` do handlerů, včetně [chybějících hodnot a rozdílných limitů](../proto/gateway/README.md#draft-politiky-a-mezera-vůči-h1). | Politika z H1 skutečně řídí složení npm/PyPI/git/model; testy dokazují, že převod nerozšíří cíle, metody ani limity. Nepodporované nebo neúplné konfigurace se odmítnou; klíče zůstávají mock. | Uzavření vyžaduje kontrakt H1 sloučený v `main`. Homebrew bez důvěryhodného času zůstává odmítnutý; identita klienta a produkční integrace patří do F2/L5. |
-| 2. **WP1.A2** — `spikes/s1-session/` | Zavřít zbývající instrumentaci: úplnou a jednoznačnou atribuci UID/WindowServeru a kalibrovaný recorder start/ready; navázat na [existující sběr potomků](../spikes/s1-session/DESCENDANT-MEMORY.md). | **Příprava** končí, když každý řádek [LAB §8](LAB.md#8-připravenost-a2-a-mapování-s1) má nástroj ověřený na známém syntetickém výsledku, nebo předepsaný ruční záznam tam, kde ho metodika dovoluje; nechybí orchestrace hosta a tří relací s oddělenými výstupy. **Celý A2** končí až protokolem a reviewed verdiktem S1 z L1. | WP0.3/A1 jsou hotové. Lokální sběr vlastních potomků není úplná atribuce ani tři skutečné relace; jemné intervaly/RAM nelze nahradit ručním odhadem. Po uzavření přípravy čekat na L1, nepřidávat další offline evidence bez konkrétní mezery. |
-| 3. **WP1.A3** — `spikes/s1-rfb/` | Doplnit Apple auth provider a výběr relace podle připnutých zdrojů; nyní existuje jen [type-30 framing a package-local session fixtures](../spikes/s1-rfb/README.md). | Apple auth se syntetickými údaji a skutečné délkově rámované S5 selection records jsou implementované a ověřené fixtures, včetně odmítnutí konzolového fallbacku; dokumentace odděluje zdrojový kontrakt od hypotéz. Pouhé injekční rozhraní kryptografie a lokální fixture protokol tuto podmínku nesplňují. | Bez labu lze dokončit prototyp; živou interoperabilitu ověří uživatel podle [LAB-NEXT](../spikes/s1-rfb/LAB-NEXT.md). L1-D může použít Screen Sharing.app a nečeká na vlastní RFB klient. |
-| 4. **WP1.A6** — `spikes/s8-signing/` | Napojit fuzzer na zprávy H1; doplnit host-only autorizační cestu daemonu, vlastnictví/úklid registrace přes restart a same-UID attach runner s pozitivní kontrolou podle [mezer SG](../spikes/s8-signing/README.md#rozsah-a-oracle). [Podpisové předání](../spikes/s8-signing/HANDOFF.md) už existuje. | Fuzzer testuje skutečné helper/broker kontrakty H1; SG-06 má srovnatelnou pozitivní i negativní kontrolu bez porušení zákazu `get-task-allow`. Personal Team a podmíněná self-signed varianta mají uživatelské kroky, dry-run, původní stav, ověření a úklid pro celý plánovaný L2 běh. | H1 v `main` pro fuzzer; uživatel/S1 pro živé L2. Po vydání handoffu současný automatický cleanup odmítá neznámý stav registrace: bez navazující ownership/cleanup cesty nepokračovat do registrace/restartů. Ad-hoc test není Personal Team ani S8. |
+| **WP1.A2** — `spikes/s1-session/`; janfiedler / Codex + Astra | Zavřít zbývající instrumentaci: úplnou a jednoznačnou atribuci UID/WindowServeru a kalibrovaný recorder start/ready; navázat na [existující sběr potomků](../spikes/s1-session/DESCENDANT-MEMORY.md). | **Příprava** končí, když každý řádek [LAB §8](LAB.md#8-připravenost-a2-a-mapování-s1) má nástroj ověřený na známém syntetickém výsledku, nebo předepsaný ruční záznam tam, kde ho metodika dovoluje; nechybí orchestrace hosta a tří relací s oddělenými výstupy. **Celý A2** končí až protokolem a reviewed verdiktem S1 z L1. | WP0.3/A1 jsou hotové. Lokální sběr vlastních potomků není úplná atribuce ani tři skutečné relace; jemné intervaly/RAM nelze nahradit ručním odhadem. Po uzavření přípravy čekat na L1, nepřidávat další offline evidence bez konkrétní mezery. |
+| **WP1.A3** — `spikes/s1-rfb/`; janfiedler / Codex + Astra | Po H4 přezkoumat [#78](https://github.com/Fir3st/sanjbox/pull/78) na větvi `codex/wp1-a3-apple-auth` vůči požadovanému Apple auth provideru a výběru relace podle připnutých zdrojů; integrovat až po uzavření nálezů a finálním CI. Na zdejším `main` je dosud jen [type-30 framing a package-local session fixtures](../spikes/s1-rfb/README.md); případné zbývající mezery vrátit vlastníkovi s konkrétní podmínkou. | Apple auth se syntetickými údaji a skutečné délkově rámované S5 selection records jsou implementované a ověřené fixtures, včetně odmítnutí konzolového fallbacku; dokumentace odděluje zdrojový kontrakt od hypotéz. Pouhé injekční rozhraní kryptografie a lokální fixture protokol tuto podmínku nesplňují. | Bez labu lze dokončit prototyp; živou interoperabilitu ověří uživatel podle [LAB-NEXT](../spikes/s1-rfb/LAB-NEXT.md). L1-D může použít Screen Sharing.app a nečeká na vlastní RFB klient. Otevřené PR samo nedokazuje dokončení. |
+| **WP1.A6** — `spikes/s8-signing/`; janfiedler / Codex + Astra | Po #78 přezkoumat a integrovat [#77](https://github.com/Fir3st/sanjbox/pull/77) na větvi `codex/wp1-a6-h1-fuzzer`: fuzzer H1 a model autorizační/registration recovery cesty. Proti [mezerám SG](../spikes/s8-signing/README.md#rozsah-a-oracle) ověřit, co zbývá pro host-only autorizaci daemonu, vlastnictví/úklid registrace přes restart a same-UID attach runner s pozitivní kontrolou; [podpisové předání](../spikes/s8-signing/HANDOFF.md) už existuje. | Fuzzer testuje skutečné helper/broker kontrakty H1; SG-06 má srovnatelnou pozitivní i negativní kontrolu bez porušení zákazu `get-task-allow`. Personal Team a podmíněná self-signed varianta mají uživatelské kroky, dry-run, původní stav, ověření a úklid pro celý plánovaný L2 běh. | H1 je v `main`; uživatel/S1 pro živé L2. Po vydání handoffu současný automatický cleanup odmítá neznámý stav registrace: bez navazující ownership/cleanup cesty nepokračovat do registrace/restartů. Syntetický recovery model ani ad-hoc test nejsou nativní Personal Team integrace nebo S8. |
 
-### H3 a H6 dokončeny offline — předání do F2
+### H3, H4 a H6 dokončeny offline — předání do F2
 
 | Balík | Dokončený výstup a důkaz | Přesné předání |
 |---|---|---|
 | **WP1.H3** — `proto/cli/` | [PR #75](https://github.com/Fir3st/sanjbox/pull/75), sloučeno jako `e21c31d`: pět příkazů přes anonymní NSXPC k same-process mock helperu, H1 decode/korelace, doslovné argv, timeout/disconnect bez retry a paměťová restore unit. [Validace](../proto/cli/VALIDATION.md): 34/34 testů v Debug i Release; `accepted` je pouze execution handle. | Offline podmínka je splněná. [WP2.7](../proto/cli/README.md#předání-do-wp27) čeká na vstup F2, autentizovaný nativní helper a skutečné procesy/PTY/UID/APFS; další mock vrstva se bez nálezu nepřidává. |
-| **WP1.H6** — `proto/escape/` | [PR #76](https://github.com/Fir3st/sanjbox/pull/76): všech 155 ID s krokem/oraclem, osm same-user syntetických sond, 133 ručních a 14 nepodporovaných případů; skutečný lokální `sanjbox-counterpart` a H1 audit. [Review po integraci H3 a validace](../proto/escape/VALIDATION.md#review-po-integraci-h3--2026-11-14): 18/18 testů v Debug i Release, negativní/neúplné výsledky, přesné kanárky a úklid; úplný běh vrací exit 3 a všechny akceptace `unverified`. | Offline podmínka je splněná; finální CI a merge jsou integrační krok. [WP2.8](../proto/escape/README.md#předání-do-wp28) převezme katalog a oracle až po vstupu F2; skutečné UID/tři souběžné oblasti, nativní adaptéry, nezávislé síťové měření a laboratorní evidence dosud chybí. |
+| **WP1.H4** — `proto/gateway/` | [PR #79](https://github.com/Fir3st/sanjbox/pull/79): [H1 adaptér](../proto/gateway/H1-ADAPTER.md) vyžaduje přesné gate-ID bindings, řídí npm/PyPI/git/model v dispatchi i skutečném loopback listeneru a odmítá širší cíle/metody/limity; klíče jsou mock. [Validace a integrační review](../proto/gateway/VALIDATION.md): 117/117 testů a 5/5 CLI v Debug i Release. | Offline podmínka je splněná. WP2.5 po vstupu F2 převezme typované handlery a politiku, s WP2.1/2.4 napojí autentizovanou vazbu UID/session/oblasti a síťovou/bind policy; doplní skutečné klíče/scopes/revokace, durable audit, produkční lifecycle a TLS/trust. CLI zatím nepřijímá H1; Homebrew, více gate stejného typu, PyPI CDN na jiném hostu a model GET zůstávají odmítnuté. Společný upstream cap může zpřísnit větší gate; limity a živou integraci ověří L5. |
+| **WP1.H6** — `proto/escape/` | [PR #76](https://github.com/Fir3st/sanjbox/pull/76), sloučeno jako `75f3b5d`: všech 155 ID s krokem/oraclem, osm same-user syntetických sond, 133 ručních a 14 nepodporovaných případů; skutečný lokální `sanjbox-counterpart` a H1 audit. [Review po integraci H3 a validace](../proto/escape/VALIDATION.md#review-po-integraci-h3--2026-11-14): 18/18 testů v Debug i Release, negativní/neúplné výsledky, přesné kanárky a úklid; úplný běh vrací exit 3 a všechny akceptace `unverified`. | Offline podmínka i integrace jsou splněné. [WP2.8](../proto/escape/README.md#předání-do-wp28) převezme katalog a oracle až po vstupu F2; skutečné UID/tři souběžné oblasti, nativní adaptéry, nezávislé síťové měření a laboratorní evidence dosud chybí. |
 
-**Handoff dalšímu agentovi:** ověř merge #76 a aktuální COVERAGE; zachovej obě validační zprávy,
-všech 155 neověřených případů a původní vlastníky H4/A2/A3/A6. Pokračuj přiděleným H4 policy
-adaptérem nebo přesně vymezenou zbývající přípravou A2/A3/A6 podle tabulky výše. Bez předání
-neclaimuj cizí práci; neotvírej hotové H3/H6 ani nespojuj H2/H3/H6 do běžící oblasti. D5 čeká
+**Handoff dalšímu agentovi:** ověř merge #79 a aktuální COVERAGE; zachovej validační zprávy,
+všech 155 neověřených případů a původní vlastníky. Pokračuj přidělenou zbývající přípravou A2
+nebo postupným review A3 #78 a A6 #77 podle tabulky výše, vždy s finálním CI na přesném headu.
+Bez předání neclaimuj cizí práci; neotvírej hotové H prototypy ani je nespojuj do běžící oblasti. D5 čeká
 na U4, G2 zůstává zmrazené a skutečné sloty/systémové akce patří uživateli. Vstup F2 se nemění.
 
 **Předání H2 po PR #74:** [API a pravidla obnovy](../proto/lifecycle/README.md) jsou hotová pro jednu
@@ -94,9 +97,10 @@ schválená metodika není souhlas s konkrétním systémovým zásahem.
 | **WP1.B2** | [Mode/ACL hardening](../spikes/s4-host/HARDENING.md) s dry-run, trvalým deníkem a úklidem vlastních nezměněných zásahů. | L3: skutečné zpevnění, host kompatibilita a uninstall. |
 | **WP1.B4** | [APFS pilot planner](../spikes/s4-state/TOOLING.md) s dry-run, záznamem stavu, uživatelským předáním a úklidem. | L3: native APFS, oprávnění snapshotů, whole-UID admission/crash/reboot. |
 | **WP1.C3** | [Bind policy](../spikes/s3-pf/ingress/BIND-POLICY.md) a [L4 scénáře](../spikes/s3-pf/ingress/LABPLAN.md) zapsané. | C4/L4: autentizace peeru, nezávislý capture, vynucení politiky; C3-T1 zůstává otevřený. |
-| **WP1.H1** | [Offline kontrakty](../proto/contracts/README.md) a [validace](../proto/contracts/VALIDATION.md): helper/broker zprávy, lifecycle, síť, audit a úplný B3 report s parity testem. Žádná brána tím neprošla. | Mapování H4 a fuzzer A6; H2/H3/H6 kontrakty již používají; jejich offline testy neověřují nativní integraci. |
+| **WP1.H1** | [Offline kontrakty](../proto/contracts/README.md) a [validace](../proto/contracts/VALIDATION.md): helper/broker zprávy, lifecycle, síť, audit a úplný B3 report s parity testem. Žádná brána tím neprošla. | Review fuzzeru A6 #77; H2/H3/H4/H6 kontrakty již používají. Ve F2 je převezme WP2.0; offline testy neověřují nativní integraci. |
 | **WP1.H2** | [Lifecycle nad H1](../proto/lifecycle/README.md): trvalý globální deník, mock celého UID, konzervativní obnova a cross-zone rezervace; [validace](../proto/lifecycle/VALIDATION.md) 37 testů v Debug/Release, 116 procesních crash hranic přes 24 kroků a všech 9 H1 crash bodů. | Lab S0/S4: důkazy admission interlocku, whole-UID a crash/reboot; WP2.2 po vstupu F2: integrace ověřených mechanismů do nativních adaptérů. LC-06/LC-11 zůstávají Neověřeno. |
 | **WP1.H3** | [CLI nad H1](../proto/cli/README.md), [34/34 testů v obou sestaveních a nezávislé review](../proto/cli/VALIDATION.md); pět příkazů, bezpečné odmítnutí a pouze syntetický stav. | WP2.7 po vstupu F2: autentizovaný helper, nativní admission/UID, descriptor-relative kořeny, execution/stdio/PTY a skutečný snapshot/rollback. |
+| **WP1.H4** | [H1 adaptér a běžící knihovní cesta](../proto/gateway/H1-ADAPTER.md), [117/117 testů v obou sestaveních](../proto/gateway/VALIDATION.md); odmítnutí neúplných nebo širších konfigurací, mock klíče, offline podmínka splněna. | WP2.5 po vstupu F2 a L5: autentizace klienta, produkční síť/klíče/audit/lifecycle a skutečné integrační důkazy podle předání výše. S5/GW a R2/R3 zůstávají Neověřeno. |
 | **WP1.H5** | [Export prototyp](../proto/export/README.md): výběr, preview, bezpečná kopie, karanténa a audit s testy. | WP2.11: skutečná UID/ACL, konsolidace auditu a akceptace POS-09. |
 | **WP1.H6** | [Katalog všech 155 případů a runner](../proto/escape/README.md), [18/18 testů v obou sestaveních](../proto/escape/VALIDATION.md); same-user fixtures, samostatná loopback protistrana, H1 audit a konzervativní vyhodnocení. | WP2.8 po vstupu F2: skutečné UID a tři oblasti, nativní sondy/adaptéry, úplné oracly a laboratorní protokoly. Žádný z 155 případů tím neprošel. |
 
