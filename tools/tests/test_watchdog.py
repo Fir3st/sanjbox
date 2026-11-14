@@ -106,11 +106,29 @@ class WatchdogTests(unittest.TestCase):
 
     def wait_ready(self, process):
         end = time.monotonic() + 3
-        while not self.ready.exists():
-            if process.poll() is not None or time.monotonic() >= end:
-                self.fail("own fixture did not become ready")
+        while time.monotonic() < end:
+            if self.ready.exists():
+                try:
+                    return json.loads(self.ready.read_text())
+                except json.JSONDecodeError:
+                    # write_text creates/truncates the file before writing its JSON.
+                    # The fixture can still be alive and completing that write.
+                    pass
+            if process.poll() is not None:
+                self.fail("own fixture exited before writing complete ready JSON")
             time.sleep(0.01)
-        return json.loads(self.ready.read_text())
+        self.fail("own fixture did not write complete ready JSON")
+
+    def test_wait_ready_waits_for_complete_json(self):
+        self.ready.write_text("")
+        process = subprocess.Popen(
+            [sys.executable, "-I", "-B", "-c",
+             "import pathlib,sys,time; time.sleep(0.05); "
+             "pathlib.Path(sys.argv[1]).write_text('{\"root\": 1}')",
+             str(self.ready)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        self.processes.append(process)
+        self.assertEqual(self.wait_ready(process), {"root": 1})
+        self.assertEqual(process.wait(timeout=2), 0)
 
     def finish(self, process, expected, timeout=7):
         # communicate also requires EOF from the pipe inherited by descendants.
