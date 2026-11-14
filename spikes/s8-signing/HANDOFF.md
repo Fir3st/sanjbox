@@ -140,6 +140,7 @@ nepřebírá. Vyžaduje ruční kontrolu přesných vlastních záznamů; není 
 proti plně kompromitovanému témuž UID. Vývojové testy smějí odstranit své právě vytvořené syntetické
 fixtures ve vlastním teardownu; to není uživatelská výjimka z post-handoff cleanup politiky.
 
-H1 fuzzer, host-only autorizace, service ownership, unregister přes restart UI, login/reboot a
-všechny daemon mutace zůstávají mimo tento postup. A6 jako celek zůstává částečné; A7/L2 ani S8 se
+H1 fuzzer a syntetický host-only/restart workflow jsou v [navazujícím A6 balíku](A6-H1-FOLLOWUP.md)
+mimo tento podpisový postup; skutečná host-only autorizace, service ownership, unregister přes
+restart UI, login/reboot a všechny daemon mutace zůstávají blokované. A6 jako celek zůstává částečné; A7/L2 ani S8 se
 neuzavírají. Testy a CI rozsah jsou v [VALIDATION.md](VALIDATION.md).

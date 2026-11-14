@@ -165,6 +165,9 @@ def source_hashes():
     common = PACKAGE.parent/'common'
     files.append(common/'Package.swift')
     files.extend(sorted((common/'Sources').rglob('*.swift')))
+    contracts = PACKAGE.parent.parent/'proto'/'contracts'
+    files.append(contracts/'Package.swift')
+    files.extend(sorted((contracts/'Sources').rglob('*.swift')))
     return {os.path.relpath(path, PACKAGE): hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
 
 def build(root):
