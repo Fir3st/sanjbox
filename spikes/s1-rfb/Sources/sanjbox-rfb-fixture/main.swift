@@ -6,7 +6,7 @@ guard CommandLine.arguments == [CommandLine.arguments[0], "--demo"] else {
     print("Usage: sanjbox-rfb-fixture --demo")
     print("Replays embedded synthetic RFB transcripts entirely in memory.")
     print("Scenario 1: standard RFB 3.8 + one Raw 2x2 framebuffer.")
-    print("Scenario 2: Apple type-30 fixture framing, S5 records, explicit refusal of unverified selection policy.")
+    print("Scenario 2: mocked Apple auth, local virtual-only choice, pending/grant, refusal before unverified identity.")
     exit(CommandLine.arguments.count == 1 || CommandLine.arguments.dropFirst() == ["--help"] ? 0 : 2)
 }
 
@@ -49,31 +49,33 @@ do {
     print("MOCK ONLY: 2x2 Raw framebuffer matched all 16 expected bytes.")
     print("Generated \(sent) protocol bytes in memory; network bytes sent: 0.")
 
-    // Scenario 2 — source-backed S5 records, synthetic auth only. No mask is authorized.
+    // Scenario 2 — source-backed S5 records, synthetic auth and explicit local policy only.
     var apple = RFBClient(authenticationPolicy: .syntheticAppleSubset,
-                          appleCredentialProvider: DemoCredentialProvider())
+                          appleCredentialProvider: DemoCredentialProvider(),
+                          appleSelectionPolicy: .syntheticVirtualOnly)
     var appleSent = 0
     let challenge = u16(2) + u16(8) + Array(0x80...0x87) + Array(0x40...0x47)
     let metadata: [UInt8] = [0, 0, 0, 0, 0, 4] + Array(repeating: 0, count: 16) + name
-    let sessionInfo: [UInt8] = [0, 14, 0, 1, 0x12, 0x34, 0x56, 0x78,
+    let sessionInfo: [UInt8] = [0, 14, 0, 1, 0, 0, 0, 4,
                                 0, 0, 0, 0, 115, 121, 110, 0]
+    let pendingAndGrant: [UInt8] = [0, 6, 0, 1, 0, 0, 0, 2, 0, 6, 0, 1, 0, 0, 0, 4]
     do {
         try feed(&apple, AppleFixtureFraming.appleBanner
             + [1, 30] + challenge + [0, 0, 0, 0]
-            + [0, 2, 0, 2] + format + [0, 0, 0, UInt8(metadata.count)] + metadata + sessionInfo,
+            + [0, 2, 0, 2] + format + [0, 0, 0, UInt8(metadata.count)] + metadata + sessionInfo + pendingAndGrant,
             sent: &appleSent)
-        print("Synthetic Apple fixture failed: unverified command policy was accepted")
+        print("Synthetic Apple fixture failed: unverified identity was accepted")
         exit(1)
     } catch let failure as RFBClient.Failure {
-        guard failure == .unverifiedSelectionPolicy, apple.session == .unverified,
-              apple.framebuffer == nil, appleSent == 150 else {
+        guard failure == .unverifiedSessionIdentity, apple.session == .grantedUnverified,
+              apple.framebuffer == nil, appleSent == 224 else {
             print("Synthetic Apple fixture failed: unexpected result")
             exit(1)
         }
-        print("MOCK ONLY: S5 SessionInfo parsed; unverified command policy refused.")
+        print("MOCK ONLY: local virtual command, pending and grant parsed; unverified identity refused.")
         print("Generated \(appleSent) protocol bytes in memory; network bytes sent: 0.")
     }
-    print("No session command, console fallback or Apple surface was produced.")
+    print("Exactly one virtual command; no console fallback or Apple surface was produced.")
     print("Apple authentication, selection interoperability and S1 gates remain unverified.")
 
 } catch {
