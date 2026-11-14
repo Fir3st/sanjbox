@@ -16,6 +16,9 @@ a postup v [GUIDE §5](docs/GUIDE.md#5-paralelní-práce).
 
 [H3 CLI](proto/cli/README.md) je hotový offline prototyp pěti příkazů přes lokální NSXPC k mock
 helperu. Nespouští workload ani skutečné oblasti; [validace](proto/cli/VALIDATION.md) není důkaz izolace.
+[H6 harness](proto/escape/README.md) dokončuje offline katalog všech 155 případů a osm syntetických
+sond s lokální protistranou; [validace](proto/escape/VALIDATION.md) ponechává všechny akceptace
+neověřené. Navazující práce je H4 a zbývající příprava A2/A3/A6 podle jejich vlastníků.
 
 | Dokument | Obsah |
 |---|---|
