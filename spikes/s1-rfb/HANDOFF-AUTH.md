@@ -13,3 +13,12 @@ Any unsupported portion remains explicitly incomplete; no live interoperability 
 No live RFB connection, real credential reads, accounts, system settings or TCC changes.
 All acceptance cases and gates remain unverified. Independent review precedes PR readiness;
 this agent does not merge or enable auto-merge.
+
+## Bounded delivered scope
+
+Public SDK inspection did not establish an approved finite-field DH backend. The locally cached,
+hash-verified S5 files establish record layouts but forward the allowed mask to unavailable
+`ard/session-select.js`. Per the coordinating agent's explicit follow-up, this change delivers exact
+S5 record codecs and integrated metadata/SessionInfo parsing with terminal policy refusal. It does
+not implement speculative cryptography or mask semantics. A3 stays in progress; both concrete gaps
+are documented in README/SOURCES/LAB-NEXT. No claim of a complete Apple selection handshake is made.

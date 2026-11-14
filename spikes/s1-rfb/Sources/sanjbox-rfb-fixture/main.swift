@@ -6,7 +6,7 @@ guard CommandLine.arguments == [CommandLine.arguments[0], "--demo"] else {
     print("Usage: sanjbox-rfb-fixture --demo")
     print("Replays embedded synthetic RFB transcripts entirely in memory.")
     print("Scenario 1: standard RFB 3.8 + one Raw 2x2 framebuffer.")
-    print("Scenario 2: Apple type-30 fixture framing, package-local selection, granted virtual desktop.")
+    print("Scenario 2: Apple type-30 fixture framing, S5 records, explicit refusal of unverified selection policy.")
     exit(CommandLine.arguments.count == 1 || CommandLine.arguments.dropFirst() == ["--help"] ? 0 : 2)
 }
 
@@ -49,54 +49,33 @@ do {
     print("MOCK ONLY: 2x2 Raw framebuffer matched all 16 expected bytes.")
     print("Generated \(sent) protocol bytes in memory; network bytes sent: 0.")
 
-    // Scenario 2 — Apple security/selection fixture framing. Synthetic bytes only.
+    // Scenario 2 — source-backed S5 records, synthetic auth only. No mask is authorized.
     var apple = RFBClient(authenticationPolicy: .syntheticAppleSubset,
                           appleCredentialProvider: DemoCredentialProvider())
     var appleSent = 0
-    let generator = 2
-    let keyLength = 8
-    let modulus = (0..<keyLength).map { UInt8(truncatingIfNeeded: 0x80 + $0) }
-    let serverKey = (0..<keyLength).map { UInt8(truncatingIfNeeded: 0x40 + $0) }
-    let challenge = u16(generator) + u16(keyLength) + modulus + serverKey
-    let virtual = AppleFixtureFraming.virtualDesktopCommand
-    try feed(&apple, AppleFixtureFraming.appleBanner
-        + [1, AppleFixtureFraming.ardSecurityType] + challenge + [0, 0, 0, 0]
-        + [0, 2, 0, 2] + format + [0, 0, 0, UInt8(name.count)] + name
-        + [AppleFixtureFraming.sessionInfoKind] + u16(2)
-        + [AppleFixtureFraming.consoleCommand, AppleFixtureFraming.availableState, virtual,
-           AppleFixtureFraming.availableState]
-        + [AppleFixtureFraming.sessionResultKind, AppleFixtureFraming.outcomeGranted],
-        sent: &appleSent)
-    guard apple.session == .granted, apple.phase == .ready else {
-        print("Synthetic Apple fixture failed: selection was not granted")
-        exit(1)
-    }
-    print("MOCK ONLY: Apple fixture selection granted the virtual desktop (command 2).")
-    print("Generated \(appleSent) protocol bytes in memory; network bytes sent: 0.")
-
-    // Scenario 3 — the forbidden fallback. A console-only offer must terminate.
-    var consoleOnly = RFBClient(authenticationPolicy: .syntheticAppleSubset,
-                                appleCredentialProvider: DemoCredentialProvider())
+    let challenge = u16(2) + u16(8) + Array(0x80...0x87) + Array(0x40...0x47)
+    let metadata: [UInt8] = [0, 0, 0, 0, 0, 4] + Array(repeating: 0, count: 16) + name
+    let sessionInfo: [UInt8] = [0, 14, 0, 1, 0x12, 0x34, 0x56, 0x78,
+                                0, 0, 0, 0, 115, 121, 110, 0]
     do {
-        try feed(&consoleOnly, AppleFixtureFraming.appleBanner
-            + [1, AppleFixtureFraming.ardSecurityType] + challenge + [0, 0, 0, 0]
-            + [0, 2, 0, 2] + format + [0, 0, 0, UInt8(name.count)] + name
-            + [AppleFixtureFraming.sessionInfoKind] + u16(1)
-            + [AppleFixtureFraming.consoleCommand, AppleFixtureFraming.availableState],
+        try feed(&apple, AppleFixtureFraming.appleBanner
+            + [1, 30] + challenge + [0, 0, 0, 0]
+            + [0, 2, 0, 2] + format + [0, 0, 0, UInt8(metadata.count)] + metadata + sessionInfo,
             sent: &appleSent)
-        print("Synthetic Apple fixture failed: console-only offer was not refused")
+        print("Synthetic Apple fixture failed: unverified command policy was accepted")
         exit(1)
     } catch let failure as RFBClient.Failure {
-        guard failure == .consoleFallbackForbidden,
-              consoleOnly.session == .consoleOnly else {
-            print("Synthetic Apple fixture failed: unexpected \(failure)")
+        guard failure == .unverifiedSelectionPolicy, apple.session == .unverified,
+              apple.framebuffer == nil, appleSent == 150 else {
+            print("Synthetic Apple fixture failed: unexpected result")
             exit(1)
         }
-        print("MOCK ONLY: console-only SessionInfo refused (\(failure.rawValue)); no fallback attempted.")
+        print("MOCK ONLY: S5 SessionInfo parsed; unverified command policy refused.")
+        print("Generated \(appleSent) protocol bytes in memory; network bytes sent: 0.")
     }
+    print("No session command, console fallback or Apple surface was produced.")
+    print("Apple authentication, selection interoperability and S1 gates remain unverified.")
 
-    print("The Apple selection framing here is package-local, not Apple's wire format.")
-    print("Apple authentication/session selection and S1 gates remain unverified.")
 } catch {
     print("Synthetic fixture failed: \(error)")
     exit(1)
