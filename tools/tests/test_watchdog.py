@@ -106,11 +106,68 @@ class WatchdogTests(unittest.TestCase):
 
     def wait_ready(self, process):
         end = time.monotonic() + 3
-        while not self.ready.exists():
-            if process.poll() is not None or time.monotonic() >= end:
-                self.fail("own fixture did not become ready")
+        while time.monotonic() < end:
+            # Observe exit before reading: completion can race an earlier empty
+            # read, and an exited producer may already have finished its JSON.
+            exited = process.poll() is not None
+            if self.ready.exists():
+                try:
+                    return json.loads(self.ready.read_text())
+                except json.JSONDecodeError:
+                    # write_text creates/truncates the file before writing its JSON.
+                    # The fixture can still be alive and completing that write.
+                    pass
+            if exited:
+                self.fail("own fixture exited before writing complete ready JSON")
             time.sleep(0.01)
-        return json.loads(self.ready.read_text())
+        self.fail("own fixture did not write complete ready JSON")
+
+    def test_wait_ready_waits_for_complete_json(self):
+        self.ready.write_text("")
+        process = subprocess.Popen(
+            [sys.executable, "-I", "-B", "-c",
+             "import pathlib,sys,time; time.sleep(0.05); "
+             "pathlib.Path(sys.argv[1]).write_text('{\"root\": 1}')",
+             str(self.ready)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        self.processes.append(process)
+        self.assertEqual(self.wait_ready(process), {"root": 1})
+        self.assertEqual(process.wait(timeout=2), 0)
+
+    def test_wait_ready_reads_final_json_after_producer_exit(self):
+        self.ready.write_text("")
+        process = mock.Mock()
+
+        def finish_write():
+            # Model completion between an earlier empty read and observing exit.
+            self.ready.write_text('{"root": 1}')
+            return 0
+
+        process.poll.side_effect = finish_write
+        with mock.patch.object(time, "sleep") as sleep:
+            self.assertEqual(self.wait_ready(process), {"root": 1})
+        sleep.assert_not_called()
+
+    def test_wait_ready_rejects_incomplete_json_on_exit(self):
+        for content in ("", '{"root":'):
+            with self.subTest(content=content):
+                self.ready.write_text(content)
+                process = mock.Mock()
+                process.poll.return_value = 0
+                with mock.patch.object(time, "sleep") as sleep:
+                    with self.assertRaisesRegex(AssertionError, "exited before writing complete ready JSON"):
+                        self.wait_ready(process)
+                sleep.assert_not_called()
+
+    def test_wait_ready_rejects_incomplete_json_at_deadline(self):
+        self.ready.write_text('{"root":')
+        process = mock.Mock()
+        process.poll.return_value = None
+        with mock.patch.object(time, "monotonic", side_effect=(0, 0, 3)), \
+                mock.patch.object(time, "sleep") as sleep:
+            with self.assertRaisesRegex(AssertionError, "did not write complete ready JSON"):
+                self.wait_ready(process)
+        process.poll.assert_called_once_with()
+        sleep.assert_called_once_with(0.01)
 
     def finish(self, process, expected, timeout=7):
         # communicate also requires EOF from the pipe inherited by descendants.
