@@ -106,6 +106,11 @@ a zbývající H4/A2/A3/A6 práce. Upřesněn jediný komentář `IdentityGuard`
 preflight ověřuje původní non-root same-user kontext, neumí určit, zda UID patří do skutečného
 registru oblastí. Nedokazuje tak autorizaci oblasti; runner nemění ani nevybírá OS identitu.
 Výkonný kód a verzované testy jsou proti uvedenému merge beze změny.
+Swift build/test a doplňkové CLI kontroly níže použily zdroje/binárky post-merge headu
+**`6c5b092439c67213242c33171c0f52d2d3adc46b`** a proběhly před finálním dokumentačním
+commitem `a04ca04ebd3c5a596a443e2ba109e65454ad2f54` s jedinou změnou komentáře ve zdrojích.
+Lokální výsledky se nevydávají za test tohoto ani následujícího headu; **přesný finální head
+#76 musí znovu projít CI před merge**. Tato navazující poznámka upřesňuje pouze původ evidence.
 
 Prostředí: Apple Silicon `arm64`, macOS **27.2.1 (26B131)**, Xcode **27.2 (27B52)**,
 Apple Swift **6.4.2**, repo testy Python **3.15.2**. Čistý scratch
