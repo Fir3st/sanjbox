@@ -34,7 +34,7 @@ public struct RFBClient: Sendable {
         case invalidAppleCredentialResponse
         /// The virtual desktop was absent or offered as unavailable: no fallback exists.
         case sessionUnavailable
-        /// Source-verified framing does not establish allowed-command bit semantics.
+        /// No reviewed policy authorizes virtual selection from the source-backed mask.
         case unverifiedSelectionPolicy
         /// Unsupported metadata, record version or malformed/budget-exceeding length.
         case invalidSelectionMessage
@@ -353,10 +353,11 @@ public struct RFBClient: Sendable {
             let record = Self.u16(bodyLength) + Array(buffer[cursor..<(cursor + bodyLength)])
             _ = try AppleSessionRecordCodec.info(record)
             cursor += bodyLength
-            // The pinned local ard-patch.js forwards the mask to session-select.js;
-            // its bit semantics are NOT established by the inspected source files.
-            // Do not infer `1 << command`, treat zero as a default, or select console.
-            // Command/result codecs are tested independently; no surface can be granted.
+            // Pinned session-select.js checks a per-command bit for console selection,
+            // but returns virtual command 2 without checking that mask. That client
+            // preference is not a reviewed virtual-authorization policy for this parser.
+            // Do not treat zero as a default or fall back to console. Command/result
+            // codecs are tested independently; no surface can be granted.
             session = .unverified
             throw Failure.unverifiedSelectionPolicy
         case .ready:

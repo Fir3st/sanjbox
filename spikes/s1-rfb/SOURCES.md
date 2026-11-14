@@ -2,8 +2,9 @@
 
 Initial access date for the original source set: **2026-11-03**; the added S4 DH support file is dated
 separately below. The three original pinned S4/S5 raw files and
-their SHA-256 values were independently rechecked on **2026-11-07** and **2026-11-13**. S1–S3 were
-also re-read on 2026-11-13 (Apple pages via direct HTTPS after the browser tool returned HTTP 429).
+their SHA-256 values were independently rechecked on **2026-11-07**, **2026-11-13** and
+**2026-11-14**. The latest independent review also fetched and hashed `session-select.js` (see S5).
+S1–S3 were re-read on 2026-11-14 (Apple pages via direct HTTPS after the browser tool returned HTTP 429).
 This is source research, not a
 capture of a macOS server or a measurement. Exact source commits were resolved through the public
 GitHub commits API and their raw files inspected over HTTPS. Moving branches/search excerpts are not the pinned evidence.
@@ -100,9 +101,14 @@ The pinned implementation also contains concrete byte layouts, not just session 
 
 These are **client-side implementation claims**, not a verified server contract. This package now
 implements their record codecs and consumes extended ServerInit/SessionInfo in the parser. It does
-not adopt the source client's automatic selection policy: the inspected local files pass the allowed
-mask to `ard/session-select.js`, whose contents were unavailable locally. No mask is interpreted and
-no command is sent. No `1 << command` assumption is permitted. The internal virtual-only encoder and
+not adopt the source client's automatic selection policy. Fresh review fetched the pinned
+[`ard/session-select.js` lines 13–47](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/session-select.js#L13-L47)
+on 2026-11-14: its comment describes one bit per command, and its console branch explicitly tests
+`1 << sessionCmdConnectToConsole` when the console username is empty. Its virtual branch returns
+command 2 **without testing the mask**. The one-bit convention is therefore a client-side source
+claim; that unchecked virtual preference does not establish which masks authorize a virtual session
+on the server, or prove non-console identity. A reviewed virtual-authorization policy is still absent
+in this package. No mask is interpreted and no command is sent. The internal virtual-only encoder and
 result decoder have independent synthetic tests; they do not imply an integrated selection handshake.
 
 Raw SHA-256 values:
@@ -111,13 +117,16 @@ Raw SHA-256 values:
 |---|---|
 | `ard/ard-patch.js` | `bef0c7b6c88639d555815487e48dcecdcd8362dcee20eb258f70ad397c7164d5` |
 | `ard/ard-constants.js` | `8c107d8939f74867c84d5708a9706c2226654cf0ceb59c5633bf4f87a03f9474` |
+| `ard/session-select.js` | `f1cd6c49be4cfa28849d52f7646424251e76b5d4c4cf342afcc31e43e934dcf4` |
 
 ## Implementation boundary — 2026-11-14
 
-The four raw files listed above were re-read from the prior review's local cache and their SHA-256
-values rechecked exactly. `ard/session-select.js` is a pinned lead, **not inspected evidence** in this
-round; neither its contents nor a hash is invented. No upstream code was executed, copied, linked,
-vendored or installed. The Swift codecs are independently authored from the record descriptions.
+The implementation used four hash-verified raw files from the prior review's local cache. The fresh
+integration review fetched those four files directly over HTTPS and confirmed their hashes, then
+fetched, inspected and hashed the fifth file, `ard/session-select.js`. This supersedes the earlier
+local availability gap recorded in HANDOFF-AUTH/VALIDATION; it does not supply virtual authorization
+or server evidence. No upstream code was executed, copied, linked, vendored or installed. The Swift
+codecs are independently authored from the record descriptions.
 
 ### Source-backed records
 

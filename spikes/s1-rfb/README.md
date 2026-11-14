@@ -4,7 +4,9 @@
 S5 SessionInfo a rozšířená ServerInit metadata podle připnuté klientské implementace.
 Samostatné offline kodeky ověřují 74bajtový příkaz pro virtuální plochu a SessionResult.
 Původní package-local výběrový protokol byl odstraněn. Integrovaný Apple tok ale **vždy skončí
-před výběrem relace**: význam bitů `allowedCommands` není doložen prozkoumanými soubory.
+před výběrem relace**: chybí reviewovaná politika povolení virtuálního příkazu. Nově prozkoumaný
+S5 `session-select.js` testuje bit konzolového příkazu, ale virtuální command 2 vrací bez kontroly masky;
+toto chování klienta není důkaz serverového oprávnění ani identity relace.
 Type-30 auth stále používá pouze injekční rozhraní a syntetický mock; DH/MD5/AES nejsou implementované.
 
 To není Apple klient, keeper ani důkaz S1. Není zde transport, socket, okno, načítání údajů,
@@ -28,14 +30,14 @@ GUI-10…13 a POS-08. Per-app R6 není součástí tohoto prototypu.
 kodek. Integrovaný `RFBClient` ověřuje odmítnutí: po validním SessionInfo nastaví
 `session == .unverified` a terminální `unverifiedSelectionPolicy`. Nevydá SessionCommand,
 SetPixelFormat, SetEncodings ani `.initialized`. Konkrétní masku neoznačuje jako console-only nebo
-virtual-ready, protože to by předstíralo neprokázaný význam bitů. Žádný fallback na konzoli neexistuje.
+virtual-ready, protože zde není ověřená politika virtuální autorizace. Žádný fallback na konzoli neexistuje.
 
 ## Zdrojový kontrakt a místní politika
 
 Úplné citace a hashe jsou v [SOURCES.md](SOURCES.md). S4/S5 jsou primární **klientské zdroje**,
-ne Apple-published specifikace ani capture. Při této práci byly přečteny místní kopie z předchozího
-review a všechny čtyři SHA-256 se shodovaly s připnutými hodnotami. Žádný stažený kód se nespouštěl,
-nelinkoval ani nekopíroval do implementace.
+ne Apple-published specifikace ani capture. Implementace použila čtyři hashově ověřené místní kopie;
+nové nezávislé review je stáhlo a ověřilo znovu přes HTTPS a přidalo inspekci a hash pátého souboru
+`ard/session-select.js`. Žádný stažený kód se nespouštěl, nelinkoval ani nekopíroval do implementace.
 
 | Záznam | S5 bajtový kontrakt (všechna vícebajtová čísla big-endian) |
 |---|---|
@@ -65,11 +67,12 @@ Místní konzervativní pravidla, nikoli tvrzení o serveru:
    128bajtového bloku. V prohlédnutém veřejném SDK nebylo potvrzeno použitelné API pro toto DH.
    To není důkaz, že žádná varianta neexistuje. Vlastní bignum/crypto, privátní API ani nová závislost
    se nepřidává. Potřebný je zvlášť schválený a reviewovaný backend se syntetickými známými vektory.
-2. **Výběrová politika:** místní připnutý `ard-patch.js` předává `allowedCmds` funkci z
-   `ard/session-select.js`; tento soubor nebyl lokálně dostupný k inspekci. Prozkoumaná evidence
-   nedokládá mapování bitů, zejména nelze předpokládat `1 << command`. Další vymezený krok je získat
-   a připnout tuto primární evidenci, ověřit povolení virtuálního příkazu a teprve potom zapojit
-   command/result kodeky do klienta s testy pending, denial, deadline a společného message budgetu.
+2. **Výběrová politika:** připnutý `ard/session-select.js` je nyní přečtený a hashovaný. Popisuje
+   jeden bit na příkaz a pro prázdné jméno konzole testuje `1 << sessionCmdConnectToConsole`;
+   virtuální command 2 ale vrací bez ohledu na masku. Vlastník A3 musí doložit a reviewovat pravidla
+   povolení virtuálního příkazu včetně nulových/neznámých masek a chybějící virtuální volby; samotné
+   upstream obejití kontroly masky se nepřebírá. Pak zapojí command/result kodeky do klienta s testy
+   pending, denial, deadline, společného message budgetu a zákazu konzolového fallbacku.
 3. **Živý klient:** server identity, confidentialita, schválená správa údajů, transport/partial writes,
    monotónní deadlines, pixel/encoding interoperabilita a samostatná vazba na přesné UID/audit session.
    To patří do následného review a uživatelského [LAB-NEXT](LAB-NEXT.md), ne do těchto fixtures.

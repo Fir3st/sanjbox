@@ -12,8 +12,10 @@ internal codecs encode the exact virtual-only SessionCommand and decode SessionR
 package-local selection protocol is removed. S4 type-30 authentication remains a mock seam.
 
 The integrated Apple path always stops with `unverifiedSelectionPolicy` after a valid SessionInfo:
-the inspected files do not establish the allowed-mask bit semantics. It emits no selection command
-or initialized surface. Positive command/result codec tests are not an integrated handshake. A3
+the package has no reviewed virtual-authorization policy. The newly inspected pinned
+`session-select.js` tests a console command bit but returns virtual command 2 without a mask check;
+this is client behavior, not proof of virtual permission or non-console identity. Our parser emits
+no selection command or initialized surface. Positive command/result codec tests are not an integrated handshake. A3
 remains in progress on both cryptography and source-backed command authorization; see [README](README.md).
 
 ## Before a custom client can connect
@@ -21,8 +23,10 @@ remains in progress on both cryptography and source-backed command authorization
 **[implementátor]** The current binary has no live mode. A later separately reviewed change must:
 
 1. **[částečně hotovo]** S4 framing and S5 record codecs are source-backed and bounded offline.
-   Obtain and pin the missing `ard/session-select.js` evidence before interpreting allowed-command
-   bits; do not infer `1 << command`. Integrate only authorized virtual selection, then test pending,
+   The pinned `ard/session-select.js` is now inspected and hashed: it describes per-command bits
+   and checks the console bit, but does not check the virtual command. Establish and review virtual
+   permission rules, including zero/unknown masks and unavailable virtual selection, before integrating
+   the codecs. Do not adopt the upstream unchecked virtual preference. Then test pending,
    denial, unknown variants, shared message budgets, no fallback and deadlines. Implement a reviewed
    type-30 provider using synthetic known-answer vectors; do not guess cryptography or use private API.
    Live record/capability/command interoperability is still unverified.

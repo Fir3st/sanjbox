@@ -325,13 +325,43 @@ final class AppleSubsetTests: XCTestCase {
 
     // MARK: - Integrated source-backed input, conservative policy refusal
 
-    func testNoAllowedMaskCanAuthorizeSelectionWithoutEvidence() throws {
+    func testNoAllowedMaskCanAuthorizeSelectionWithoutReviewedVirtualPolicy() throws {
         for mask in [UInt32(0), 3, 6, 7, .max] + (0..<32).map({ UInt32(1) << $0 }) {
             var client = try preSelection()
             assertFailure(.unverifiedSelectionPolicy, client: &client,
                           bytes: AppleFixtures.sessionInfo(mask: mask))
             XCTAssertEqual(client.session, .unverified)
             XCTAssertThrowsError(try client.requestFramebufferUpdate())
+        }
+    }
+
+    func testUpstreamPreferenceBranchesCannotBypassRefusalWithCoalescedGrant() throws {
+        // S5 session-select.js distinguishes an empty console user and tests the console
+        // bit; its virtual preference skips the mask entirely. Neither branch authorizes
+        // our client, even if a synthetically granted result is already buffered.
+        for username: [UInt8] in [[], [0], Array("syn".utf8)] {
+            for mask: UInt32 in [0, 2, 4, 6, .max] {
+                for status: UInt32 in [0, 4] {
+                    let transcript = AppleFixtures.prefixSelection
+                        + AppleFixtures.sessionInfo(mask: mask, username: username)
+                        + AppleFixtures.sessionResult(status)
+                    for split in 0...transcript.count {
+                        var client = client()
+                        var events: [RFBClient.Event] = []
+                        XCTAssertThrowsError(try {
+                            events += try client.receive(Array(transcript.prefix(split)))
+                            events += try client.receive(Array(transcript.dropFirst(split)))
+                        }()) {
+                            XCTAssertEqual($0 as? RFBClient.Failure, .unverifiedSelectionPolicy)
+                        }
+                        XCTAssertTrue(events.allSatisfy { AppleFixtures.prefixEvents.contains($0) })
+                        XCTAssertEqual(client.session, .unverified)
+                        XCTAssertEqual(client.phase, .failed)
+                        XCTAssertEqual(client.bufferedByteCount, 0)
+                        XCTAssertNil(client.framebuffer)
+                    }
+                }
+            }
         }
     }
 

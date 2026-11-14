@@ -22,3 +22,12 @@ hash-verified S5 files establish record layouts but forward the allowed mask to 
 S5 record codecs and integrated metadata/SessionInfo parsing with terminal policy refusal. It does
 not implement speculative cryptography or mask semantics. A3 stays in progress; both concrete gaps
 are documented in README/SOURCES/LAB-NEXT. No claim of a complete Apple selection handshake is made.
+
+## Independent integration review — 2026-11-14
+
+The fresh reviewer now fetched and hashed the previously unavailable pinned `ard/session-select.js`;
+[SOURCES](SOURCES.md) records its exact provenance. It describes per-command bits and tests the console
+bit, but virtual command 2 bypasses that test. The historical availability gap above is resolved;
+a reviewed virtual-authorization policy, integrated result lifecycle and Apple DH provider are still
+missing. This review preserves the delegated bounded scope and terminal refusal; it does not claim
+A3 completion or authorize a live connection.
