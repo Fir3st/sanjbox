@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import SanjboxContracts
 import SanjboxGatewayCore
 import Synchronization
 import XCTest
@@ -200,6 +201,42 @@ final class ListenerTests: XCTestCase {
         XCTAssertEqual(upstream.calls.count, 3)
         running.cancel()
         _ = try? await running.value
+    }
+
+    func testH1WirePolicyReachesRealListenerHandlerAndRejectsExcessBeforeUpstream() async throws {
+        let fd = try LoopbackListener.open(port: 0)
+        let port = UInt16(bigEndian: try localAddress(fd).sin_port)
+        let policy = NetworkPolicy(zoneID: "a1b2", gates: [TypedGate(id: "registry-grant", type: .npm,
+            upstream: "registry.example", requestBytesLimit: 1, responseBytesLimit: 4_096)])
+        let rule = try GatewayRule.npm(NPMRule(mount: "/bound", publicOrigin: "http://127.0.0.1:\(port)",
+            upstreamHostname: "registry.example", limits: RegistryRuleLimits(metadataBytes: 4_096, artifactBytes: 4_096)))
+        let adapter = try H1GatewayAdapter.decode(policy.encoded(), configuration: H1GatewayConfiguration(
+            auditCapacity: 8, rulesByGateID: ["registry-grant": rule]))
+        let upstream = try artifactUpstream(pypi: false)
+        let service = try GatewayService(adapting: adapter, upstreamFactory: { upstream.client(limits: $0) })
+        let listener = LoopbackListener(address: .init(port: port)!)
+        let running = Task { try await listener.run(serving: service, descriptor: fd) }
+        defer { running.cancel() }
+        for (target, input, expected) in [("/bound/fixture/-/fixture-1.0.0.tgz", Data(), 200),
+                                           ("/bound/fixture", Data("xx".utf8), 413), ("/npm/fixture", Data(), 404)] {
+            let channel = try client(port: port)
+            defer { channel.close() }
+            try await channel.send(requestWire("GET", target, body: input))
+            let response = try await readAll(channel)
+            XCTAssertTrue(String(decoding: response, as: UTF8.self).hasPrefix("HTTP/1.1 \(expected) "))
+            if expected == 200 { XCTAssertTrue(response.suffix(artifactBytes.count).elementsEqual(artifactBytes)) }
+            XCTAssertEqual(upstream.calls.count, 3, "denied requests cannot reach any upstream")
+        }
+        XCTAssertEqual(service.networkPolicy, policy)
+        let downloads = await service.npmDownloadRecords()
+        XCTAssertEqual(downloads.map(\.state), [.transportAccepted])
+        let records = await service.auditRecords()
+        XCTAssertEqual(records.map(\.decision), [.routed, .denied, .denied])
+        XCTAssertEqual(records.map(\.reason), ["", "h1RequestLimit", "operationNotConfigured"])
+        running.cancel()
+        _ = try? await running.value
+        let rebound = try LoopbackListener.open(port: port)
+        Darwin.close(rebound)
     }
 
 }

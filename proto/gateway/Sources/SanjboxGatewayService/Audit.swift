@@ -26,6 +26,7 @@ public enum DenialReason: String, Sendable, Codable {
     case operationDisabled
     /// `path` nebo `method` by rozbily kanonický řádek auditu (`|`, řídicí znaky).
     case invalidRequestTarget
+    case h1RequestLimit
 
     // MARK: Rozhodnutí handleru (`AuditDecision.deniedByHandler`)
 

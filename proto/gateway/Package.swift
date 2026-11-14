@@ -1,8 +1,7 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// WP1.H4 — prototyp brány jako služby. Jediná závislost je lokální cesta na
-// spike WP1.D1–D5 (`spikes/s5-gateway`); žádný externí balíček.
+// WP1.H4: local H1 contracts and D1–D5 handlers; no external packages.
 let package = Package(
     name: "SanjboxGatewayService",
     platforms: [.macOS(.v15)],
@@ -12,11 +11,13 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../spikes/s5-gateway"),
+        .package(path: "../contracts"),
     ],
     targets: [
         .target(
             name: "SanjboxGatewayService",
-            dependencies: [.product(name: "SanjboxGatewayCore", package: "s5-gateway")]
+            dependencies: [.product(name: "SanjboxGatewayCore", package: "s5-gateway"),
+                           .product(name: "SanjboxContracts", package: "contracts")]
         ),
         .executableTarget(
             name: "sanjbox-gateway-service",
@@ -26,6 +27,7 @@ let package = Package(
             name: "SanjboxGatewayServiceTests",
             dependencies: [
                 "SanjboxGatewayService",
+                .product(name: "SanjboxContracts", package: "contracts"),
                 .product(name: "SanjboxGatewayCore", package: "s5-gateway"),
             ]
         ),

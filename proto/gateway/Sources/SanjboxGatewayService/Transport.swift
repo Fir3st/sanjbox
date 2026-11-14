@@ -73,7 +73,7 @@ public struct LoopbackConnection: Sendable {
         let reply = try await service.dispatch(request, finishingStream: { try await writer.finish() })
         switch reply {
         case .response(let response): try await write(response)
-        case .events(let producer): try await write(events: producer, writer: writer)
+        case .events(let producer): try await write(events: producer, writer: writer, service: service)
         }
     }
 
@@ -93,7 +93,7 @@ public struct LoopbackConnection: Sendable {
 
     /// SSE se posílá po chuncích. Selhání producenta ukončí spojení bez
     /// koncového chunku, takže klient pozná zkrácení místo tichého úspěchu.
-    private func write(events: SSEProducer, writer: EventWriter) async throws {
+    private func write(events: SSEProducer, writer: EventWriter, service: GatewayService) async throws {
         do {
             try await events { try await writer.send($0) }
         } catch is CancellationError {
@@ -102,7 +102,7 @@ public struct LoopbackConnection: Sendable {
             if await !writer.started {
                 // Admission failure before the first event is an ordinary error
                 // response. Never send a second response after partial SSE.
-                try await write(.error(StreamOutcome.failure(error).status))
+                try await write(service.errorResponse(StreamOutcome.failure(error).status))
             }
         }
     }

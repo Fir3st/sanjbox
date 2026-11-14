@@ -1,4 +1,5 @@
 import Foundation
+import SanjboxContracts
 import SanjboxGatewayCore
 
 /// Jeden řádek směrovací tabulky politiky (i vypnutý mount se eviduje, aby
@@ -78,6 +79,8 @@ public enum CompositionError: Error, Equatable, Sendable, CustomStringConvertibl
 public actor GatewayService {
     public nonisolated let policy: GatewayPolicy
     public nonisolated let runtime: GatewayRuntimeConfiguration
+    public nonisolated let networkPolicy: NetworkPolicy?
+    private nonisolated let h1Adapter: H1GatewayAdapter?
     private let router: TypedRouter
     private let npmGateway: NPMGateway?
     private let pypiGateway: PyPIGateway?
@@ -87,7 +90,31 @@ public actor GatewayService {
 
     public init(policy: GatewayPolicy, keyProvider: any KeyProvider = MockKeyProvider(),
                 upstream: UpstreamClient = UpstreamClient()) throws {
+        try self.init(policy: policy, h1Adapter: nil, keyProvider: keyProvider, upstream: upstream)
+    }
+
+    /// H1 authorization stays attached throughout dispatch; callers cannot inject an
+    /// unbounded upstream client. Resolver/address hooks preserve D1 destination checks.
+    public init(adapting adapter: H1GatewayAdapter, keyProvider: any KeyProvider = MockKeyProvider(),
+                resolver: any DestinationResolver = SystemDestinationResolver(),
+                hostAddresses: any HostAddressProvider = SystemHostAddresses()) throws {
+        try self.init(adapting: adapter, keyProvider: keyProvider, upstreamFactory: {
+            UpstreamClient(resolver: resolver, hostAddresses: hostAddresses, limits: $0)
+        })
+    }
+
+    /// Package-internal offline transport seam; never exposed to an H1 caller.
+    init(adapting adapter: H1GatewayAdapter, keyProvider: any KeyProvider = MockKeyProvider(),
+         upstreamFactory: (UpstreamLimits) -> UpstreamClient) throws {
+        try self.init(policy: adapter.handlerPolicy, h1Adapter: adapter, keyProvider: keyProvider,
+                      upstream: upstreamFactory(adapter.upstreamLimits))
+    }
+
+    private init(policy: GatewayPolicy, h1Adapter: H1GatewayAdapter?, keyProvider: any KeyProvider,
+                 upstream: UpstreamClient) throws {
         let handlers = try Self.makeHandlers(policy: policy, keyProvider: keyProvider, upstream: upstream)
+        self.h1Adapter = h1Adapter
+        networkPolicy = h1Adapter?.networkPolicy
         npmGateway = handlers.npm
         pypiGateway = handlers.pypi
         do {
@@ -136,7 +163,10 @@ public actor GatewayService {
         case .active(let active):
             operation = active
         }
-        guard reserve() else { return .response(.error(503)) }
+        if let h1Adapter, !h1Adapter.requestIsWithinLimit(request, operation: operation) {
+            return deny(.h1RequestLimit, request: request, status: 413, operation: operation)
+        }
+        guard reserve() else { return .response(errorResponse(503)) }
         var committed = false
         defer { if !committed { release() } }
         do {
@@ -148,6 +178,15 @@ public actor GatewayService {
                 return .events(auditedStream(producer, sequence: sequence, finishingStream: finishingStream))
             }
             guard case .response(let response) = reply else { preconditionFailure("unexpected reply") }
+            if let gate = h1Adapter?.gate(for: operation), response.body.count > Int(gate.responseBytesLimit) {
+                // Rewritten registry metadata may be larger than the upstream response.
+                // Never leave an artifact completion pending after discarding its response.
+                await response.completeTransport(false)
+                commit(operation: operation, request: request, decision: .failed,
+                       reason: "h1ResponseLimit", status: 502)
+                committed = true
+                return .response(errorResponse(502))
+            }
             let status = response.status
             if let denial = Self.handlerDenial(for: response) {
                 // Odmítl handler, ne brána: audit to musí rozlišit a nést důvod.
@@ -168,7 +207,7 @@ public actor GatewayService {
             // deterministickou 502 a rozhodnutí zůstává v auditu.
             commit(operation: operation, request: request, decision: .failed, reason: "handlerFailed", status: 502)
             committed = true
-            return .response(.error(502))
+            return .response(errorResponse(502))
         }
     }
 
@@ -186,6 +225,12 @@ public actor GatewayService {
 
     public func pypiDownloadRecords() async -> [RegistryDownloadRecord] {
         await pypiGateway?.downloadRecords() ?? []
+    }
+
+    /// Local failures use an empty body in H1 mode, including before-first-event SSE
+    /// failures, so even the smallest positive H1 response ceiling remains respected.
+    nonisolated func errorResponse(_ status: Int) -> HTTPResponse {
+        networkPolicy == nil ? .error(status) : HTTPResponse(status: status, body: Data())
     }
 
     // MARK: - Sestavení handlerů
@@ -345,10 +390,10 @@ public actor GatewayService {
                       operation: GatewayOperation? = nil) -> GatewayReply {
         // Odmítnutí musí být v auditu, pokud je místo; zaplněná kapacita se
         // nezahazuje, jen se odmítne další požadavek.
-        guard reserve() else { return .response(.error(503)) }
+        guard reserve() else { return .response(errorResponse(503)) }
         commit(operation: operation, request: request, decision: .denied,
                reason: reason.rawValue, status: status)
-        return .response(.error(status))
+        return .response(errorResponse(status))
     }
 
     /// Zapíše záznam do **držené** rezervace a tím ji spotřebuje. Volá se jen po
