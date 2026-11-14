@@ -386,4 +386,68 @@ final class H1AdapterTests: XCTestCase {
         XCTAssertEqual(records.map(\.decision), [.failed])
     }
 
+    func testTinyH1CeilingPreservesRouterAndHandlerDenialStatusAndAudit() async throws {
+        let resolver = RefusingResolver()
+        let adapter = try adapt(gate(.npm, response: 1), .npm(NPMRule(publicOrigin: Fixture.origin,
+            upstreamHostname: "registry.example", limits: limits(1))))
+        let service = try GatewayService(adapting: adapter, resolver: resolver)
+        // PUT/DELETE are rejected by TypedRouter; GET with a body reaches the handler.
+        for (method, input) in [("PUT", Data()), ("DELETE", Data()), ("GET", Data("x".utf8))] {
+            let channel = MockChannel(inbound: requestWire(method, "/npm/fixture", body: input))
+            try await LoopbackConnection(channel: channel).serve(serving: service)
+            let wire = String(decoding: channel.sent, as: UTF8.self)
+            XCTAssertTrue(wire.hasPrefix("HTTP/1.1 403 "))
+            XCTAssertTrue(wire.contains("Content-Length: 0\r\n"))
+            XCTAssertTrue(wire.hasSuffix("\r\n\r\n"))
+        }
+        let malformed = try await service.dispatch(request("GET", "/npm/fixture?unsupported=query"))
+        XCTAssertEqual(status(of: malformed), 400)
+        XCTAssertEqual(body(of: malformed), Data())
+        XCTAssertEqual(resolver.consulted, [])
+        let records = await service.auditRecords()
+        XCTAssertEqual(records.map(\.decision), Array(repeating: .deniedByHandler, count: 4))
+        XCTAssertEqual(records.map(\.reason), ["handlerForbidden", "handlerForbidden", "handlerForbidden", "handlerRejected"])
+        XCTAssertEqual(records.map(\.status), [403, 403, 403, 400])
+    }
+
+    func testTinyH1CeilingPreservesTypedCapacityDenial() async throws {
+        let (entered, signal) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        let (release, resume) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        defer { signal.finish(); resume.finish() }
+        let adapter = try adapt(gate(.npm, response: 1), .npm(NPMRule(publicOrigin: Fixture.origin,
+            upstreamHostname: "registry.example",
+            limits: RegistryRuleLimits(metadataBytes: 1, artifactBytes: 1, operations: 1))))
+        let service = try GatewayService(adapting: adapter, resolver: HeldResolver(entered: signal, release: release))
+        let first = Task { try await service.dispatch(request("GET", "/npm/fixture")) }
+        defer { first.cancel() }
+        var iterator = entered.makeAsyncIterator()
+        _ = await iterator.next()
+        let second = try await service.dispatch(request("GET", "/npm/fixture"))
+        XCTAssertEqual(status(of: second), 503)
+        XCTAssertEqual(body(of: second), Data())
+        if case .response(let response) = second { XCTAssertEqual(response.rejection, .capacity) }
+        else { XCTFail("expected local capacity denial") }
+        let records = await service.auditRecords()
+        XCTAssertEqual(records.map(\.decision), [.deniedByHandler])
+        XCTAssertEqual(records.map(\.reason), ["handlerCapacity"])
+        resume.yield(()); resume.finish()
+        _ = try await first.value
+    }
+
+    func testTinyH1CeilingStillAllowsExactUpstreamBodyAndRejectsLargerBodies() async throws {
+        for (upstreamStatus, bytes, expected) in [(200, 1, 200), (200, 2, 502), (403, 2, 502)] {
+            let upstream = OfflineUpstream { _ in responseWire(Data(repeating: 48, count: bytes),
+                type: "application/x-git-upload-pack-advertisement", status: upstreamStatus) }
+            let service = try service(adapt(gate(.git, response: 1), .git(GitRule(
+                upstreamHostname: "github.example", limits: limits(1)))), upstream: upstream)
+            let reply = try await service.dispatch(request("GET", "/git/project.git/info/refs?service=git-upload-pack"))
+            XCTAssertEqual(status(of: reply), expected)
+            XCTAssertEqual(body(of: reply), bytes == 1 ? Data("0".utf8) : Data())
+            XCTAssertEqual(upstream.calls.count, 1)
+            let records = await service.auditRecords()
+            XCTAssertEqual(records.map(\.decision), bytes == 1 ? [.routed] : [.failed])
+            XCTAssertEqual(records.map(\.reason), bytes == 1 ? [""] : ["h1ResponseLimit"])
+        }
+    }
+
 }

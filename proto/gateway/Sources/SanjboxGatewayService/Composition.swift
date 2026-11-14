@@ -178,17 +178,28 @@ public actor GatewayService {
                 return .events(auditedStream(producer, sequence: sequence, finishingStream: finishingStream))
             }
             guard case .response(let response) = reply else { preconditionFailure("unexpected reply") }
+            let denial = Self.handlerDenial(for: response)
             if let gate = h1Adapter?.gate(for: operation), response.body.count > Int(gate.responseBytesLimit) {
                 // Rewritten registry metadata may be larger than the upstream response.
                 // Never leave an artifact completion pending after discarding its response.
                 await response.completeTransport(false)
+                if let denial {
+                    // Local router/handler refusal is still a refusal when its error
+                    // body exceeds a tiny H1 limit. Preserve status, reason and typed
+                    // capacity marker, but never forward the discarded body.
+                    commit(operation: operation, request: request, decision: .deniedByHandler,
+                           reason: denial.rawValue, status: response.status)
+                    committed = true
+                    return .response(HTTPResponse(status: response.status, body: Data(),
+                                                  rejection: response.rejection))
+                }
                 commit(operation: operation, request: request, decision: .failed,
                        reason: "h1ResponseLimit", status: 502)
                 committed = true
                 return .response(errorResponse(502))
             }
             let status = response.status
-            if let denial = Self.handlerDenial(for: response) {
+            if let denial {
                 // Odmítl handler, ne brána: audit to musí rozlišit a nést důvod.
                 commit(operation: operation, request: request, decision: .deniedByHandler,
                        reason: denial.rawValue, status: status)
