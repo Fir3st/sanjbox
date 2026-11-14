@@ -664,3 +664,39 @@ establishment-time values, and right transfer/credential drift/PID-reuse or sepa
 processes have not been calibrated. The observation always denies mutation authority;
 service host, daemon, journal and post-handoff cleanup behavior are unchanged.
 **A6 remains partial; S8/SG-01…11 and all laboratory gates remain Neověřeno.**
+
+
+### Native XPC preflight watchdog review fix — 2026-11-14
+
+Independent review of **`2e9871a338c4efde113594bc429462331751e92d`** found a P3
+fixture deadline gap: `selfSignatureIssues()` ran before the 20-second alarm, so
+its first synchronous Security call was outside the advertised bound. The alarm
+is now armed after argument validation and **before identity/signing preflight**,
+and remains active through later XPC/Security calls and connection queue cleanup.
+The existing cancellation defer retains the same scope; no new service or action
+path is introduced. The handoff now states this precise scope.
+
+A focused compiled fault-injection regression used the actual original and fixed
+CLI preflight blocks. Only the signature-inspection function was replaced with a
+blocking synthetic stub, and the alarm duration was reduced from 20 to one second
+for this bounded test. The old source entered that stub and exceeded the three-second
+external deadline, requiring the driver to kill/reap it; the fixed source entered
+the same stub and terminated via **SIGALRM (-14)** in **1.315 seconds**, without the
+external deadline firing. This tests watchdog placement and real signal delivery;
+it does not claim that a real Security call was made to hang. Both owned regression
+executables were hardened ad-hoc sealed with empty entitlements and reaped.
+
+Affected validation on the corrected fixture:
+
+- Full S8 Swift suite: **79/79 Debug + 79/79 Release**, no failures.
+- Freshly copied/sealed fixtures: **8/8 genuine anonymous-XPC controls + 5/5 CLI
+  controls per configuration**, including refusal of the wrong external code pin.
+- `git diff --check` passes. Adapter, policy tests, service host, daemon, registration
+  journal and coverage states are unchanged; A6 remains partial.
+
+New logs and the complete fault-injection driver are under
+`/private/tmp/a6-xpc-native-stage/watchdog-fix/`: `regression.py`, `regression.json`,
+`tests-{debug,release}.log`, `native-{debug,release}.stdout`, `cli-controls.json`.
+All prior failure logs and validation records are preserved. Corrected fixture
+source SHA-256: `7d8e5b9050567cf3a5cf6c01363deef5d07276bca675d6cd497271481d34b1f0`.
+No registration, signing identity, admin approval, attach/TCC or system change ran.

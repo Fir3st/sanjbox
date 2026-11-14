@@ -134,16 +134,17 @@ guard args.count == 5, args[0] == "--apply-fixture", args[1].count == 40,
       let uid = UInt32(args[2]), let gid = UInt32(args[3]), let session = Int32(args[4]) else {
     fail("Only plan or --apply-fixture CDHASH UID GID ASID is accepted")
 }
+// Arm before identity/signing preflight: its first synchronous Security call
+// must share the deadline with all later XPC/Security work and queue cleanup.
+// No child processes are created here; an alarm ends only this owned fixture.
+signal(SIGALRM, SIG_DFL); alarm(20)
+defer { alarm(0) }
 var audit = auditinfo_addr()
 guard getuid() == uid, geteuid() == uid, getgid() == gid, getegid() == gid,
       getaudit_addr(&audit, Int32(MemoryLayout<auditinfo_addr>.size)) == 0,
       audit.ai_auid == uid, audit.ai_asid == session, selfSignatureIssues().isEmpty else {
     fail("fixture identity/session or ad-hoc hardened empty-entitlement preflight refused")
 }
-// Independent whole-fixture watchdog: an OS API or queue stall cannot turn this
-// diagnostic into a persistent service. No child processes are created here.
-signal(SIGALRM, SIG_DFL); alarm(20)
-defer { alarm(0) }
 do {
     let hex = Array(args[1].utf8)
     let hash = Data(stride(from: 0, to: hex.count, by: 2).map {

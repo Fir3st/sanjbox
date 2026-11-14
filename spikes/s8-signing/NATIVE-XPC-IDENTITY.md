@@ -58,8 +58,9 @@ The fixture CLI is not a production policy/approval endpoint.
 The fixture creates anonymous listener/client pairs in **one owned process**.
 There is no named Mach service, bootstrap registration, launchd plist, socket path,
 ServiceManagement call, UI, daemon, child process or persistent endpoint. Each
-pair has a three-second wait; a 20-second whole-process alarm bounds a stalled
-Security call or queue. Connections/listeners are canceled and their queue drained;
+pair has a three-second wait; a 20-second alarm is armed before identity/signing
+preflight and remains active through all subsequent Security calls and queue
+cleanup. Connections/listeners are canceled and their queue drained;
 the external driver has a 25-second deadline and reaps this exact process.
 
 The controls use the same real OS message path:
