@@ -131,7 +131,8 @@ codecs are independently authored from the record descriptions.
 ### Source-backed records
 
 - Banner and ClientInit remain exactly as S5. S4 challenge framing/response-width check is unchanged;
-  cryptography remains absent behind the mock provider seam.
+  at this selection-only milestone cryptography was absent behind the mock provider seam.
+  The later approved offline provider in S6/[AUTH-PROVIDER](AUTH-PROVIDER.md) supplies that implementation.
 - Extended ServerInit: at least 22 name bytes, byte 0 is NUL (byte 1 unrestricted), flags at 2…5,
   16-byte capability bitmap at 6…21. S5 `ard-constants.js` names flags observe 1, may-control 2,
   session-select 4 and no-virtual-display 8. The bitmap and name are not identity evidence.
@@ -172,16 +173,14 @@ codecs are independently authored from the record descriptions.
 
 ### Still unimplemented
 
-The type-30 DH/MD5/AES provider, type-33 RSA tunnel, server authentication, confidentiality,
-transport/wakeup scheduling and live-server/audit session binding. The scoped public SDK investigation
-is recorded with exact files/hashes in [AUTH-BACKEND](AUTH-BACKEND.md): CommonCrypto's MD5/AES and
-CryptoKit's EC agreement do not supply S4's arbitrary-modulus DH, while legacy CDSA DH declarations
-are explicitly deprecated. No reviewed backend was established; this is not a claim that none exists.
-No custom bignum, private API or new dependency was introduced. The integrated local selection
-work has passed [independent review](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14);
-A3 remains in progress because the permitted, supported, reviewed backend/provider and synthetic
-crypto known-answer tests are missing. Server and exact UID/audit identity must be independently
-validated before any Apple surface; neither the local mask rule nor this review supplies that evidence.
+Type-33 RSA tunnel, server authentication, transport confidentiality/wakeup scheduling,
+live interoperability and independent UID/audit session binding. The scoped public SDK
+investigation remains in [AUTH-BACKEND](AUTH-BACKEND.md). The subsequent user-approved
+OpenSSL provider is described in [AUTH-PROVIDER](AUTH-PROVIDER.md); no custom runtime
+bignum or private API was introduced. The integrated selection work retains its
+[review #81](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14).
+A3 remains in progress: working synthetic crypto never substitutes for independently
+validated server and exact non-console UID/audit identity before any Apple surface.
 
 ## Research outcome
 
@@ -190,3 +189,35 @@ pinned clients establish concrete candidate byte contracts, now partly implement
 not locate an Apple-published byte-level specification in those sources. No live interoperability,
 server identity or exact user-session binding follows from these records. [README](README.md) lists
 the bounded remaining work; [LAB-NEXT](LAB-NEXT.md) preserves the independent laboratory requirements.
+
+
+## S6 — approved OpenSSL 3.5.9 public backend and independent fixtures
+
+The official [release archive](https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz)
+was downloaded only after explicit approval and checked against SHA-256
+`603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a` before extraction.
+[Provenance](openssl-provenance.json) records tag `d0ca66a1abe52545f14eca635c648932fcde5615`,
+commit `45e844fa2a14ec92d146bd8f5778ac130b6625fb`, recipe and exact license hash. The official
+API reported tag signature `unknown_key`; no verified-signature claim is made.
+
+Primary source paths below are pinned to that commit. Read-only source hashes are retained
+with local validation records; only the upstream license, not implementation source, is copied here.
+
+| Primary source | Supported claim |
+|---|---|
+| [EVP_PKEY_fromdata](https://github.com/openssl/openssl/blob/45e844fa2a14ec92d146bd8f5778ac130b6625fb/doc/man3/EVP_PKEY_fromdata.pod) | Public parameter/key import using OSSL_PARAM; the shim avoids native-endian BN ambiguity via BN_bin2bn and OSSL_PARAM_BLD |
+| [DH API/checks](https://github.com/openssl/openssl/blob/45e844fa2a14ec92d146bd8f5778ac130b6625fb/doc/man7/EVP_PKEY-DH.pod), [dh_check.c](https://github.com/openssl/openssl/blob/45e844fa2a14ec92d146bd8f5778ac130b6625fb/crypto/dh/dh_check.c) | Full parameter check; absent q validates p and (p−1)/2; quick check is insufficient |
+| [ffc_key_validate.c](https://github.com/openssl/openssl/blob/45e844fa2a14ec92d146bd8f5778ac130b6625fb/crypto/ffc/ffc_key_validate.c) | Absent-q peer range check; no general y^q=1 guarantee |
+| [DH exchange](https://github.com/openssl/openssl/blob/45e844fa2a14ec92d146bd8f5778ac130b6625fb/doc/man7/EVP_KEYEXCH-DH.pod), [dh_exch.c](https://github.com/openssl/openssl/blob/45e844fa2a14ec92d146bd8f5778ac130b6625fb/providers/implementations/exchange/dh_exch.c) | pad=1 pads to effective modulus width; the shim separately restores original S4 wire width |
+| [RFC 2409 §6.2](https://www.rfc-editor.org/rfc/rfc2409.html#section-6.2) | Published 1024-bit safe-prime fixture, not recognized as a named group by this backend |
+| [RFC 3526 §§3,5](https://www.rfc-editor.org/rfc/rfc3526.html) | Published 2048/4096-bit fixtures; no invented primality claim from a custom generator |
+| [RFC 1321 test suite](https://www.rfc-editor.org/rfc/rfc1321.html#appendix-A.5), [NIST SP800-38A](https://csrc.nist.gov/pubs/sp/800/38/a/final) | Independent literal MD5 and AES-128-ECB primitive vectors |
+| [2026-11-10 advisory](https://openssl-library.org/news/secadv/20261110.txt), [release lifecycle](https://openssl-library.org/source/) | Known Low issues and scheduled fixes; 3.5 LTS support, not a vulnerability-free claim |
+
+Five full-response literals use Python integer pow as a fixture-only DH oracle and a
+repository-authored helper calling system public CommonCrypto for MD5/AES. Neither loads
+OpenSSL. The checked-in fixture hash and recipe results are in [VALIDATION](VALIDATION.md).
+S4's UTF-8 prefix is 63 bytes, followed by NUL, preserving bytes after embedded NUL in
+that prefix; credentials are not interpreted as C strings before encrypting the block.
+Darwin ACL semantics (`acl_get_entry`: entry=0, empty=-1/EINVAL) and spawn/wait/descriptor
+interfaces are from the current public macOS SDK, with own-file/child negative tests.

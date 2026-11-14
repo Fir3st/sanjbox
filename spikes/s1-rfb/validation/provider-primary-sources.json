@@ -1,0 +1,92 @@
+[
+  {
+    "path": "LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/LICENSE.txt",
+    "bytes": 10175,
+    "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+  },
+  {
+    "path": "Configure",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/Configure",
+    "bytes": 142172,
+    "sha256": "3d3ed5a3e4c69a917cee593643c4614a0d6ccc074c0e2b4ecad3293de47aa452"
+  },
+  {
+    "path": "INSTALL.md",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/INSTALL.md",
+    "bytes": 71231,
+    "sha256": "a31767954ee48575d2b762290efa9f1d03ce1bda0900b8271c6e751986827753"
+  },
+  {
+    "path": "include/crypto/dh.h",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/include/crypto/dh.h",
+    "bytes": 2490,
+    "sha256": "9535f599660f7b776f7bd53cc6dc993f4d61b22b4493a0b55bdbe6944d48b2c8"
+  },
+  {
+    "path": "crypto/dh/dh_check.c",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/crypto/dh/dh_check.c",
+    "bytes": 11799,
+    "sha256": "b92f5181b11ea8ab7584b28be70964b9cbfed01b5e2949a6ec113898899dfb19"
+  },
+  {
+    "path": "crypto/dh/dh_key.c",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/crypto/dh/dh_key.c",
+    "bytes": 12358,
+    "sha256": "7a8b1307c64264301fb184a951af1fcfb14fc203c464960f9a2e59fc167d7bc0"
+  },
+  {
+    "path": "providers/implementations/keymgmt/dh_kmgmt.c",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/providers/implementations/keymgmt/dh_kmgmt.c",
+    "bytes": 30390,
+    "sha256": "7b46dc5c47e75c7e06a557f1bab08a5c8b289bc530953ad886c8e447500b2f6f"
+  },
+  {
+    "path": "providers/implementations/exchange/dh_exch.c",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/providers/implementations/exchange/dh_exch.c",
+    "bytes": 16590,
+    "sha256": "163b55b09950fbfe2951225f3e48c8252fc2446ae9bf80f03c50dfdedc332dd6"
+  },
+  {
+    "path": "doc/man7/EVP_PKEY-DH.pod",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/doc/man7/EVP_PKEY-DH.pod",
+    "bytes": 11776,
+    "sha256": "c4d3a0d4671cf0870cee0c49b7ad33808c330b7d32a300abe5736f3e7d29700c"
+  },
+  {
+    "path": "doc/man7/EVP_PKEY-FFC.pod",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/doc/man7/EVP_PKEY-FFC.pod",
+    "bytes": 7121,
+    "sha256": "c4c62485054f34866cd31d031b3058bfd4a948e078ca50f017e1b50accdf0cac"
+  },
+  {
+    "path": "doc/man3/EVP_PKEY_fromdata.pod",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/doc/man3/EVP_PKEY_fromdata.pod",
+    "bytes": 9427,
+    "sha256": "812ac496f72117e37e92430f51a7105206260ced475cdfa483b9e2f831d21e5a"
+  },
+  {
+    "path": "doc/man7/EVP_KEYEXCH-DH.pod",
+    "url": "https://raw.githubusercontent.com/openssl/openssl/45e844fa2a14ec92d146bd8f5778ac130b6625fb/doc/man7/EVP_KEYEXCH-DH.pod",
+    "bytes": 4372,
+    "sha256": "fe0004384067f3a6afa6379140ec9ca80daf4abb402ea39b330551b7167f8f77"
+  },
+  {
+    "path": "release-tag.json",
+    "url": "https://api.github.com/repos/openssl/openssl/git/tags/d0ca66a1abe52545f14eca635c648932fcde5615",
+    "bytes": 2767,
+    "sha256": "24c1c028d2d367a83285d82b434ff9665350ee31ee4c1a0ecc6c11b93c21fed5"
+  },
+  {
+    "path": "release.sha256",
+    "url": "https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz.sha256",
+    "bytes": 87,
+    "sha256": "f482705825eb43b47ce08d5cf4287ae062cdbada1a142d728a8d89c387300bf0"
+  },
+  {
+    "path": "advisory-20261110.txt",
+    "url": "https://openssl-library.org/news/secadv/20261110.txt",
+    "bytes": 11780,
+    "sha256": "31f4c88950cd9cd310794a218361b787d293a940d2568f9f82334915ac54a402"
+  }
+]

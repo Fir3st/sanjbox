@@ -115,7 +115,7 @@ public struct RFBClient: Sendable {
     public private(set) var session: AppleSession = .notOffered
 
     /// `appleCredentialProvider` is the only seam where S4's DH/AES exchange could live.
-    /// This package ships no implementation; without a provider the Apple handshake stops
+    /// No provider is installed by default; without explicit injection the Apple handshake stops
     /// before sending a credential response or ClientInit. See AppleSubset.swift.
     public init(authenticationPolicy: AuthenticationPolicy = .rejectAll,
                 appleCredentialProvider: (any AppleCredentialProvider)? = nil,

@@ -7,11 +7,12 @@ a monotónního deadline. Výchozí výběrová politika stále odmítá všechn
 pokud maska obsahuje bit 2 a žádné neznámé bity; nejde o důkaz oprávnění serveru.
 Grant vždy skončí `unverifiedSessionIdentity` před inicializací/pixely: S2 připouští i sdílení
 viditelné plochy, takže samotný virtuální příkaz a status neprokazují non-console UID/audit session.
-Type-30 auth stále používá pouze injekční rozhraní a syntetický mock; DH/MD5/AES nejsou implementované.
-[Průzkum backendu](AUTH-BACKEND.md) vymezuje konkrétní zbývající překážku.
+Type-30 má nyní výslovně offline [syntetický provider](AUTH-PROVIDER.md): schválený připnutý
+OpenSSL 3.5.9, vlastní jednorázový worker a nezávislé DH/MD5/AES/whole-response KATs.
+Výchozí provider zůstává nil; starý CLI demo provider je nadále označený konstantní mock.
 
-To není Apple klient, keeper ani důkaz S1. Není zde transport, socket, okno, načítání údajů,
-Keychain ani přístup k systému. Všech 155 případů a všechny brány zůstávají **Neověřeno**.
+To není živý Apple klient, keeper ani důkaz S1. Není zde síťový transport, listener, okno,
+načítání údajů nebo Keychain. Provider používá pouze lokální socketpair a vlastní child proces. Všech 155 případů a všechny brány zůstávají **Neověřeno**.
 Vazba: [PLAN §S1](../../PLAN.md#s1--neviditelná-relace-brána-celého-gui-návrhu),
 [IMPLEMENTATION A3/WP2.10](../../docs/IMPLEMENTATION.md), C-001/F0.6; R1/R5, GUI-01…05,
 GUI-10…13 a POS-08. Per-app R6 není součástí tohoto prototypu.
@@ -21,7 +22,7 @@ GUI-10…13 a POS-08. Per-app R6 není součástí tohoto prototypu.
 | Vrstva | Co je implementované | Co výsledek neznamená |
 |---|---|---|
 | Standardní RFB 3.8 | Bounded handshake s výslovným syntetickým None režimem, Raw framebuffer v paměti | Živá bezpečná autentizace nebo výběr macOS uživatele |
-| S4 typ 30 | Generátor u16, délka u16, modulus a veřejný klíč stejné délky; odpověď provideru přesně `128 + keyLength` | DH/MD5/AES, identita serveru nebo šifrování transportu |
+| S4 typ 30 | Bounded framing a explicitní syntetický OpenSSL provider: safe-prime DH, MD5, AES-128-ECB, odpověď `128 + keyLength` | Identita serveru/relace, šifrování transportu nebo živá interoperabilita |
 | S5 ServerInit | Marker, flags a 16bajtová bitmapa uvnitř jména | Význam bitmapy nebo identita plochy |
 | S5 SessionInfo | Délka, verze, maska, rezervované pole a jméno; místní opt-in politika | Serverové oprávnění nebo identita plochy |
 | S5 SessionCommand | Přesně 74 bajtů, vždy command 2, nejvýš jednou | Živá autorizace; výchozí politika jej nevydá |
@@ -39,7 +40,7 @@ SetEncodings ani `.initialized`. Žádná cesta nezpřístupní Apple framebuffe
 Úplné citace a hashe jsou v [SOURCES.md](SOURCES.md). S4/S5 jsou primární **klientské zdroje**,
 ne Apple-published specifikace ani capture. Implementace použila čtyři hashově ověřené místní kopie;
 předchozí nezávislé review je stáhlo a ověřilo znovu přes HTTPS a přidalo pátý soubor
-`ard/session-select.js`. Tento follow-up znovu ověřil všech pět hashů v lokální cache bez nového fetch. Žádný stažený kód se nespouštěl, nelinkoval ani nekopíroval do implementace.
+`ard/session-select.js`. Selection follow-up znovu ověřil všech pět hashů v lokální cache bez nového fetch; tehdy se žádný stažený kód nespouštěl ani nelinkoval. Následující explicitně schválený provider používá samostatně připnutý OpenSSL build podle [AUTH-PROVIDER](AUTH-PROVIDER.md).
 
 | Záznam | S5 bajtový kontrakt (všechna vícebajtová čísla big-endian) |
 |---|---|
@@ -72,17 +73,17 @@ Místní konzervativní pravidla, nikoli tvrzení o serveru:
 
 ## Zbývající přesné mezery A3
 
-1. **Kryptografie:** [AUTH-BACKEND](AUTH-BACKEND.md) dokládá SDK soubory a hashe: veřejné
-   CommonCrypto/CryptoKit poskytují MD5/AES části, ale nebyl doložen vhodný podporovaný backend
-   arbitrary-modulus finite-field DH. SecKey/CryptoKit EC agreement není S4; CDSA má staré DH
-   deklarace, ale SDK jeho použití od macOS 10.7 výslovně nedoporučuje. Bez zvoleného a reviewovaného
-   backendu nelze dodat celý provider ani pravdivé end-to-end known-answer testy. Žádná nová
-   závislost, privátní API, vlastní bignum nebo náhradní crypto se nepřidává.
-2. **Reviewovaná selection část:** [nezávislé review #81](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14)
-   potvrzuje lokální výběrovou politiku a integrovaný command/result tok. Neověřuje serverovou
-   autorizaci ani identitu relace; původní offline podmínka A3 bez skutečného provideru stále není
-   splněná. Dosavadní vlastník pokračuje backendem/KATs a samostatným ověřením identity podle
-   [IMPLEMENTATION](../../docs/IMPLEMENTATION.md#0-co-dál); další obecný mock je nenahradí.
+1. **Dodaná offline část:** [AUTH-PROVIDER](AUTH-PROVIDER.md) implementuje schválený veřejný backend,
+   safe-prime profil 1024–4096 efektivních bitů / nejvýš 512 wire bajtů, kontrolu rozsahu peer
+   hodnoty bez obecného order-q tvrzení a nezávislé KATs. [Nezávislé integrační review #84](VALIDATION.md#independent-integration-review-of-pr-84-after-pr-83--2026-11-14)
+   proběhlo po merge A6 #83 (`main` `b183737`) do větve. Koordinátor před merge #84 kontroluje CI
+   přesného finálního headu; opakovaný výběr backendu ani další obecný crypto mock nejsou další úkol.
+2. **Selection a identita:** [review #81](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14)
+   platí pro lokální selection politiku a command/result tok. Provider neověřuje serverovou
+   autorizaci ani non-console UID/audit identitu. Dosavadní vlastník nejprve vymezí trusted zdroj
+   očekávané identity, vazbu na konkrétní spojení a nezávislé pozitivní/negativní kontroly včetně
+   odmítnutí konzole a záměny relace; konkrétní živý postup předloží podle [LAB-NEXT](LAB-NEXT.md).
+   Grant zůstává terminální refusal, dokud tyto důkazy chybí; A3 jako celek zůstává rozpracované.
 3. **Živý klient:** server identity, confidentialita, schválená správa údajů, transport/partial writes,
    naplánované monotónní idle/total wakeups, pixel/encoding interoperabilita a samostatná vazba na
    přesné UID/audit session. To patří do následného review a uživatelského [LAB-NEXT](LAB-NEXT.md).
@@ -135,23 +136,17 @@ identity plochy, GUI prezentace, GPU ani latence. Ostatní encodings, myš/kláv
 
 ## Offline ověření a úklid
 
-**[implementátor]** Swift 6, bez externích balíčků. Z kořene repozitáře:
+**[implementátor]** Swift 6 / macOS 27 arm64 a explicitně schválený OpenSSL 3.5.9.
+Přesné dry-run/provision/build/test/cleanup příkazy jsou v [AUTH-PROVIDER](AUTH-PROVIDER.md#reproduction-ci-and-cleanup).
+Oba Swift příkazy potřebují připnuté include/archive flags; nepoužívat náhodný systémový OpenSSL.
+Source/build/cache zůstávají ve vlastním temp stromu, license/provenance v tomto balíku.
 
-```bash
-A3_CHECK_DIR=$(mktemp -d /private/tmp/sanjbox-a3-check.XXXXXX)
-export CLANG_MODULE_CACHE_PATH="$A3_CHECK_DIR/modules"
-export SWIFTPM_MODULECACHE_OVERRIDE="$A3_CHECK_DIR/modules"
-swift test --disable-sandbox --package-path spikes/s1-rfb --configuration debug \
-  --scratch-path "$A3_CHECK_DIR/build" --cache-path "$A3_CHECK_DIR/cache" \
-  --config-path "$A3_CHECK_DIR/config" --security-path "$A3_CHECK_DIR/security" \
-  -Xswiftc -module-cache-path -Xswiftc "$A3_CHECK_DIR/modules"
-"$A3_CHECK_DIR/build/debug/sanjbox-rfb-fixture" --demo
-```
-
-Opakovat s `release` a samostatnými cestami. `--disable-sandbox` se týká pouze lokálního SwiftPM
-manifestu, nikoli systémové ochrany. Demo provede standardní 2×2 Raw scénář a explicitně opt-in Apple command/pending/grant s odmítnutím identity;
+`--disable-sandbox` se týká pouze lokálního SwiftPM manifestu. CLI `sanjbox-rfb-fixture --demo`
+provádí původní standardní 2×2 Raw scénář a Apple command/pending/grant s odmítnutím identity;
 vypíše 52/224 vygenerovaných bajtů a `network bytes sent: 0`. Nemá argument hostu, portu nebo hesla.
-Kryptografické hodnoty jsou konstantní mocky. `--help`/bez argumentů vrací 0, neplatné argumenty 2.
+Jeho kryptografické hodnoty jsou stále výslovně konstantní mocky. Skutečný syntetický provider
+ověřují `AppleCryptoTests` a `AppleProviderTests`, včetně fragmentovaných parser transcripts.
+`--help`/bez argumentů vrací 0, neplatné argumenty 2.
 
 [SOURCES](SOURCES.md) eviduje provenance; [VALIDATION](VALIDATION.md) popisuje konkrétní testy/commit.
 Není to systémová sonda: pro budoucí skutečné měření zůstává povinná kontrola identity podle GUIDE/LAB.

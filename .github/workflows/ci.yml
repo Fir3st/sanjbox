@@ -98,7 +98,8 @@ jobs:
     # Apple Silicon + macOS 27 / Xcode 27, matching docs/GUIDE.md.
     # This GitHub-hosted image is currently in public preview.
     runs-on: xcode-27
-    # Build and test normally take under 3 minutes; a hung test is stopped by the watchdog below.
+    # A3 also builds pinned OpenSSL in owned temp storage; see its measured VALIDATION budget.
+    # A hung Swift test is stopped by the watchdog below; keep the whole job bounded.
     timeout-minutes: 12
     strategy:
       fail-fast: false
@@ -127,20 +128,48 @@ jobs:
           [[ "$(uname -m)" == arm64 ]]
           [[ "$(sw_vers -productVersion)" == 27.* ]]
           [[ "$(xcodebuild -version)" == Xcode\ 27.* ]]
+      - name: Provision approved A3 libcrypto
+        if: ${{ matrix.package == 'spikes/s1-rfb' }}
+        run: |
+          set -euo pipefail
+          # stdout is the owned root even if a later provisioning command fails.
+          /bin/bash spikes/s1-rfb/scripts/provision-openssl.sh --apply > "$CI_LOG_DIR/openssl-root.txt"
+          printf 'A3_OPENSSL_ROOT=%s\n' "$(cat "$CI_LOG_DIR/openssl-root.txt")" >> "$GITHUB_ENV"
       - name: Build all products
         run: |
           set -euo pipefail
-          swift build --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
-            2>&1 | tee "$CI_LOG_DIR/build.log"
+          if [[ "$PACKAGE_PATH" == spikes/s1-rfb ]]; then
+            /bin/bash spikes/s1-rfb/scripts/swift-with-openssl.sh --apply "$A3_OPENSSL_ROOT" "$CONFIGURATION" build \
+              2>&1 | tee "$CI_LOG_DIR/build.log"
+          else
+            swift build --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
+              2>&1 | tee "$CI_LOG_DIR/build.log"
+          fi
       - name: Run all tests
         run: |
           set -euo pipefail
           # The slowest package needs about 80 s. A test that hangs fails after 5 minutes with
           # bounded diagnostics of its owned process scope in the uploaded logs.
-          .github/scripts/run-with-watchdog.sh 300 "$CI_LOG_DIR" \
-            swift test --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
-            --xunit-output "$CI_LOG_DIR/tests.xml" \
-            2>&1 | tee "$CI_LOG_DIR/tests.log"
+          if [[ "$PACKAGE_PATH" == spikes/s1-rfb ]]; then
+            .github/scripts/run-with-watchdog.sh 300 "$CI_LOG_DIR" \
+              /bin/bash spikes/s1-rfb/scripts/swift-with-openssl.sh --apply "$A3_OPENSSL_ROOT" "$CONFIGURATION" test \
+              --xunit-output "$CI_LOG_DIR/tests.xml" 2>&1 | tee "$CI_LOG_DIR/tests.log"
+          else
+            .github/scripts/run-with-watchdog.sh 300 "$CI_LOG_DIR" \
+              swift test --package-path "$PACKAGE_PATH" --configuration "$CONFIGURATION" \
+              --xunit-output "$CI_LOG_DIR/tests.xml" 2>&1 | tee "$CI_LOG_DIR/tests.log"
+          fi
+      - name: Retain A3 provisioning evidence
+        if: ${{ always() && matrix.package == 'spikes/s1-rfb' }}
+        run: |
+          set -euo pipefail
+          if [[ -s "$CI_LOG_DIR/openssl-root.txt" ]]; then
+            root=$(cat "$CI_LOG_DIR/openssl-root.txt")
+            [[ "$root" == /private/tmp/sanjbox-a3-openssl-3.5.9.* && -d "$root" && ! -L "$root" ]]
+            [[ "$(stat -f '%u %Lp' "$root")" == "$(id -u) 700" ]]
+            cp -R "$root/logs" "$CI_LOG_DIR/openssl"
+            cp -R "$root/state" "$CI_LOG_DIR/openssl-state"
+          fi
       - name: Upload logs and test results
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

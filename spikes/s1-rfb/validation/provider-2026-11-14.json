@@ -1,0 +1,410 @@
+{
+  "date": "2026-11-14",
+  "baseCommit": "98a80af368bdc941a072a9496ef50f1666dc3211",
+  "claimCommit": "ba45e02",
+  "sourceHashes": {
+    "Sources/CArdCrypto/ard_crypto.c": "05b85947f84b43135b90ee441b636adc8a89c4196ba47f5d1b7a691cf9efdb44",
+    "Sources/CArdCrypto/include/ard_crypto.h": "c4bfdb4998b1eb0f879b77d4c8910a6ce4b33d73bd9408b2b460ea6ec13713c9",
+    "Sources/CArdWorkerRunner/ard_runner.c": "509624ef90bf00f5141181146e53bf32c124a1979bc63bf1e8eb07abcf54929b",
+    "Sources/CArdWorkerRunner/include/ard_runner.h": "d8ff4fc7be3d7a3e1c079e3a43f6a294e34fb072d92cdc2a9a1e18198cab8c3c",
+    "Sources/RFBProtocol/AppleSubset.swift": "702f93bcdfe2e7ec7ef7d8454f561da89aee152c006f9e908193b3e4f7c99108",
+    "Sources/RFBProtocol/RFBClient.swift": "e246979e241c6ab136bc1c983bd23401693e0750312a9d0db82319ef4a9e74b3",
+    "Sources/RFBProtocol/SyntheticAppleAuth.swift": "940b76c278ce6f8a9d6844cf580f6ae0c5e525c5c75324585fe6d9618e5465c3",
+    "Sources/sanjbox-ard-worker/main.c": "4c56c03b7a36d21719f70f1d2418a9fd18abc3ec6f3d80434e10f9f1a731c2a3",
+    "Tests/CArdCryptoTestSupport/commoncrypto.c": "9702912ecd9fc29ae7707c729d101dbc5a5ae46f65fdd2f3fa8d1e55b95995ad",
+    "Tests/CArdCryptoTestSupport/include/ard_test.h": "23c03c6e3671379e57e981fd13bb39569dc1aaa4439c87976539c310ff5d5204",
+    "Tests/CArdCryptoTestSupport/test_support.c": "4ffe75de0f6ddcfc86230ee9be9c29ae71b64f5e075f198a1c164f1e455db6ad",
+    "Tests/RFBProtocolTests/AppleCryptoTests.swift": "3e41af60b297388fb67aee1f157f6bd99c45e073c473d89f2f19211dce350dc3",
+    "Tests/RFBProtocolTests/AppleProviderTests.swift": "dcead699d58bc6337c82b71d547b7fc0dac35e856b09fb66e6a274d0f7c9aef5",
+    "Tests/RFBProtocolTests/Fixtures/type30-vectors.json": "548a20e6aa5db57340ba27b557e714b20a488e077a10459559cb8c1d32bece94",
+    "Tests/WorkerFixture/main.c": "23ad47c5e667d8e7f3952a210fa91fac96c1da472fd6e46d306888ada82f10d9",
+    "scripts/cleanup-openssl.sh": "299eceb2b321673e554c965e52fa3e0a01a2073cb788eca93ac2a7dac31bc9a3",
+    "scripts/provision-openssl.sh": "f4213987222a3bbccb50510898dfdc7467cce3321ab2adf4f2eef0100a1ffc29",
+    "scripts/swift-with-openssl.sh": "476809e471fbb8472521e27da27657d9e238acb6a63abb7bb38a17648cb64ffc",
+    "tools/commoncrypto-vector-oracle.c": "1baafcb265b346b0e110c7b2840e32279d91fef1a334f16e24dcf3d0d2ad9771",
+    "tools/generate-auth-vectors.py": "1bf0d13670b863a0e2eff82d11cfd74e7ab56c3fd7ad4593bed889bdfcaebfae",
+    "Package.swift": "d45b481db319bc219b2a008200be4653a5f223443d893c29cfd7f5a716f8ece8",
+    "../../.github/workflows/ci.yml": "82dd504a947e9f3f09d812dca77e4a3bf8246dab067278c31b9a4a6d0895df36"
+  },
+  "environment": {
+    "architecture": "arm64",
+    "macOS": "27.2.1 (26B131)",
+    "Xcode": "27.2 (27B52)",
+    "Swift": "6.4.2",
+    "deploymentTarget": "27.0"
+  },
+  "results": {
+    "upstream": {
+      "recipes": 5,
+      "tests": 188,
+      "status": "PASS",
+      "expectedSkip": "FIPS config prerequisite, not a FIPS build"
+    },
+    "finalDebug": {
+      "methods": 81,
+      "failures": 0
+    },
+    "finalRelease": {
+      "methods": 81,
+      "failures": 0
+    },
+    "legacyCLI": {
+      "cases": 28,
+      "failures": 0,
+      "generatedBytes": [
+        52,
+        224
+      ],
+      "networkBytes": 0
+    },
+    "hostedCI": "not run before independent review",
+    "finalIndependentReview": "pending",
+    "repositoryTools": {
+      "tests": 98,
+      "status": "PASS",
+      "log": "/private/tmp/sanjbox-a3-openssl-3.5.9.V7Ht2w/logs/repository-tools-native.log"
+    }
+  },
+  "ciRehearsalSeconds": {
+    "provision": 145.3,
+    "debugBuild": 7.88,
+    "debugTest": 9.29,
+    "releaseBuild": 7.32,
+    "releaseTest": 12.3,
+    "jobBudgetSeconds": 720
+  },
+  "retainedLogManifest": {
+    "/private/tmp/sanjbox-a3-openssl-3.5.9.Kq4m3h": [
+      {
+        "path": "logs/LICENSE.txt",
+        "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+        "bytes": 10175
+      },
+      {
+        "path": "logs/VERSION.dat",
+        "sha256": "6dae52ea88792578bc22594ec2a0a26b2cf675b925ce81ce8792a1ccdf10cdb5",
+        "bytes": 100
+      },
+      {
+        "path": "logs/archive-verification.txt",
+        "sha256": "84aadd8b4e432176efbc86d91e52c6f484f068c22e69a0761d292a17cbd897a3",
+        "bytes": 25
+      },
+      {
+        "path": "logs/build.log",
+        "sha256": "365bc79f5a2e4c05cee3578cbb9da0f17fe1bd0127c4ee70400c8a27559a79b4",
+        "bytes": 1212174
+      },
+      {
+        "path": "logs/configure.log",
+        "sha256": "31f3d27bf0db452bf20dfed6ac45d118d761f7b1458d000462eea53fc4bfe224",
+        "bytes": 1213
+      },
+      {
+        "path": "logs/developer-directory.txt",
+        "sha256": "024e83842db917ed79a567b48b5f70bf468a2a914d5dc6df59f9d19c25ad3a0e",
+        "bytes": 43
+      },
+      {
+        "path": "logs/libcrypto.sha256",
+        "sha256": "3d1850e07f6662869968054231e6162ea22f69ca86741dae828f26a43bb74a76",
+        "bytes": 78
+      },
+      {
+        "path": "logs/macos.txt",
+        "sha256": "9a0ac4f6ff4ef7fb704c66da4bcc1b59033e6b94e239443d95910eeaa9bb8d45",
+        "bytes": 66
+      },
+      {
+        "path": "logs/root.txt",
+        "sha256": "120da1d677e34aa380ad18af9c184124d6ffaa89ea9375dd5b62006b4dcb9833",
+        "bytes": 45
+      },
+      {
+        "path": "logs/swift-debug.log",
+        "sha256": "84ee4cebd8d90acdfd393fcf6f60f8b32c7c99f13268647bf744966e3f02b8d9",
+        "bytes": 271508
+      },
+      {
+        "path": "logs/swift.txt",
+        "sha256": "f5a9367b595a6387113a7e391ad6212ba30254c8052fbc620f99f9dd67b9c1e3",
+        "bytes": 98
+      },
+      {
+        "path": "logs/upstream-tests.log",
+        "sha256": "2cebf1439305ff68e73860c25f6f5f045226501e3b2d2c830718fc1708aa2b4f",
+        "bytes": 252703
+      },
+      {
+        "path": "logs/xcode.txt",
+        "sha256": "67c5b47bcf0e788aecae2f9b3af345813bdf7fe736faefb9666a7f4b2bf27ba7",
+        "bytes": 31
+      }
+    ],
+    "/private/tmp/sanjbox-a3-openssl-3.5.9.EfHcSm": [
+      {
+        "path": "logs/LICENSE.txt",
+        "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+        "bytes": 10175
+      },
+      {
+        "path": "logs/VERSION.dat",
+        "sha256": "6dae52ea88792578bc22594ec2a0a26b2cf675b925ce81ce8792a1ccdf10cdb5",
+        "bytes": 100
+      },
+      {
+        "path": "logs/archive-verification.txt",
+        "sha256": "84aadd8b4e432176efbc86d91e52c6f484f068c22e69a0761d292a17cbd897a3",
+        "bytes": 25
+      },
+      {
+        "path": "logs/build.log",
+        "sha256": "f49b25fdf52d17252246e5bd62c2ab7cf54b647e2e12cdf45fc439684403bd98",
+        "bytes": 1212174
+      },
+      {
+        "path": "logs/configure.log",
+        "sha256": "31f3d27bf0db452bf20dfed6ac45d118d761f7b1458d000462eea53fc4bfe224",
+        "bytes": 1213
+      },
+      {
+        "path": "logs/developer-directory.txt",
+        "sha256": "024e83842db917ed79a567b48b5f70bf468a2a914d5dc6df59f9d19c25ad3a0e",
+        "bytes": 43
+      },
+      {
+        "path": "logs/libcrypto.sha256",
+        "sha256": "e408a4553c46d69b93102076d60456d870979cd099be528b7e2b7e6a04eb41ed",
+        "bytes": 78
+      },
+      {
+        "path": "logs/macos.txt",
+        "sha256": "9a0ac4f6ff4ef7fb704c66da4bcc1b59033e6b94e239443d95910eeaa9bb8d45",
+        "bytes": 66
+      },
+      {
+        "path": "logs/root.txt",
+        "sha256": "af2c68972c1f9150950367a70dd51766f3964023ce92d1e29eb8c194f66afc51",
+        "bytes": 45
+      },
+      {
+        "path": "logs/swift-debug-79-pass.log",
+        "sha256": "d38214afdd0ecefcb4bf1e2a6767dad25d47467d0eb60fae1bbc014ca90d06d8",
+        "bytes": 20671
+      },
+      {
+        "path": "logs/swift-debug-acl-test-import-failure.log",
+        "sha256": "76c3849d572f439f4d5fdea7f2dd6c79a409f749baeee3f2a4b2b44bb4881779",
+        "bytes": 11989
+      },
+      {
+        "path": "logs/swift-debug-foundation-tmp-abbreviation-failure.log",
+        "sha256": "407adcd9b19044b61bf7d920b1f227e331a944d72db6c3577d833a94ed31d1bc",
+        "bytes": 51377
+      },
+      {
+        "path": "logs/swift-debug-initial-provider-path-failure.log",
+        "sha256": "f24bd1a0508f1bb9412817a5a2c2c218cf67f61ebd35b21ea831c4fdf6cda1ed",
+        "bytes": 39954
+      },
+      {
+        "path": "logs/swift-debug-provider-path-failure-2.log",
+        "sha256": "773fdfb061a184e41357f8dbf65515904ea98c8d15d011698e1bb61df67a6b88",
+        "bytes": 41011
+      },
+      {
+        "path": "logs/swift-debug.log",
+        "sha256": "b30a2a2ea65d65ef29c83e3f1010ba667475bfcec9417bb3af66db0a0b564b12",
+        "bytes": 20703
+      },
+      {
+        "path": "logs/swift-release-native-temp-abbreviation-failure.log",
+        "sha256": "7e8c01d75fee66c45379633ee178a1665f4c876629e71d6bd12a83697a760304",
+        "bytes": 21919
+      },
+      {
+        "path": "logs/swift-release-native.log",
+        "sha256": "7e8c01d75fee66c45379633ee178a1665f4c876629e71d6bd12a83697a760304",
+        "bytes": 21919
+      },
+      {
+        "path": "logs/swift-release-sandbox-dsym-failure.log",
+        "sha256": "3c5ad7ece05c203cd50cc7f54fe36b34ac5979423bcceba9051c1da280fdc39b",
+        "bytes": 1032
+      },
+      {
+        "path": "logs/swift-release.log",
+        "sha256": "d25cfecef9b14c1dd0b7deea217d1039ea8d9d3ff1fb0cd5376d0f64f1dda105",
+        "bytes": 20690
+      },
+      {
+        "path": "logs/swift.txt",
+        "sha256": "f5a9367b595a6387113a7e391ad6212ba30254c8052fbc620f99f9dd67b9c1e3",
+        "bytes": 98
+      },
+      {
+        "path": "logs/upstream-tests.log",
+        "sha256": "486f59c22d375b19061eedfe6223a97e4c361e1ddf13d2a0d8cb42dd98f2dee9",
+        "bytes": 252703
+      },
+      {
+        "path": "logs/xcode.txt",
+        "sha256": "67c5b47bcf0e788aecae2f9b3af345813bdf7fe736faefb9666a7f4b2bf27ba7",
+        "bytes": 31
+      }
+    ],
+    "/private/tmp/sanjbox-a3-openssl-3.5.9.V7Ht2w": [
+      {
+        "path": "logs/LICENSE.txt",
+        "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+        "bytes": 10175
+      },
+      {
+        "path": "logs/VERSION.dat",
+        "sha256": "6dae52ea88792578bc22594ec2a0a26b2cf675b925ce81ce8792a1ccdf10cdb5",
+        "bytes": 100
+      },
+      {
+        "path": "logs/archive-verification.txt",
+        "sha256": "84aadd8b4e432176efbc86d91e52c6f484f068c22e69a0761d292a17cbd897a3",
+        "bytes": 25
+      },
+      {
+        "path": "logs/build.log",
+        "sha256": "444f5cd983836f53ae17c72fa3594c020032c496c8b18981b9d9b85fc1fe799f",
+        "bytes": 1212174
+      },
+      {
+        "path": "logs/ci-debug-build.log",
+        "sha256": "576c2ed8035b420762c650bca4f4153e343c173f6ca8b979d8384fbd396cea37",
+        "bytes": 692
+      },
+      {
+        "path": "logs/ci-debug-test.log",
+        "sha256": "66bab65bcfaa091af746230dea13372aaf1ce8822cf1162e36274f04505850ce",
+        "bytes": 20917
+      },
+      {
+        "path": "logs/ci-provision-time.log",
+        "sha256": "a24ae7ee90ecde41e7947213e5b50a69b93291425d602eafa46c1222c47a607e",
+        "bytes": 64
+      },
+      {
+        "path": "logs/ci-release-build.log",
+        "sha256": "a8b588ae2322fc3434248740a172daee03860872c989cfb5195b59e403cf4618",
+        "bytes": 662
+      },
+      {
+        "path": "logs/ci-release-test.log",
+        "sha256": "1ca605d518cbdf753f1d99ad25628a1e32b8c6690f77b1de5c6ab739af8c0ce5",
+        "bytes": 20946
+      },
+      {
+        "path": "logs/ci-tests-swift-testing.xml",
+        "sha256": "ad326e442a683421b9fcdd782a6115142ad2fd80378154e992a4632319d039af",
+        "bytes": 180
+      },
+      {
+        "path": "logs/ci-watchdog-test.log",
+        "sha256": "8a411709424fedd115d0655237f24414ca79d4aacfd44afff7f94460338a2429",
+        "bytes": 20555
+      },
+      {
+        "path": "logs/cleanup-script-check.json",
+        "sha256": "570dfaab0e8f1e86c2b9d66cdae9b0d13b7deb52249589a0b8601d68b025a2b6",
+        "bytes": 747
+      },
+      {
+        "path": "logs/cli-check.json",
+        "sha256": "5fde7e46c36811c5b0f20bd7f275a257a7cf6c6c82f9016d075e7de3023f6517",
+        "bytes": 2863
+      },
+      {
+        "path": "logs/configure.log",
+        "sha256": "31f3d27bf0db452bf20dfed6ac45d118d761f7b1458d000462eea53fc4bfe224",
+        "bytes": 1213
+      },
+      {
+        "path": "logs/debug-demo.txt",
+        "sha256": "f21f67e1b706125805c590422d971ab1df16718b67c68bf78e502e4cd537fcb7",
+        "bytes": 437
+      },
+      {
+        "path": "logs/developer-directory.txt",
+        "sha256": "024e83842db917ed79a567b48b5f70bf468a2a914d5dc6df59f9d19c25ad3a0e",
+        "bytes": 43
+      },
+      {
+        "path": "logs/end.txt",
+        "sha256": "29590cc1e20e47ba3f33516f7fd468fce165ae0d304eab90ed25ed38a42296c1",
+        "bytes": 21
+      },
+      {
+        "path": "logs/final-debug-test.log",
+        "sha256": "32047e9c7518a0535f061d356d7949c87dbfd0b8384718ceaaa5d6baf70949b9",
+        "bytes": 21017
+      },
+      {
+        "path": "logs/final-release-test.log",
+        "sha256": "d9c69bf3a421559f23228d9854afbd853ebbf36a03aa51b14dcb7b5144425e25",
+        "bytes": 21001
+      },
+      {
+        "path": "logs/libcrypto.sha256",
+        "sha256": "e92b0c4e8366598eca29183fd9b7b449a253c3c42713090cd6ff0709877486c5",
+        "bytes": 78
+      },
+      {
+        "path": "logs/macos.txt",
+        "sha256": "9a0ac4f6ff4ef7fb704c66da4bcc1b59033e6b94e239443d95910eeaa9bb8d45",
+        "bytes": 66
+      },
+      {
+        "path": "logs/release-demo.txt",
+        "sha256": "f21f67e1b706125805c590422d971ab1df16718b67c68bf78e502e4cd537fcb7",
+        "bytes": 437
+      },
+      {
+        "path": "logs/repository-tools-native.log",
+        "sha256": "b1c9c5b325300825650817f4a2e6feae5b1fd75b027c367d3b1f82e53901a55c",
+        "bytes": 8882
+      },
+      {
+        "path": "logs/repository-tools.log",
+        "sha256": "dc6818c5fc4aeff739d00caa835cffbaf91665d67c641461abf2d8194e2cf191",
+        "bytes": 5616
+      },
+      {
+        "path": "logs/start.txt",
+        "sha256": "a66a74e3308150dc1b558df53e3530520a3a5a5fc4cb5b61c16c8f93ea22d730",
+        "bytes": 21
+      },
+      {
+        "path": "logs/swift.txt",
+        "sha256": "f5a9367b595a6387113a7e391ad6212ba30254c8052fbc620f99f9dd67b9c1e3",
+        "bytes": 98
+      },
+      {
+        "path": "logs/upstream-tests.log",
+        "sha256": "d9231dcca6db7b1ecd1726aa5332c2c05a417104dd6d6f95b600fbfdfd7826f8",
+        "bytes": 252703
+      },
+      {
+        "path": "logs/worker-otool.txt",
+        "sha256": "81536efeff9f3e7f84c15eb6a1e11d52ab7870b88932430dddeee165ca34816d",
+        "bytes": 191
+      },
+      {
+        "path": "logs/worker-symbol-check.txt",
+        "sha256": "b4e853d1debff2c3a7218402588d90353688e02ec8251d6707139073836d95df",
+        "bytes": 138
+      },
+      {
+        "path": "logs/xcode.txt",
+        "sha256": "67c5b47bcf0e788aecae2f9b3af345813bdf7fe736faefb9666a7f4b2bf27ba7",
+        "bytes": 31
+      }
+    ]
+  },
+  "approvalProposalSHA256": "ed79a1a93c6cf1eb942ac88cfa1e78bb8470690fc02697f495e915516858b1d9"
+}

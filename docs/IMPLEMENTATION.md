@@ -12,7 +12,7 @@ Při rozporu platí PLAN.md; tento dokument se opraví.
 
 ## 0. Co dál
 
-**Revize 2026-11-14, podklad `main` na `98a80af` po merge dílčího A6 [#82](https://github.com/Fir3st/sanjbox/pull/82), který zahrnuje A3 [#81](https://github.com/Fir3st/sanjbox/pull/81), H4 [#79](https://github.com/Fir3st/sanjbox/pull/79), A3 [#78](https://github.com/Fir3st/sanjbox/pull/78), A6 [#77](https://github.com/Fir3st/sanjbox/pull/77) a plánovací/CI follow-up [#80](https://github.com/Fir3st/sanjbox/pull/80); tato revize přidává nezávisle reviewovaný dílčí A6 [#83](https://github.com/Fir3st/sanjbox/pull/83).**
+**Revize 2026-11-14, podklad `main` na `b183737` po merge dílčího A6 [#83](https://github.com/Fir3st/sanjbox/pull/83), který zachovává A6 [#82](https://github.com/Fir3st/sanjbox/pull/82), A3 [#81](https://github.com/Fir3st/sanjbox/pull/81), H4 [#79](https://github.com/Fir3st/sanjbox/pull/79), A3 [#78](https://github.com/Fir3st/sanjbox/pull/78), A6 [#77](https://github.com/Fir3st/sanjbox/pull/77) a plánovací/CI follow-up [#80](https://github.com/Fir3st/sanjbox/pull/80); tato revize popisuje nezávisle reviewovaný dílčí A3 [#84](https://github.com/Fir3st/sanjbox/pull/84). Merge #84 tento text nepotvrzuje; vyžaduje zelené CI přesného finálního headu.**
 [COVERAGE §4](COVERAGE.md#4-pracovní-balíky) vede stav a vlastníky; tato sekce určuje další krok.
 F0 má **5/5 hotových balíků**, F1 **22 hotových / 5 rozpracovaných / 9 nezahájených**.
 H4 je hotový a sloučený offline prototyp H1 policy adaptéru. A3 #78 je sloučeno jako `8faf648`:
@@ -20,9 +20,13 @@ přidalo bounded S5 record kodeky a čtení ServerInit/SessionInfo. Navazující
 reviewovanou **lokální syntetickou** opt-in politiku, command 2 a pending/denial/grant tok se společným
 message budgetem a pevným monotónním deadline, bez konzolového fallbacku. Masky 4/5/6/7 povolují
 jen generování fixture příkazu, nikoli serverovou autorizaci; grant vždy končí
-`unverifiedSessionIdentity` před Apple plochou. **A3 zůstává rozpracované:** chybí povolený podporovaný
-reviewovaný arbitrary-modulus type-30 DH backend a provider se syntetickými known-answer testy;
-samostatně chybí ověření serverové a přesné UID/audit identity. A6 #77 je sloučeno jako `4ad05d9` a dodává
+`unverifiedSessionIdentity` před Apple plochou. #84 nyní dodává uživatelem výslovně schválený
+[offline type-30 provider](../spikes/s1-rfb/AUTH-PROVIDER.md): připnutý OpenSSL 3.5.9 libcrypto,
+veřejný EVP adaptér, bounded jednorázový worker a nezávislé syntetické DH/MD5/AES KATs. Přijímá
+jen safe-prime parametry 1024–4096 efektivních bitů / nejvýš 512 wire bajtů a kontroluje rozsah
+peer hodnoty bez obecného order-q tvrzení. **A3 zůstává rozpracované:** chybí serverová
+autentizace/confidentialita, živá interoperabilita a nezávislá přesná non-console UID/audit identita.
+A6 #77 je sloučeno jako `4ad05d9` a dodává
 [fuzzer skutečných H1 helper/reply/broker v1 kontraktů](../spikes/s8-signing/A6-H1-FOLLOWUP.md),
 syntetickou host-only autorizační hranici a šest dry-run restart/cleanup workflow. Navazující #82
 přidává [nativní durable journal](../spikes/s8-signing/NATIVE-RECOVERY.md) skutečného LoginItem/Agent
@@ -45,9 +49,11 @@ nejsou laboratorní důkaz. Pět rozpracovaných balíků tvoří A2/A3/A6, D5 �
    v plánu nedokazují volný balík; vlastníci níže zůstávají platní.
 2. **H1–H6 jsou hotové offline a sloučené; H4 #79 je v `main` jako `41d6f65`.**
    Nezadávej další H přípravu bez konkrétního nálezu a vymezené podmínky dokončení.
-3. **Navazuje již obsazená příprava A2/A3/A6** podle tabulky níže. Dílčí A3 #78/#81 a A6 #77/#82/#83
-   nejsou hotové balíky. A3 má lokální selection tok dodaný; další krok musí vyřešit backend/provider
-   a nezávislou identitu, nikoli další obecný mock. V A6 je H1 wire fuzzer, nativní journal i read-only
+3. **Navazuje již obsazená příprava A2/A3/A6** podle tabulky níže. Dílčí A3 #78/#81/#84 a A6 #77/#82/#83
+   nejsou hotové balíky. A3 má lokální selection tok a schválený syntetický provider dodaný; další krok
+   musí navrhnout a nezávisle doložit serverovou a přesnou non-console UID/audit identitu před plochou,
+   nikoli znovu vybírat dodaný backend nebo přidávat další obecný mock.
+   V A6 je H1 wire fuzzer, nativní journal i read-only
    XPC message identity dodaná; pokračování musí řešit trusted policy/approval a cross-process kontroly,
    registration continuity/cleanup nebo SG-06 control,
    nikoli přidávat další obecný mock. Pokračuj v přidělené
@@ -70,7 +76,7 @@ rozhraní a jeho ověření sloučené v `main`.
 | Balík / vlastník | Konkrétní další krok | Podmínka dokončení | Závislost a hranice |
 |---|---|---|---|
 | **WP1.A2** — `spikes/s1-session/`; janfiedler / Codex + Astra | Zavřít zbývající instrumentaci: úplnou a jednoznačnou atribuci UID/WindowServeru a kalibrovaný recorder start/ready; navázat na [existující sběr potomků](../spikes/s1-session/DESCENDANT-MEMORY.md). | **Příprava** končí, když každý řádek [LAB §8](LAB.md#8-připravenost-a2-a-mapování-s1) má nástroj ověřený na známém syntetickém výsledku, nebo předepsaný ruční záznam tam, kde ho metodika dovoluje; nechybí orchestrace hosta a tří relací s oddělenými výstupy. **Celý A2** končí až protokolem a reviewed verdiktem S1 z L1. | WP0.3/A1 jsou hotové. Lokální sběr vlastních potomků není úplná atribuce ani tři skutečné relace; jemné intervaly/RAM nelze nahradit ručním odhadem. Po uzavření přípravy čekat na L1, nepřidávat další offline evidence bez konkrétní mezery. |
-| **WP1.A3** — `spikes/s1-rfb/`; janfiedler / Codex + Astra; navazující Astra (výslovné předání a nezávislé review #81) | [#81](https://github.com/Fir3st/sanjbox/pull/81) dodává lokální opt-in mask policy a integrovaný S5 command/result včetně pending/denial, deadline, společného message budgetu a nulového konzolového fallbacku. Dosavadní vlastník nyní vybere povolený, podporovaný a nezávisle reviewovaný arbitrary-modulus finite-field DH backend podle [AUTH-BACKEND](../spikes/s1-rfb/AUTH-BACKEND.md), případnou konkrétní závislost předloží ke schválení a implementuje type-30 DH/MD5/AES provider s nezávislými syntetickými known-answer vektory; potom naváže samostatné ověření serverové a UID/audit identity podle [LAB-NEXT](../spikes/s1-rfb/LAB-NEXT.md). | Původní offline podmínka vyžaduje Apple auth se syntetickými údaji a integrované délkově rámované S5 selection records ověřené fixtures bez konzolového fallbacku. Selection část je dodaná a reviewovaná; samotný konstantní provider mock ji celou nesplňuje. Před zpřístupněním Apple plochy musí být nezávisle ověřená očekávaná non-console UID/audit session; stav grant ani maska tuto podmínku nenahrazují. **A3 zůstává rozpracované.** | Review potvrzuje jen místní fixture pravidla, nikoli serverové oprávnění, živou interoperabilitu, server identity/confidentialitu nebo přesnou vazbu relace. Další obecný mock/docs follow-up backend neodblokuje; žádná nová závislost, privátní API ani vlastní crypto nejsou schválené. Živá validace zůstává v LAB-NEXT; L1-D může použít Screen Sharing.app a nečeká na vlastní RFB klient. |
+| **WP1.A3** — `spikes/s1-rfb/`; janfiedler / Codex + Astra; navazující Astra (výslovné předání provideru a nezávislé review #84; review #81 zachované) | [#81](https://github.com/Fir3st/sanjbox/pull/81) dodává lokální selection tok; [#84](https://github.com/Fir3st/sanjbox/pull/84) dodává schválený [syntetický type-30 provider](../spikes/s1-rfb/AUTH-PROVIDER.md), připnutý veřejný backend, bounded worker a nezávislé KATs. Po přesném head/CI review a merge dosavadní vlastník vymezí trusted zdroj serverové identity a očekávané non-console UID/audit session, jejich vazbu na konkrétní RFB spojení a nezávislé positive/negative oracly; teprve pak předloží konkrétní živý postup podle [LAB-NEXT](../spikes/s1-rfb/LAB-NEXT.md). | Offline crypto a délkově rámované S5 records jsou dodané a reviewované, celý A3 však zůstává rozpracovaný. Před zpřístupněním Apple plochy musí nezávislý oracle ověřit očekávanou non-console UID/audit session i server; maska, username, crypto success ani grant to nenahrazují. Neúplná identita musí nadále terminálně odmítnout každou Apple plochu. | Schválení platí jen pro přesný OpenSSL 3.5.9 offline recept a A3 CI, ne pro další verzi, privátní API, vlastní crypto, skutečné údaje nebo živé přihlášení. Safe-prime/range profil neprokazuje serverovou kompatibilitu ani confidentialitu. Transport, správa údajů, wakeups a živý oracle potřebují samostatný vymezený postup/review; L1-D může použít Screen Sharing.app nezávisle na vlastním klientu. |
 | **WP1.A6** — `spikes/s8-signing/`; janfiedler / Codex + Astra; navazující Astra (výslovné předání, nezávislá review #77/#82/#83) | [#77](https://github.com/Fir3st/sanjbox/pull/77) dodává H1 wire fuzzer a syntetická workflow, [#82](../spikes/s8-signing/NATIVE-RECOVERY.md) persistent intent/result a signed-app inventuru bez recovery autority a [#83](../spikes/s8-signing/NATIVE-XPC-IDENTITY.md) read-only message-bound code identity s přesným CDHash. Dosavadní vlastník nyní doloží nezávislý trusted zdroj host policy, oddělené host/admin approval a nativní cross-process/UID/session kontroly; pak registration continuity/cleanup přes UI/login/reboot a kalibrovaný SG-06. | H1 wire, native durable provenance a same-process XPC code lookup jsou dodané; samy neprokazují autorizaci ani vlastnictví registrace. Zbývá přezkoumaný native workflow pro všechny tři služby, Personal Team a podmíněnou self-signed variantu, původní stav a úklid celého L2 scénáře; SG-06 musí mít srovnatelnou pozitivní i negativní kontrolu bez `get-task-allow`. Teprve pak končí příprava A6; S8 uzavírá A7/L2 s reviewed důkazy. | H1 i #82 jsou v `main`; [podpisové předání](../spikes/s8-signing/HANDOFF.md) existuje. XPC adaptér nemá trusted policy loader ani cestu do service hostu/daemonu; connection credentials nejsou čerstvá message identita. Skutečné podpisy a S1/L2 patří uživateli. Po handoffu cleanup odmítá unknown registraci; status, UUID ani journal neopravňují k obnovenému unregister či odstranění app. Daemon mutace zůstávají nedostupné a **A6 zůstává rozpracované.** |
 
 **Konkrétní pokračování A6 — dosavadní vlastník janfiedler / Codex + Astra:**
@@ -117,14 +123,17 @@ rozhraní a jeho ověření sloučené v `main`.
 **Handoff dalšímu agentovi:** H4 #79 (`41d6f65`), částečné A3 #78 (`8faf648`), dílčí A6 #77
 (`4ad05d9`) a plánovací/CI follow-up #80 (`7b8294e`) jsou sloučené; A3 #81 je nyní v `main`
 jako `d3860f9`, s [review a validací](../spikes/s1-rfb/VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14).
-Následující A3 krok vlastní nadále janfiedler / Codex + Astra: konkrétní povolený type-30 DH
-backend/provider se syntetickými KATs a nezávislá serverová/session identita, bez povolení živé
-autentizace touto změnou. A6 #82 je sloučeno v `main` jako `98a80af`, včetně nezávislé
-[opravy recovery revokace](../spikes/s8-signing/VALIDATION.md#integrační-review-pr-82-po-merge-a3-81--2026-11-14).
-Tato revize #83 přidává [review read-only XPC message identity a předání](../spikes/s8-signing/VALIDATION.md#nezávislé-integrační-review-pr-83-a-předání--2026-11-14);
-koordinátor ji sloučí až po CI přesného finálního headu, pak aktualizuje souběžnou větev #84 na nové
-`main` a znovu ověří její CI. Tento text nepotvrzuje merge ani výsledek review #84.
-Po merge #83 dosavadní vlastník A6 pokračuje trusted host policy/approval a cross-process/session
+Následující A3 krok vlastní nadále janfiedler / Codex + Astra. #84 dodává povolený offline
+provider a KATs; nezávislé serverové/session identity ani živé autentizace se tím nedosáhlo.
+[Review a předání #84](../spikes/s1-rfb/VALIDATION.md#independent-integration-review-of-pr-84-after-pr-83--2026-11-14)
+navazuje na běžný merge `main` `b183737` do A3 větve (`6ff8f2a`), bez změny A6 kódu či jeho coverage řádku.
+Koordinátor musí před merge #84 znovu ověřit přesný finální head a jeho CI; starší zelené běhy
+`c324217` nejsou důkazem integrovaného headu. Po merge navazuje návrh server trust a přesné vazby
+non-console UID/audit session, s konzervativním odmítnutím dokud nezávislý oracle chybí.
+A6 #82 je sloučeno v `main` jako `98a80af`, včetně nezávislé
+[opravy recovery revokace](../spikes/s8-signing/VALIDATION.md#integrační-review-pr-82-po-merge-a3-81--2026-11-14);
+#83 je nyní sloučeno jako `b183737` s [review read-only XPC message identity a předáním](../spikes/s8-signing/VALIDATION.md#nezávislé-integrační-review-pr-83-a-předání--2026-11-14).
+Dosavadní vlastník A6 pokračuje trusted host policy/approval a cross-process/session
 kontrolami, nezávislým registration continuity/cleanup přes UI/login/reboot a kalibrovaným SG-06.
 Message code identity neobnovuje autoritu journalu, unregister ani cleanup. Skutečné podpisy a
 A7/L2 patří uživateli po S1. A2 má vlastní neuzavřené kroky. Zachovej validační historii,
