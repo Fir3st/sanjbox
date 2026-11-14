@@ -135,3 +135,23 @@ policy and approval, real cross-process/session controls, independent registrati
 continuity and cleanup through UI/login/reboot, and the calibrated SG-06 attach
 positive control. Actual signatures and A7/L2 remain the user's work after S1 and
 reviewed cleanup. This adapter provides no authority to start those experiments.
+
+
+## Integration review and next-owner handoff — 2026-11-14
+
+Independent review of PR #83 checks the complete slice against merged #82
+(`98a80af`); the measured source head is `e259632348d7a2526ac78077d1aef2a8674325cf`.
+[The new validation record](VALIDATION.md#nezávislé-integrační-review-pr-83-a-předání--2026-11-14)
+preserves the previous results and distinguishes same-process native evidence
+from the still missing authorization and acceptance evidence. The coordinator
+must check CI on the final documentation-inclusive head before merging #83;
+this document does not assert that an unperformed merge or lab run happened.
+
+After that merge, the existing A6 owner continues the concrete work in
+[IMPLEMENTATION §0](../../docs/IMPLEMENTATION.md#0-co-dál): establish a trusted
+source for the expected host policy and independent approval; add separately
+owned process controls and a fresh UID/session binding before any authorizer
+uses the observation; resolve independent registration continuity/cleanup and
+the SG-06 positive control. Cross-UID/session system actions and actual signing
+remain user steps. The adapter stays disconnected from daemon mutation, journal
+recovery authority and cleanup until those prerequisites are reviewed.

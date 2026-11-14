@@ -700,3 +700,81 @@ New logs and the complete fault-injection driver are under
 All prior failure logs and validation records are preserved. Corrected fixture
 source SHA-256: `7d8e5b9050567cf3a5cf6c01363deef5d07276bca675d6cd497271481d34b1f0`.
 No registration, signing identity, admin approval, attach/TCC or system change ran.
+
+
+### Nezávislé integrační review PR #83 a předání — 2026-11-14
+
+Nové nezávislé Astra review celého diffu proti skutečně sloučenému #82 na
+`98a80af368bdc941a072a9496ef50f1666dc3211`, source head
+**`e259632348d7a2526ac78077d1aef2a8674325cf`**. Předchozí review ani jeho zelené
+testy nebyly převzaty jako důkaz tohoto běhu. Všechny níže uvedené kontroly se
+opakovaně provedly nad čerstvým vlastním buildem; nevznikla další oprava zdrojů.
+
+Review ověřilo veřejné SDK kontrakty `SecCodeCreateWithXPCMessage`, dynamické
+`SecCodeCheckValidity`, přesný CDHash a signing metadata, obě odmítané podoby
+`get-task-allow`, chybějící/nerozkódované entitlements i opakovanou live validitu.
+OS message code identity je oddělená od establishment-time UID/GID/audit-session
+údajů; politika není načítaná z payloadu a `mutationAuthorized` zůstává false.
+Veřejný API základ byl znovu ověřen proti lokálním SDK hlavičkám a
+[Apple DTS](https://developer.apple.com/forums/thread/681053), přesný pin proti
+[TN3127](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements/)
+a hranice verifier policy proti
+[Applying Code Requirements](https://developer.apple.com/documentation/security/applying-code-requirements).
+Zdrojové call-site ověření potvrdilo, že adaptér volá pouze oddělená fixture a
+testy; host, daemon, journal/recovery ani post-handoff cleanup jej nepoužívají.
+
+Prostředí: arm64, macOS **27.2.1 / 26B131**, Swift **6.4.2**, Xcode macOS 27.2 SDK.
+Nové izolované scratch/cache/module cesty jsou pod
+`/private/tmp/sanjbox-pr83-fresh-review/`. Debug i Release použily příkaz
+`swift test --package-path spikes/s8-signing --configuration <debug|release>`
+s `--scratch-path`, `--cache-path`, `SWIFTPM_MODULECACHE_OVERRIDE`,
+`CLANG_MODULE_CACHE_PATH`, `--build-system native --disable-sandbox`, pod
+repozitářovým 300s watchdogem a potřebnými read-only own-process/XPC oprávněními.
+Build sestavil všechny produkty; jediná hlášená build výstraha je již známá
+deprecation přepínače `--build-system native`.
+
+- **79/79 Swift testů Debug + 79/79 Release**, bez selhání; celá sada včetně
+  čtyř nových policy/provenance testů i všech recovery regresí.
+- Čerstvé kopie fixture, samostatně hardened ad-hoc podepsané s prázdným
+  entitlement plist: **8/8 kontrol v každé konfiguraci**. Přesně sedm používá
+  skutečné anonymous XPC mezi peers v jednom procesu; osmá je lokálně vytvořený
+  forged dictionary bez transportu. Pinned request/reply projde, chybný reply
+  requirement musí vrátit konkrétní OS error a ne timeout; chybný live pin a
+  connection UID/GID/session odmítnou. Externí driver bere pin z vlastní čerstvě
+  podepsané kopie; žádná produkční autorita se tím nezavádí.
+- **5/5 CLI kontrol Debug + 5/5 Release**: výchozí a výslovný plan, malformed
+  pin, chybný UID a chybný externí CDHash (exit 0/0/2/2/1). Nesprávný pin se
+  nenahrazuje vlastním podpisem procesu.
+- Watchdog regrese nezávisle znovu extrahovala skutečný preflight blok z
+  `2e9871a` a `e259632`; pouze signing funkci nahradila blokující syntetickou
+  funkcí a zkrátila alarm na 1s. Starý zdroj vstoupil do preflightu a vyžádal si
+  kill/reap po vnějším 3s deadline (**3.006s**); opravený zdroj vstoupil do stejné
+  funkce a skončil s **SIGALRM / -14 za 1.165s**, bez vnějšího timeoutu.
+  Nejde o vyvolání skutečně zaseknutého Security API.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools`:
+  **60/60**, bez failures/skips. `python3 tools/progress.py --out <own-root>/progress
+  --history-ref HEAD`: **27/63 balíků, 0/155 akceptací prošlo**. `git diff --check`
+  je čisté; coverage změnila pouze řádek A6, A3 řádek zůstává zachován.
+
+Nové logy jsou `tests-debug.log`, `tests-release.log`, `python-s8.log`,
+`native-{debug,release}.json`, `native-summary.json` a reprodukční driver
+`check-native.py` ve výše uvedeném vlastním dočasném rootu. SHA-256 adaptéru
+`5d0a258e981a40bb57797525e9e271491a178050d8d2fc019cbfcaa5756a61ad`
+a fixture source `7d8e5b9050567cf3a5cf6c01363deef5d07276bca675d6cd497271481d34b1f0`
+odpovídají měřenému headu; dokumentační commit tyto zdroje nemění. Všechny vlastní
+procesy skončily a driver je reapnul; artefakty/logy jsou ponechané pro review.
+Neproběhl SM status/register/unregister, service UI/helper/daemon, named Mach
+registrace, signing identity/Keychain, admin approval, attach/TCC, login/reboot
+ani systémová změna. Ad-hoc sealing vlastních kopií není skutečný Personal Team
+ani self-signed podpisový scénář.
+
+**Závěr:** v tomto read-only rozsahu nebyl nalezen další zdrojový blokátor.
+`IMPLEMENTATION §0`, A6 coverage a identity handoff byly opraveny v samostatném
+review/docs commitu: #82 je skutečně sloučeno, #83 vyžaduje před merge zelené CI
+přesného finálního headu včetně dokumentace. Teprve potom koordinátor aktualizuje
+a znovu ověří souběžné #84; tento záznam jeho merge ani review nepředjímá.
+Dosavadní vlastník A6 pokračuje trusted host policy/approval, cross-process a
+UID/session/right-transfer kontrolami, nezávislým registration continuity a
+bezpečným cleanup přes UI/login/reboot, kalibrovaným SG-06 positive control.
+Skutečné podpisy a A7/L2 patří uživateli po S1 a přezkoumaném cleanup.
+**A6 zůstává rozpracované, všech 10 bran F1 a 155 případů Neověřeno.**
