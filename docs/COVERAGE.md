@@ -13,8 +13,8 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-14 (podklad `main` `e21c31d` po merge H3 #75; H3/H6 jsou hotové
-offline balíky, H6 ověřeno po integraci H3 v [PR #76](https://github.com/Fir3st/sanjbox/pull/76);
+Poslední aktualizace: 2026-11-14 (podklad `main` `75f3b5d` po merge H3 #75 a H6 #76;
+H3/H4/H6 jsou hotové offline balíky, H4 doplňuje H1 adaptér v [PR #79](https://github.com/Fir3st/sanjbox/pull/79);
 aktuální priority a podmínky dokončení v [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál)). F0.7/C-003 a F0.8/LAB-v1 jsou rozhodnuté
 podle [DECISIONS](DECISIONS.md); Docker start/stop zbývá před S7. Žádná brána ani akceptační případ neprošly.
 
@@ -33,14 +33,15 @@ R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
 | Balíky | Celkem | ✅ | 🟨 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | F0 | 5 | 5 | 0 | 0 | 0 |
-| F1 | 36 | 21 | 6 | 9 | 0 |
+| F1 | 36 | 22 | 5 | 9 | 0 |
 | F2 | 12 | 0 | 0 | 12 | 0 |
 | F3 | 6 | 0 | 0 | 6 | 0 |
 | F4 | 4 | 0 | 0 | 4 | 0 |
 
-Souhrn počítá zdejší řádky §4 včetně dokončených offline H3/H6. Jejich testy nepromítají
-syntetické výsledky do akceptace; všech 10 bran a 155 případů zůstává Neověřeno. H4/A2/A3/A6
-mají původní vlastníky, D5 čeká na rozhodnutí a G2 zůstává zmrazené podle IMPLEMENTATION §0.
+Souhrn počítá zdejší řádky §4 včetně dokončených offline H3/H4/H6. Jejich testy nepromítají
+syntetické výsledky do akceptace; všech 10 bran a 155 případů zůstává Neověřeno. Zbývající
+příprava A2/A3/A6 má původní vlastníky, D5 čeká na rozhodnutí a G2 zůstává zmrazené podle
+IMPLEMENTATION §0; hotové H prototypy nejsou běžící oblast ani vstup do F2.
 
 ## 1. Požadavky
 

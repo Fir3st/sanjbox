@@ -16,9 +16,14 @@ a postup v [GUIDE §5](docs/GUIDE.md#5-paralelní-práce).
 
 [H3 CLI](proto/cli/README.md) je hotový offline prototyp pěti příkazů přes lokální NSXPC k mock
 helperu. Nespouští workload ani skutečné oblasti; [validace](proto/cli/VALIDATION.md) není důkaz izolace.
-[H6 harness](proto/escape/README.md) dokončuje offline katalog všech 155 případů a osm syntetických
+[H4 brána](proto/gateway/H1-ADAPTER.md) je hotový offline prototyp: H1 politika řídí npm/PyPI/git/model
+přes veřejné knihovní API a loopback listener, s explicitními doplňky a pouze mock klíči. Samostatné
+CLI nadále přijímá draft; autentizace klienta a produkční integrace čekají na WP2.5/lab.
+[H6 harness](proto/escape/README.md) má dokončený offline katalog všech 155 případů a osm syntetických
 sond s lokální protistranou; [validace](proto/escape/VALIDATION.md) ponechává všechny akceptace
-neověřené. Navazující práce je H4 a zbývající příprava A2/A3/A6 podle jejich vlastníků.
+neověřené. Navazuje zbývající příprava A2/A3/A6 u jejich dosavadních vlastníků; A3 [#78](https://github.com/Fir3st/sanjbox/pull/78)
+a A6 [#77](https://github.com/Fir3st/sanjbox/pull/77) jsou rozpracované PR k postupnému review po H4,
+nikoli volné balíky. Vstup F2 nadále čeká na laboratorní brány.
 
 | Dokument | Obsah |
 |---|---|

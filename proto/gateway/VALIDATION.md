@@ -1,5 +1,52 @@
 # WP1.H4 — lokální revize a validace
 
+## Integrační review PR #79 a předání plánu — 2026-11-14
+
+Nezávislé Astra ExtraHigh review zkontrolovalo celý diff PR proti H1, PLAN/S5 a
+podmínce H4 v IMPLEMENTATION. Ověřený head kódu a testů:
+**`9a9564ec1a2e7c5bb47c7bce4d867ac17dcd1286`**, base `main`
+**`75f3b5da13dfd7fca3acd376e06f1cd4d0fe2786`** po merge H3/H6.
+Následující commit mění pouze README, COVERAGE, IMPLEMENTATION a tento záznam;
+nemění H1, runtime, testy, vlastníky dalších balíků ani laboratorní důkazy.
+
+**Nálezy:** žádný nový runtime nález. Opravené P3 v dokumentaci: souhrn COVERAGE
+uváděl 21 hotových / 6 rozpracovaných, ačkoli jeho řádek H4 byl hotový; správně je
+**22 / 5 / 9**. README a IMPLEMENTATION navíc stále zadávaly H4 jako další práci
+a čekaly na již sloučené H6 #76. Plán nyní popisuje výstup H4, hranice offline
+dokončení a předání WP2.5; další obsazená práce je A2 a postupné review A3 #78,
+potom A6 #77, s původními vlastníky a nezměněnými podmínkami dokončení.
+
+Nezávislé běhy na Apple Silicon arm64, macOS **27.2.1 (26B131)**, Xcode
+**27.2 (27B52)**, Swift **6.4.2**, `/usr/bin/python3` **3.9.6**:
+
+| Ověření | Výsledek |
+|---|---|
+| `swift build --package-path proto/gateway`, Debug / Release | prošlo / prošlo, všechny produkty |
+| `swift test --package-path proto/gateway`, Debug / Release | **117/117 / 117/117**, 0 failures, 0 skips |
+| `listener_cli.py` proti oběma sestavením | **5/5 / 5/5**, 0 skips |
+| `PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -s tools/tests` | **94/94**, 0 skips |
+| `tools/progress.py --out <vlastní dočasný adresář>` | sestavení prošlo, 27/63 balíků celkem hotových; F1 22 hotových / 5 rozpracovaných / 9 nezahájených |
+| Sémantické porovnání COVERAGE proti base, místní odkazy a `git diff --check` | požadavky, brány, 155 akceptací a blokátory beze změny; změněný stav má jen H4, ostatní vlastníci zachovaní, odkazy existují |
+
+Swift build/test použily vlastní scratch
+`/private/tmp/pr79-astra-review-20261114/build`, testy navíc repozitářový 300s
+watchdog. První pokusy v omezeném sandboxu nemohly zapisovat compiler cache ani
+spustit `/bin/ps` pro ověření vlastního process-group cleanup; uvedené finální
+výsledky pocházejí z povoleného běhu se standardními oprávněními, bez změny kódu.
+Malé textové logy jsou v `/private/tmp/pr79-astra-review-20261114/`.
+
+Review ověřilo exact-ID bindingy, opětovnou validaci H1 DTO, deny-all, odmítnutí
+širších hostů/metod/mezí, body limity před handlerem i po rekonstrukci, raw i
+klientské SSE a zachování lokálního denial při malé response mezi. Veřejná H1
+cesta končí ve skutečných handlerech a listeneru, CLI však dál přijímá jen draft.
+Chybí autentizace UID/session, broker/bind policy/pf, produkční klíče/audit/lifecycle
+a živá integrace; Homebrew a ostatní nepodporované podmnožiny z H1-ADAPTER zůstávají
+odmítnuté. **Všech 10 bran F1 a 155 akceptací zůstává Neověřeno.**
+
+Před merge musí integrační vlastník znovu ověřit přesný finální head, aktuální base
+a jeho CI. Starší zelený běh pro `9a9564e` nepotvrzuje nový dokumentační commit.
+Historické validační záznamy níže zůstávají zachované.
+
 ## Závěrečné nezávislé review opravy — 2026-11-14
 
 Čerstvý Astra xhigh reviewer zkontroloval celý H1 adaptér proti H1 a S5 a poté
