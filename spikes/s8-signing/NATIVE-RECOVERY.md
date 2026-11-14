@@ -38,7 +38,8 @@ After the existing independently supplied identity expectation and user action, 
    Read-only recovery creates nothing. There is no alternate state-path argument, home override,
    automatic reset, migration, baseline adoption or recursive cleanup.
 4. Holds a nonblocking `flock` on the run directory inode for the lifetime of the native host's
-   journal object. A second cooperating process refuses busy. The root identity and linked
+   journal object. All descriptors, including enumeration duplicates, are atomically close-on-exec
+   so a concurrent child spawn cannot prolong that lock. A second cooperating process refuses busy. The root identity and linked
    path are checked again on operations. A new `header.json` pins run/app/inventory/owner/root;
    an existing header must match byte for byte, including canonical JSON encoding.
 5. Before the service API, creates a new immutable-name intent with `O_EXCL|O_NOFOLLOW` (`0600`),

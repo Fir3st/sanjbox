@@ -364,3 +364,14 @@ private func testTool(_ executable: String, _ arguments: [String], seconds: Doub
     }
     // This verifies syscall order and refusal, not actual power-loss durability.
 }
+
+@Test func nativeJournalEnumerationDescriptorIsAtomicallyCloseOnExec() throws {
+    let f = try JournalFixture()
+    let duplicate = JournalDirectoryDescriptors.duplicateForEnumeration(f.fd)
+    #expect(duplicate >= 0)
+    defer { close(duplicate) }
+    #expect(fcntl(duplicate, F_GETFD) & FD_CLOEXEC == FD_CLOEXEC)
+    var original = stat(); var copied = stat()
+    #expect(fstat(f.fd, &original) == 0 && fstat(duplicate, &copied) == 0)
+    #expect(original.st_dev == copied.st_dev && original.st_ino == copied.st_ino)
+}

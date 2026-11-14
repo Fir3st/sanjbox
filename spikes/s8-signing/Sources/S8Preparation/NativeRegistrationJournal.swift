@@ -41,8 +41,14 @@ private func journalDirectoryIdentity(_ fd: Int32) throws -> JournalFileIdentity
     try requireNoExtendedACL(fd: fd)
     return JournalFileIdentity(s)
 }
+enum JournalDirectoryDescriptors {
+    static func duplicateForEnumeration(_ fd: Int32) -> Int32 {
+        // dup followed by F_SETFD has a spawn race: a child can inherit the flock.
+        fcntl(fd, F_DUPFD_CLOEXEC, 0)
+    }
+}
 private func journalNames(_ fd: Int32, maximum: Int) throws -> [String] {
-    let copy = dup(fd)
+    let copy = JournalDirectoryDescriptors.duplicateForEnumeration(fd)
     try requireJournal(copy >= 0, "directory descriptor unavailable")
     guard let directory = fdopendir(copy) else { close(copy); throw S8Error.refused("cannot enumerate journal") }
     defer { closedir(directory) }
