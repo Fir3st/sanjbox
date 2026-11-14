@@ -495,7 +495,8 @@ Throwing-init cleanup byl navíc ověřen malým Swift reproducerem: po iniciali
 properties Swift při throw zavolá deinit. `transferred` proto předává fd právě v tomto bodě;
 před ním jej uvolní catch, po něm deinit. Reproducer `/private/tmp/a6-native-recovery-stage/init.swift`
 a nativní malformed reopen/lock regrese rozlišují tuto vlastnost od původní hypotézy uniklého fd.
-Finální nezávislé review dokumentace a CI se posuzují až na finálním publikovaném PR headu.
+Nezávislé review implementace a dokumentace na `73f692d` je dokončené, viz addendum níže;
+CI se nadále posuzuje na přesném publikovaném PR headu.
 
 ### Vlastní úklid a hranice
 
@@ -517,3 +518,25 @@ nebo skutečná Mach práva. Native journal dodává trvalou provenance a recove
 artifact cleanup ani daemon. SG-06 nemá povolený kalibrovaný pozitivní control; přesné zdrojové
 podklady a zbývající kroky jsou v NATIVE-RECOVERY/RESEARCH. **A6 zůstává 🟨, S8/SG-01…11 a všechny
 laboratorní brány Neověřeno.** Další obecný mock tuto mezeru neuzavře.
+
+
+### Nezávislé review finálního A6 headu — 2026-11-14
+
+Nový nezávislý Astra reviewer dokončil review headu **`73f692d22b5b9127f3ac56f667859873d6c3a200`**,
+včetně finální dokumentace; **nezůstalo žádné nevyřešené actionable zjištění**. P1 pořadí full-sync
+barrier a P2 životnost zděděného locku jsou opravené. Reviewer samostatně ověřil **74/74 Debug,
+74/74 Release a 10/10 adversarial kontrol**: recovery skutečným odděleným procesem, **512**
+malformed opens s přesnou kontrolou počtu fd a skutečný deinit s ponechanou duplicitní
+open-file description, po kterém další vlastník získá lock.
+
+Reviewovaný zdroj odpovídá implementaci `1a613da`; SHA-256 obou dotčených Swift zdrojů i nového
+test souboru byly znovu porovnány s nezávislým záznamem
+`/private/tmp/a6-native-review-20261114-A6R/review-summary.json`. Tento addendum mění pouze
+VALIDATION; nezměněné testy se znovu nespouštěly. Původní evidence, neúspěšné stress běhy a
+atribuce zůstávají zachované. Review používá vlastní soubory/procesy a syntetické service výsledky;
+neprovedlo skutečnou registraci/status API, TCC, reboot, signing identity ani daemon approval.
+
+**Review neuzavírá A6 ani S8:** chybí nezávislý registration-continuity/cleanup oracle přes restart,
+trusted native host/admin autorizace, kalibrovaná SG-06 pozitivní kontrola a skutečné podpisy/L2.
+Post-handoff cleanup zůstává odmítnutý; PR #82 zůstává draft bez merge/automerge a CI náleží
+novému přesnému headu, nikoli automaticky předchozí revizi.
