@@ -22,7 +22,7 @@ After the existing independently supplied identity expectation and user action, 
    signing identifiers need not equal their launchd labels; the two bundle IDs are fixed.
 2. Inventories the actual app twice around the signature checks. Each relative entry binds
    device/inode, UID/GID, mode/flags and file SHA-256/size. Every component uses directory fds
-   and `O_NOFOLLOW`; extended ACL, symlink, hardlink, special file, writable/privileged mode,
+   and `O_NOFOLLOW`; extended ACL, symlink, hardlink, special file, group/world-writable or privileged mode,
    changed inode/content or unknown metadata refuses. Reads are bounded to 256 entries,
    12 directory levels, 64 MiB per file and 256 MiB total. This new native signed-app inventory
    is independent of the Python `signed-inventory.json`; neither is registration authority.
@@ -84,6 +84,10 @@ approval switch. A missing journal reports unknown ownership and creates nothing
 | Changed run, app path/inventory, UID/GID, root, ACL/mode/flags, malformed/partial/extra/linked record or broken pairing/hash chain | Refuses and preserves the existing files |
 
 The report always has `mutationAuthorityRestored=false` and `artifactCleanupAllowed=false`.
+A failed recovery inspection permanently revokes any existing live authority in that journal
+instance, even if the exact files/metadata are later restored. The UI also revokes on identity
+or signature/inventory capture failure before the journal can inspect, while retaining the
+original diagnostic. Reopening the journal cannot restore that revoked authority.
 All post-handoff Python artifact cleanup refusals remain intact. The native journal deliberately
 has **no cleanup/delete command**: its evidence may be needed after a crash or failed unregister.
 A completed unregister result does not remove the app or its evidence. A future reviewed oracle
@@ -127,7 +131,12 @@ Do not start login/reboot/daemon registration experiments on the strength of thi
 This continuation satisfies its scoped claim by delivering native durable provenance and
 fail-closed recovery inspection. **A6 remains partial**: independent registration continuity and
 cleanup through UI/login/reboot, the trusted host/admin path, calibrated SG-06, real signatures
-and A7/L2 remain open. The next step is review of this native seam and a concrete ownership/
-authorization/control design under user-approved conditions, not a further generic mock PR.
+and A7/L2 remain open. The fresh integration review after #81 found and fixed recovery inspection
+retaining live authority after drift; the original failure and corrected regression are recorded
+in [VALIDATION](VALIDATION.md#integrační-review-pr-82-po-merge-a3-81--2026-11-14). The next owner remains
+**janfiedler / Codex + Astra**, continuing with a concrete trusted authorization/registration
+continuity/cleanup design and calibrated SG-06 control under user-approved conditions. Actual
+signatures and A7/L2 belong to the user after S1 and reviewed cleanup; another generic mock PR
+does not satisfy these conditions.
 Source observations and hashes: [RESEARCH](RESEARCH.md#native-recovery-feasibility-2026-11-14).
 Exact test scope, failures encountered and cleanup: [VALIDATION](VALIDATION.md).

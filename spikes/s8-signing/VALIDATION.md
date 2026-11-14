@@ -540,3 +540,62 @@ neprovedlo skutečnou registraci/status API, TCC, reboot, signing identity ani d
 trusted native host/admin autorizace, kalibrovaná SG-06 pozitivní kontrola a skutečné podpisy/L2.
 Post-handoff cleanup zůstává odmítnutý; PR #82 zůstává draft bez merge/automerge a CI náleží
 novému přesnému headu, nikoli automaticky předchozí revizi.
+
+### Integrační review PR #82 po merge A3 #81 — 2026-11-14
+
+Nové nezávislé Astra review začalo na **`559e9bc6c9bf206f205770ad59e093330c100f1a`**.
+Aktuální `main` **`d3860f976c0d176d8dad57535842a2cd9ee1fcd0`** (merge A3 #81) byl normálně
+začleněn do větve merge commitem **`6c0bd29`**, bez konfliktů a bez přepisování historie.
+A3 zdroje/validace a jeho COVERAGE řádek zůstaly byteově shodné s `main`; původní autoři
+**janfiedler / Codex + Astra**, #77 i všechna předchozí A6 měření a neúspěchy jsou zachované.
+
+**Nový nález P2 a oprava `3845a4d627df08e0c70240810b44a3326c6ab873`:** `recoveryReport()`
+odmítl změněnou app inventuru, root metadata nebo chybný record, ale ponechal dříve získanou
+live unregister autoritu. Po navrácení původních módů/bytes pak stejná instance dovolila nový
+unregister intent. Nová regrese to na původním kódu reprodukovala ve všech třech variantách
+(1 test, 6 chybných assertions); tento neúspěch zůstává v
+`/private/tmp/sanjbox-pr82-recovery-regression-before.log`.
+Oprava při jakémkoli neúspěchu reportu trvale revokuje live autoritu a znovu vyhodí původní chybu.
+UI `recover()` revokuje také při identity/signature/inventory preflight chybě před vstupem do
+reportu, se zachováním původní diagnostiky. Regrese ověřuje přesnou obnovu inventury i result bytes,
+potom výslovně požaduje `closed after failure or root metadata drift` a žádný další record;
+nepostačuje libovolná výjimka. Původní příčina recovery odmítnutí zůstává ověřená samostatně.
+
+Ověření opraveného zdroje (stejné arm64/macOS/Swift prostředí jako předchozí nativní validace):
+
+- S8 plné **75/75 Debug + 75/75 Release**, 0 failures, `--build-system native --disable-sandbox`
+  s vlastními scratch/cache/module-cache cestami `/private/tmp/sanjbox-pr82-fresh-review-*`.
+  Po zpřesnění výše popsaného diagnostického oracle se znovu spustil jen změněný test v obou
+  konfiguracích: **1/1 + 1/1**, každé se třemi druhy driftu, vše prošlo. Produkční zdroj se poté
+  neměnil; deprecation warning native backendu zůstává přiznaný.
+- S8 Python **60/60**, repository tooling **98/98**, 0 failures/skips; vlastní signing stubs,
+  filesystem/locking fixtures a cleanup pravidla zůstávají zachované. Logy jsou
+  `/private/tmp/sanjbox-pr82-fresh-review-{debug,release,python-spike,python-repo}.log` a
+  `/private/tmp/sanjbox-pr82-final-regression-{debug,release}.log`.
+- `tools/progress.py --history-ref HEAD`, kontrola diffu a explicitní porovnání A3 řádku:
+  F0 **5/5**, F1 **22 hotových / 5 rozpracovaných / 9 nezahájených**, všech **10 bran a 155 případů
+  Neověřeno**; celkem **27/63** hotových balíků. Plán, COVERAGE, README a handoff nyní rozlišují
+  dodaný nativní journal od chybějící continuity/cleanup autority, uvádějí A3 #81 jako sloučené
+  a ponechávají A3 i A6 rozpracované se stejnými vlastníky.
+
+Review znovu ověřilo pořadí file/directory sync a finálního barrieru, same-device podmínky,
+`O_NOFOLLOW`/inode/ACL/mode/record bounds, canonical pairing/hash chain, neadoptování reopened
+registrace, daemon deny a explicitní unlock/atomické close-on-exec. V tomto vymezeném rozsahu
+nezůstává neopravený actionable nález. Hash chain není ochrana proti nepřátelskému stejnému UID,
+path-based Security/SM volání nejsou race-free trusted boundary a podpisový profil není důkaz
+Personal Team či důvěryhodného administrátora. Původní širší stress/adversarial výsledky se
+nepřipisují opravenému headu ani neopakují bez nového důvodu.
+
+Testy odstranily pouze vlastní syntetické roots a reapovaly vlastní children; izolované build/cache
+rooty tohoto review byly po kontrole vlastníka/type/inode odstraněné, hashe zdroje a záznam úklidu
+jsou v `/private/tmp/sanjbox-pr82-fresh-review-summary.json`. UI error path byl zdrojově reviewován
+a zkompilován, nikoli spuštěn s uživatelským podpisem. Žádné SM status/register/unregister,
+service UI/helper/daemon, podpisová identita/Keychain, admin approval, attach/TCC, login/reboot
+ani systémová změna se neprovedly. Nový source commit a tento dokumentační update vyžadují
+**CI na přesném finálním headu PR #82**; předchozí zelený head nestačí. Merge provede koordinátor.
+
+**Další krok dosavadního vlastníka:** trusted native daemon/admin autorizace, nezávislý registration
+continuity a bezpečný cleanup přes UI/login/reboot, kalibrovaný SG-06 positive attach control;
+skutečné podpisy a A7/L2 patří uživateli po S1 a přezkoumaném cleanup. A3 pokračuje povoleným
+reviewovaným type-30 DH backendem/providerem s nezávislými syntetickými KATs a serverovou/session
+identitou. Ani jedna dílčí implementace neuzavírá balík nebo laboratorní bránu.

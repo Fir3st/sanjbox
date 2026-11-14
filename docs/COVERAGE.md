@@ -13,13 +13,14 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-14 (podklad `main` `7b8294e` po H4 [#79](https://github.com/Fir3st/sanjbox/pull/79),
-částečném A3 [#78](https://github.com/Fir3st/sanjbox/pull/78), dílčím A6 [#77](https://github.com/Fir3st/sanjbox/pull/77)
-a plánovacím/CI follow-up [#80](https://github.com/Fir3st/sanjbox/pull/80); doplněn reviewovaný A3
-[#81](https://github.com/Fir3st/sanjbox/pull/81) s lokální syntetickou selection politikou a command/result tokem.
-A6 dodává H1 wire fuzzer a syntetické service workflow. H1–H6 jsou hotové offline, A2/A3/A6 zůstávají
-rozpracované; vlastníci, další kroky a podmínky jsou v [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál)). F0.7/C-003 a F0.8/LAB-v1 jsou rozhodnuté
-podle [DECISIONS](DECISIONS.md); Docker start/stop zbývá před S7. Žádná brána ani akceptační případ neprošly.
+Poslední aktualizace: 2026-11-14 (podklad `main` `d3860f9` po merge A3
+[#81](https://github.com/Fir3st/sanjbox/pull/81), navazující na H4 #79, A3 #78, A6 #77 a plánovací/CI
+follow-up #80; doplněn nezávisle reviewovaný A6 [#82](https://github.com/Fir3st/sanjbox/pull/82)).
+A3 má lokální syntetickou selection politiku a command/result tok; A6 má H1 wire fuzzer,
+syntetická service workflow i nativní durable journal a recovery inspection bez obnovy autority.
+H1–H6 jsou hotové offline, A2/A3/A6 zůstávají rozpracované; vlastníci, další kroky a podmínky jsou v
+[IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál). F0.7/C-003 a F0.8/LAB-v1 jsou rozhodnuté podle
+[DECISIONS](DECISIONS.md); Docker start/stop zbývá před S7. Žádná brána ani akceptační případ neprošly.
 
 **Rozsah MVP (F2):** CLI + jedno okno s plochou oblasti, bez Dockeru, data ven jen řízeným exportem.
 R4 a R6 zůstávají požadavky produktu (F3, F4); MVP je nesplňuje.
@@ -298,14 +299,15 @@ reálné integrace se evidují zvlášť a mají ve sloupci poznámku „uživat
 
 Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní-balíky).
 
-Revize 2026-11-14 nad `main` `7b8294e` po H4 #79, A3 #78, dílčím A6 #77 a #80, doplněná o A3 #81:
+Revize 2026-11-14 nad `main` `d3860f9` po merge A3 #81, doplněná o reviewovaný dílčí A6 #82:
 F0 **5/5 hotovo**, F1 **22 hotových / 5 rozpracovaných / 9 nezahájených**. A3 #81 navazuje na S5
 record kodeky lokální syntetickou opt-in politikou a integrovaným command/result tokem, budgetem
 a deadline; parser každý grant odmítne před ověřením identity. Chybí povolený podporovaný reviewovaný
 type-30 DH backend/provider se syntetickými KATs a nezávislé serverové a UID/audit ověření;
-lokální mask policy není serverová autorizace, A3 zůstává rozpracované. A6 má skutečný H1 wire fuzzer, ale stále chybí native
-host-only approval, registration ownership/cleanup přes restart a kalibrovaná SG-06 pozitivní
-attach kontrola; skutečné podpisy/TCC/L2 nebyly provedené. Vlastníci a podmínky jsou v
+lokální mask policy není serverová autorizace, A3 zůstává rozpracované. A6 má skutečný H1 wire fuzzer
+a nativní durable intent/result journal s app inventurou a recovery bez obnovení autority;
+stále chybí trusted daemon/admin approval, registration continuity/cleanup přes UI/login/reboot
+a kalibrovaná SG-06 pozitivní attach kontrola; skutečné podpisy/TCC/L2 nebyly provedené. Vlastníci a podmínky jsou v
 [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál). Všech **10 bran F1 a 155 akceptací zůstává Neověřeno**.
 
 | ID | Balík | Vlastník | Stav | Poznámka |
@@ -320,7 +322,7 @@ attach kontrola; skutečné podpisy/TCC/L2 nebyly provedené. Vlastníci a podm�
 | WP1.A3 | Průzkum RFB výběru relace | janfiedler / Codex + Astra; navazující Astra (výslovné předání, `codex/wp1-a3-auth-followup`, nezávislé review #81, 2026-11-14) | 🟨 rozpracováno | [#81: reviewovaná lokální opt-in politika a S5 tok](../spikes/s1-rfb/README.md) přidávají command 2, pending/denial, společný message budget a pevný deadline; parser každý grant odmítne kvůli neověřené UID/audit identitě, bez plochy a konzolového fallbacku, a lokální mask policy není serverová autorizace. Dosavadní vlastník pokračuje podle [IMPLEMENTATION](IMPLEMENTATION.md#0-co-dál) výběrem [povoleného podporovaného type-30 DH backendu](../spikes/s1-rfb/AUTH-BACKEND.md), providerem se syntetickými KATs a nezávislým ověřením identity; [validace](../spikes/s1-rfb/VALIDATION.md) ponechává A3 rozpracované, všech 10 bran a 155 případů Neověřeno i Screen Sharing.app/L1-D beze změny. |
 | WP1.A4 | S0 příprava | janfiedler / Codex + Astra (postupy 31 případů; review 2026-11-13) | ✅ | [Postupy všech 31 FS/ID/LC případů](../spikes/s0-boundary/LAB-PLAN.md) splňují podmínku přípravy z IMPLEMENTATION §0: sondy nebo ruční kroky s controls/oracles, výstupy, úklidem a explicitními stop podmínkami; současné spustitelné sondy zůstávají omezené self fixtures. [Ověření přípravy](../spikes/s0-boundary/VALIDATION.md) nemění verdikty: cross-session/TCC čekají na uživatelský L2 po S1, FS-04/08/LC-11 na S4/S8/F2, žádný akceptační případ ani brána tím neprošly. |
 | WP1.A5 | S0 běh (L2) | uživatel + impl. | ⬜ | |
-| WP1.A6 | S8 příprava | janfiedler / Codex + Astra; navazující Astra (výslovné uživatelské předání native recovery, 2026-11-14) | 🟨 rozpracováno | [Native recovery](../spikes/s8-signing/NATIVE-RECOVERY.md) přidává do skutečného service hostu trvalý intent/result journal, úplnou podepsanou app inventuru a fail-closed obnovu; historický [H1 follow-up #77](../spikes/s8-signing/A6-H1-FOLLOWUP.md) a [validace](../spikes/s8-signing/VALIDATION.md) zůstávají zachované. Registrovaná služba se po restartu nepřebírá: nezávislý ownership/cleanup oracle, native daemon approval a kalibrovaný SG-06 zůstávají konkrétní blokátory; skutečné podpisy/XPC/Mach/TCC/L2 a S8/SG-01…11 zůstávají Neověřeno. |
+| WP1.A6 | S8 příprava | janfiedler / Codex + Astra; navazující Astra (výslovné uživatelské předání native recovery, nezávislé review #82, 2026-11-14) | 🟨 rozpracováno | [#82 native recovery](../spikes/s8-signing/NATIVE-RECOVERY.md) dodává skutečný trvalý intent/result journal, signed-app inventuru a recovery bez obnovení autority, s revokací po odmítnuté kontrole i po navrácení souborů; historický [H1 follow-up #77](../spikes/s8-signing/A6-H1-FOLLOWUP.md) a [validace](../spikes/s8-signing/VALIDATION.md) zůstávají zachované. Dosavadní vlastník pokračuje podle [IMPLEMENTATION](IMPLEMENTATION.md#0-co-dál) trusted daemon/admin autorizací, nezávislým registration continuity/cleanup oraclem přes UI/login/reboot a kalibrovaným SG-06; skutečné podpisy/XPC/Mach/TCC/A7/L2 a S8/SG-01…11 zůstávají Neověřeno. |
 | WP1.A7 | S8 běh (L2) | uživatel + impl. | ⬜ | |
 | WP1.B1 | Audit hosta | janfiedler / Codex + Astra | ✅ | [metadata audit](../spikes/s4-host/README.md); 17 syntetických testů, S4/R2/R7 Neověřeno |
 | WP1.B2 | Zpevnění a uninstall | janfiedler / Astra | ✅ | [Příprava mode/ACL hardeningu a uninstallu](../spikes/s4-host/HARDENING.md): explicitní dry-run, trvalý původní/výsledný ACL deník a obnova pouze nezměněných zásahů; [review/validace](../spikes/s4-host/VALIDATION-B2-ACL.md#review-pr-59--2026-11-13) opravuje APFS alias overlap před mutací, 55 native testů v Debug/Release. Omezený adresářový rozsah bez nového dědění; host kompatibilita čeká na L3, S4/RB-09/10 Neověřeno. |

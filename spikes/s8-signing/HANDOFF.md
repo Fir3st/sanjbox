@@ -151,3 +151,11 @@ neuzavírají. Testy a CI rozsah jsou v [VALIDATION.md](VALIDATION.md).
 inventuru podepsané app. Je oddělený od těchto čtyř handoff souborů a po restartu žádnou mutation
 autoritu neobnovuje. Nezměnil se `signing-handoff.py`, jeho post-handoff refusal ani podmínky
 cleanup; nový journal, jeho hash ani úspěšný unregister result nejsou výjimka z této politiky.
+
+Nezávislé integrační review #82 po merge A3 #81 doplnilo revokaci dosud živé autority při
+neúspěšné recovery kontrole, včetně UI preflightu; navrácení původních bytes/módů ji neobnoví.
+[Nový záznam validace](VALIDATION.md#integrační-review-pr-82-po-merge-a3-81--2026-11-14) zachovává
+všechny předchozí výsledky. Další práci vlastní nadále **janfiedler / Codex + Astra**:
+trusted daemon/admin autorizace, nezávislé registration continuity a bezpečný cleanup přes
+UI/login/reboot, kalibrovaná SG-06 pozitivní attach kontrola; skutečné podpisy a A7/L2 provádí
+uživatel po S1 a přezkoumaném cleanup. **A6 zůstává rozpracované**, žádná brána není uzavřená.
