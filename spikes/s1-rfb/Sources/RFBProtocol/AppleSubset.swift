@@ -14,9 +14,9 @@ public struct AppleDHChallenge: Equatable, Sendable {
     }
 }
 
-/// S4 credential exchange seam; still NO DH/MD5/AES implementation in this package.
-/// No provider is installed by default. Tests supply explicit, constant synthetic bytes.
-/// A future reviewed provider must return a 128-byte encrypted block + the public key;
+/// S4 credential exchange seam; no provider is installed by default.
+/// The explicit offline SyntheticAppleCredentialProvider uses the approved backend.
+/// Constant mocks remain framing-only. A provider returns a 128-byte encrypted block + public key;
 /// the parser checks only length, not cryptographic validity, identity or confidentiality.
 public protocol AppleCredentialProvider: Sendable {
     func credentialResponse(for challenge: AppleDHChallenge) throws -> [UInt8]

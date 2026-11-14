@@ -1,5 +1,9 @@
 # WP1.A3 — type-30 backend decision, 2026-11-14
 
+> Historical SDK-only decision before the explicit dependency exception. The subsequent
+> approved OpenSSL 3.5.9 implementation, independent KATs and remaining limits are in
+> [AUTH-PROVIDER](AUTH-PROVIDER.md). The original finding below is preserved.
+
 **No provider was added.** The missing piece is a selected, reviewed public backend for the
 peer-supplied finite-field DH parameters in [S4](SOURCES.md#s4--primary-implementation-of-ard-authentication).
 MD5 and AES alone cannot close that gap. This is a scoped finding on this Mac's SDK, not proof

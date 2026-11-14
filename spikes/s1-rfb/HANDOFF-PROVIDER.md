@@ -24,3 +24,17 @@ A3 as a whole remains in progress: working crypto cannot establish server identi
 confidentiality or the expected non-console UID/audit session. Parser grants must still
 fail at `unverifiedSessionIdentity`, with no Apple framebuffer or console fallback.
 Every gate and acceptance case remains unverified. Screen Sharing.app/L1-D is unchanged.
+
+
+## Implementation milestone — 2026-11-14
+
+The approved provider/worker and independent KATs are now implemented; local Debug/Release
+pass 81/81 methods and the selected pinned upstream suite passes 188 tests. The clean
+CI-script rehearsal provisions only A3 and supplies identical pinned flags to build/test;
+its measured per-configuration total fits the unchanged 12-minute budget. Details, failed
+attempts, exact target-27.0 rebuild delta and scope limits are in [VALIDATION](VALIDATION.md).
+[AUTH-PROVIDER](AUTH-PROVIDER.md) records the same-UID path limitation, strict SIGCHLD/no
+competing-reaper caller contract, reserved cleanup fallback and independent identity refusal.
+Fresh final review and exact-head hosted CI remain required. No push, PR or merge has been
+performed by the implementer; the coordinator owns that next step after review. Own large
+temporary build caches are retained until final review, then removed while keeping logs/state.
