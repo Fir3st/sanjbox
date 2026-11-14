@@ -12,7 +12,10 @@ final class OfflineUpstream: UpstreamDialer, Sendable {
     init(_ responder: @escaping Responder) { self.responder = responder }
     var calls: [HTTPRequest] { requests.withLock { $0 } }
     var client: UpstreamClient {
-        UpstreamClient(resolver: OfflineDNS(), hostAddresses: OfflineHosts(), dialer: self)
+        client(limits: UpstreamLimits())
+    }
+    func client(limits: UpstreamLimits) -> UpstreamClient {
+        UpstreamClient(resolver: OfflineDNS(), hostAddresses: OfflineHosts(), dialer: self, limits: limits)
     }
     func connection(to destination: ApprovedDestination) throws -> any UpstreamConnection {
         OfflineConnection { [self] request in
@@ -58,13 +61,13 @@ func requestWire(_ method: String, _ target: String, body: Data = Data()) -> Dat
 
 let artifactBytes = Data("synthetic artifact, never executed".utf8)
 let wheelFilename = "fixture-1.0.0-py3-none-any.whl"
-func artifactUpstream(pypi: Bool) throws -> OfflineUpstream {
+func artifactUpstream(pypi: Bool, artifactHostname: String = "files.example") throws -> OfflineUpstream {
     let metadata: Data
     if pypi {
         let digest = SHA256.hash(data: artifactBytes).map { String(format: "%02x", $0) }.joined()
         metadata = try JSONSerialization.data(withJSONObject: [
             "meta": ["api-version": "1.4"], "name": "fixture", "files": [[
-                "filename": wheelFilename, "url": "https://files.example/packages/" + wheelFilename,
+                "filename": wheelFilename, "url": "https://" + artifactHostname + "/packages/" + wheelFilename,
                 "hashes": ["sha256": digest], "size": artifactBytes.count,
                 "upload-time": "2020-01-01T00:00:00Z",
             ]],

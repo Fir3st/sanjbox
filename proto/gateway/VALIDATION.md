@@ -1,5 +1,186 @@
 # WP1.H4 — lokální revize a validace
 
+## Integrační review PR #79 a předání plánu — 2026-11-14
+
+Nezávislé Astra ExtraHigh review zkontrolovalo celý diff PR proti H1, PLAN/S5 a
+podmínce H4 v IMPLEMENTATION. Ověřený head kódu a testů:
+**`9a9564ec1a2e7c5bb47c7bce4d867ac17dcd1286`**, base `main`
+**`75f3b5da13dfd7fca3acd376e06f1cd4d0fe2786`** po merge H3/H6.
+Následující commit mění pouze README, COVERAGE, IMPLEMENTATION a tento záznam;
+nemění H1, runtime, testy, vlastníky dalších balíků ani laboratorní důkazy.
+
+**Nálezy:** žádný nový runtime nález. Opravené P3 v dokumentaci: souhrn COVERAGE
+uváděl 21 hotových / 6 rozpracovaných, ačkoli jeho řádek H4 byl hotový; správně je
+**22 / 5 / 9**. README a IMPLEMENTATION navíc stále zadávaly H4 jako další práci
+a čekaly na již sloučené H6 #76. Plán nyní popisuje výstup H4, hranice offline
+dokončení a předání WP2.5; další obsazená práce je A2 a postupné review A3 #78,
+potom A6 #77, s původními vlastníky a nezměněnými podmínkami dokončení.
+
+Nezávislé běhy na Apple Silicon arm64, macOS **27.2.1 (26B131)**, Xcode
+**27.2 (27B52)**, Swift **6.4.2**, `/usr/bin/python3` **3.9.6**:
+
+| Ověření | Výsledek |
+|---|---|
+| `swift build --package-path proto/gateway`, Debug / Release | prošlo / prošlo, všechny produkty |
+| `swift test --package-path proto/gateway`, Debug / Release | **117/117 / 117/117**, 0 failures, 0 skips |
+| `listener_cli.py` proti oběma sestavením | **5/5 / 5/5**, 0 skips |
+| `PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -s tools/tests` | **94/94**, 0 skips |
+| `tools/progress.py --out <vlastní dočasný adresář>` | sestavení prošlo, 27/63 balíků celkem hotových; F1 22 hotových / 5 rozpracovaných / 9 nezahájených |
+| Sémantické porovnání COVERAGE proti base, místní odkazy a `git diff --check` | požadavky, brány, 155 akceptací a blokátory beze změny; změněný stav má jen H4, ostatní vlastníci zachovaní, odkazy existují |
+
+Swift build/test použily vlastní scratch
+`/private/tmp/pr79-astra-review-20261114/build`, testy navíc repozitářový 300s
+watchdog. První pokusy v omezeném sandboxu nemohly zapisovat compiler cache ani
+spustit `/bin/ps` pro ověření vlastního process-group cleanup; uvedené finální
+výsledky pocházejí z povoleného běhu se standardními oprávněními, bez změny kódu.
+Malé textové logy jsou v `/private/tmp/pr79-astra-review-20261114/`.
+
+Review ověřilo exact-ID bindingy, opětovnou validaci H1 DTO, deny-all, odmítnutí
+širších hostů/metod/mezí, body limity před handlerem i po rekonstrukci, raw i
+klientské SSE a zachování lokálního denial při malé response mezi. Veřejná H1
+cesta končí ve skutečných handlerech a listeneru, CLI však dál přijímá jen draft.
+Chybí autentizace UID/session, broker/bind policy/pf, produkční klíče/audit/lifecycle
+a živá integrace; Homebrew a ostatní nepodporované podmnožiny z H1-ADAPTER zůstávají
+odmítnuté. **Všech 10 bran F1 a 155 akceptací zůstává Neověřeno.**
+
+Před merge musí integrační vlastník znovu ověřit přesný finální head, aktuální base
+a jeho CI. Starší zelený běh pro `9a9564e` nepotvrzuje nový dokumentační commit.
+Historické validační záznamy níže zůstávají zachované.
+
+## Závěrečné nezávislé review opravy — 2026-11-14
+
+Čerstvý Astra xhigh reviewer zkontroloval celý H1 adaptér proti H1 a S5 a poté
+znovu ověřil opravu na přesném commitu `27681bbc0c69a1a7e4ff0d9561cfb049de9ec829`.
+Původní P3 je uzavřené, další nález není. Re-review nezávisle spustilo **24/24 H1
+testů v Debug i Release** a **19/19 dalších kontrol v každém sestavení** včetně mezí
+1/13/14 bajtů, lokálních 400/403/503, auditu a nadlimitních upstream 200/403/503.
+Původní úplné review mělo 114/114 v obou konfiguracích, 5/5 CLI v obou a další
+redirect/API probes. Vlastní krátké záznamy jsou v `/private/tmp/h4-astra-review-95ad527/REVIEW.txt`
+a `/private/tmp/h4-astra-rereview-27681bb/REVIEW.txt`; velké review cache byly odstraněny.
+
+[CI opravného kódového headu](https://github.com/Fir3st/sanjbox/actions/runs/43578359585)
+prošlo pro gateway Debug/Release, Python tools/spikes, build i `CI required`.
+Tento závěrečný záznam mění pouze dokumentaci; finální head PR musí mít vlastní
+zelené CI. H4 je ✅ hotový offline prototyp, bez změny neověřených bran nebo akceptací.
+
+## Oprava nálezu nezávislého review P3 — 2026-11-14
+
+Reviewer zjistil, že při validním H1 `responseBytesLimit = 1` lokální odmítnutí
+`DELETE /npm/fixture` měnilo `403/handlerForbidden` na
+`502/failed/h1ResponseLimit`, protože syntetické chybové tělo překračovalo mez.
+Otestovaný opravný commit kódu/testů je
+**`71034cefb5cc8220b1bee64307913353f6009394`**. Následný commit mění jen vlastní
+H4 dokumentaci a jediný řádek H4 v COVERAGE; prostředí je stejné jako níže.
+
+Nadlimitní router/handler denial nyní zachová status, `deniedByHandler`, původní
+důvod a případný `.capacity` marker; vrátí prázdné tělo. Původní response completion
+se dokončí jako neúspěch, protože původní tělo se neposlalo. Ostatní nadlimitní
+odpovědi zůstávají 502. Upstream parser se nemění a nadále odmítá větší těla včetně
+upstream chybových odpovědí; žádné rozšíření cílů, metod ani limitů.
+
+Tři nové regrese ověřují PUT/DELETE přes skutečný transport, handlerové 403/400 a
+původní audit bez DNS, souběžnou lokální capacity 503 s typovaným markerem, a přesnou
+upstream hranici: jednobajtové tělo projde, dvoubajtové skončí 502 při upstream
+statusu 200 i 403. Vše používá pouze syntetická data a in-memory upstream.
+
+| Ověření opravného commitu | Výsledek |
+|---|---|
+| všechny produkty, `swift build`, Debug / Release | prošlo / prošlo |
+| úplná gateway sada, `swift test`, Debug / Release | **117/117 / 117/117**, 0 failures, 0 skips |
+| `listener_cli.py`, Debug / Release | **5/5 / 5/5**, 0 skips |
+| `/usr/bin/python3 -m unittest discover -s tools/tests` | **94/94**, 0 skips |
+| `git diff --check` | prošlo |
+
+Příkazy použily vlastní scratch `/private/tmp/sanjbox-h4-h1-review-build`; po
+ověření byl odstraněn, malé textové logy zůstávají. Nedošlo k systémovým změnám,
+živým upstreamům, použití skutečných klíčů ani změně H1.
+
+Podmínka offline prototypu H4 z IMPLEMENTATION §0 je splněna: H1 prokazatelně řídí
+npm/PyPI/git/model i běžící knihovní listener a nepodporované konfigurace se odmítají.
+H4 proto evidujeme jako **✅ hotovo (offline prototyp)**. Opravný head má před merge
+ještě nezávisle zkontrolovat reviewer a jeho přesné CI; tento záznam jejich výsledek
+nepředjímá. CLI stále přijímá pouze draft, veřejné H1 API je popsáno níže. Brány a
+všech 155 akceptací zůstávají Neověřeno; produkční integrace ani autentizace klienta
+nejsou součástí tohoto dokončení. Následující záznamy zachovávají dřívější stav.
+
+## Původní H1 adaptér — 2026-11-14
+
+Výslovně zadané pokračování původních autorů janfiedler / Codex + Astra; navazující
+Astra, větev `codex/wp1-h4-h1-policy`. Základ čistého main:
+`75f3b5da13dfd7fca3acd376e06f1cd4d0fe2786`; publikovaný scoped claim:
+`d8a29a0`. **Otestovaný commit kódu a testů:
+`cf58222f4ea278064290710771afb23e62f94559`.** Následný commit mění pouze dokumentaci
+H4 a jeho řádek COVERAGE. H1 ani jiný sdílený kontrakt se nemění.
+
+Apple Silicon arm64, macOS **27.2.1 (26B131)**, Xcode **27.2 (27B52)**, Swift
+**6.4.2** (`swiftlang-6.4.2.1.9`), `/usr/bin/python3` **3.9.6**. Jediné Swift
+závislosti jsou lokální `spikes/s5-gateway` a `proto/contracts`; žádný externí balíček.
+
+| Ověření | Výsledek |
+|---|---|
+| `swift build --package-path proto/gateway -c debug` | prošlo, všechny produkty |
+| tentýž build s `-c release` | prošlo, všechny produkty |
+| `swift test --package-path proto/gateway -c debug` | **114/114**, 0 failures, 0 skips |
+| tentýž test s `-c release` | **114/114**, 0 failures, 0 skips |
+| `python3 proto/gateway/Tests/listener_cli.py <Debug binary>` | **5/5**, 0 skips |
+| tentýž subprocess suite proti Release binary | **5/5**, 0 skips |
+| `PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -s tools/tests` | **94/94**, 0 skips |
+| `git diff --check` | prošlo |
+
+Swift příkazy použily vlastní `--scratch-path /private/tmp/sanjbox-h4-h1-build`;
+CLI binárky byly v jeho `out/Products/Debug` a `out/Products/Release`.
+Nových **22 testů** (21 H1 adapter + 1 skutečný listener) pokrývá:
+
+- skutečné H1 strict decode, opětovnou validaci změněného DTO, deny-all a saturaci;
+  chybějící/přebývající bindingy, duplicity typů, zakázané/nesprávné konfigurace;
+- npm/PyPI artefakty s hashem, cooldownem a dokončeným auditem přes skutečné handlery;
+  cizí artifact host se odmítne po metadata requestu bez dialu na cizí host;
+- git přesné request/response byte hranice, odmítnutí limit+1 před upstreamem či
+  před vydáním, explicitní push a odmítnutí jiného repozitáře;
+- modelový POST na jediný pevný host/endpoint, pouze mock klíč, skutečné úspěšné SSE,
+  canonical JSON request, malformed těla, raw upstream ceiling včetně zahazovaných
+  pingů, klientský output ceiling, chyby před i po prvním eventu a finální audit;
+- minimum/maximum H1 mezí, odmítnutí větších handler mezí, společné zpřísnění upstream
+  parseru; odmítnutí rozšíření hostů/metod a Homebrew;
+- **H1 wire → adaptér → GatewayService → skutečný 127.0.0.1 listener → npm handler**:
+  syntetický download 200, request limit 413, neznámý původní mount 404, žádné další
+  upstream volání, artifact audit `transportAccepted`, cancellation a opětovný bind.
+
+Offline upstream factory je pouze interní testovací seam a dostává skutečné H1
+`UpstreamLimits`. Veřejné `GatewayService(adapting:)` vytvoří omezeného klienta samo;
+veřejný resolver test odmítá po ověření přesného hostu, bez socketu. Žádné živé DNS,
+upstreamy, uživatelské klíče/účty, billing, instalace balíčků ani systémové změny.
+Dev běh opravil chybějící `try` ve fixture a nesprávný předpoklad o Foundation Unicode
+escapování; uvedené finální Debug/Release běhy prošly na výsledném commitu.
+
+### Stav a hranice tohoto pokračování
+
+H1 skutečně řídí běžící knihovní cestu, ne jen validační objekt.
+[H1-ADAPTER.md](H1-ADAPTER.md) dokumentuje explicitní caller-supplied konfiguraci,
+jednotky mezí, přesné odmítané podmnožiny a společný upstream cap. Samostatný CLI
+`--policy` nadále přijímá starý draft; pro H1 je veřejná cesta
+`H1GatewayAdapter.decode` → `GatewayService(adapting:)` →
+`dispatch` / `LoopbackListener.run(serving:)`. CLI není důkazem H1 autorizace.
+
+Lokální podmínka implementace z IMPLEMENTATION §0 je pokryta touto dosažitelnou cestou
+s pozitivními i negativními testy. **Řádek H4 zatím zůstává 🟨 rozpracováno: čeká na
+samostatné nezávislé review a integraci**, které spravuje hlavní vlastník úkolu.
+Žádná brána ani akceptační případ nemění stav Neověřeno.
+
+Nepodporované zůstávají Homebrew, více gate stejného typu, cizí artifact hosty
+(včetně veřejného PyPI CDN), model GET/jiné upstreamy a širší handler limity.
+Neexistuje autentizace UID/session, broker, bind policy/pf, durable audit, produkční
+lifecycle ani skutečný Keychain/TLS trust/billing. Společný upstream parser může
+zpřísnit větší gate na nejmenší H1 response mez v celé službě; je to zveřejněný
+limit, nikoli slib dostupnosti pro každou samostatnou mez. Historická validace níže
+se týká staršího draftu a její tehdejší mezera H1 je řešena výše.
+
+Vlastní velký scratch build byl po ověření odstraněn; zůstává tento krátký záznam,
+zdrojové testy a malé lokální textové logy. Testy uklidily vlastní sockety/procesy;
+žádné zálohy, zařízení, účty, TCC ani jiná systémová nastavení se neměnily.
+
+## Historická revize samostatného draftu — 2026-11-13
+
 Datum: 2026-11-13. Jde o offline/prototypovou validaci podle GUIDE §11, nikoli
 laboratorní důkaz, potvrzení S5/GW nebo oprávnění sestavit běžící oblast.
 
