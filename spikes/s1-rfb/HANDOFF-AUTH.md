@@ -31,3 +31,23 @@ bit, but virtual command 2 bypasses that test. The historical availability gap a
 a reviewed virtual-authorization policy, integrated result lifecycle and Apple DH provider are still
 missing. This review preserves the delegated bounded scope and terminal refusal; it does not claim
 A3 completion or authorize a live connection.
+
+## Next scoped continuation — 2026-11-14
+
+The user explicitly delegated the owned A3 continuation to a fresh Astra implementer on
+`codex/wp1-a3-auth-followup`, starting from clean main
+`7b8294e4fd28a3e62f4998baf39d3da1fd904ccb` after #78/#77. Original authorship remains
+janfiedler / Codex + Astra; the earlier review and evidence above are preserved.
+
+This follow-up owns only `spikes/s1-rfb/` and the A3 COVERAGE row. Its bounded target is
+a source-backed, explicitly local virtual-command authorization policy and the integrated S5
+command/result lifecycle (pending/denial, deadline, shared message budget and no console fallback),
+plus investigation of a supported public type-30 finite-field DH/MD5/AES backend. Implement crypto
+only if defensible without new unsourced dependencies, private API or hand-rolled cryptography;
+otherwise document the precise remaining blocker and deliver independently useful selection work.
+
+Validation uses this Mac, synthetic bytes and offline fixtures only. No live RFB/credentials,
+accounts, system settings or TCC; no laboratory acceptance changes. Completion requires source
+provenance, Debug/Release tests, updated package documentation and an independently reviewed draft
+PR. This follow-up does not claim full A3 completion if crypto or identity binding remains absent,
+and does not merge or enable auto-merge.
