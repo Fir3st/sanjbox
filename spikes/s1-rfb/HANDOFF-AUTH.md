@@ -51,3 +51,17 @@ accounts, system settings or TCC; no laboratory acceptance changes. Completion r
 provenance, Debug/Release tests, updated package documentation and an independently reviewed draft
 PR. This follow-up does not claim full A3 completion if crypto or identity binding remains absent,
 and does not merge or enable auto-merge.
+
+### Delivered continuation and remaining condition
+
+Source/test commit `2c33df1` integrates explicit local virtual-only policy, the exact S5 command,
+pending/denial/grant parsing, a shared message budget and a fixed monotonic result deadline. Default
+selection remains refusal; even an opted-in grant stops before the missing independent identity,
+with no Apple framebuffer. [Validation](VALIDATION.md#local-virtual-selection-lifecycle-continuation--2026-11-14)
+records 54/54 Debug and Release tests, 28/28 CLI checks and 98/98 repository-tool tests.
+
+This is a concrete advance toward the original A3 completion condition, but the real type-30
+provider remains absent. [AUTH-BACKEND](AUTH-BACKEND.md) identifies the exact unblocking decision:
+a permitted, supported, independently reviewed arbitrary-modulus DH backend plus synthetic KATs.
+Another generic mock/docs continuation would not resolve it. Independent review of this local policy
+and lifecycle is pending; leave the PR draft. No live use, acceptance change, merge or auto-merge.
