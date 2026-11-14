@@ -1,5 +1,21 @@
 # WP1.H4 — lokální revize a validace
 
+## Závěrečné nezávislé review opravy — 2026-11-14
+
+Čerstvý Astra xhigh reviewer zkontroloval celý H1 adaptér proti H1 a S5 a poté
+znovu ověřil opravu na přesném commitu `27681bbc0c69a1a7e4ff0d9561cfb049de9ec829`.
+Původní P3 je uzavřené, další nález není. Re-review nezávisle spustilo **24/24 H1
+testů v Debug i Release** a **19/19 dalších kontrol v každém sestavení** včetně mezí
+1/13/14 bajtů, lokálních 400/403/503, auditu a nadlimitních upstream 200/403/503.
+Původní úplné review mělo 114/114 v obou konfiguracích, 5/5 CLI v obou a další
+redirect/API probes. Vlastní krátké záznamy jsou v `/private/tmp/h4-astra-review-95ad527/REVIEW.txt`
+a `/private/tmp/h4-astra-rereview-27681bb/REVIEW.txt`; velké review cache byly odstraněny.
+
+[CI opravného kódového headu](https://github.com/Fir3st/sanjbox/actions/runs/43578359585)
+prošlo pro gateway Debug/Release, Python tools/spikes, build i `CI required`.
+Tento závěrečný záznam mění pouze dokumentaci; finální head PR musí mít vlastní
+zelené CI. H4 je ✅ hotový offline prototyp, bez změny neověřených bran nebo akceptací.
+
 ## Oprava nálezu nezávislého review P3 — 2026-11-14
 
 Reviewer zjistil, že při validním H1 `responseBytesLimit = 1` lokální odmítnutí
