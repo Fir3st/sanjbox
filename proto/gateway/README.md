@@ -1,13 +1,15 @@
 # proto/gateway — brána jako služba (WP1.H4, prototyp)
 
 Jeden proces skládá skutečné typované handlery z
-[`spikes/s5-gateway`](../../spikes/s5-gateway) podle lokálního draftu politiky.
+[`spikes/s5-gateway`](../../spikes/s5-gateway) podle H1 `NetworkPolicy` přes explicitní
+[adaptér a doplňkovou konfiguraci](H1-ADAPTER.md), nebo podle samostatného lokálního draftu.
 `KeyProvider` je rozhraní se syntetickým mockem. Jde o izolovaný prototyp proudu H
 podle [IMPLEMENTATION §3](../../docs/IMPLEMENTATION.md#3-fáze-a-pracovní-balíky),
 ne o sestavenou oblast ani bezpečné MVP. **S5/GW, R2/R3 a ostatní brány zůstávají Neověřeno.**
 
-Balík je **rozpracovaný**: H1 už existuje v [`proto/contracts`](../contracts), ale chybí
-ověřený převod jeho `NetworkPolicy`/`TypedGate` do konfigurací zdejších handlerů.
+H1 adaptér napojuje [`proto/contracts`](../contracts) na skutečný `GatewayService.dispatch`
+i loopback listener. Přesná podporovaná podmnožina a rozdíl vůči CLI jsou v
+[H1-ADAPTER.md](H1-ADAPTER.md); produkční integrace tím nevzniká.
 [VALIDATION.md](VALIDATION.md) uvádí přesnou otestovanou revizi a rozsah lokálních testů.
 
 ## Co je implementováno
@@ -15,6 +17,7 @@ ověřený převod jeho `NetworkPolicy`/`TypedGate` do konfigurací zdejších h
 | Část | Rozsah |
 |---|---|
 | `Policy.swift`, `PolicyJSON.swift` | uzavřený draft v1, omezený JSON vstup, validace polí a limitů |
+| `H1GatewayAdapter.swift` | přesné gate ID bindingy, deny-all, žádné širší cíle/metody/limity |
 | `Composition.swift` | npm, PyPI, Git a modelový handler, deterministický deny a audit |
 | `KeyProvider.swift` | protokol a syntetický mock; žádná Klíčenka |
 | `Audit.swift`, `StreamOutcome.swift` | rezervace auditu, jednorázový SSE výsledek, kanonický text |
@@ -72,13 +75,11 @@ Příklad s jedinou operací; plný syntetický vstup je `Fixture.policyJSON` v 
 musí při `--listen` souhlasit se skutečnou adresou listeneru. Jinak listener odmítne
 start před bindem. Cache a redirecty používají konzervativní výchozí hodnoty handleru.
 
-H1 používá `schema`, `defaultAction:"deny"` a `gates` s `id/type/upstream/methods`
-a limity request/response. Zdejší draft používá `schemaVersion/gateways`, jiné zoneID,
-mounty, `enabled`, cooldown, artifact hosts, repo/push policy, audit, lifetime a modelové
-limity. H1 tyto hodnoty neurčuje, navíc zná `brew` a `model-api` místo zdejšího `model`.
-**Automatické přejmenování polí by nebylo převodem oprávnění.** Chybí přijaté mapování,
-zdroj chybějících hodnot a regresní důkaz, že převod nerozšíří cíle, metody ani limity.
-H1 wire dokument se nyní odmítne; nesmí se vydávat za podporovanou konfiguraci H4.
+H1 používá `schema/defaultAction/gates` a vyžaduje explicitní doplňkovou konfiguraci
+podle [H1-ADAPTER.md](H1-ADAPTER.md). `H1GatewayAdapter.decode` ověří H1 wire a vazby;
+`GatewayService(adapting:)` drží H1 oprávnění i při dispatchi a obsluze socketu.
+Samostatný CLI `--policy` dál přijímá pouze výše uvedený draft. H1 wire se mu odmítne;
+veřejná H1 cesta je knihovní API, nikoli automatická migrace CLI konfigurace.
 
 ## Směrování, audit a poskytovatel klíčů
 
@@ -164,7 +165,7 @@ swift test --package-path spikes/s5-gateway -c release
 /usr/bin/python3 -m unittest discover -s tools/tests
 ```
 
-92 Swift testů zahrnuje osm skutečných loopback/socket testů a odmítnutí nesouladu
+114 Swift testů zahrnuje devět skutečných loopback/socket testů a odmítnutí nesouladu
 originu před bindem, úspěšný přenos
 syntetického npm artefaktu, zrušení aktivního modelového handleru, timeout/backpressure,
 kapacitu a opětovný bind po úklidu. Dalších pět subprocess CLI testů ověřuje výchozí
@@ -176,5 +177,5 @@ replay a SSE chyb před/po eventu i při posledním chunku.
 Testy vytvářejí pouze vlastní dočasné policy soubory, syntetická data a lokální
 sockety. Jejich úklid zavírá vlastní descriptory/procesy a odstraňuje vlastní temporary
 adresář; nemění systém, pf ani uživatele. Potvrzení bran vyžaduje samostatné laboratoře
-podle PLAN/GUIDE; lokální úspěch nezavírá chybějící H1 adaptér, identitu klienta,
+podle PLAN/GUIDE; lokální úspěch nezavírá identitu klienta,
 produkční lifecycle, TLS/trust, autentizaci, živé upstreamy ani billing.
