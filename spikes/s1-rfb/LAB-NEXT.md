@@ -7,29 +7,28 @@ All existing measurements and sealed evidence directories remain untouched.
 
 ## What the offline prototype now covers, and what it still does not
 
-**[implementátor]** The package now parses S5 extended ServerInit and length-framed SessionInfo;
-internal codecs encode the exact virtual-only SessionCommand and decode SessionResult. The old
-package-local selection protocol is removed. S4 type-30 authentication remains a mock seam.
+**[implementátor]** The package parses S5 extended ServerInit and length-framed SessionInfo and,
+under explicit `.syntheticVirtualOnly`, emits command 2 and consumes bounded pending/denial/granted
+results. Default selection still rejects all masks. The local opt-in policy requires virtual bit 2
+and no unknown command bits; it does not assert a server permission contract. S4 authentication is
+still a mock seam; [AUTH-BACKEND](AUTH-BACKEND.md) records the exact remaining crypto blocker.
 
-The integrated Apple path always stops with `unverifiedSelectionPolicy` after a valid SessionInfo:
-the package has no reviewed virtual-authorization policy. The newly inspected pinned
-`session-select.js` tests a console command bit but returns virtual command 2 without a mask check;
-this is client behavior, not proof of virtual permission or non-console identity. Our parser emits
-no selection command or initialized surface. Positive command/result codec tests are not an integrated handshake. A3
-remains in progress on both cryptography and source-backed command authorization; see [README](README.md).
+Every grant fails with `unverifiedSessionIdentity` before `.initialized`, pixel-format/encoding
+output or framebuffer. Neither the request nor the reported grant proves non-console identity.
+A3 stays in progress; these fixtures advance command/result integration but do not authorize a
+live client or close the original Apple-auth requirement. See [README](README.md).
 
 ## Before a custom client can connect
 
 **[implementátor]** The current binary has no live mode. A later separately reviewed change must:
 
-1. **[částečně hotovo]** S4 framing and S5 record codecs are source-backed and bounded offline.
-   The pinned `ard/session-select.js` is now inspected and hashed: it describes per-command bits
-   and checks the console bit, but does not check the virtual command. Establish and review virtual
-   permission rules, including zero/unknown masks and unavailable virtual selection, before integrating
-   the codecs. Do not adopt the upstream unchecked virtual preference. Then test pending,
-   denial, unknown variants, shared message budgets, no fallback and deadlines. Implement a reviewed
-   type-30 provider using synthetic known-answer vectors; do not guess cryptography or use private API.
-   Live record/capability/command interoperability is still unverified.
+1. **[částečně hotovo]** S4 framing and S5 selection records/lifecycle are source-backed and bounded
+   offline. The local opt-in mask rule and integrated pending/denial/budget/deadline/no-fallback flow
+   need independent review. It intentionally does not adopt the upstream unchecked virtual branch.
+   Choose and review a supported type-30 backend, then implement the provider with independent
+   synthetic known-answer vectors; do not guess cryptography or use private API. The precise
+   blocker/criteria are in [AUTH-BACKEND](AUTH-BACKEND.md). Live command/capability interoperability
+   remains unverified; a grant must not relax the identity boundary below.
 2. Establish authenticated server identity and confidentiality appropriate to the chosen local path before
    any credentials. Loopback, a port number, a server name or DH exchange alone is not an identity proof.
    Investigate local port substitution and the trust boundary around a forwarder. Do not adopt the
@@ -39,14 +38,14 @@ remains in progress on both cryptography and source-backed command authorization
    fixtures; no Keychain reads, saved-login extraction, terminal/environment passwords or packet capture
    of real authentication data. The reviewed research does not approve a crypto implementation.
 4. Keep clipboard/file transfer disabled and control messages absent until their own design/review.
-   Add transport partial-write/backpressure and failure tests, explicit monotonic idle/total deadlines,
+   Add transport partial-write/backpressure and failure tests, scheduled monotonic idle/total deadlines,
    cancellation, bounded queues and no automatic reconnect. No real endpoint should be accepted by a
    synthetic test harness.
 5. Bind the returned surface to an independently checked expected identity. Do not infer it from the
    desktop name, login username, server status, requested virtual mode or framebuffer content.
    **[neimplementováno]** The current Apple parser never publishes `.initialized` or any pixel format:
-   it stops before choosing. A future grant must still be tied to independent identity; a successful
-   SessionResult cannot replace the exact audit-session comparison below.
+   even an opted-in synthetic grant stops at `unverifiedSessionIdentity`. A future surface must still
+   be tied to independent identity; SessionResult cannot replace the exact audit-session comparison below.
 
 ## Identity first, before real measurement
 

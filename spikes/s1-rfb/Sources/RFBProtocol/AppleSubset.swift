@@ -22,14 +22,33 @@ public protocol AppleCredentialProvider: Sendable {
     func credentialResponse(for challenge: AppleDHChallenge) throws -> [UInt8]
 }
 
-/// No S5 command is sent until the allowed-command mask has a source-backed policy.
+/// Local policy for owned synthetic transcripts only; never server authorization or identity.
+public enum AppleSelectionPolicy: Sendable {
+    /// Preserve the default terminal refusal before any choice.
+    case rejectAll
+    /// S5 describes one bit per command but skips checking the virtual bit. This stricter
+    /// LOCAL policy requires bit 2 and rejects unknown command bits. It only authorizes
+    /// generating command 2 in an offline fixture, never exposing a surface.
+    case syntheticVirtualOnly
+
+    func permitsVirtualCommand(mask: UInt32) -> Bool {
+        // S5 ard-constants.js: commands 0=request-console, 1=console, 2=virtual.
+        // Extra known alternatives do not select them. Zero/unknown masks never fall back.
+        self == .syntheticVirtualOnly && mask & (1 << 2) != 0 && mask & ~UInt32(0x07) == 0
+    }
+}
+
+/// Last observed selection outcome; none of these states authenticates a session.
 public enum AppleSession: String, Equatable, Sendable {
     case notOffered
     /// ServerInit does not offer the required virtual-selection path.
     case unavailable
-    /// SessionInfo was parsed, but interpreting its allowed-command mask is unverified.
-    /// This is terminal and never grants a surface, retries, or falls back to the console.
+    /// The default policy declined to interpret SessionInfo.
     case unverified
+    case requestedVirtual, pendingVirtual, denied
+    /// The peer reported a grant. Independent UID/audit-session evidence is still absent;
+    /// this is terminal and never grants a surface, retries, or falls back to the console.
+    case grantedUnverified
 }
 
 /// S4/S5 constants. No package-local selection message kinds remain.
@@ -102,8 +121,8 @@ enum AppleSessionRecordCodec {
         return Result(status: u32(record, 4))
     }
 
-    /// Exact S5 74-byte command record; always command 2. Codec fixture only: RFBClient
-    /// deliberately never calls this until allowed-mask semantics are independently sourced.
+    /// Exact S5 74-byte command record; always command 2. RFBClient calls this only after
+    /// its explicitly opted-in local synthetic policy accepts the mask.
     /// Reproduce S5's Latin-1 decode -> UTF-8 encode -> 63-byte truncation, including a
     /// possible split UTF-8 sequence. No credential username or peer name is inferred here.
     static func virtualCommand(for info: Info) -> [UInt8] {

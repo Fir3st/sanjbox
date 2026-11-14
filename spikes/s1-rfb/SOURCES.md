@@ -99,17 +99,16 @@ The pinned implementation also contains concrete byte layouts, not just session 
 | SessionCommand (client choice) | [ard-patch.js lines 2510–2523](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L2510-L2523): 74-byte record with length, version, padding, command and 64-byte username |
 | SessionResult | [ard-patch.js lines 839–867](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L839-L867): u16 body length, u16 version, u32 status and remaining reserved bytes |
 
-These are **client-side implementation claims**, not a verified server contract. This package now
-implements their record codecs and consumes extended ServerInit/SessionInfo in the parser. It does
-not adopt the source client's automatic selection policy. Fresh review fetched the pinned
-[`ard/session-select.js` lines 13–47](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/session-select.js#L13-L47)
-on 2026-11-14: its comment describes one bit per command, and its console branch explicitly tests
-`1 << sessionCmdConnectToConsole` when the console username is empty. Its virtual branch returns
-command 2 **without testing the mask**. The one-bit convention is therefore a client-side source
-claim; that unchecked virtual preference does not establish which masks authorize a virtual session
-on the server, or prove non-console identity. A reviewed virtual-authorization policy is still absent
-in this package. No mask is interpreted and no command is sent. The internal virtual-only encoder and
-result decoder have independent synthetic tests; they do not imply an integrated selection handshake.
+These are **client-side implementation claims**, not a verified server contract. The package implements
+their records and now integrates command/result only under an explicit synthetic local policy. The
+pinned [`ard/session-select.js` lines 13–47](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/session-select.js#L13-L47)
+was fetched by the prior independent review on 2026-11-14. Its comment describes one bit per command,
+and its console branch tests `1 << sessionCmdConnectToConsole` when the console username is empty.
+Its virtual branch returns command 2 **without testing the mask**. The follow-up does not copy that
+bypass: the explicit local policy requires bit `1 << 2` and rejects bits outside commands 0/1/2.
+This uses the documented bit convention as a conservative condition for **fixture output**, not proof
+that a server will honor it or return a non-console session. Default policy still refuses every mask.
+Grant handling always stops at the independent identity boundary; no Apple pixels are exposed.
 
 Raw SHA-256 values:
 
@@ -124,8 +123,9 @@ Raw SHA-256 values:
 The implementation used four hash-verified raw files from the prior review's local cache. The fresh
 integration review fetched those four files directly over HTTPS and confirmed their hashes, then
 fetched, inspected and hashed the fifth file, `ard/session-select.js`. This supersedes the earlier
-local availability gap recorded in HANDOFF-AUTH/VALIDATION; it does not supply virtual authorization
-or server evidence. No upstream code was executed, copied, linked, vendored or installed. The Swift
+local availability gap recorded in HANDOFF-AUTH/VALIDATION; it does not supply server authorization
+or identity evidence. This follow-up re-read all five local cached files and reproduced every hash
+above without an outbound fetch. No upstream code was executed, copied, linked, vendored or installed. The Swift
 codecs are independently authored from the record descriptions.
 
 ### Source-backed records
@@ -156,21 +156,29 @@ codecs are independently authored from the record descriptions.
   SessionResult >=6; maximum 4096 for either. ServerInit name also has the existing 4096-byte budget.
 - Unknown ServerInit flag bits fail. Missing session-select or set no-virtual-display means
   unavailable. Capability bitmap and reserved bytes remain opaque and are not required to be zero.
-- **Every allowed-command mask fails closed.** RFBClient parses a complete SessionInfo, then raises
-  `unverifiedSelectionPolicy` before any command, pixel-format, encoding or surface output. The
-  codec's raw mask is not a parsed authorization decision. There is no console-only classification.
-- Internal command/result codecs are positive offline fixture exercises only. RFBClient cannot reach
-  them until a later, independently sourced policy is integrated with result budgets and deadlines.
+- The default `.rejectAll` policy still raises `unverifiedSelectionPolicy` for every mask.
+  Explicit `.syntheticVirtualOnly` requires virtual bit 2 and rejects all bits outside `0x07`;
+  therefore only masks 4/5/6/7 authorize **local synthetic command generation**. This requirement,
+  rejection of unknown bits and no-console fallback are local rules, not claims about Apple servers.
+- An accepted Info emits exactly one command 2; result 2/3 waits without resend, 0/4 records
+  `.grantedUnverified` and fails with `unverifiedSessionIdentity`; all other statuses deny terminally.
+  No mask, username, capability, result or apparent pixels substitute for independently checked
+  expected UID/audit session. S2's visible-screen sharing behavior remains an explicit blocker.
+- One shared 1024-message budget counts Info, every result and standard server messages. Pending
+  cannot reset it. The fixed 30s total result deadline starts at command creation, uses monotonic
+  `ContinuousClock`, rejects backwards fixture times, and never resets on partial/pending input.
+  Silence requires caller wakeups (`receive([])`/`expire()`); there is no autonomous timer.
 - Removed package-local kinds/count/availability/outcome bytes are no longer a supported wire path.
 
 ### Still unimplemented
 
-The whole type-30 DH/MD5/AES provider, source-backed allowed-command policy, integrated command/result
-lifecycle, type-33 RSA tunnel, server authentication, confidentiality, transport and live-server/audit
-session binding. Inspection of the current public CommonCrypto/Security SDK headers did not establish
-a supported API for S4's arbitrary-modulus finite-field DH. This scoped finding is not a claim that no
-backend exists. No custom bignum, private API or new external dependency was introduced. A3 remains
-in progress until both the provider and integrated source-backed selection are complete.
+The type-30 DH/MD5/AES provider, type-33 RSA tunnel, server authentication, confidentiality,
+transport/wakeup scheduling and live-server/audit session binding. The scoped public SDK investigation
+is recorded with exact files/hashes in [AUTH-BACKEND](AUTH-BACKEND.md): CommonCrypto's MD5/AES and
+CryptoKit's EC agreement do not supply S4's arbitrary-modulus DH, while legacy CDSA DH declarations
+are explicitly deprecated. No reviewed backend was established; this is not a claim that none exists.
+No custom bignum, private API or new dependency was introduced. A3 remains in progress until the
+provider and independent review of the integrated selection work satisfy its offline condition.
 
 ## Research outcome
 
