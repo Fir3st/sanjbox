@@ -13,9 +13,9 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-14 (podklad `main` `8faf648` po H4 [#79](https://github.com/Fir3st/sanjbox/pull/79)
-a částečném A3 [#78](https://github.com/Fir3st/sanjbox/pull/78); dílčí A6 [#77](https://github.com/Fir3st/sanjbox/pull/77)
-dodává H1 wire fuzzer a syntetické service workflow. H1–H6 jsou hotové offline, A2/A3/A6 zůstávají
+Poslední aktualizace: 2026-11-14 (podklad `main` `4ad05d9` po H4 [#79](https://github.com/Fir3st/sanjbox/pull/79),
+částečném A3 [#78](https://github.com/Fir3st/sanjbox/pull/78) a dílčím A6 [#77](https://github.com/Fir3st/sanjbox/pull/77);
+A6 dodává H1 wire fuzzer a syntetické service workflow. H1–H6 jsou hotové offline, A2/A3/A6 zůstávají
 rozpracované; vlastníci, další kroky a podmínky jsou v [IMPLEMENTATION §0](IMPLEMENTATION.md#0-co-dál)). F0.7/C-003 a F0.8/LAB-v1 jsou rozhodnuté
 podle [DECISIONS](DECISIONS.md); Docker start/stop zbývá před S7. Žádná brána ani akceptační případ neprošly.
 
@@ -296,7 +296,7 @@ reálné integrace se evidují zvlášť a mají ve sloupci poznámku „uživat
 
 Definice balíků: [IMPLEMENTATION.md §3](IMPLEMENTATION.md#3-fáze-a-pracovní-balíky).
 
-Revize 2026-11-14 nad `main` `8faf648` po H4 #79 a A3 #78, s dílčím A6 #77: F0 **5/5 hotovo**,
+Revize 2026-11-14 nad `main` `4ad05d9` po H4 #79, A3 #78 a dílčím A6 #77: F0 **5/5 hotovo**,
 F1 **22 hotových / 5 rozpracovaných / 9 nezahájených**. Sloučené A3 přidalo S5 record kodeky a
 fail-closed čtení SessionInfo; bez DH provideru, reviewované virtuální autorizace a integrovaného
 command/result toku zůstává rozpracované. A6 má skutečný H1 wire fuzzer, ale stále chybí native

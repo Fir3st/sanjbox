@@ -24,8 +24,8 @@ sond s lokální protistranou; [validace](proto/escape/VALIDATION.md) ponecháv�
 neověřené. [A3 RFB prototyp](spikes/s1-rfb/README.md) z [#78](https://github.com/Fir3st/sanjbox/pull/78)
 je sloučený jako `8faf648`: přidává S5 record kodeky a odmítnutí před výběrem relace; DH provider,
 reviewovaná virtuální autorizace a integrovaný výběr chybí, takže A3 zůstává rozpracované.
-[A6 #77](spikes/s8-signing/A6-H1-FOLLOWUP.md) dodává fuzzer skutečných H1 helper/reply/broker wire
-kontraktů a syntetické autorizační/restart workflow. A6 zůstává rozpracované: chybí kalibrovaná
+[A6 #77](spikes/s8-signing/A6-H1-FOLLOWUP.md) je sloučené jako `4ad05d9` a dodává fuzzer skutečných
+H1 helper/reply/broker wire kontraktů a syntetické autorizační/restart workflow. A6 zůstává rozpracované: chybí kalibrovaná
 SG-06 pozitivní attach kontrola, nativní daemon autorizace a registration ownership/cleanup přes
 restart; skutečné Personal Team/podmíněné self-signed podpisy, XPC/Mach/TCC a L2 nejsou ověřené.
 Zbývající A2/A3/A6 mají dosavadní vlastníky a konkrétní kroky i podmínky v IMPLEMENTATION.

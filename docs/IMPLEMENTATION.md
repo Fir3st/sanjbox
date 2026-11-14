@@ -12,13 +12,14 @@ Při rozporu platí PLAN.md; tento dokument se opraví.
 
 ## 0. Co dál
 
-**Revize 2026-11-14, podklad `main` na `8faf648` po merge H4 [#79](https://github.com/Fir3st/sanjbox/pull/79) a A3 [#78](https://github.com/Fir3st/sanjbox/pull/78); dílčí výstup A6 [#77](https://github.com/Fir3st/sanjbox/pull/77).**
+**Revize 2026-11-14, podklad `main` na `4ad05d9` po merge H4 [#79](https://github.com/Fir3st/sanjbox/pull/79), A3 [#78](https://github.com/Fir3st/sanjbox/pull/78) a dílčího A6 [#77](https://github.com/Fir3st/sanjbox/pull/77).**
 [COVERAGE §4](COVERAGE.md#4-pracovní-balíky) vede stav a vlastníky; tato sekce určuje další krok.
 F0 má **5/5 hotových balíků**, F1 **22 hotových / 5 rozpracovaných / 9 nezahájených**.
 H4 je hotový a sloučený offline prototyp H1 policy adaptéru. A3 #78 je sloučeno jako `8faf648`:
 přidává bounded S5 record kodeky a čtení ServerInit/SessionInfo s odmítnutím před volbou relace;
 **neuzavírá A3**. Type-30 DH provider, reviewovaná politika virtuální autorizace a integrovaný
-command/result tok chybí. A6 #77 dodává [fuzzer skutečných H1 helper/reply/broker v1 kontraktů](../spikes/s8-signing/A6-H1-FOLLOWUP.md),
+command/result tok chybí. A6 #77 je sloučeno jako `4ad05d9` a dodává
+[fuzzer skutečných H1 helper/reply/broker v1 kontraktů](../spikes/s8-signing/A6-H1-FOLLOWUP.md),
 syntetickou host-only autorizační hranici a šest dry-run restart/cleanup workflow. **Neuzavírá A6**:
 SG-06 positive attach control, nativní autorizace daemonu, durable registration ownership/cleanup
 přes restart a skutečné uživatelské podpisy zůstávají otevřené. Zelený wire fuzzer neověřuje XPC/Mach/TCC.
@@ -31,8 +32,8 @@ nejsou laboratorní důkaz. Pět rozpracovaných balíků tvoří A2/A3/A6, D5 �
    v plánu nedokazují volný balík; vlastníci níže zůstávají platní.
 2. **H1–H6 jsou hotové offline a sloučené; H4 #79 je v `main` jako `41d6f65`.**
    Nezadávej další H přípravu bez konkrétního nálezu a vymezené podmínky dokončení.
-3. **Navazuje již obsazená příprava A2/A3/A6** podle tabulky níže. Sloučené částečné A3 #78 ani
-   dílčí A6 #77 nejsou hotové balíky. V A6 je H1 wire fuzzer dodaný; pokračování musí řešit konkrétní
+3. **Navazuje již obsazená příprava A2/A3/A6** podle tabulky níže. Sloučené dílčí A3 #78 a A6 #77
+   nejsou hotové balíky. V A6 je H1 wire fuzzer dodaný; pokračování musí řešit konkrétní
    chybějící nativní cestu nebo SG-06 control, nikoli přidávat další obecný mock. Pokračuj v přidělené
    práci, nebo nejprve dohodni vymezené předání podle [GUIDE §5](GUIDE.md#5-paralelní-práce);
    vlastníci mohou pokračovat paralelně ve svých adresářích. Případnou změnu H1 koordinuj se všemi
@@ -86,9 +87,9 @@ rozhraní a jeho ověření sloučené v `main`.
 | **WP1.H4** — `proto/gateway/` | [PR #79](https://github.com/Fir3st/sanjbox/pull/79), sloučeno jako `41d6f65`: [H1 adaptér](../proto/gateway/H1-ADAPTER.md) vyžaduje přesné gate-ID bindings, řídí npm/PyPI/git/model v dispatchi i skutečném loopback listeneru a odmítá širší cíle/metody/limity; klíče jsou mock. [Validace a integrační review](../proto/gateway/VALIDATION.md): 117/117 testů a 5/5 CLI v Debug i Release. | Offline podmínka je splněná. WP2.5 po vstupu F2 převezme typované handlery a politiku, s WP2.1/2.4 napojí autentizovanou vazbu UID/session/oblasti a síťovou/bind policy; doplní skutečné klíče/scopes/revokace, durable audit, produkční lifecycle a TLS/trust. CLI zatím nepřijímá H1; Homebrew, více gate stejného typu, PyPI CDN na jiném hostu a model GET zůstávají odmítnuté. Společný upstream cap může zpřísnit větší gate; limity a živou integraci ověří L5. |
 | **WP1.H6** — `proto/escape/` | [PR #76](https://github.com/Fir3st/sanjbox/pull/76), sloučeno jako `75f3b5d`: všech 155 ID s krokem/oraclem, osm same-user syntetických sond, 133 ručních a 14 nepodporovaných případů; skutečný lokální `sanjbox-counterpart` a H1 audit. [Review po integraci H3 a validace](../proto/escape/VALIDATION.md#review-po-integraci-h3--2026-11-14): 18/18 testů v Debug i Release, negativní/neúplné výsledky, přesné kanárky a úklid; úplný běh vrací exit 3 a všechny akceptace `unverified`. | Offline podmínka i integrace jsou splněné. [WP2.8](../proto/escape/README.md#předání-do-wp28) převezme katalog a oracle až po vstupu F2; skutečné UID/tři souběžné oblasti, nativní adaptéry, nezávislé síťové měření a laboratorní evidence dosud chybí. |
 
-**Handoff dalšímu agentovi:** H4 #79 (`41d6f65`) a částečné A3 #78 (`8faf648`) jsou sloučené.
-A6 #77 uzavírá jen H1 wire follow-up; jeho integraci koordinátor dokončí po nezávislé kontrole
-aktuální base, finálního headu a CI. Další implementace A6 řeší výše vymezené nativní/SG-06 mezery
+**Handoff dalšímu agentovi:** H4 #79 (`41d6f65`), částečné A3 #78 (`8faf648`) a dílčí A6 #77
+(`4ad05d9`) jsou sloučené. A6 #77 uzavírá jen H1 wire follow-up. Další implementace A6 řeší
+výše vymezené nativní/SG-06 mezery
 u dosavadního vlastníka, A2/A3 mají vlastní neuzavřené kroky. Zachovej validační historii, všech
 155 neověřených případů a původní autorství. A3 ani A6 se nepřeznačí na hotové kvůli dílčímu merge.
 Bez předání neclaimuj cizí práci; neotvírej hotové H prototypy ani je nespojuj do běžící oblasti. D5 čeká
