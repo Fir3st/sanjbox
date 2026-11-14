@@ -1,31 +1,7 @@
-// Apple security/selection subset for WP1.A3 — FIXTURE FRAMING ONLY.
-//
-// Citation key. These are the only sources this file is allowed to encode; every constant
-// below names the one it comes from. Full URLs, pinned commits and SHA-256 values: SOURCES.md.
-//
-//   S4 = noVNC v1.6.0, core/rfb.js `_negotiateARDAuth` / `_negotiateARDAuthAsync`
-//        (inspected lines 1798–1866). Records type-30 framing: a two-byte DH generator,
-//        a two-byte key length, then the modulus and the server public key of that length;
-//        the client replies with a 128-byte credential block encrypted with AES-ECB over an
-//        MD5 of the DH shared value, followed by the client public key, then waits for
-//        SecurityResult. S4 is evidence of one client's implementation, not an Apple contract.
-//
-//   S5 = peetinc/noVNC-ARD, `_initMsg` / `_negotiateServerInit` / `_ardSessionSelect`
-//        (selection at inspected lines 776–875), ard-constants.js, session-select.js.
-//        Records that the Apple path uses ClientInit 0xC1, extended ServerInit metadata,
-//        then SessionInfo / a client choice / SessionResult, and that its constants assign
-//        command 1 to the console and command 2 to the virtual desktop, with pending and
-//        granted states. S5 is a client-side implementation claim, not a server contract.
-//
-// S5 does specify client-side byte layouts: ard-patch.js lines 779–797 (SessionInfo),
-// 839–867 (SessionResult), 2510–2523 (SessionCommand), and 331–348 (extended ServerInit).
-// This package deliberately uses a simpler package-local selection framing instead.
-// The reviewed sources contain no Apple-published byte-level contract, and no live
-// interoperability was verified. These fixture messages are not Apple wire messages;
-// no real endpoint may receive them, and this prototype has no transport.
+// Offline S4/S5 record research. Sources and exact scope: SOURCES.md.
+// These are pinned CLIENT implementation contracts, not an Apple specification.
 
-/// S4: the two-length DH challenge a type-30 server sends before any credential.
-/// `modulus` and `serverPublicKey` both have the pinned key length.
+/// S4 type-30 challenge. Equal-width modulus and server public key follow a u16 generator.
 public struct AppleDHChallenge: Equatable, Sendable {
     public let generator: UInt16
     public let modulus: [UInt8]
@@ -38,74 +14,116 @@ public struct AppleDHChallenge: Equatable, Sendable {
     }
 }
 
-/// The seam where S4's DH/AES credential exchange would live.
-///
-/// There is deliberately **no** implementation in this package: no DH, MD5, AES, key
-/// agreement or credential handling exists here, and no test supplies real material.
-/// A provider must implement the whole S4 record itself (encrypted 128-byte credential
-/// block followed by the client public key) under a separate reviewed package.
-/// The client checks the response length is exactly 128 + the challenge's key length;
-/// that is only framing validation. Cryptographic validation belongs to the provider.
-/// When no provider is injected the client stops before sending a credential response.
+/// S4 credential exchange seam; still NO DH/MD5/AES implementation in this package.
+/// No provider is installed by default. Tests supply explicit, constant synthetic bytes.
+/// A future reviewed provider must return a 128-byte encrypted block + the public key;
+/// the parser checks only length, not cryptographic validity, identity or confidentiality.
 public protocol AppleCredentialProvider: Sendable {
-    /// Return exactly 128 + challenge.modulus.count bytes after the challenge. Empty output
-    /// is treated as "not implemented"; any wrong length stops the handshake.
     func credentialResponse(for challenge: AppleDHChallenge) throws -> [UInt8]
 }
 
-/// Last selection outcome. `pending` may become `granted` or `denied`;
-/// no outcome ever turns into a console session.
+/// No S5 command is sent until the allowed-command mask has a source-backed policy.
 public enum AppleSession: String, Equatable, Sendable {
-    /// No SessionInfo was consumed yet.
     case notOffered
-    /// The virtual desktop was offered as available and the client chose it.
-    case virtualReady
-    /// S5 records a pending state. The transport owns the deadline; nothing is retried here.
-    case pending
-    /// SessionResult granted the virtual desktop.
-    case granted
-    /// SessionResult denied the choice.
-    case denied
-    /// The virtual desktop was absent or offered as unavailable.
+    /// ServerInit does not offer the required virtual-selection path.
     case unavailable
-    /// Only the host console was offered. Selecting it is forbidden, so this is terminal.
-    case consoleOnly
+    /// SessionInfo was parsed, but interpreting its allowed-command mask is unverified.
+    /// This is terminal and never grants a surface, retries, or falls back to the console.
+    case unverified
 }
 
-/// Byte constants, each tagged with its citation or explicitly marked package-local.
+/// S4/S5 constants. No package-local selection message kinds remain.
 public enum AppleFixtureFraming {
-    // S1 (RFC 6143 §7.1.2): the client answers a security-type offer with one byte.
-    // S4: the ARD type this package accepts. Exactly one offer, never a fallback.
-    public static let ardSecurityType: UInt8 = 30
+    public static let ardSecurityType: UInt8 = 30 // S4 _negotiateARDAuth
+    public static let appleClientInit: UInt8 = 0xC1 // S5 ard-constants.js:78
+    public static let virtualDesktopCommand: UInt8 = 2 // S5 ard-constants.js:91
+    public static let appleBanner = Array("RFB 003.889\n".utf8) // S5 ard-patch.js:214
+}
 
-    // S5: ClientInit in the Apple path is the single byte 0xC1 (standard RFB uses shared=1).
-    public static let appleClientInit: UInt8 = 0xC1
+/// Internal, offline codecs. Caller supplies the complete length-prefixed record.
+/// No network API, automatic command selection or console-command encoder exists here.
+/// S5: ard-patch.js:331–348, 779–797, 839–867, 2510–2523; ard-constants.js:75–97.
+/// Stricter local policy: version 1 only, 4096-byte body budget, known ServerInit flags.
+/// Reserved bytes and the capability bitmap are opaque, as in S5; they confer no authority.
+enum AppleSessionRecordCodec {
+    static let maximumBodyBytes = 4096 // Local budget, not an upstream limit.
+    static let sessionSelectFlag: UInt32 = 0x04
+    static let noVirtualDisplayFlag: UInt32 = 0x08
+    static let knownServerFlags: UInt32 = 0x0f
 
-    // S5: command values of the session selection. Package policy: only the virtual
-    // desktop may ever be chosen; the console command exists solely for validation.
-    public static let consoleCommand: UInt8 = 1
-    public static let virtualDesktopCommand: UInt8 = 2
+    struct ServerMetadata: Equatable, Sendable {
+        let flags: UInt32
+        let capabilityBitmap: [UInt8]
+    }
 
-    // PACKAGE-LOCAL: availability flag inside SessionInfo (0 = unavailable, 1 = available).
-    // S5 ard-patch.js lines 779–797 instead uses a u32 allowed-command mask.
-    public static let unavailableState: UInt8 = 0
-    public static let availableState: UInt8 = 1
+    struct Info: Equatable, Sendable {
+        let allowedCommands: UInt32
+        // S5 treats incoming bytes as Latin-1 code units, stopping at the first NUL.
+        // Kept private to this module; RFBClient never publishes or logs a peer username.
+        let consoleUserBytes: [UInt8]
+    }
 
-    // PACKAGE-LOCAL: message kinds of the fixture framing (SessionInfo, choice, result).
-    public static let sessionInfoKind: UInt8 = 1
-    public static let sessionInfoChoiceKind: UInt8 = 2
-    public static let sessionResultKind: UInt8 = 3
+    enum Outcome: Equatable, Sendable { case granted, pending, denied }
 
-    // PACKAGE-LOCAL: one-byte SessionResult outcomes. S5 ard-constants.js lines 94–97
-    // uses u32 statuses: granted 0/4 and pending 2/3; other statuses fail in ard-patch.js
-    // lines 856–867. The reduced fixture outcomes below do not implement that record.
-    public static let outcomeGranted: UInt8 = 0
-    public static let outcomeDenied: UInt8 = 1
-    public static let outcomePending: UInt8 = 2
+    struct Result: Equatable, Sendable {
+        let status: UInt32
+        var outcome: Outcome {
+            switch status {
+            case 0, 4: .granted
+            case 2, 3: .pending
+            default: .denied
+            }
+        }
+    }
 
-    /// Candidate Apple banner: exact literal in pinned S5 ard-patch.js line 214.
-    /// Source bytes and SHA-256 were rechecked; live server behavior remains unverified.
-    /// It is only accepted under `AuthenticationPolicy.syntheticAppleSubset`; the default
-    /// policy still rejects it. The citation does not establish live interoperability.
-    public static let appleBanner = Array("RFB 003.889\n".utf8)
+    static func serverMetadata(_ name: [UInt8]) throws -> ServerMetadata {
+        // Only the FIRST marker byte is constrained by S5; byte 1 may be nonzero.
+        guard name.count >= 22, name.count <= maximumBodyBytes, name[0] == 0 else {
+            throw RFBClient.Failure.invalidSelectionMessage
+        }
+        let flags = u32(name, 2)
+        guard flags & ~knownServerFlags == 0 else {
+            throw RFBClient.Failure.invalidSelectionMessage
+        }
+        return ServerMetadata(flags: flags, capabilityBitmap: Array(name[6..<22]))
+    }
+
+    static func info(_ record: [UInt8]) throws -> Info {
+        try validate(record, minimumBodyBytes: 10)
+        // u16 version, u32 allowed mask, u32 opaque reserved, remaining username bytes.
+        let username = record.dropFirst(12).prefix { $0 != 0 }
+        return Info(allowedCommands: u32(record, 4), consoleUserBytes: Array(username))
+    }
+
+    static func result(_ record: [UInt8]) throws -> Result {
+        // S5's comment mentions 74 reserved bytes, but the parser accepts ANY bounded
+        // remainder after the 6-byte version/status header. No fixed 80-byte claim.
+        try validate(record, minimumBodyBytes: 6)
+        return Result(status: u32(record, 4))
+    }
+
+    /// Exact S5 74-byte command record; always command 2. Codec fixture only: RFBClient
+    /// deliberately never calls this until allowed-mask semantics are independently sourced.
+    /// Reproduce S5's Latin-1 decode -> UTF-8 encode -> 63-byte truncation, including a
+    /// possible split UTF-8 sequence. No credential username or peer name is inferred here.
+    static func virtualCommand(for info: Info) -> [UInt8] {
+        let scalars = info.consoleUserBytes.map { UnicodeScalar(Int($0))! }
+        let encoded = Array(String(String.UnicodeScalarView(scalars)).utf8.prefix(63))
+        return [0, 72, 0, 1, 0, 0, 0, 0, 2, 0]
+            + encoded + Array(repeating: 0, count: 64 - encoded.count)
+    }
+
+    private static func validate(_ record: [UInt8], minimumBodyBytes: Int) throws {
+        guard record.count >= 4 else { throw RFBClient.Failure.invalidSelectionMessage }
+        let bodyBytes = Int(record[0]) << 8 | Int(record[1])
+        guard bodyBytes >= minimumBodyBytes, bodyBytes <= maximumBodyBytes,
+              record.count == bodyBytes + 2, record[2] == 0, record[3] == 1 else {
+            throw RFBClient.Failure.invalidSelectionMessage
+        }
+    }
+
+    private static func u32(_ bytes: [UInt8], _ offset: Int) -> UInt32 {
+        (UInt32(bytes[offset]) << 24) | (UInt32(bytes[offset + 1]) << 16)
+            | (UInt32(bytes[offset + 2]) << 8) | UInt32(bytes[offset + 3])
+    }
 }

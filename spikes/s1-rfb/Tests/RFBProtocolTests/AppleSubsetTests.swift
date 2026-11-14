@@ -1,71 +1,46 @@
 import XCTest
 @testable import RFBProtocol
 
-/// Synthetic transcripts for the Apple security/selection fixture framing.
-///
-/// These are **fixtures, not captures**: no byte here came from a macOS server, and the
-/// selection layout is the package-local framing documented in `AppleSubset.swift`, not
-/// Apple's wire format. The credential block is a mock placeholder — no DH, MD5 or AES
-/// value is produced or checked anywhere in this package.
+/// Synthetic bytes, never captures. S4 auth remains mocked; S5 records use the pinned
+/// client layout. No allowed-command mask here is asserted to mean "virtual permitted".
 enum AppleFixtures {
     static let format: [UInt8] = [32, 24, 0, 1, 0, 255, 0, 255, 0, 255, 16, 8, 0, 0, 0, 0]
     static let banner = Array("RFB 003.889\n".utf8)
-
     static func u16(_ n: Int) -> [UInt8] { [UInt8(n >> 8), UInt8(n & 255)] }
     static func u32(_ n: UInt32) -> [UInt8] {
         [UInt8(n >> 24), UInt8((n >> 16) & 255), UInt8((n >> 8) & 255), UInt8(n & 255)]
     }
-
-    /// Stand-in for S4's "encrypted credential block + client public key".
-    /// MOCK: constant bytes, deliberately not the output of any DH/AES computation.
     static let credential: [UInt8] = Array(repeating: 0xA5, count: 128)
         + Array(repeating: 0x5A, count: 8)
-
     static func challenge(keyLength: Int = 8, generator: Int = 2) -> [UInt8] {
         let modulus = (0..<keyLength).map { UInt8(truncatingIfNeeded: 0x80 + $0) }
         let serverKey = (0..<keyLength).map { UInt8(truncatingIfNeeded: 0x40 + $0) }
         return u16(generator) + u16(keyLength) + modulus + serverKey
     }
-
     static func challengeHeader(keyLength: Int = 8, generator: Int = 2) -> [UInt8] {
         u16(generator) + u16(keyLength)
     }
-
-    static func serverInit(width: Int = 2, height: Int = 2, name: [UInt8] = []) -> [UInt8] {
+    static func metadata(flags: UInt32 = 4, secondMarker: UInt8 = 0) -> [UInt8] {
+        [0, secondMarker] + u32(flags) + Array(0..<16) + [0] + Array("SYNTHETIC".utf8)
+    }
+    static func serverInit(width: Int = 2, height: Int = 2,
+                           name: [UInt8] = metadata()) -> [UInt8] {
         u16(width) + u16(height) + format + u32(UInt32(name.count)) + name
     }
-
-    /// SessionInfo: fixture kind 1, u16 count, then (command, availability) pairs.
-    static func sessionInfo(_ offers: [(UInt8, UInt8)]) -> [UInt8] {
-        [AppleFixtureFraming.sessionInfoKind] + u16(offers.count)
-            + offers.flatMap { [$0.0, $0.1] }
+    static func sessionInfo(mask: UInt32 = 0x12345678, username: [UInt8] = [115, 121, 110, 0],
+                            version: Int = 1) -> [UInt8] {
+        let body = u16(version) + u32(mask) + [0xA1, 0xB2, 0xC3, 0xD4] + username
+        return u16(body.count) + body
     }
-
-    static func sessionResult(_ outcome: UInt8) -> [UInt8] {
-        [AppleFixtureFraming.sessionResultKind, outcome]
+    static func sessionResult(_ status: UInt32, reserved: [UInt8] = Array(repeating: 0, count: 74),
+                              version: Int = 1) -> [UInt8] {
+        let body = u16(version) + u32(status) + reserved
+        return u16(body.count) + body
     }
-
-    /// Everything up to (excluding) SessionInfo: banner, ARD offer, challenge, SecurityResult
-    /// success, ClientInit 0xC1 and the standard ServerInit. A server grants no surface yet.
-    static let prefixSelection = banner + [1, AppleFixtureFraming.ardSecurityType] + challenge()
-        + u32(0) + serverInit()
-
-    /// Full happy path: both commands offered, virtual desktop available, granted.
-    static let grantedTranscript = prefixSelection
-        + sessionInfo([(AppleFixtureFraming.consoleCommand, AppleFixtureFraming.availableState),
-                       (AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.availableState)])
-        + sessionResult(AppleFixtureFraming.outcomeGranted)
-
-    static let grantedEvents: [RFBClient.Event] = [
-        .send(banner),
-        .send([AppleFixtureFraming.ardSecurityType]),
-        .send(credential),
-        .send([AppleFixtureFraming.appleClientInit]),
-        .send([AppleFixtureFraming.sessionInfoChoiceKind,
-               AppleFixtureFraming.virtualDesktopCommand]),
-        .send([0, 0, 0, 0] + format),
-        .send([2, 0, 0, 1, 0, 0, 0, 0]),
-        .initialized(width: 2, height: 2),
+    static let throughClientInit = banner + [1, 30] + challenge() + u32(0)
+    static let prefixSelection = throughClientInit + serverInit()
+    static let prefixEvents: [RFBClient.Event] = [
+        .send(banner), .send([30]), .send(credential), .send([0xC1]),
     ]
 }
 
@@ -251,326 +226,260 @@ final class AppleSubsetTests: XCTestCase {
         }
     }
 
-    // MARK: - Selection framing and the forbidden console fallback
+    // MARK: - Exact S5 codecs, without unproven mask interpretation
 
-    func testGrantedSelectionFullTranscriptAndFragmentation() throws {
-        let bytes = AppleFixtures.grantedTranscript
-        for split in 0...bytes.count {
-            let provider = MockAppleCredentialProvider()
-            var client = client(provider)
-            var events = try client.receive(Array(bytes.prefix(split)))
-            events += try client.receive(Array(bytes.dropFirst(split)))
-            XCTAssertEqual(events, AppleFixtures.grantedEvents, "split \(split)")
-            XCTAssertEqual(client.session, .granted, "split \(split)")
-            XCTAssertEqual(client.phase, .ready, "split \(split)")
-            XCTAssertNil(client.framebuffer, "split \(split)")
-        }
-        let provider = MockAppleCredentialProvider()
-        var bytewise = client(provider)
-        var events: [RFBClient.Event] = []
-        for byte in bytes { events += try bytewise.receive([byte]) }
-        XCTAssertEqual(events, AppleFixtures.grantedEvents)
-        XCTAssertEqual(bytewise.session, .granted)
-        XCTAssertNil(bytewise.framebuffer)
-        try bytewise.finish()
-        XCTAssertEqual(bytewise.phase, .closed)
-        XCTAssertEqual(bytewise.session, .granted)
-        XCTAssertThrowsError(try bytewise.requestFramebufferUpdate()) {
-            XCTAssertEqual($0 as? RFBClient.Failure, .terminal)
-        }
-        // A granted session behaves like the standard ready state: explicit request only.
-        var pixel = client(MockAppleCredentialProvider())
-        _ = try pixel.receive(AppleFixtures.grantedTranscript)
-        XCTAssertEqual(try pixel.requestFramebufferUpdate(), [3, 0, 0, 0, 0, 0, 0, 2, 0, 2])
-        XCTAssertThrowsError(try pixel.requestFramebufferUpdate()) {
-            XCTAssertEqual($0 as? RFBClient.Failure, .invalidState)
-        }
-        _ = try pixel.receive([0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0]
-            + Array(0..<16))
-        XCTAssertEqual(pixel.framebuffer, Array(0..<16))
+    func testGoldenSessionInfoAndVirtualCommandBytes() throws {
+        // Independent literal: body 14, version 1, opaque mask/reserved, "syn\0".
+        let literal: [UInt8] = [0, 14, 0, 1, 0x12, 0x34, 0x56, 0x78,
+                                0xA1, 0xB2, 0xC3, 0xD4, 115, 121, 110, 0]
+        XCTAssertEqual(AppleFixtures.sessionInfo(), literal)
+        let info = try AppleSessionRecordCodec.info(literal)
+        XCTAssertEqual(info.allowedCommands, 0x12345678)
+        XCTAssertEqual(info.consoleUserBytes, [115, 121, 110])
+        let command = AppleSessionRecordCodec.virtualCommand(for: info)
+        XCTAssertEqual(command, [0, 72, 0, 1, 0, 0, 0, 0, 2, 0, 115, 121, 110]
+                       + Array(repeating: 0, count: 61))
+        XCTAssertEqual(command.count, 74)
+        // This encoder has no argument permitting a console command (0 or 1).
+        XCTAssertEqual(command[8], 2)
     }
 
-    func testConsoleOnlyOfferIsNeverSelected() throws {
-        var client = try preSelection()
-        // Only the host console is offered. There is no API to ask for it, and no fallback.
-        assertFailure(.consoleFallbackForbidden, client: &client, bytes: AppleFixtures.sessionInfo([
-            (AppleFixtureFraming.consoleCommand, AppleFixtureFraming.availableState),
-        ]))
-        XCTAssertEqual(client.session, .consoleOnly)
-    }
-
-    func testSessionInfoClassificationIsIndependentOfCommandAndAvailability() throws {
-        // Cartesian product of (command 1/2) × (available/unavailable). Neither the console
-        // command nor an unavailable entry may be classified as "console offer"; only an
-        // *available* console is a console-only offer, and an unavailable virtual desktop is
-        // always `unavailable` — never the console.
-        let console = AppleFixtureFraming.consoleCommand
-        let virtual = AppleFixtureFraming.virtualDesktopCommand
-        let up = AppleFixtureFraming.availableState
-        let down = AppleFixtureFraming.unavailableState
-        let consoleOnly: RFBClient.Failure? = .consoleFallbackForbidden
-        let unavailable: RFBClient.Failure? = .sessionUnavailable
-        let singles: [(String, (UInt8, UInt8), AppleSession, RFBClient.Failure?)] = [
-            ("console/available", (console, up), .consoleOnly, consoleOnly),
-            ("console/unavailable", (console, down), .unavailable, unavailable),
-            ("virtual/available", (virtual, up), .virtualReady, nil),
-            ("virtual/unavailable", (virtual, down), .unavailable, unavailable),
-        ]
-        for (label, offer, expectedSession, expectedFailure) in singles {
-            var client = try preSelection()
-            if let expectedFailure {
-                assertFailure(expectedFailure, client: &client,
-                              bytes: AppleFixtures.sessionInfo([offer]))
-            } else {
-                XCTAssertEqual(try client.receive(AppleFixtures.sessionInfo([offer])),
-                               [.send([AppleFixtureFraming.sessionInfoChoiceKind, virtual])], label)
-                XCTAssertNil(client.failure, label)
-                XCTAssertEqual(client.phase, .session, label)
-            }
-            XCTAssertEqual(client.session, expectedSession, label)
-        }
-        // Both commands present, in both wire orders: `consoleOnly` must not appear unless the
-        // console really is available and the virtual desktop really is absent.
-        let pairs: [(String, [(UInt8, UInt8)], AppleSession, RFBClient.Failure?)] = [
-            ("console up, virtual up", [(console, up), (virtual, up)], .virtualReady, nil),
-            ("virtual up, console up", [(virtual, up), (console, up)], .virtualReady, nil),
-            ("console down, virtual up", [(console, down), (virtual, up)], .virtualReady, nil),
-            ("console up, virtual down", [(console, up), (virtual, down)], .unavailable, unavailable),
-            ("virtual down, console up", [(virtual, down), (console, up)], .unavailable, unavailable),
-            ("console down, virtual down", [(console, down), (virtual, down)], .unavailable,
-             unavailable),
-        ]
-        for (label, offers, expectedSession, expectedFailure) in pairs {
-            var client = try preSelection()
-            if let expectedFailure {
-                assertFailure(expectedFailure, client: &client,
-                              bytes: AppleFixtures.sessionInfo(offers))
-            } else {
-                XCTAssertEqual(try client.receive(AppleFixtures.sessionInfo(offers)),
-                               [.send([AppleFixtureFraming.sessionInfoChoiceKind, virtual])], label)
-                XCTAssertNil(client.failure, label)
-            }
-            XCTAssertEqual(client.session, expectedSession, label)
-        }
-    }
-
-    func testUnavailableVirtualDesktopIsTerminalNotConsole() throws {
-        for offers: [(UInt8, UInt8)] in [
-            [(AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.unavailableState)],
-            [(AppleFixtureFraming.consoleCommand, AppleFixtureFraming.availableState),
-             (AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.unavailableState)],
+    func testUsernameConversionMatchesPinnedClientIncludingByteTruncation() throws {
+        for (input, expected): ([UInt8], [UInt8]) in [
+            ([], []), ([0, 65], []), ([65, 0, 66], [65]), ([65, 66], [65, 66]),
+            ([0xE9, 0xFF, 0], [0xC3, 0xA9, 0xC3, 0xBF]),
+            (Array(repeating: 65, count: 64), Array(repeating: 65, count: 63)),
+            (Array(repeating: 65, count: 62) + [0xE9], Array(repeating: 65, count: 62) + [0xC3]),
         ] {
+            let info = try AppleSessionRecordCodec.info(AppleFixtures.sessionInfo(username: input))
+            let command = AppleSessionRecordCodec.virtualCommand(for: info)
+            XCTAssertEqual(Array(command[10..<74]), expected + Array(repeating: 0, count: 64 - expected.count))
+            XCTAssertEqual(command.count, 74)
+            XCTAssertEqual(command[73], 0)
+        }
+    }
+
+    func testExtendedMetadataLayoutAndOpaqueBitmap() throws {
+        for marker: UInt8 in [0, 1, 255] {
+            let parsed = try AppleSessionRecordCodec.serverMetadata(
+                AppleFixtures.metadata(flags: 7, secondMarker: marker))
+            XCTAssertEqual(parsed.flags, 7)
+            XCTAssertEqual(parsed.capabilityBitmap, Array(0..<16))
+        }
+        let minimum: [UInt8] = [0, 255, 0, 0, 0, 4] + Array(repeating: 255, count: 16)
+        XCTAssertEqual(try AppleSessionRecordCodec.serverMetadata(minimum).flags, 4)
+        XCTAssertEqual(try AppleSessionRecordCodec.serverMetadata(
+            minimum + Array(repeating: 65, count: 4074)).flags, 4)
+        XCTAssertThrowsError(try AppleSessionRecordCodec.serverMetadata(
+            minimum + Array(repeating: 65, count: 4075)))
+        for size in 0..<22 {
+            XCTAssertThrowsError(try AppleSessionRecordCodec.serverMetadata(Array(minimum.prefix(size))))
+        }
+        var wrong = minimum; wrong[0] = 1
+        XCTAssertThrowsError(try AppleSessionRecordCodec.serverMetadata(wrong))
+        for flag: UInt32 in [16, 0x100, 0x10000, 0x80000000, .max] {
+            XCTAssertThrowsError(try AppleSessionRecordCodec.serverMetadata(AppleFixtures.metadata(flags: flag)))
+        }
+    }
+
+    func testResultStatusesAndVariableReservedLength() throws {
+        for status in Array(UInt32(0)...255) + [0x12345678, UInt32.max] {
+            for count in [0, 1, 74, 4090] {
+                let bytes = AppleFixtures.sessionResult(status, reserved: Array(repeating: 0xFE, count: count))
+                let result = try AppleSessionRecordCodec.result(bytes)
+                XCTAssertEqual(result.status, status)
+                let expected: AppleSessionRecordCodec.Outcome = [0, 4].contains(status) ? .granted
+                    : [2, 3].contains(status) ? .pending : .denied
+                XCTAssertEqual(result.outcome, expected)
+            }
+        }
+        // Minimal literal, independent of the fixture generator: body=6/version=1/status=4.
+        XCTAssertEqual(try AppleSessionRecordCodec.result([0, 6, 0, 1, 0, 0, 0, 4]).outcome, .granted)
+    }
+
+    func testRecordLengthsVersionsTruncationAndTrailingBytesAreStrict() throws {
+        let cases: [(Int, [UInt8], ([UInt8]) throws -> Void)] = [
+            (10, AppleFixtures.sessionInfo(), { _ = try AppleSessionRecordCodec.info($0) }),
+            (6, AppleFixtures.sessionResult(0), { _ = try AppleSessionRecordCodec.result($0) }),
+        ]
+        for (minimum, good, parse) in cases {
+            for count in 0..<good.count { XCTAssertThrowsError(try parse(Array(good.prefix(count)))) }
+            XCTAssertThrowsError(try parse(good + [0]))
+            for size in Array(0..<minimum) + [4097, 65535] {
+                XCTAssertThrowsError(try parse(AppleFixtures.u16(size) + Array(good.dropFirst(2))))
+            }
+            for version in [0, 2, 255, 256, 65535] {
+                var wrong = good; wrong.replaceSubrange(2..<4, with: AppleFixtures.u16(version))
+                XCTAssertThrowsError(try parse(wrong))
+            }
+        }
+        let maximum = AppleFixtures.sessionInfo(username: Array(repeating: 65, count: 4086))
+        XCTAssertEqual(maximum.count, 4098)
+        XCTAssertEqual(try AppleSessionRecordCodec.info(maximum).consoleUserBytes.count, 4086)
+        XCTAssertEqual(AppleSessionRecordCodec.virtualCommand(for: try AppleSessionRecordCodec.info(maximum)).count, 74)
+        XCTAssertThrowsError(try AppleSessionRecordCodec.info(
+            AppleFixtures.sessionInfo(username: Array(repeating: 65, count: 4087))))
+        XCTAssertThrowsError(try AppleSessionRecordCodec.result(
+            AppleFixtures.sessionResult(0, reserved: Array(repeating: 0, count: 4091))))
+    }
+
+    // MARK: - Integrated source-backed input, conservative policy refusal
+
+    func testNoAllowedMaskCanAuthorizeSelectionWithoutReviewedVirtualPolicy() throws {
+        for mask in [UInt32(0), 3, 6, 7, .max] + (0..<32).map({ UInt32(1) << $0 }) {
             var client = try preSelection()
+            assertFailure(.unverifiedSelectionPolicy, client: &client,
+                          bytes: AppleFixtures.sessionInfo(mask: mask))
+            XCTAssertEqual(client.session, .unverified)
+            XCTAssertThrowsError(try client.requestFramebufferUpdate())
+        }
+    }
+
+    func testUpstreamPreferenceBranchesCannotBypassRefusalWithCoalescedGrant() throws {
+        // S5 session-select.js distinguishes an empty console user and tests the console
+        // bit; its virtual preference skips the mask entirely. Neither branch authorizes
+        // our client, even if a synthetically granted result is already buffered.
+        for username: [UInt8] in [[], [0], Array("syn".utf8)] {
+            for mask: UInt32 in [0, 2, 4, 6, .max] {
+                for status: UInt32 in [0, 4] {
+                    let transcript = AppleFixtures.prefixSelection
+                        + AppleFixtures.sessionInfo(mask: mask, username: username)
+                        + AppleFixtures.sessionResult(status)
+                    for split in 0...transcript.count {
+                        var client = client()
+                        var events: [RFBClient.Event] = []
+                        XCTAssertThrowsError(try {
+                            events += try client.receive(Array(transcript.prefix(split)))
+                            events += try client.receive(Array(transcript.dropFirst(split)))
+                        }()) {
+                            XCTAssertEqual($0 as? RFBClient.Failure, .unverifiedSelectionPolicy)
+                        }
+                        XCTAssertTrue(events.allSatisfy { AppleFixtures.prefixEvents.contains($0) })
+                        XCTAssertEqual(client.session, .unverified)
+                        XCTAssertEqual(client.phase, .failed)
+                        XCTAssertEqual(client.bufferedByteCount, 0)
+                        XCTAssertNil(client.framebuffer)
+                    }
+                }
+            }
+        }
+    }
+
+    func testS5InputAtEverySplitAndBytewiseStopsBeforeChoice() throws {
+        let prefix = AppleFixtures.prefixSelection
+        for split in 0...prefix.count {
+            var client = client()
+            var events = try client.receive(Array(prefix.prefix(split)))
+            events += try client.receive(Array(prefix.dropFirst(split)))
+            XCTAssertEqual(events, AppleFixtures.prefixEvents)
+            XCTAssertEqual(client.phase, .session)
+            XCTAssertEqual(client.session, .notOffered)
+        }
+        let info = AppleFixtures.sessionInfo()
+        for split in 0..<info.count {
+            var client = try preSelection()
+            XCTAssertEqual(try client.receive(Array(info.prefix(split))), [])
+            XCTAssertNil(client.framebuffer)
+            assertFailure(.unverifiedSelectionPolicy, client: &client, bytes: Array(info.dropFirst(split)))
+        }
+        var bytewise = client()
+        var events: [RFBClient.Event] = []
+        for byte in prefix + info.dropLast() { events += try bytewise.receive([byte]) }
+        XCTAssertEqual(events, AppleFixtures.prefixEvents)
+        assertFailure(.unverifiedSelectionPolicy, client: &bytewise, bytes: [info.last!])
+        XCTAssertEqual(bytewise.session, .unverified)
+    }
+
+    func testInvalidInfoLengthIsRejectedBeforeBodyAndBadVersionsNeverChoose() throws {
+        for length in Array(0..<10) + [4097, 65535] {
+            var client = try preSelection()
+            assertFailure(.invalidSelectionMessage, client: &client, bytes: AppleFixtures.u16(length))
+            XCTAssertEqual(client.session, .notOffered)
+        }
+        for version in [0, 2, 65535] {
+            var client = try preSelection()
+            assertFailure(.invalidSelectionMessage, client: &client,
+                          bytes: AppleFixtures.sessionInfo(version: version))
+        }
+        var maximum = try preSelection()
+        assertFailure(.unverifiedSelectionPolicy, client: &maximum,
+                      bytes: AppleFixtures.sessionInfo(username: Array(repeating: 65, count: 4086)))
+    }
+
+    func testMissingOrForbiddenSelectionCapabilityNeverInitializes() throws {
+        for flags: UInt32 in [0, 1, 2, 3, 8, 12, 15] {
+            var client = client()
+            _ = try client.receive(AppleFixtures.throughClientInit)
             assertFailure(.sessionUnavailable, client: &client,
-                          bytes: AppleFixtures.sessionInfo(offers))
+                          bytes: AppleFixtures.serverInit(name: AppleFixtures.metadata(flags: flags)))
             XCTAssertEqual(client.session, .unavailable)
         }
-        // An empty offer offers nothing at all.
-        var empty = try preSelection()
-        assertFailure(.invalidSelectionMessage, client: &empty,
-                      bytes: [AppleFixtureFraming.sessionInfoKind, 0, 0])
+        for name: [UInt8] in [[], Array("SYNTHETIC".utf8), Array(repeating: 0, count: 21),
+                             AppleFixtures.metadata(flags: 0x10)] {
+            var client = client()
+            _ = try client.receive(AppleFixtures.throughClientInit)
+            assertFailure(.invalidSelectionMessage, client: &client,
+                          bytes: AppleFixtures.serverInit(name: name))
+        }
     }
 
-    func testSessionDeniedIsTerminal() throws {
-        var client = try preSelection()
-        let choice = AppleFixtures.sessionInfo([
-            (AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.availableState)])
-        XCTAssertEqual(try client.receive(choice),
-                       [.send([AppleFixtureFraming.sessionInfoChoiceKind,
-                               AppleFixtureFraming.virtualDesktopCommand])])
-        XCTAssertEqual(client.phase, .session)
-        assertFailure(.sessionDenied, client: &client,
-                      bytes: AppleFixtures.sessionResult(AppleFixtureFraming.outcomeDenied))
-        XCTAssertEqual(client.session, .denied)
-    }
-
-    func testPendingSelectionWaitsForResultAndDeadline() throws {
-        let offers = AppleFixtures.sessionInfo([
-            (AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.availableState)])
-        var client = try preSelection()
-        _ = try client.receive(offers + AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending))
-        XCTAssertEqual(client.phase, .sessionPending)
-        XCTAssertEqual(client.session, .pending)
-        // Pending is not ready: no pixel request and no unsolicited publication.
+    func testNoSurfaceBeforeOrAfterUnverifiedPolicyAndNoResultSmuggling() throws {
+        var client = client()
+        XCTAssertEqual(try client.receive(AppleFixtures.prefixSelection), AppleFixtures.prefixEvents)
         XCTAssertThrowsError(try client.requestFramebufferUpdate()) {
             XCTAssertEqual($0 as? RFBClient.Failure, .invalidState)
         }
+        // Even an apparent grant concatenated to the unverified offer cannot initialize.
+        assertFailure(.unverifiedSelectionPolicy, client: &client,
+                      bytes: AppleFixtures.sessionInfo() + AppleFixtures.sessionResult(0) + [2])
         XCTAssertNil(client.framebuffer)
-        XCTAssertEqual(try client.receive([]), [])
-        XCTAssertEqual(try client.receive(AppleFixtures.sessionResult(AppleFixtureFraming.outcomeGranted)),
-                       [.send([0, 0, 0, 0] + AppleFixtures.format),
-                        .send([2, 0, 0, 1, 0, 0, 0, 0]),
-                        .initialized(width: 2, height: 2)])
-        XCTAssertEqual(client.session, .granted)
-
-        // A pending state whose result never arrives is a transport deadline, not a retry.
-        var stalled = try preSelection()
-        _ = try stalled.receive(offers + AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending))
-        stalled.expire()
-        XCTAssertEqual(stalled.failure, .deadlineExceeded)
-        XCTAssertEqual(stalled.phase, .failed)
-        XCTAssertEqual(stalled.session, .pending)
-
-        // Denial after pending is equally terminal.
-        var denied = try preSelection()
-        _ = try denied.receive(offers + AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending))
-        assertFailure(.sessionDenied, client: &denied,
-                      bytes: AppleFixtures.sessionResult(AppleFixtureFraming.outcomeDenied))
-        XCTAssertEqual(denied.session, .denied)
-
-        // Anything other than a SessionResult while pending is a deterministic refusal.
-        var unexpected = try preSelection()
-        _ = try unexpected.receive(offers + AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending))
-        assertFailure(.invalidSelectionMessage, client: &unexpected, bytes: [0, 0])
+        // Old package-local kind/count records cannot grant anything through the new parser.
+        var old = try preSelection()
+        _ = try old.receive([1, 0, 1, 2, 1, 3, 0])
+        XCTAssertThrowsError(try old.finish())
+        XCTAssertNil(old.framebuffer)
     }
 
-    func testPendingSessionResultConsumesTheServerMessageBudget() throws {
-        // The pending branch must charge the shared server-message budget, otherwise a peer can
-        // keep the parser in `sessionPending` forever without any other message being counted.
-        let offers = AppleFixtures.sessionInfo([
-            (AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.availableState)])
-        let pending = AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending)
-        var client = try preSelection()
-        _ = try client.receive(offers + pending)
-        XCTAssertEqual(client.session, .pending)
-        XCTAssertEqual(client.phase, .sessionPending)
-        // One message is already charged; the remaining budget is served one message per call.
-        for _ in 0..<(RFBClient.Limits.serverMessages - 1) {
-            XCTAssertEqual(try client.receive(pending), [])
-            XCTAssertEqual(client.phase, .sessionPending)
-        }
-        XCTAssertEqual(client.session, .pending)
-        // The next SessionResult exceeds `messages < Limits.serverMessages` and is terminal.
-        assertFailure(.resourceLimit, client: &client, bytes: pending)
-        XCTAssertEqual(client.session, .pending)
-        XCTAssertNil(client.framebuffer)
-    }
-
-    func testExhaustedSelectionBudgetCannotBeBypassedByGrantOrDenial() throws {
-        let offers = AppleFixtures.sessionInfo([(2, 1)])
-        let pending = AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending)
-        for outcome in [AppleFixtureFraming.outcomeGranted, AppleFixtureFraming.outcomeDenied,
-                        AppleFixtureFraming.outcomePending] {
-            var client = try preSelection()
-            _ = try client.receive(offers)
-            for _ in 0..<RFBClient.Limits.serverMessages { _ = try client.receive(pending) }
-            assertFailure(.resourceLimit, client: &client, bytes: AppleFixtures.sessionResult(outcome))
-            XCTAssertEqual(client.session, .pending)
-        }
-    }
-
-    func testGrantedResultConsumesTheSameBudgetAsReadyMessages() throws {
-        var client = try preSelection()
-        _ = try client.receive(AppleFixtures.sessionInfo([(2, 1)]))
-        for _ in 0..<(RFBClient.Limits.serverMessages - 1) {
-            _ = try client.receive(AppleFixtures.sessionResult(AppleFixtureFraming.outcomePending))
-        }
-        _ = try client.receive(AppleFixtures.sessionResult(AppleFixtureFraming.outcomeGranted))
-        XCTAssertEqual(client.phase, .ready)
-        XCTAssertEqual(client.session, .granted)
-        assertFailure(.resourceLimit, client: &client, bytes: [2]) // Bell exceeds the shared budget.
-    }
-
-    func testUnknownSelectionKindsCommandsAndStatesAreRejected() throws {
-        let good = (AppleFixtureFraming.virtualDesktopCommand, AppleFixtureFraming.availableState)
-        let badMessages: [(String, [UInt8])] = [
-            ("SessionInfo kind 0", [0, 0, 1, good.0, good.1]),
-            ("SessionInfo kind 2", [2, 0, 1, good.0, good.1]),
-            ("SessionInfo kind 4", [4, 0, 1, good.0, good.1]),
-            ("SessionResult as SessionInfo", [3, 0, 0]),
-            ("count above limit", [AppleFixtureFraming.sessionInfoKind, 0,
-                                   UInt8(RFBClient.Limits.appleSessionChoices + 1)]),
-            ("unknown command", [AppleFixtureFraming.sessionInfoKind, 0, 1, 3, 1]),
-            ("console command 0", [AppleFixtureFraming.sessionInfoKind, 0, 1, 0, 1]),
-            ("availability 2", [AppleFixtureFraming.sessionInfoKind, 0, 1, good.0, 2]),
-            ("duplicate virtual", [AppleFixtureFraming.sessionInfoKind, 0, 2,
-                                   good.0, good.1, good.0, good.1]),
-            ("duplicate console", [AppleFixtureFraming.sessionInfoKind, 0, 2,
-                                   1, 1, 1, 1]),
-        ]
-        for (label, bytes) in badMessages {
-            var client = try preSelection()
-            assertFailure(.invalidSelectionMessage, client: &client, bytes: bytes)
-            XCTAssertEqual(client.session, .notOffered, label)
-        }
-        // The SessionResult message itself is also strictly validated.
-        var wrongKind = try preSelection()
-        _ = try wrongKind.receive(AppleFixtures.sessionInfo([good]))
-        assertFailure(.invalidSelectionMessage, client: &wrongKind,
-                      bytes: [1, AppleFixtureFraming.outcomeGranted])
-        var wrongOutcome = try preSelection()
-        _ = try wrongOutcome.receive(AppleFixtures.sessionInfo([good]))
-        assertFailure(.invalidSelectionMessage, client: &wrongOutcome,
-                      bytes: AppleFixtures.sessionResult(3))
-    }
-
-    func testNoPixelFormatOrSurfaceBeforeGrantedSelection() throws {
-        var client = try preSelection()
-        XCTAssertEqual(client.phase, .session)
-        // ServerInit alone grants nothing: no SetPixelFormat, no SetEncodings, no initialized.
-        XCTAssertThrowsError(try client.requestFramebufferUpdate()) {
-            XCTAssertEqual($0 as? RFBClient.Failure, .invalidState)
-        }
-        // A framebuffer update cannot be smuggled in where SessionInfo belongs.
-        assertFailure(.invalidSelectionMessage, client: &client, bytes: [0, 0, 1, 1, 0, 0, 0, 0])
-    }
-
-    func testServerInitValidationIsUnchangedInTheApplePath() throws {
-        func throughClientInit() -> [UInt8] {
-            AppleFixtures.banner + [1, AppleFixtureFraming.ardSecurityType]
-                + AppleFixtures.challenge() + AppleFixtures.u32(0)
-        }
-        var dimensions = RFBClient(authenticationPolicy: .syntheticAppleSubset,
-                                   appleCredentialProvider: MockAppleCredentialProvider())
-        _ = try dimensions.receive(throughClientInit())
-        assertFailure(.invalidDimensions, client: &dimensions,
-                      bytes: AppleFixtures.u16(0) + AppleFixtures.u16(2)
-                          + AppleFixtures.format + AppleFixtures.u32(0))
-        var formatClient = RFBClient(authenticationPolicy: .syntheticAppleSubset,
-                                     appleCredentialProvider: MockAppleCredentialProvider())
-        _ = try formatClient.receive(throughClientInit())
-        var badFormat = AppleFixtures.serverInit()
-        badFormat[4] ^= 1
-        assertFailure(.unsupportedPixelFormat, client: &formatClient, bytes: badFormat)
-    }
-
-    // MARK: - Truncation, budgets and the deterministic corpus
-
-    func testEOFAtEveryAppleBoundaryFailsClosed() throws {
-        let transcript = AppleFixtures.grantedTranscript
+    func testEOFCancelAndDeadlineAtEveryIncompleteS5Boundary() throws {
+        let transcript = AppleFixtures.prefixSelection + AppleFixtures.sessionInfo()
         for count in 0..<transcript.count {
             var client = client()
             _ = try client.receive(Array(transcript.prefix(count)))
             XCTAssertThrowsError(try client.finish()) {
                 XCTAssertEqual($0 as? RFBClient.Failure, .truncated, "prefix \(count)")
             }
-            XCTAssertEqual(client.phase, .failed, "prefix \(count)")
-            XCTAssertNil(client.framebuffer, "prefix \(count)")
+            XCTAssertEqual(client.phase, .failed)
+            XCTAssertNil(client.framebuffer)
+            XCTAssertEqual(client.bufferedByteCount, 0)
         }
-        // Clean EOF only after a granted, idle session.
-        var complete = client()
-        _ = try complete.receive(transcript)
-        try complete.finish()
-        XCTAssertEqual(complete.phase, .closed)
+        var timeout = try preSelection()
+        _ = try timeout.receive([0, 14, 0, 1])
+        timeout.expire()
+        XCTAssertEqual(timeout.failure, .deadlineExceeded)
+        XCTAssertEqual(timeout.bufferedByteCount, 0)
+        var cancelled = try preSelection()
+        cancelled.cancel()
+        XCTAssertEqual(cancelled.phase, .closed)
+        XCTAssertThrowsError(try cancelled.receive(AppleFixtures.sessionInfo()))
     }
 
-    func testAppleChunkAndCredentialBudgets() throws {
+    func testServerInitDimensionAndPixelChecksRemainStrict() throws {
+        var dimensions = client()
+        _ = try dimensions.receive(AppleFixtures.throughClientInit)
+        assertFailure(.invalidDimensions, client: &dimensions, bytes: AppleFixtures.serverInit(width: 0))
+        var format = client()
+        _ = try format.receive(AppleFixtures.throughClientInit)
+        var wrong = AppleFixtures.serverInit(); wrong[4] ^= 1
+        assertFailure(.unsupportedPixelFormat, client: &format, bytes: wrong)
+    }
+
+    func testAppleChunkBudgetAndDeterministicCorpusNeverGrant() throws {
         var oversized = client()
         assertFailure(.resourceLimit, client: &oversized,
                       bytes: Array(repeating: 0, count: RFBClient.Limits.chunkBytes + 1))
-        // A budget-sized blob is still invalid if it does not match the negotiated record.
-        var bounded = client(MockAppleCredentialProvider(
-            response: Array(repeating: 1, count: RFBClient.Limits.appleCredentialBytes)))
-        _ = try bounded.receive(AppleFixtures.banner + [1, AppleFixtureFraming.ardSecurityType])
-        assertFailure(.invalidAppleCredentialResponse, client: &bounded, bytes: AppleFixtures.challenge())
-    }
-
-    func testDeterministicAppleCorpusStaysBounded() throws {
-        // 500 deterministic single-byte mutations of the granted transcript. A regression
-        // corpus, not a fuzzing-coverage or security-audit claim.
-        var seed: UInt64 = 0xa3_2026_1103_a3
-        let baseline = AppleFixtures.grantedTranscript
-        for _ in 0..<500 {
+        var seed: UInt64 = 0xa3_2026_1114_a3
+        let baseline = AppleFixtures.prefixSelection + AppleFixtures.sessionInfo()
+        for _ in 0..<1000 {
             seed = seed &* 6364136223846793005 &+ 1
             var mutated = baseline
             mutated[Int(seed % UInt64(mutated.count))] = UInt8(truncatingIfNeeded: seed >> 24)
@@ -579,20 +488,13 @@ final class AppleSubsetTests: XCTestCase {
             do {
                 for byte in mutated { sent += try client.receive([byte]) }
                 try client.finish()
+                XCTFail("No Apple transcript may reach a clean, granted state")
             } catch { XCTAssertTrue(error is RFBClient.Failure) }
-            // Tightened oracle: a terminal state that agrees with `failure`, an empty buffer, and
-            // no forbidden console choice. `closed` is only reachable through a granted
-            // selection, so a clean close without `granted` is a defect, not a tolerated outcome.
-            XCTAssertTrue(client.phase == .closed || client.phase == .failed)
-            XCTAssertEqual(client.failure == nil, client.phase == .closed)
-            XCTAssertEqual(client.session == .granted, client.phase == .closed)
+            XCTAssertEqual(client.phase, .failed)
+            XCTAssertNotNil(client.failure)
             XCTAssertEqual(client.bufferedByteCount, 0)
-            // No forbidden console choice is ever emitted, even for a mutation that leaves only
-            // the console on offer.
-            for event in sent {
-                XCTAssertNotEqual(event, .send([AppleFixtureFraming.sessionInfoChoiceKind,
-                                                AppleFixtureFraming.consoleCommand]))
-            }
+            XCTAssertNil(client.framebuffer)
+            for event in sent { XCTAssertTrue(AppleFixtures.prefixEvents.contains(event)) }
         }
     }
 }
