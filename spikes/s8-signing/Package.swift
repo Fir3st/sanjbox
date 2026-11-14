@@ -4,12 +4,14 @@ import PackageDescription
 let package = Package(
     name: "S8SigningPreparation",
     platforms: [.macOS(.v15)],
-    products: [.executable(name: "s8-probe", targets: ["s8-probe"])] +
+    products: [.executable(name: "s8-probe", targets: ["s8-probe"]),
+               .executable(name: "s8-xpc-identity-fixture", targets: ["s8-xpc-identity-fixture"])] +
         ["S8ServiceHost", "S8LoginItem", "S8LaunchAgent", "S8LaunchDaemon"].map { .executable(name: $0, targets: [$0]) },
     dependencies: [.package(path: "../common"), .package(path: "../../proto/contracts")],
     targets: [
         .target(name: "S8Preparation", dependencies: [.product(name: "SanjboxProbeKit", package: "common"), .product(name: "SanjboxContracts", package: "contracts")]),
         .executableTarget(name: "s8-probe", dependencies: ["S8Preparation", .product(name: "SanjboxProbeKit", package: "common")]),
+        .executableTarget(name: "s8-xpc-identity-fixture", dependencies: ["S8Preparation"]),
         .testTarget(name: "S8PreparationTests", dependencies: ["S8Preparation"]),
     ] + ["S8ServiceHost", "S8LoginItem", "S8LaunchAgent", "S8LaunchDaemon"].map {
         .executableTarget(name: $0, dependencies: ["S8Preparation", .product(name: "SanjboxProbeKit", package: "common")])

@@ -599,3 +599,182 @@ continuity a bezpečný cleanup přes UI/login/reboot, kalibrovaný SG-06 positi
 skutečné podpisy a A7/L2 patří uživateli po S1 a přezkoumaném cleanup. A3 pokračuje povoleným
 reviewovaným type-30 DH backendem/providerem s nezávislými syntetickými KATs a serverovou/session
 identitou. Ani jedna dílčí implementace neuzavírá balík nebo laboratorní bránu.
+
+
+### Native XPC message identity continuation — 2026-11-14
+
+Base `main` **`98a80af368bdc941a072a9496ef50f1666dc3211`** (merged #82), branch
+`codex/wp1-a6-native-authority-next`; **janfiedler / Codex + Astra** authorship and
+explicit continuing-implementer handoff preserved. Scope and reproducible fixture
+steps: [NATIVE-XPC-IDENTITY](NATIVE-XPC-IDENTITY.md). Prior evidence is unchanged.
+Environment: arm64, **macOS 27.2.1 / 26B131**, Swift **6.4.2**, Xcode macOS 27.2 SDK.
+
+- Full S8 Swift suite: **79/79 Debug + 79/79 Release**, including four new native
+  policy/provenance unit tests and all 75 existing tests. Isolated scratch/cache/
+  module paths, `--build-system native --disable-sandbox`; native-backend deprecation
+  is still reported. Unit tests do not claim a hardened live sender.
+- Separate freshly copied, hardened ad-hoc/empty-entitlement executables: **8/8
+  actual anonymous-XPC controls per configuration**. OS message audit-token code
+  lookup and exact pin succeed; wrong live pin/UID/GID/session and forged local
+  dictionary refuse. Matched transport requirements pass and a wrong reply code
+  requirement produces the exact native error object, not a timeout-based pass.
+  External driver pins the sealed executable's CDHash before launch. All peers are
+  inside one owned process; no cross-process or cross-session result is claimed.
+- **5/5 CLI controls per configuration**: default/explicit plan, malformed pin,
+  wrong UID, wrong externally supplied pin. The latter proves that the fixture
+  does not silently replace policy with its own signature. After a diagnostic-only
+  fixture refinement, both products were rebuilt and all 8+5 controls rerun; the
+  adapter and unit-test sources did not change after the full-suite runs.
+- S8 Python tests: **60/60**, no failures/skips. `tools/progress.py --history-ref HEAD`
+  and `git diff --check` pass: **27/63** packages, **0/155** passed acceptance cases;
+  COVERAGE changes only the A6 row, keeping it partial. No shared contract changes.
+
+Logs, driver scripts and source/artifact hashes are in
+`/private/tmp/a6-xpc-native-stage/`: `tests-{debug,release}-final.log`,
+`native-{debug,release}-review.stdout`, `cli-controls-review.json`,
+`python-spike.log`, `review-summary.json`. Adapter SHA-256 is
+`5d0a258e981a40bb57797525e9e271491a178050d8d2fc019cbfcaa5756a61ad`;
+fixture source is `20dfb001cf276f5e49f8b0206471d817e13d7624d178d9689d9bc16ee290c496`.
+Current public SDK header hashes: `Security/SecCode.h`
+`293ccef2de6c872a4f5a4862a74bf96a9ade0f897f898813cd33e8e1d00459c4`,
+`xpc/connection.h` `fee99c719a44ff57f5f3bd9e3e2d2b5518d093a476c0df9d4fbcc6a358750d51`.
+
+**Preserved failures:** the first build lacked the manifest module-cache override;
+initial compile errors exposed Swift's required static-code conversion and signed
+ASID type, then were corrected. In the sandbox, 16 existing native journal tests
+refused unavailable own process/boot identity, and the first optional XPC transport
+requirement positive control timed out. Its unchanged binary passed outside that
+sandbox; the final native runs and full suites used the needed local XPC/read-only
+process permissions. Original `tests-debug-first.log` and `native-debug-first.stdout`
+remain failures, not acceptance evidence. A non-Sendable peer capture in the fixture
+was removed by obtaining the reply connection locally from the received message;
+final builds have no such warning.
+
+The fixture cancels its anonymous connections/listener and drains the queue; its
+process is bounded by an alarm and the external driver's timeout, and reaped by
+that driver. Existing tests remove only their owned synthetic files/children.
+The isolated build artifacts and logs are temporarily retained for independent
+review; they contain no registration state. **No ServiceManagement API, service
+executable/UI/daemon, named Mach registration, signing identity/Keychain, admin
+approval, attach/TCC, login/reboot or system change was performed.**
+
+This is a native code-identity prerequisite, **not trusted host/admin authorization**:
+policy provisioning remains untrusted/unimplemented, connection credentials are
+establishment-time values, and right transfer/credential drift/PID-reuse or separate
+processes have not been calibrated. The observation always denies mutation authority;
+service host, daemon, journal and post-handoff cleanup behavior are unchanged.
+**A6 remains partial; S8/SG-01…11 and all laboratory gates remain Neověřeno.**
+
+
+### Native XPC preflight watchdog review fix — 2026-11-14
+
+Independent review of **`2e9871a338c4efde113594bc429462331751e92d`** found a P3
+fixture deadline gap: `selfSignatureIssues()` ran before the 20-second alarm, so
+its first synchronous Security call was outside the advertised bound. The alarm
+is now armed after argument validation and **before identity/signing preflight**,
+and remains active through later XPC/Security calls and connection queue cleanup.
+The existing cancellation defer retains the same scope; no new service or action
+path is introduced. The handoff now states this precise scope.
+
+A focused compiled fault-injection regression used the actual original and fixed
+CLI preflight blocks. Only the signature-inspection function was replaced with a
+blocking synthetic stub, and the alarm duration was reduced from 20 to one second
+for this bounded test. The old source entered that stub and exceeded the three-second
+external deadline, requiring the driver to kill/reap it; the fixed source entered
+the same stub and terminated via **SIGALRM (-14)** in **1.315 seconds**, without the
+external deadline firing. This tests watchdog placement and real signal delivery;
+it does not claim that a real Security call was made to hang. Both owned regression
+executables were hardened ad-hoc sealed with empty entitlements and reaped.
+
+Affected validation on the corrected fixture:
+
+- Full S8 Swift suite: **79/79 Debug + 79/79 Release**, no failures.
+- Freshly copied/sealed fixtures: **8/8 genuine anonymous-XPC controls + 5/5 CLI
+  controls per configuration**, including refusal of the wrong external code pin.
+- `git diff --check` passes. Adapter, policy tests, service host, daemon, registration
+  journal and coverage states are unchanged; A6 remains partial.
+
+New logs and the complete fault-injection driver are under
+`/private/tmp/a6-xpc-native-stage/watchdog-fix/`: `regression.py`, `regression.json`,
+`tests-{debug,release}.log`, `native-{debug,release}.stdout`, `cli-controls.json`.
+All prior failure logs and validation records are preserved. Corrected fixture
+source SHA-256: `7d8e5b9050567cf3a5cf6c01363deef5d07276bca675d6cd497271481d34b1f0`.
+No registration, signing identity, admin approval, attach/TCC or system change ran.
+
+
+### Nezávislé integrační review PR #83 a předání — 2026-11-14
+
+Nové nezávislé Astra review celého diffu proti skutečně sloučenému #82 na
+`98a80af368bdc941a072a9496ef50f1666dc3211`, source head
+**`e259632348d7a2526ac78077d1aef2a8674325cf`**. Předchozí review ani jeho zelené
+testy nebyly převzaty jako důkaz tohoto běhu. Všechny níže uvedené kontroly se
+opakovaně provedly nad čerstvým vlastním buildem; nevznikla další oprava zdrojů.
+
+Review ověřilo veřejné SDK kontrakty `SecCodeCreateWithXPCMessage`, dynamické
+`SecCodeCheckValidity`, přesný CDHash a signing metadata, obě odmítané podoby
+`get-task-allow`, chybějící/nerozkódované entitlements i opakovanou live validitu.
+OS message code identity je oddělená od establishment-time UID/GID/audit-session
+údajů; politika není načítaná z payloadu a `mutationAuthorized` zůstává false.
+Veřejný API základ byl znovu ověřen proti lokálním SDK hlavičkám a
+[Apple DTS](https://developer.apple.com/forums/thread/681053), přesný pin proti
+[TN3127](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements/)
+a hranice verifier policy proti
+[Applying Code Requirements](https://developer.apple.com/documentation/security/applying-code-requirements).
+Zdrojové call-site ověření potvrdilo, že adaptér volá pouze oddělená fixture a
+testy; host, daemon, journal/recovery ani post-handoff cleanup jej nepoužívají.
+
+Prostředí: arm64, macOS **27.2.1 / 26B131**, Swift **6.4.2**, Xcode macOS 27.2 SDK.
+Nové izolované scratch/cache/module cesty jsou pod
+`/private/tmp/sanjbox-pr83-fresh-review/`. Debug i Release použily příkaz
+`swift test --package-path spikes/s8-signing --configuration <debug|release>`
+s `--scratch-path`, `--cache-path`, `SWIFTPM_MODULECACHE_OVERRIDE`,
+`CLANG_MODULE_CACHE_PATH`, `--build-system native --disable-sandbox`, pod
+repozitářovým 300s watchdogem a potřebnými read-only own-process/XPC oprávněními.
+Build sestavil všechny produkty; jediná hlášená build výstraha je již známá
+deprecation přepínače `--build-system native`.
+
+- **79/79 Swift testů Debug + 79/79 Release**, bez selhání; celá sada včetně
+  čtyř nových policy/provenance testů i všech recovery regresí.
+- Čerstvé kopie fixture, samostatně hardened ad-hoc podepsané s prázdným
+  entitlement plist: **8/8 kontrol v každé konfiguraci**. Přesně sedm používá
+  skutečné anonymous XPC mezi peers v jednom procesu; osmá je lokálně vytvořený
+  forged dictionary bez transportu. Pinned request/reply projde, chybný reply
+  requirement musí vrátit konkrétní OS error a ne timeout; chybný live pin a
+  connection UID/GID/session odmítnou. Externí driver bere pin z vlastní čerstvě
+  podepsané kopie; žádná produkční autorita se tím nezavádí.
+- **5/5 CLI kontrol Debug + 5/5 Release**: výchozí a výslovný plan, malformed
+  pin, chybný UID a chybný externí CDHash (exit 0/0/2/2/1). Nesprávný pin se
+  nenahrazuje vlastním podpisem procesu.
+- Watchdog regrese nezávisle znovu extrahovala skutečný preflight blok z
+  `2e9871a` a `e259632`; pouze signing funkci nahradila blokující syntetickou
+  funkcí a zkrátila alarm na 1s. Starý zdroj vstoupil do preflightu a vyžádal si
+  kill/reap po vnějším 3s deadline (**3.006s**); opravený zdroj vstoupil do stejné
+  funkce a skončil s **SIGALRM / -14 za 1.165s**, bez vnějšího timeoutu.
+  Nejde o vyvolání skutečně zaseknutého Security API.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools`:
+  **60/60**, bez failures/skips. `python3 tools/progress.py --out <own-root>/progress
+  --history-ref HEAD`: **27/63 balíků, 0/155 akceptací prošlo**. `git diff --check`
+  je čisté; coverage změnila pouze řádek A6, A3 řádek zůstává zachován.
+
+Nové logy jsou `tests-debug.log`, `tests-release.log`, `python-s8.log`,
+`native-{debug,release}.json`, `native-summary.json` a reprodukční driver
+`check-native.py` ve výše uvedeném vlastním dočasném rootu. SHA-256 adaptéru
+`5d0a258e981a40bb57797525e9e271491a178050d8d2fc019cbfcaa5756a61ad`
+a fixture source `7d8e5b9050567cf3a5cf6c01363deef5d07276bca675d6cd497271481d34b1f0`
+odpovídají měřenému headu; dokumentační commit tyto zdroje nemění. Všechny vlastní
+procesy skončily a driver je reapnul; artefakty/logy jsou ponechané pro review.
+Neproběhl SM status/register/unregister, service UI/helper/daemon, named Mach
+registrace, signing identity/Keychain, admin approval, attach/TCC, login/reboot
+ani systémová změna. Ad-hoc sealing vlastních kopií není skutečný Personal Team
+ani self-signed podpisový scénář.
+
+**Závěr:** v tomto read-only rozsahu nebyl nalezen další zdrojový blokátor.
+`IMPLEMENTATION §0`, A6 coverage a identity handoff byly opraveny v samostatném
+review/docs commitu: #82 je skutečně sloučeno, #83 vyžaduje před merge zelené CI
+přesného finálního headu včetně dokumentace. Teprve potom koordinátor aktualizuje
+a znovu ověří souběžné #84; tento záznam jeho merge ani review nepředjímá.
+Dosavadní vlastník A6 pokračuje trusted host policy/approval, cross-process a
+UID/session/right-transfer kontrolami, nezávislým registration continuity a
+bezpečným cleanup přes UI/login/reboot, kalibrovaným SG-06 positive control.
+Skutečné podpisy a A7/L2 patří uživateli po S1 a přezkoumaném cleanup.
+**A6 zůstává rozpracované, všech 10 bran F1 a 155 případů Neověřeno.**
