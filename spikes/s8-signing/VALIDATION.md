@@ -424,3 +424,96 @@ XPC transport ani Mach práva se nepoužily. Durable ownership/cleanup přes res
 host-only approval a SG-06 srovnatelná pozitivní attach kontrola jsou stále konkrétní chybějící
 výstupy; [IMPLEMENTATION §0](../../docs/IMPLEMENTATION.md#0-co-dál) určuje další kroky a vlastníky.
 A3 i A6 zůstávají rozpracované. Žádná brána ani akceptace nedostává pass z těchto mock/offline testů.
+
+## WP1.A6 native durable provenance a recovery — 2026-11-14
+
+Vymezené pokračování z `main` **`7b8294e4fd28a3e62f4998baf39d3da1fd904ccb`**, zveřejněný claim
+`53bb52a`, výslovné uživatelské předání navazující Astře při zachování autorství janfiedler / Codex + Astra.
+Měřený finální implementační commit je **`1a613da1aa0210c23d2d62ba1374be102795c34e`**;
+následující commit pouze zapisuje tuto validaci. [Rozsah, native workflow a blokátory](NATIVE-RECOVERY.md).
+Původní #77 evidence a historické manifesty zůstávají beze změny; není to laboratorní S8 výsledek.
+
+Prostředí: arm64, macOS **27.2.1 `26B131`**, Apple Swift **6.4.2 `swiftlang-6.4.2.1.9`**,
+clang `2100.4.1.1`, systémový Python **3.9.6**. Lokální common/H1 závislosti se nemění.
+Finální Swift běhy použily `--build-system native`, `--disable-sandbox`, vlastní scratch
+`/private/tmp/a6-native-recovery-swift`, package cache `…-cache` a module cache `…-modules`.
+Native backend stále hlásí deprecation warning; warning-free build netvrdíme.
+
+- `swift test --configuration debug` i `release` s výše uvedenými parametry:
+  **74/74 + 74/74**, 0 failures. Nových **21 testů** používá skutečné directory fds, hashování,
+  ACL/módy/inodes, fsync/full-sync, flock, vlastní proc/start/boot/audit údaje a samostatné Python
+  child procesy. Pokrývají oba user-service typy, neadoptování stejného statusu po reopen,
+  původně neznámou/přerušenou/chybnou registraci, replay/cizí pairing, changed inventory/run/UID/GID,
+  process/start/boot/session drift, částečný/extra/oversize/duplicitní JSON, symlink/hardlink/FIFO,
+  nahrazený root a 64 opakovaných malformed opens s okamžitým znovuzískáním locku.
+  API statusy a signed-app binding těchto fixtures jsou **syntetické**; filesystem a process API
+  jsou skutečné. Produkční `capture()` navíc odmítá nepodepsaný test runner. Žádné SM API se nevolá.
+- Finální stress matice `--skip-build --filter native`: **20 Debug + 20 Release běhů × 21 testů =
+  840 průchodů, 0 failures**, včetně celkem **2 560** malformed-open/lock kontrol a souběžných
+  subprocess testů. `summary.json` a jednotlivé logy zůstávají v
+  `/private/tmp/a6-native-recovery-stress-unlock/`. Explicitní syscall-order test ověřuje pořadí
+  `fsync(file) → fsync(directory) → F_FULLFSYNC(file)` a odmítnutí na každém kroku; není to
+  měření výpadku napájení. Deterministický lock test drží duplicitní open-file description i po
+  uvolnění vlastníka a ověřuje, že další nezávislý fd získá lock.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools -v`:
+  **60/60**, 0 failures/skips, finálně znovu na `1a613da`. Původní post-handoff cleanup refusal,
+  source inventory a process-lock regrese zůstávají zachované. Non-ad-hoc signing v Python
+  fixtures je nadále stub, nikoli skutečná uživatelská signing identity.
+- Repo tooling `/usr/bin/python3 -B -m unittest discover -s tools/tests -v`: **98/98**, 0 failures
+  na `8340e30`; následné commity mění pouze native S8 zdroj/test/dokumentaci, `tools/` je byteově
+  stejné. `tools/progress.py --history-ref HEAD` na `1a613da` vytvořil **27/63 balíků celkem,
+  0/155 prošlých případů**; `git diff --check` proti base prošel. COVERAGE mění pouze A6 řádek.
+- Nový skutečný Release app po finální implementaci prošel původním builderem a samostatnou
+  `verify`: všechny čtyři targets jsou thin arm64, strict/all-architectures validní, ad-hoc/runtime
+  s prázdnými entitlements. Host SHA-256 je
+  **`166ebed7973f177921233f37629485396a2079b19cfc81a8ff96f06d6cfd7879`**;
+  hashe všech čtyř jsou v `/private/tmp/a6-native-recovery-builder-final.log`.
+  **Žádný service executable, UI ani ServiceManagement status/register/unregister neběžel.**
+  Nativní non-ad-hoc capture/recovery na skutečně uživatelsky podepsaném app zůstává neověřený.
+
+### Nalezené chyby a opravy v tomto pokračování
+
+První sandboxovaný native test nemohl číst `kern.boottime` (`EPERM`); vlastní `proc_pidinfo` a
+audit data dostupná byla. Fail-closed boot kontrola zůstala zachovaná a finální testy běžely se
+scoped read-only process/boot přístupem. Testovací helper původně použil produkční `BoundedTool`
+pro chmod/Python, což správně odmítl allowlist; oprava přidala oddělený test-only helper, produkční
+allowlist se nerozšířil. První repo tooling běh uvnitř sandboxu selhal v osmi watchdog kontrolách
+při blokovaném `/bin/ps` a souvisejícím timeoutu; běh s potřebným read-only process přístupem
+potom prošel všech 98 testů. Žádný produktový mechanismus nebyl kvůli sandboxu oslabený.
+
+Nezávislé průběžné review našlo chybnou původní durability sekvenci: directory fsync následoval
+po full-sync barrier. Oprava před API synchronizuje soubor i directory a teprve potom požaduje
+finální device flush; ověřuje také shodný device creation ancestry a souboru. Další review našlo
+intermitentní lock test. Plain `dup` byl nahrazen atomickým `F_DUPFD_CLOEXEC` (`0664217`), test
+verifier dostal vlastní `O_CLOEXEC` (`655ac99`), ale stress stále zachytil krátké prodloužení locku:
+close-on-exec neuzavírá sdílený descriptor v child procesu **před exec**. Finální `1a613da`
+explicitně volá `LOCK_UN` před close vlastnického fd při deinit i neúspěšném init; totéž dělá
+verifier. Výše uvedená finální 840-test matice už prošla celá. Původní neúspěšné stress běhy
+zůstávají v `/private/tmp/a6-native-recovery-stress/` a `…-stress-final/`, nejsou přepsané pass.
+
+Throwing-init cleanup byl navíc ověřen malým Swift reproducerem: po inicializaci všech stored
+properties Swift při throw zavolá deinit. `transferred` proto předává fd právě v tomto bodě;
+před ním jej uvolní catch, po něm deinit. Reproducer `/private/tmp/a6-native-recovery-stage/init.swift`
+a nativní malformed reopen/lock regrese rozlišují tuto vlastnost od původní hypotézy uniklého fd.
+Finální nezávislé review dokumentace a CI se posuzují až na finálním publikovaném PR headu.
+
+### Vlastní úklid a hranice
+
+Všechny testy odstranily pouze své přesné čerstvé temporary roots a reapovaly vlastní children.
+Čtyři vlastní builder roots (poslední `…services-D908360A-3380-4F15-A023-EC50AC55B860` a předchozí
+`…9417187C-0357-4F4A-BC72-7D89BEA64DC6`, `…345E864F-35B7-4F4E-B210-ED07EB372712`,
+`…F77A6255-858A-4D26-9416-4E7C4CF0D723`) prošly vlastní manifest kontrolou a cleanup;
+finální root navíc opakovaným no-op cleanup. Nebyl vydán signing handoff ani spuštěna služba.
+Vlastní scratch/cache/module-cache rooty byly po kontrole UID/type/inode inventarizované a
+odstraněné, **600 512 643 file bytes**; záznam je v
+`/private/tmp/a6-native-recovery-stage/cache-cleanup.json`. Žádné sdílené cache, cizí worktree,
+Application Support state, systémy nebo uživatelské účty se neměnily. Malé lokální test/build/log
+záznamy `/private/tmp/a6-native-recovery-*` zůstávají pro review.
+
+**Neprovedeno:** Personal Team/self-signed identity, certifikáty/Keychain, native služba či její
+status, restart/login/reboot, OS admin approval/notarizace, TCC/attach, XPC audit token/transport
+nebo skutečná Mach práva. Native journal dodává trvalou provenance a recovery inspection,
+**nikoli registration generation či vlastnictví po restartu**. Neodblokovává post-handoff
+artifact cleanup ani daemon. SG-06 nemá povolený kalibrovaný pozitivní control; přesné zdrojové
+podklady a zbývající kroky jsou v NATIVE-RECOVERY/RESEARCH. **A6 zůstává 🟨, S8/SG-01…11 a všechny
+laboratorní brány Neověřeno.** Další obecný mock tuto mezeru neuzavře.
