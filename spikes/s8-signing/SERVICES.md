@@ -5,8 +5,9 @@ nativními Release targets, bez externích balíčků. Implementátor pouze sest
 vlastní artefakty a kontroluje strukturu. Neregistruje služby, nespouští helpers/UI ani nemění systém.
 Personal Team a podmíněná self-signed varianta zůstávají uživatelské experimenty po S1 v L2.
 A6/SG-01…11 zůstávají částečné/Neověřeno; attach oracle a skutečný broker/XPC transport dále chybějí.
-[H1 kontrakty v0](../../proto/contracts/README.md) jsou sloučené jen jako částečný prototyp: broker
-odmítá všechny zprávy a A6 fuzzer na jeho kontrakty není napojený.
+[H1 kontrakty](../../proto/contracts/README.md) jsou dokončené offline; nový `h1-fuzz` testuje
+helper/reply/broker v1. [Syntetický host-only seam a restart workflow](A6-H1-FOLLOWUP.md) nemění
+nativní SMAppService/UI ani jeho omezení popsaná níže.
 
 | Target | Umístění v app | Identifikátor / chování |
 |---|---|---|

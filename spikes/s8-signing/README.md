@@ -2,7 +2,7 @@
 
 **WP1.A6 zůstává rozpracované. S8 a SG-01…11 zůstávají Neověřeno.** Balíček dodává
 spustitelnou statickou sondu vlastních syntetických artefaktů, čisté policy testy, omezený mock
-fuzzer a plán šesti odlišných uživatelských experimentů. Nedodává produkční broker, XPC transport,
+fuzzer, [fuzzer skutečných H1 kontraktů a syntetický service workflow](A6-H1-FOLLOWUP.md) a plán šesti odlišných uživatelských experimentů. Nedodává produkční broker, XPC transport,
 produkční autorizační cestu daemonu ani platný same-UID attach oracle. Nové [disposable service fixtures](SERVICES.md) dodávají sestavitelný SMAppService host, tři samostatné helper targets a úzké uživatelské UI. Nový [copy/signing handoff](HANDOFF.md) předá uživateli čtyři konkrétní podpisové příkazy bez změny původního ad-hoc manifestu; po handoffu automatický cleanup záměrně odmítá neznámý registration state. Konkrétní mezery jsou níže.
 Historický `SOURCES.sha256` patří výhradně revizi a výsledkům 2026-11-03; nepřepisuje se pro dnešní HEAD. `SERVICE-SOURCES-20261104.sha256` je rovněž historický snapshot; aktuální handoff se dokládá testy a krátkou poznámkou ve VALIDATION podle GUIDE §11.
 Autoritativní jsou [PLAN](../../PLAN.md), [GUIDE](../../docs/GUIDE.md) a [LAB](../../docs/LAB.md).
@@ -13,13 +13,13 @@ Autoritativní jsou [PLAN](../../PLAN.md), [GUIDE](../../docs/GUIDE.md) a [LAB](
 |---|---|---|
 | SG-01, SG-02 / R2 | `inspect`: Security API, validita všech architektur, runtime flag, explicitní absence obou názvů `get-task-allow`, známý formát entitlements | Agent/helper/sondy v L2; zde původní čtyři thin arm64 fixtures a čtyři staticky ověřené service targets |
 | SG-03 / R6 | Identifikátor a hash ve statickém reportu | Stabilita identity/TCC přes rebuild; žádné granty ani TCC databáze se nečtou |
-| SG-04 / R2 | `experiments`: Personal Team × tři služby; [sestavitelný disposable app](SERVICES.md), typované UI a startup observations | Uživatelský podpis/registrace, bezpečná host-only cesta daemonu, login/reboot a lifecycle oracle |
+| SG-04 / R2 | `experiments`: Personal Team × tři služby; [sestavitelný disposable app](SERVICES.md), typované UI, startup observations, syntetický `service-workflow` a samostatný testovaný host-only daemon model | Uživatelský podpis/registrace, bezpečná host-only cesta daemonu, login/reboot a lifecycle oracle |
 | SG-05 / R2 | Tři oddělené podmíněné self-signed scénáře | Žádné certifikáty/identity nebyly čteny ani použity; ad-hoc není self-signed ani Personal Team |
 | SG-06 / R2 | Negativní signing policy testy pouze na hodnotách v paměti | Same-UID attach runner a srovnatelná pozitivní kontrola; viz samostatný postup níže |
 | SG-07 / R2 | Změna jednoho syntetického markeru po podpisu → statická validace musí selhat | Nepřevzetí skutečných TCC grantů, bundle/rebuild scénáře |
-| SG-08, SG-09 / R2 | `mock`: pevná syntetická zpráva, oddělená mock identita, replay/capacity a fuzzer | [H1 prototyp](../../proto/contracts/README.md) je sloučený, ale broker v0 odmítá všechny zprávy a tento fuzzer na H1 není napojený; produkční broker/XPC autentizace chybějí |
+| SG-08, SG-09 / R2 | `h1-fuzz`: skutečné helper/reply/broker v1 decode API, korelace, trusted delivery context a bounded mutace; původní `mock` zůstává oddělený | Produkční broker/XPC transport, OS audit-token/signature/session autentizace a skutečné Mach rights chybějí |
 | SG-10 / R2 | Mock odmítá globální ID, cizí/chybějící/zastaralou simulovanou capability | Přenos, vlastnictví, zánik a vyčerpání skutečných Mach práv / IOSurface |
-| SG-11 / R2 | Path-like zprávy se nevejdou do mock schématu; vlastní soubory mají scope/type/hash/ACL kontroly | Helper path resolver, symlink/hardlink races a produkční TOCTOU mechanismus |
+| SG-11 / R2 | H1 fuzzer odmítá traversal/absolutní cestu; vlastní soubory mají scope/type/hash/ACL kontroly | Helper path resolver, symlink/hardlink races a produkční TOCTOU mechanismus |
 
 Žádná sonda nepřijímá PID, procesní jméno, libovolný podpisový cíl, příkaz, službu ani certifikát.
 Původní `s8-probe` nevolá `register` ani `unregister`. Nové disposable UI má tyto dvě operace pouze pro LoginItem/LaunchAgent, po explicitní uživatelské akci a mimo ad-hoc profil; v implementátorské validaci se nevolají. Daemon mutace nejsou dostupné. Neexistuje `bootstrap`, `task_for_pid`, `ptrace`, TCC request ani zachytávání obrazu/vstupu. `prepare` nikdy nespustí vytvořenou binárku. Automatické testy nepotřebují
@@ -28,7 +28,7 @@ síť, účet, Keychain, databázi, root, nové uživatele ani změnu nastavení
 ## Build a vlastní signing preflight [implementátor]
 
 Apple Silicon, macOS 15+ pro kompilaci; akceptační cíl je macOS 27.x podle GUIDE. Swift 6,
-jediná závislost je lokální `../common`. Spouštěj z kořene repozitáře. Následující cesty jsou
+závislosti jsou lokální `../common` a `../../proto/contracts` (H1). Spouštěj z kořene repozitáře. Následující cesty jsou
 samostatné vlastní scratch/cache; použij nové jméno, pokud už patří jinému běhu.
 
 ```sh
@@ -126,7 +126,25 @@ v chybě; ručně zkontroluj jen vlastní uvedené názvy a jejich metadata, ods
 nezměněné soubory a pak prázdný adresář. Nevyřešený konflikt uchovej. Žádné `rm -rf` s externí cestou.
 Input, scratch a logy patří tomuto vývojovému běhu; nemaž sdílené cache ani jiné běhy.
 
-## Mock broker a služby [implementátor]
+## H1 wire fuzzer a syntetický workflow [implementátor]
+
+```text
+s8-probe h1-fuzz --expect EXPECT --iterations 10000 --seed 21304
+s8-probe service-workflow --expect EXPECT
+```
+
+Oba příkazy mají stejný identity/signature preflight jako ostatní sondy a neprovádějí systémové
+operace. Fuzzer volá přímo H1, pokrývá všech 12 helper requests, jejich 24 úspěšných/neúspěšných
+replies a tři broker messages přes obě veřejná decode API. Oracle: **84/84** pozitivních controls
+před/po, všechny negativy odmítnuté známým `ContractError`, žádné failures/unexpectedAccepts.
+Pevná matice běží i při jediné seeded iteraci; nejvýše 10 000 dalších mutací, streaming SHA-256,
+max. 16 popisů failures. `corpusVersion`, seed, rozsah controls/mutations a počty jsou v reportu.
+Replay/attachment/context hodnoty jsou syntetické; fuzzer nepřenáší XPC ani Mach práva.
+`service-workflow` pouze v paměti projde šest variant a vždy vrací `nativeRegistrationAllowed=false`
+a `nativeArtifactCleanupAllowed=false`. Podrobnosti, uživatelské předání a blokátory:
+[A6-H1-FOLLOWUP.md](A6-H1-FOLLOWUP.md).
+
+## Původní mock broker a služby [implementátor]
 
 ```text
 s8-probe mock --expect EXPECT --iterations 10000 --seed 21304
@@ -180,10 +198,8 @@ procesu se nečte. Zánik vlastního child musí být ověřen i při timeoutu, 
 
 **SG-03/07:** shodný identifikátor či úspěšná static signature nestačí pro stabilitu TCC. Potřebný
 je uživatelský experiment s jedinou syntetickou app/rebuildem/modifikací a předem schváleným oracle;
-TCC granty, Keychain a databáze zůstávají mimo automatiku. **SG-08…11:** sloučený H1 prototyp obsahuje
-striktní helper zprávy, ale jeho broker v0 zatím odmítá všechny zprávy; zdejší toy fuzzer na H1
-není napojený. Napojení na kontrakty a následné fuzzování skutečného XPC brokeru zůstávají oddělené
-chybějící výstupy. Testovat OS-získanou peer identitu, vazbu
+TCC granty, Keychain a databáze zůstávají mimo automatiku. **SG-08…11:** `h1-fuzz` již volá skutečné striktní H1 helper/reply/broker v1 kontrakty;
+původní toy fuzzer zůstává samostatný. Fuzzování nativního XPC brokeru je samostatný chybějící výstup. Testovat OS-získanou peer identitu, vazbu
 audit token ↔ běžící kód ↔ session, revokaci, Mach rights i konkurentní změny. Mock toto nepokrývá.
 
 Primární opory a jejich omezení: [RESEARCH.md](RESEARCH.md). Lokální vývojové výsledky:

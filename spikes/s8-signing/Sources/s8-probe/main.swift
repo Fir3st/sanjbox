@@ -13,8 +13,10 @@ DispatchQueue.global().asyncAfter(deadline: .now() + 45) {
 
 let usage = """
 usage: s8-probe context
+       s8-probe h1-fuzz --expect FILE [--iterations 1000] [--seed 21304]
        s8-probe mock --expect FILE [--iterations 1000] [--seed 21304]
        s8-probe experiments --expect FILE
+       s8-probe service-workflow --expect FILE
        s8-probe prepare --expect FILE [--apply yes]
        s8-probe inspect --expect FILE --root OWN_FIXTURE_ROOT --fixture hardened|plain|unsigned|tampered
        s8-probe cleanup --expect FILE --root OWN_FIXTURE_ROOT [--apply yes]
@@ -40,8 +42,8 @@ do {
     let allowed: Set<String>
     switch command {
     case "context": allowed = []
-    case "mock": allowed = ["expect", "iterations", "seed"]
-    case "experiments": allowed = ["expect"]
+    case "mock", "h1-fuzz": allowed = ["expect", "iterations", "seed"]
+    case "experiments", "service-workflow": allowed = ["expect"]
     case "prepare": allowed = ["expect", "apply"]
     case "inspect": allowed = ["expect", "root", "fixture"]
     case "cleanup": allowed = ["expect", "root", "apply"]
@@ -69,12 +71,18 @@ do {
     if command == "context" { exit(issues.isEmpty ? 0 : 3) }
     guard issues.isEmpty else { exit(3) }
     switch command {
+    case "h1-fuzz":
+        guard let count = Int(options["iterations"] ?? "1000"), let seed = UInt64(options["seed"] ?? "21304") else { fail("invalid fuzz bound or seed") }
+        let report = try H1Fuzzer.run(iterations: count, seed: seed)
+        try printJSON(report)
+        exit(report.succeeded ? 0 : 1)
     case "mock":
         guard let count = Int(options["iterations"] ?? "1000"), let seed = UInt64(options["seed"] ?? "21304") else { fail("invalid fuzz bound or seed") }
         let report = try MockFuzzer.run(iterations: count, seed: seed)
         try printJSON(report)
         exit(report.failures.isEmpty && report.unexpectedAccepts == 0 && report.positiveControls == 4 ? 0 : 1)
     case "experiments": try printJSON(ServiceExperiments.plans())
+    case "service-workflow": try printJSON(SyntheticServiceWorkflows.plans())
     case "prepare":
         if options["apply"] != "yes" {
             try printJSON(["mode": "dry-run", "operation": "create fresh /private/tmp/sanjbox-s8-fixtures-UUID (0700), compile embedded C with xcrun clang -arch arm64 -O0, ad-hoc codesign -s - --timestamp=none; plain/hardened/unsigned/tampered; no execution", "cleanup": "s8-probe cleanup --expect FILE --root RETURNED_ROOT --apply yes"])

@@ -11,6 +11,16 @@ import uuid
 spec = importlib.util.spec_from_file_location('fixtures', Path(__file__).with_name('service-fixtures.py'))
 f = importlib.util.module_from_spec(spec); spec.loader.exec_module(f)
 
+class ProvenanceTests(unittest.TestCase):
+    def test_h1_dependency_is_in_source_inventory(self):
+        hashes = f.source_hashes()
+        contract_root = f.PACKAGE.parent.parent/'proto'/'contracts'
+        expected = [contract_root/'Package.swift'] + list((contract_root/'Sources').rglob('*.swift'))
+        self.assertGreater(len(expected), 1)
+        for path in expected:
+            key = os.path.relpath(path, f.PACKAGE)
+            self.assertEqual(hashes[key], f.hashlib.sha256(path.read_bytes()).hexdigest())
+
 class ArtifactTests(unittest.TestCase):
     def setUp(self):
         self.root = Path(f.PREFIX + str(uuid.uuid4()).upper())
