@@ -458,8 +458,8 @@ public enum GatewayRule: Sendable, Equatable, Decodable {
 
 // MARK: - Politika
 
-/// Local gateway draft v1. H1 NetworkPolicy is now available, but a reviewed
-/// mapping of its typed gates and these handler-specific limits is still missing.
+/// Local gateway draft v1. H1 callers use H1GatewayAdapter with explicit gate bindings;
+/// decoding this standalone draft does not apply H1 authorization.
 /// Only `decode` accepts wire input; Encodable does not expose a JSONDecoder path
 /// which could bypass duplicate-key / exact-integer preflight.
 public struct GatewayPolicy: Sendable, Equatable, Encodable {
@@ -477,6 +477,16 @@ public struct GatewayPolicy: Sendable, Equatable, Encodable {
                           gateways: gateways)
         self.schemaVersion = schemaVersion
         self.zoneID = zoneID
+        self.auditCapacity = auditCapacity
+        self.gateways = gateways
+    }
+
+    /// H1's empty gate list means deny all. The standalone draft still rejects it.
+    init(h1ZoneID: String, auditCapacity: Int, gateways: [GatewayRule]) throws {
+        try Self.validate(schemaVersion: Self.currentSchemaVersion, zoneID: h1ZoneID,
+                          auditCapacity: auditCapacity, gateways: gateways, allowEmpty: true)
+        schemaVersion = Self.currentSchemaVersion
+        zoneID = h1ZoneID
         self.auditCapacity = auditCapacity
         self.gateways = gateways
     }
@@ -548,7 +558,7 @@ public struct GatewayPolicy: Sendable, Equatable, Encodable {
     }
 
     static func validate(schemaVersion: Int, zoneID: String, auditCapacity: Int,
-                         gateways: [GatewayRule]) throws {
+                         gateways: [GatewayRule], allowEmpty: Bool = false) throws {
         guard schemaVersion == currentSchemaVersion else {
             throw PolicyError.unsupportedVersion(schemaVersion)
         }
@@ -556,7 +566,7 @@ public struct GatewayPolicy: Sendable, Equatable, Encodable {
             (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || "-_.".utf8.contains($0)
         }) else { throw PolicyError.invalidField("zoneID") }
         guard (1...10_000).contains(auditCapacity) else { throw PolicyError.invalidField("auditCapacity") }
-        guard !gateways.isEmpty else { throw PolicyError.emptyGateways }
+        guard allowEmpty || !gateways.isEmpty else { throw PolicyError.emptyGateways }
 
         var operations = Set<GatewayOperation>()
         var mounts = Set<String>()

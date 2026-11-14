@@ -1,6 +1,6 @@
 /// An offline, bounded RFB 3.8 protocol experiment, not an Apple session client.
 /// There is deliberately no transport, credential implementation, input, or clipboard API.
-/// The Apple security/selection subset is a synthetic fixture framing; see AppleSubset.swift.
+/// Apple selection uses pinned S5 records but stops before an unverified command policy.
 public struct RFBClient: Sendable {
     public enum AuthenticationPolicy: Sendable {
         /// Default: stop at the authentication boundary without selecting a type.
@@ -9,7 +9,7 @@ public struct RFBClient: Sendable {
         /// This is not a policy for a live server, even on localhost.
         case syntheticNoneOnly
         /// ONLY for owned synthetic fixtures offering exactly one type: ARD (30), per S4.
-        /// Accepts the candidate Apple banner and the fixture selection framing; contains no
+        /// Accepts S5 records and refuses unverified command-mask interpretation; contains no
         /// cryptography and is not a policy for a live server.
         case syntheticAppleSubset
     }
@@ -18,10 +18,8 @@ public struct RFBClient: Sendable {
         case version, security, securityResult, serverInit, ready, update, failed, closed
         /// S4 type-30 DH challenge is being consumed.
         case appleChallenge
-        /// Fixture SessionInfo / choice / SessionResult exchange.
+        /// S5 length-framed SessionInfo; command policy remains unverified.
         case session
-        /// S5 pending state: waiting for a later SessionResult, never polling or retrying.
-        case sessionPending
     }
 
     public enum Failure: String, Error, Equatable, Sendable {
@@ -36,11 +34,9 @@ public struct RFBClient: Sendable {
         case invalidAppleCredentialResponse
         /// The virtual desktop was absent or offered as unavailable: no fallback exists.
         case sessionUnavailable
-        /// SessionResult denied the virtual desktop choice: terminal, never the console.
-        case sessionDenied
-        /// Only the host console was offered. Selecting it automatically is forbidden (S5).
-        case consoleFallbackForbidden
-        /// Unknown message kind/command/state, duplicate offer or bad selection length.
+        /// No reviewed policy authorizes virtual selection from the source-backed mask.
+        case unverifiedSelectionPolicy
+        /// Unsupported metadata, record version or malformed/budget-exceeding length.
         case invalidSelectionMessage
     }
 
@@ -70,7 +66,7 @@ public struct RFBClient: Sendable {
         // describe record lengths, but do not prescribe these limits for this parser.
         public static let appleKeyBytes = 512
         public static let appleCredentialBytes = 4_096
-        public static let appleSessionChoices = 8
+        public static let appleSelectionBodyBytes = AppleSessionRecordCodec.maximumBodyBytes
     }
 
     private enum State: Sendable {
@@ -78,7 +74,7 @@ public struct RFBClient: Sendable {
         case appleChallengeHeader, appleModulus(keyLength: Int, generator: Int)
         case appleServerKey(keyLength: Int, generator: Int, modulus: [UInt8])
         case rejectionLength, rejectionBody(Int), serverInitHeader, serverName(Int)
-        case sessionInfoHeader, sessionInfoEntries(Int), sessionResult, sessionPending
+        case sessionInfoHeader, sessionInfoBody(Int)
         case ready, updateHeader, rectangleHeader, pixels(Rectangle), failed, closed
     }
 
@@ -103,8 +99,7 @@ public struct RFBClient: Sendable {
     private var updateBytes = 0
     private var completedUpdate = false
     public private(set) var failure: Failure?
-    /// Last selection outcome. Survives failure/close so `denied`/`unavailable`/`consoleOnly`
-    /// stay observable; none of them is ever retried against the console.
+    /// Last selection state survives failure/close. No S5 choice is currently authorized.
     public private(set) var session: AppleSession = .notOffered
 
     /// `appleCredentialProvider` is the only seam where S4's DH/AES exchange could live.
@@ -125,8 +120,7 @@ public struct RFBClient: Sendable {
         case .securityResult, .rejectionLength, .rejectionBody: .securityResult
         case .serverInitHeader, .serverName: .serverInit
         case .appleChallengeHeader, .appleModulus, .appleServerKey: .appleChallenge
-        case .sessionInfoHeader, .sessionInfoEntries, .sessionResult: .session
-        case .sessionPending: .sessionPending
+        case .sessionInfoHeader, .sessionInfoBody: .session
         case .ready: .ready
         case .updateHeader, .rectangleHeader, .pixels: .update
         case .failed: .failed
@@ -328,95 +322,44 @@ public struct RFBClient: Sendable {
             state = .serverName(nameLength)
         case .serverName(let length):
             guard available(length) else { return false }
-            cursor += length
             if apple {
-                // Only standard ServerInit is modeled. S5 ard-patch.js lines 331–348
-                // describes extended metadata inside the name field; this parser deliberately
-                // discards that field as opaque. Following bytes use the separate package-local
-                // selection framing. Nothing is allocated or published before grant.
+                let metadata = try AppleSessionRecordCodec.serverMetadata(
+                    Array(buffer[cursor..<(cursor + length)]))
+                cursor += length
+                guard metadata.flags & AppleSessionRecordCodec.sessionSelectFlag != 0,
+                      metadata.flags & AppleSessionRecordCodec.noVirtualDisplayFlag == 0 else {
+                    session = .unavailable
+                    throw Failure.sessionUnavailable
+                }
                 state = .sessionInfoHeader
                 break
             }
+            cursor += length
             storage = Array(repeating: 0, count: width * height * 4)
             events.append(.send([0, 0, 0, 0] + Self.pixelFormat))
             events.append(.send([2, 0, 0, 1, 0, 0, 0, 0])) // advertise Raw only
             events.append(.initialized(width: width, height: height))
             state = .ready
         case .sessionInfoHeader:
-            // Package-local fixture framing: kind 1, then u16 count (AppleSubset.swift).
-            guard available(3) else { return false }
-            guard read8() == Int(AppleFixtureFraming.sessionInfoKind) else {
-                throw Failure.invalidSelectionMessage
-            }
-            let count = read16()
-            guard count > 0, count <= Limits.appleSessionChoices else {
-                throw Failure.invalidSelectionMessage
-            }
-            state = .sessionInfoEntries(count)
-        case .sessionInfoEntries(let count):
-            guard available(count * 2) else { return false }
-            var consoleState: Int?
-            var virtualState: Int?
-            for _ in 0..<count {
-                let command = read8()
-                let availability = read8()
-                guard availability <= Int(AppleFixtureFraming.availableState) else {
-                    throw Failure.invalidSelectionMessage
-                }
-                switch command {
-                case Int(AppleFixtureFraming.consoleCommand):
-                    guard consoleState == nil else { throw Failure.invalidSelectionMessage }
-                    consoleState = availability
-                case Int(AppleFixtureFraming.virtualDesktopCommand):
-                    guard virtualState == nil else { throw Failure.invalidSelectionMessage }
-                    virtualState = availability
-                default:
-                    throw Failure.invalidSelectionMessage
-                }
-            }
-            guard let availability = virtualState else {
-                // S5 assigns command 1 to the console. Choosing it automatically is forbidden
-                // by this package: an offer without the virtual desktop is terminal.
-                // Only an *available* console offer is a console-only offer (S5 availability
-                // flag is package-local): a named-but-unavailable console offers nothing, so it
-                // is reported as unavailable instead of claiming a console alternative exists.
-                let availableConsole = consoleState == Int(AppleFixtureFraming.availableState)
-                session = availableConsole ? .consoleOnly : .unavailable
-                throw availableConsole ? Failure.consoleFallbackForbidden
-                    : Failure.sessionUnavailable
-            }
-            guard availability == Int(AppleFixtureFraming.availableState) else {
-                session = .unavailable
-                throw Failure.sessionUnavailable
-            }
-            session = .virtualReady
-            // Only the virtual desktop may be chosen; there is no API to ask for command 1.
-            events.append(.send([AppleFixtureFraming.sessionInfoChoiceKind,
-                                 AppleFixtureFraming.virtualDesktopCommand]))
-            state = .sessionResult
-        case .sessionResult, .sessionPending:
+            // S5 u16 body length, not a message-kind byte. Validate before waiting/copying.
             guard available(2) else { return false }
-            // All result outcomes share the ready-message budget. Grant must not bypass
-            // exhaustion and publish a surface after the pending limit has been reached.
-            guard messages < Limits.serverMessages else { throw Failure.resourceLimit }
-            messages += 1
-            guard read8() == Int(AppleFixtureFraming.sessionResultKind) else {
+            let bodyLength = read16()
+            guard bodyLength >= 10, bodyLength <= Limits.appleSelectionBodyBytes else {
                 throw Failure.invalidSelectionMessage
             }
-            switch read8() {
-            case Int(AppleFixtureFraming.outcomeGranted):
-                grantSession(events: &events)
-            case Int(AppleFixtureFraming.outcomeDenied):
-                session = .denied
-                throw Failure.sessionDenied
-            case Int(AppleFixtureFraming.outcomePending):
-                // S5 pending state. No polling, no retry, no console: the transport owns the
-                // deadline and must call expire(). The message budget still applies.
-                session = .pending
-                state = .sessionPending
-            default:
-                throw Failure.invalidSelectionMessage
-            }
+            state = .sessionInfoBody(bodyLength)
+        case .sessionInfoBody(let bodyLength):
+            guard available(bodyLength) else { return false }
+            let record = Self.u16(bodyLength) + Array(buffer[cursor..<(cursor + bodyLength)])
+            _ = try AppleSessionRecordCodec.info(record)
+            cursor += bodyLength
+            // Pinned session-select.js checks a per-command bit for console selection,
+            // but returns virtual command 2 without checking that mask. That client
+            // preference is not a reviewed virtual-authorization policy for this parser.
+            // Do not treat zero as a default or fall back to console. Command/result
+            // codecs are tested independently; no surface can be granted.
+            session = .unverified
+            throw Failure.unverifiedSelectionPolicy
         case .ready:
             guard available(1) else { return false }
             guard messages < Limits.serverMessages else { throw Failure.resourceLimit }
@@ -472,16 +415,6 @@ public struct RFBClient: Sendable {
         completedUpdate = true
         state = .ready
         events.append(.framebufferUpdated)
-    }
-
-    /// Selection granted: only now are pixel format/encodings sent and the surface published.
-    private mutating func grantSession(events: inout [Event]) {
-        session = .granted
-        storage = Array(repeating: 0, count: width * height * 4)
-        events.append(.send([0, 0, 0, 0] + Self.pixelFormat))
-        events.append(.send([2, 0, 0, 1, 0, 0, 0, 0])) // advertise Raw only
-        events.append(.initialized(width: width, height: height))
-        state = .ready
     }
 
     private mutating func fail(_ error: Failure) {

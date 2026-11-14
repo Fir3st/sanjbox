@@ -2,8 +2,9 @@
 
 Initial access date for the original source set: **2026-11-03**; the added S4 DH support file is dated
 separately below. The three original pinned S4/S5 raw files and
-their SHA-256 values were independently rechecked on **2026-11-07** and **2026-11-13**. S1–S3 were
-also re-read on 2026-11-13 (Apple pages via direct HTTPS after the browser tool returned HTTP 429).
+their SHA-256 values were independently rechecked on **2026-11-07**, **2026-11-13** and
+**2026-11-14**. The latest independent review also fetched and hashed `session-select.js` (see S5).
+S1–S3 were re-read on 2026-11-14 (Apple pages via direct HTTPS after the browser tool returned HTTP 429).
 This is source research, not a
 capture of a macOS server or a measurement. Exact source commits were resolved through the public
 GitHub commits API and their raw files inspected over HTTPS. Moving branches/search excerpts are not the pinned evidence.
@@ -98,14 +99,17 @@ The pinned implementation also contains concrete byte layouts, not just session 
 | SessionCommand (client choice) | [ard-patch.js lines 2510–2523](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L2510-L2523): 74-byte record with length, version, padding, command and 64-byte username |
 | SessionResult | [ard-patch.js lines 839–867](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/ard-patch.js#L839-L867): u16 body length, u16 version, u32 status and remaining reserved bytes |
 
-These are **client-side implementation claims**, not a verified server contract. Validation of framing,
-capability bits, allowed commands, encryption, cancel/retry semantics, failure behavior and version
-compatibility remains open. Do not copy this client's automatic choice policy into Sanďbox: an unavailable
-virtual choice must fail, not choose the console. This prototype deliberately does **not implement S5's
-selection records or extended ServerInit parsing**. Its selection bytes use the simplified package-local
-fixture framing below. That is a scope choice despite the available client implementation evidence;
-no real endpoint may ever receive these fixture messages.
-The lead narrows future investigation; it does not establish a working or safe Apple client.
+These are **client-side implementation claims**, not a verified server contract. This package now
+implements their record codecs and consumes extended ServerInit/SessionInfo in the parser. It does
+not adopt the source client's automatic selection policy. Fresh review fetched the pinned
+[`ard/session-select.js` lines 13–47](https://github.com/peetinc/noVNC-ARD/blob/d699293635083c9e0c30c8f9480993865653772a/ard/session-select.js#L13-L47)
+on 2026-11-14: its comment describes one bit per command, and its console branch explicitly tests
+`1 << sessionCmdConnectToConsole` when the console username is empty. Its virtual branch returns
+command 2 **without testing the mask**. The one-bit convention is therefore a client-side source
+claim; that unchecked virtual preference does not establish which masks authorize a virtual session
+on the server, or prove non-console identity. A reviewed virtual-authorization policy is still absent
+in this package. No mask is interpreted and no command is sent. The internal virtual-only encoder and
+result decoder have independent synthetic tests; they do not imply an integrated selection handshake.
 
 Raw SHA-256 values:
 
@@ -113,53 +117,65 @@ Raw SHA-256 values:
 |---|---|
 | `ard/ard-patch.js` | `bef0c7b6c88639d555815487e48dcecdcd8362dcee20eb258f70ad397c7164d5` |
 | `ard/ard-constants.js` | `8c107d8939f74867c84d5708a9706c2226654cf0ceb59c5633bf4f87a03f9474` |
+| `ard/session-select.js` | `f1cd6c49be4cfa28849d52f7646424251e76b5d4c4cf342afcc31e43e934dcf4` |
 
-## Implementation boundary
+## Implementation boundary — 2026-11-14
 
-The package separates two layers so that no fixture byte is read as an Apple claim. The code side of this
-boundary is `Sources/RFBProtocol/AppleSubset.swift`; the behaviour side is `RFBClient` under
-`AuthenticationPolicy.syntheticAppleSubset`, which is a fixture policy and not an authentication mode.
+The implementation used four hash-verified raw files from the prior review's local cache. The fresh
+integration review fetched those four files directly over HTTPS and confirmed their hashes, then
+fetched, inspected and hashed the fifth file, `ard/session-select.js`. This supersedes the earlier
+local availability gap recorded in HANDOFF-AUTH/VALIDATION; it does not supply virtual authorization
+or server evidence. No upstream code was executed, copied, linked, vendored or installed. The Swift
+codecs are independently authored from the record descriptions.
 
-### (a) Implemented fixture subset
+### Source-backed records
 
-Everything below is reachable only under the fixture policy. S4 supplies the challenge framing; S5
-supplies the banner and selected constants/semantics. The selection message layout and local budgets
-are deliberately authored for this package, separate from S5's records above.
+- Banner and ClientInit remain exactly as S5. S4 challenge framing/response-width check is unchanged;
+  cryptography remains absent behind the mock provider seam.
+- Extended ServerInit: at least 22 name bytes, byte 0 is NUL (byte 1 unrestricted), flags at 2…5,
+  16-byte capability bitmap at 6…21. S5 `ard-constants.js` names flags observe 1, may-control 2,
+  session-select 4 and no-virtual-display 8. The bitmap and name are not identity evidence.
+- SessionInfo: u16 body length excludes itself; u16 version, u32 allowed commands, four opaque
+  reserved bytes, remaining console username bytes. First NUL terminates the username; an absent
+  terminator means all remaining bytes, as in S5. Empty username payload is accepted by S5.
+- SessionCommand: exactly 74 bytes: u16 body length 72, u16 version 1, four zero padding bytes,
+  u8 command, one zero padding byte, 64-byte NUL-padded username. The internal encoder only writes
+  command 2. S5 first maps incoming username bytes to Latin-1 code units, then UTF-8 encodes the
+  resulting string and truncates to 63 bytes, potentially splitting a multibyte sequence. The codec
+  matches that behavior; it does not substitute the credential username or assert session identity.
+- SessionResult: u16 body length, u16 version, u32 status, then opaque reserved remainder. The source
+  comment says 74 reserved bytes, but its parser uses `bodySize - 6`. Our decoder accepts bounded
+  variable reserved length, not an invented fixed-size requirement. Status 0/4 = granted, 2/3 =
+  pending, everything else = denied (S5 constants and the status branch).
 
-| Element | Constant / state | Basis |
-|---|---|---|
-| Message kinds `1` SessionInfo, `2` SessionInfoChoice, `3` SessionResult | `sessionInfoKind`, `sessionInfoChoiceKind`, `sessionResultKind` | package-local kinds; deliberately different from S5's length-prefixed records |
-| Availability flag `0` unavailable, `1` available | `unavailableState`, `availableState` | package-local availability byte; S5 instead parses an allowed-command mask |
-| SessionResult outcomes `0` granted, `1` denied, `2` pending | `outcomeGranted`, `outcomeDenied`, `outcomePending` | package-local one-byte outcomes; S5 uses u32 statuses including additional granted/pending values |
-| Candidate Apple banner `RFB 003.889\n` | `appleBanner` | exact literal in S5 `ard-patch.js` line 214; source-verified, not server-verified; default policy rejects it |
-| Bounds 512-byte key length, 4096-byte credential response, 8 SessionInfo entries | `Limits.appleKeyBytes`, `appleCredentialBytes`, `appleSessionChoices` | package-local research budgets, NOT values from S4/S5 |
-| Console command `1`, virtual-desktop command `2`; ClientInit `0xC1` | `consoleCommand`, `virtualDesktopCommand`, `appleClientInit` | exact constants in S5 `ard-constants.js` lines 78, 90–91; the surrounding selection record remains package-local |
-| Type-30 challenge framing: u16 generator, u16 key length, modulus, server public key; the provider answer must have exactly `128 + keyLength` bytes | parser states `appleChallengeHeader` / `appleModulus` / `appleServerKey` | S4 framing only; no key agreement, hash or cipher exists |
-| The rule that only an *available* virtual desktop may be chosen, that a pending result never retries, and that no message ever selects the console | client state machine | package policy derived from S5's failure leads, not an Apple guarantee |
+### Local conservative policy, not Apple claims
 
-### (b) Not implemented and not claimed
+- Incoming records must use version 1. S5's writer fixes version 1, while its input parser reads but
+  does not validate version; this prototype deliberately refuses other versions.
+- Body length must exactly match the supplied record, with no trailing bytes; SessionInfo >=10,
+  SessionResult >=6; maximum 4096 for either. ServerInit name also has the existing 4096-byte budget.
+- Unknown ServerInit flag bits fail. Missing session-select or set no-virtual-display means
+  unavailable. Capability bitmap and reserved bytes remain opaque and are not required to be zero.
+- **Every allowed-command mask fails closed.** RFBClient parses a complete SessionInfo, then raises
+  `unverifiedSelectionPolicy` before any command, pixel-format, encoding or surface output. The
+  codec's raw mask is not a parsed authorization decision. There is no console-only classification.
+- Internal command/result codecs are positive offline fixture exercises only. RFBClient cannot reach
+  them until a later, independently sourced policy is integrated with result budgets and deadlines.
+- Removed package-local kinds/count/availability/outcome bytes are no longer a supported wire path.
 
-- S5's byte layouts for SessionInfo / SessionCommand / SessionResult and extended ServerInit metadata.
-  The pinned client implements them, but this package deliberately models only simplified selection
-  messages. Neither these fixtures nor the source inspection verifies a live Apple server contract.
-- The S4 DH / MD5 / AES credential exchange, the 128-byte encrypted block and the client public key. Only
-  the empty `AppleCredentialProvider` seam exists: with no provider the handshake stops before a
-  credential response or ClientInit is sent (banner/type negotiation can precede it), and the provider
-  used by the tests and the demo is a labelled mock with constant bytes.
-- The type-33 RSA tunnel, type-30 key agreement, server identity, transport confidentiality, any socket,
-  TLS, network I/O, live macOS-server interoperability and the binding of a surface to an exact audit
-  session.
+### Still unimplemented
+
+The whole type-30 DH/MD5/AES provider, source-backed allowed-command policy, integrated command/result
+lifecycle, type-33 RSA tunnel, server authentication, confidentiality, transport and live-server/audit
+session binding. Inspection of the current public CommonCrypto/Security SDK headers did not establish
+a supported API for S4's arbitrary-modulus finite-field DH. This scoped finding is not a claim that no
+backend exists. No custom bignum, private API or new external dependency was introduced. A3 remains
+in progress until both the provider and integrated source-backed selection are complete.
 
 ## Research outcome
 
-The reviewed Apple pages establish application-level choices and the HP limit. The pinned open-source
-clients establish candidate authentication and selection implementations worth studying. **We did not
-locate an Apple-published byte-level contract for these extensions in the reviewed sources.** This is a
-scoped finding, not a claim that none exists anywhere. There is enough evidence to avoid guessing that
-standard shared=1 or successful auth selects the right user. There is not enough local evidence to
-enable Apple credentials, the proprietary selection path or a live viewer in this package.
-
-Implementation work is restricted to the standard RFB fixture parser and the Apple fixture subset in
-(a). S5's selection records are not implemented, and no live Apple wire compatibility is claimed.
-Follow-up requires the separate identity, crypto/transport, capability/failure and laboratory work in
-[LAB-NEXT.md](LAB-NEXT.md).
+The inspected Apple pages establish application-level choices and the High Performance limit. The
+pinned clients establish concrete candidate byte contracts, now partly implemented offline. We did
+not locate an Apple-published byte-level specification in those sources. No live interoperability,
+server identity or exact user-session binding follows from these records. [README](README.md) lists
+the bounded remaining work; [LAB-NEXT](LAB-NEXT.md) preserves the independent laboratory requirements.
