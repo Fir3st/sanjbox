@@ -349,6 +349,39 @@ private func testTool(_ executable: String, _ arguments: [String], seconds: Doub
     #expect(throws: (any Error).self) { try journal.recoveryReport(inventory: f.inventory()) }
 }
 
+@Test func nativeJournalFailedRecoveryPermanentlyRevokesLiveAuthorityAfterDriftIsRestored() throws {
+    for kind in ["app-mode", "root-mode", "record"] {
+        let f = try JournalFixture(); let journal = try #require(try f.openJournal())
+        try f.register(journal)
+        let originalResult = try f.record("002.json")
+        let originalInventory = try f.inventory()
+        if kind == "app-mode" { #expect(chmod(f.app + "/code", 0o644) == 0) }
+        if kind == "root-mode" { #expect(chmod(f.journalPath, 0o750) == 0) }
+        if kind == "record" { try f.overwrite("002.json", Data("{".utf8)) }
+        do {
+            _ = try journal.recoveryReport(inventory: f.inventory())
+            Issue.record("Recovery accepted observed drift")
+        } catch {
+            if kind == "app-mode" { #expect(String(describing: error).contains("recovery app inventory drift")) }
+            if kind == "root-mode" { #expect(String(describing: error).contains("directory owner/mode/flags")) }
+            if kind == "record" { #expect(error is DecodingError) }
+        }
+        if kind == "app-mode" { #expect(chmod(f.app + "/code", 0o600) == 0) }
+        if kind == "root-mode" { #expect(chmod(f.journalPath, 0o700) == 0) }
+        if kind == "record" { try f.overwrite("002.json", originalResult) }
+        // Restoring the exact accepted bytes/metadata must not erase the observed conflict.
+        #expect(try f.inventory() == originalInventory)
+        #expect(try f.record("002.json") == originalResult)
+        do {
+            _ = try journal.begin(.agent, .unregister, status: 1, inventory: f.inventory(), expectation: expectation())
+            Issue.record("Restored drift regained live unregister authority")
+        } catch S8Error.refused(let reason) {
+            #expect(reason == "registration journal: closed after failure or root metadata drift")
+        } catch { Issue.record("Unexpected failure instead of poisoned authority: \(error)") }
+        #expect(try FileManager.default.contentsOfDirectory(atPath: f.journalPath).sorted() == ["001.json", "002.json", "header.json"])
+    }
+}
+
 @Test func nativeJournalDurabilityBarrierFollowsFileAndDirectorySyncAndStopsOnFailure() throws {
     var calls: [(JournalDurability.Step, Int32)] = []
     try JournalDurability.commit(file: 41, directory: 42) { step, fd in calls.append((step, fd)); return 0 }

@@ -401,10 +401,16 @@ public final class NativeRegistrationJournal {
     public func revokeLiveAuthority() { poisoned = true; live.removeAll() }
 
     public func recoveryReport(inventory: NativeSignedAppInventory) throws -> NativeRecoveryReport {
-        try requireJournal(inventory == header.inventory, "recovery app inventory drift")
-        let (records, states) = try load()
-        return .init(journalPath: path, runID: header.inventory.runID, signedInventorySHA256: sha256(try journalJSON(header.inventory)),
-            services: Dictionary(uniqueKeysWithValues: states.map { ($0.key.rawValue, $0.value.description) }), records: records.count)
+        do {
+            try requireJournal(inventory == header.inventory, "recovery app inventory drift")
+            let (records, states) = try load()
+            return .init(journalPath: path, runID: header.inventory.runID, signedInventorySHA256: sha256(try journalJSON(header.inventory)),
+                services: Dictionary(uniqueKeysWithValues: states.map { ($0.key.rawValue, $0.value.description) }), records: records.count)
+        } catch {
+            // Observed drift remains a conflict even if the files are later restored.
+            revokeLiveAuthority()
+            throw error
+        }
     }
     public func begin(_ service: FixtureService, _ action: FixtureAction, status: Int,
                       inventory: NativeSignedAppInventory, expectation: S8Expectation) throws -> Operation {

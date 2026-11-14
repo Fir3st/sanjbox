@@ -116,7 +116,11 @@ final class Controller: NSObject, NSApplicationDelegate {
             let report = try journal.recoveryReport(inventory: inventory)
             let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             show(String(decoding: try encoder.encode(report), as: UTF8.self))
-        } catch { show("Recovery refused: \(error)\nPreserve the application and journal; no mutation authority restored.") }
+        } catch {
+            // Identity/signature capture can fail before recoveryReport gets to revoke.
+            journal?.revokeLiveAuthority()
+            show("Recovery refused: \(error)\nPreserve the application and journal; live mutation authority revoked, none restored.")
+        }
     }
     @objc func reviewAction() {
         do {
