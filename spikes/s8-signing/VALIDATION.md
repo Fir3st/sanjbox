@@ -302,3 +302,59 @@ smoke se proto neopakovaly. Znovu prošlo **59 S8 Python testů** a **63 tools t
 build (**22/63 balíků, 0/155 případů**) i `git diff --check origin/main...HEAD`.
 COVERAGE zachovává **D5 🟨, B2 ✅, A6 🟨 a F1 17 hotových / 7 rozpracovaných / 12 nezahájených**;
 S8/SG ani jiná brána se nemění. Následující commit pouze doplňuje tento validační záznam.
+
+## WP1.A6 H1 wire fuzzer a syntetický service workflow — 2026-11-14
+
+Vymezené pokračování z `main` `75f3b5da13dfd7fca3acd376e06f1cd4d0fe2786`, claim
+`7f914d9e14d1abfa12308d95ec3d5114e34b047b`, měřený implementační commit
+**`4d730963f58979539e3410a06d1791ddd45cb14f`**. Původní autorství janfiedler / Codex + Astra
+zachováno; navazující Astra má výslovné uživatelské zadání. Tento záznam je krátká offline validace
+podle GUIDE §11, nikoli laboratorní důkaz. [Výstup, workflow a blokátory](A6-H1-FOLLOWUP.md).
+
+Prostředí: arm64, macOS **27.2.1 `26B131`**, Apple Swift **6.4.2 `swiftlang-6.4.2.1.9`**,
+clang `2100.4.1.1`, systémový `/usr/bin/python3` **3.9.6**. Závislosti pouze lokální common a H1;
+žádný jejich zdroj nebyl změněn. Žádná síť při build/test; síť použita pouze k autorizovanému Git push.
+
+- Native Swift `swift test --configuration debug` i `release`, oba s `--disable-sandbox`, vlastními
+  scratch/cache/module-cache cestami: **53/53 + 53/53 testů**, 0 failures. Testy zahrnují čtyři
+  sestavené service targets, all-message H1 controls, známé odmítnutí každého negativu, přesné
+  envelope/body limity a +1 byte, determinismus dvou 10 000-iteration běhů, accept-all/reject-all/
+  non-contract-error poruchy oracle, jednotlivé identity dimension/replay/revocation kontroly
+  syntetického daemon seam a restart/conflict/cleanup workflow. Debug source bytes odpovídají
+  uvedenému commitu, Release byl spuštěn po commitu. Zůstávají warnings pro user cache a deprecated
+  native backend; build není warning-free.
+- `/usr/bin/python3 -I -B -m unittest discover -s spikes/s8-signing/tools -v`: **60/60 testů**,
+  0 failures/skips; nový test pinne zahrnutí všech H1 Package/Sources do build source inventury.
+  Původní 59 testů včetně samostatných process/lock regresí zůstává zachovaných.
+- Vlastní kopie Release `s8-probe` byla explicitně ad-hoc podepsána `--options runtime` s prázdnými
+  entitlements, bez identity lookup/Keychain; strict/all-architectures verify prošel, flags obsahují
+  `adhoc,runtime`, žádný `get-task-allow`. SHA-256 binárky:
+  `8b02f6621f86ddcc37f913be4b9bcae572e4ff3269bbbdcc78af7e3832d90cc9`.
+- **9 CLI smoke kontrol**: `h1-fuzz --iterations 10000 --seed 21304` má **84/84 controls,
+  10 599 odmítnutých negativů, 0 unexpectedAccepts/failures**, corpusVersion 1 a SHA-256
+  `16f8b498c825682662275f60df955d2d87c17c8336dcd7a3917c27557a4b1896`;
+  `service-workflow` vrací šest syntetických variant, obě native allow hodnoty false;
+  count 0/10001 a seed 0 vrací exit 4; oba příkazy odmítají `--apply` (exit 2) a chybnou audit
+  session (exit 3, pouze identity report). CLI expectation vznikla z vlastní host diagnostiky
+  výhradně pro tuto kontrolu; není nezávislá předregistrace L2 ani důkaz identity izolované oblasti.
+- `git diff --check 75f3b5d..HEAD` prošel. Nezávislé review a GitHub CI se posoudí na publikovaném
+  finálním PR head; tento záznam je nepředjímá.
+
+První lokální smoke harness mylně očekával JSONL, zatímco společný `printJSON` vypisuje za sebou
+pretty JSON dokumenty; selhal tedy parser testovacího výstupu. Po opravě na postupné `raw_decode`
+prošlo všech devět kontrol, beze změny produktu. Původní Swift/Python průběžné testy také prošly;
+nejde o výsledky S8. Smoke nikdy nespustil service/UI target ani signing handoff snippet.
+
+Vlastní input roots odstranil `finally` v obou smoke pokusech. Vlastní scratch/cache root
+`/private/tmp/a6-h1-20261114-7F914D9` byl po inventuře UID/type/inode odstraněn; rovněž vlastní
+kopie CLI po opětovném ověření hashe. Zachované malé lokální záznamy:
+`/private/tmp/a6-h1-cli-records-4D73096/{summary,fuzz-report,workflow-report,cleanup-summary}.json`,
+`signature.txt` a `/private/tmp/a6-h1-{debug-final,release-final,python-final}.log`.
+Žádné sdílené cache ani cizí run roots se nemazaly; testy uklidily své event/fixture roots.
+
+**Neprovedeno a neověřeno:** skutečný Personal Team/self-signed podpis, registration/status API,
+UI/helpers/daemon běh, durable native service ownership, unregister přes restart, login/reboot,
+OS admin approval, účty, TCC/grant/capture, attach, nativní XPC/audit-token ověření a skutečné Mach
+rights. Daemon seam i restart recovery jsou modely s mock autoritou/údaji, nikoli jejich native
+adaptéry. Post-handoff artifact cleanup stále odmítá unknown registraci. H1 wire fuzzer je dodaný,
+**A6 však zůstává 🟨 a S8/SG-01…11 Neověřeno**; přesná zbývající příprava je uvedena ve follow-up.
