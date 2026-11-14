@@ -41,7 +41,7 @@ final class Controller: NSObject, NSApplicationDelegate {
     let actionChoice = NSPopUpButton()
     let output = NSTextView()
     var eventCount = 0
-    var lifecycle = UserFixtureLifecycle()
+    var journal: NativeRegistrationJournal?
 
     init(expected: S8Expectation, runID: String) { self.expected = expected; self.runID = runID }
 
@@ -63,8 +63,9 @@ final class Controller: NSObject, NSApplicationDelegate {
         stack.addArrangedSubview(serviceChoice); stack.addArrangedSubview(actionChoice)
         let preview = NSButton(title: "Preview (no service API)", target: self, action: #selector(preview))
         let read = NSButton(title: "Read selected status", target: self, action: #selector(readStatus))
+        let recover = NSButton(title: "Inspect durable recovery", target: self, action: #selector(recover))
         let apply = NSButton(title: "Review user action…", target: self, action: #selector(reviewAction))
-        stack.addArrangedSubview(NSStackView(views: [preview, read, apply]))
+        stack.addArrangedSubview(NSStackView(views: [preview, read, recover, apply]))
         output.isEditable = false
         let scroll = NSScrollView(); scroll.documentView = output; scroll.hasVerticalScroller = true
         stack.addArrangedSubview(scroll); scroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 180).isActive = true
@@ -78,7 +79,7 @@ final class Controller: NSObject, NSApplicationDelegate {
     @objc func preview() {
         show("DRY-RUN: \(action.rawValue) \(selected.rawValue)\nFixed ID: \(selected.identifier)\nRun: \(runID)\nNo ServiceManagement call made.\n" +
              (selected == .daemon ? "Daemon mutations are compiled out of the action adapter; separate host-only approval design remains required." :
-              "A user action rechecks exact identity and signing, saves intent before the API, then saves status/error. Unregister does not prove process exit or no relaunch."))
+              "A user action rechecks exact identity and signing, pins the signed app inventory and commits a durable intent before the API, then commits status/error. Unregister does not prove process exit or no relaunch."))
     }
     func validatedContext() throws -> (ProbeContext, FixtureSigning) {
         let context = try captureIdentity(groups: Set(expected.requiredGroups + expected.forbiddenGroups))
@@ -106,6 +107,21 @@ final class Controller: NSObject, NSApplicationDelegate {
             show("Observed status \(value). Evidence: \(path)\nStatus is not a lifecycle verdict.")
         } catch { show("Refused: \(error)") }
     }
+    @objc func recover() {
+        do {
+            _ = try validatedContext()
+            let inventory = try NativeSignedAppInventory.capture()
+            if journal == nil { journal = try NativeRegistrationJournal.open(inventory: inventory, create: false) }
+            guard let journal else { show("No durable journal for this sealed run. No service API called; no ownership inferred."); return }
+            let report = try journal.recoveryReport(inventory: inventory)
+            let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            show(String(decoding: try encoder.encode(report), as: UTF8.self))
+        } catch {
+            // Identity/signature capture can fail before recoveryReport gets to revoke.
+            journal?.revokeLiveAuthority()
+            show("Recovery refused: \(error)\nPreserve the application and journal; live mutation authority revoked, none restored.")
+        }
+    }
     @objc func reviewAction() {
         do {
             let service = selected; let operation = action
@@ -117,16 +133,18 @@ final class Controller: NSObject, NSApplicationDelegate {
             let mutable = try UserService(service)
             let alert = NSAlert()
             alert.messageText = "\(operation.rawValue) own \(service.rawValue)?"
-            alert.informativeText = "USER L2 EXPERIMENT, after S1 and preregistration only.\nRun: \(runID)\nFixed ID: \(service.identifier)\nThis changes startup state for your current UID. Register may launch the bounded observer immediately and at subsequent logins. Unregister requires later process/relaunch verification. This dialog is not a trusted host authorization boundary."
+            alert.informativeText = "USER L2 EXPERIMENT, after S1 and preregistration only.\nRun: \(runID)\nFixed ID: \(service.identifier)\nThis creates persistent provenance in your Application Support directory and changes startup state for your current UID. Register may launch the bounded observer immediately and at subsequent logins. Unregister requires later process/relaunch verification. This dialog is not a trusted host authorization boundary."
             alert.addButton(withTitle: "Cancel")
             alert.addButton(withTitle: "I preregistered L2; perform this action")
             guard alert.runModal() == .alertSecondButtonReturn else { return }
             let (fresh, freshSigning) = try validatedContext()
             guard !freshSigning.adHoc else { throw S8Error.refused("signing changed") }
             let before = status(service)
-            try lifecycle.authorize(service, operation, status: before)
             let intent = try record(service: service, phase: "intent", action: operation, context: fresh, observedStatus: before)
-            try lifecycle.begin(service, operation, status: before)
+            let inventory = try NativeSignedAppInventory.capture()
+            if journal == nil { journal = try NativeRegistrationJournal.open(inventory: inventory, create: true) }
+            guard let journal else { throw S8Error.refused("durable journal unavailable") }
+            let pending = try journal.begin(service, operation, status: before, inventory: inventory, expectation: expected)
             var failure: NSError?
             do {
                 switch operation {
@@ -138,22 +156,22 @@ final class Controller: NSObject, NSApplicationDelegate {
             // A failed result write leaves the intent and an explicit incomplete experiment.
             let (afterContext, _) = try validatedContext()
             let afterStatus = status(service)
+            try journal.finish(pending, status: afterStatus, error: failure, inventory: NativeSignedAppInventory.capture())
             let result = try record(service: service, phase: "result", action: operation, context: afterContext,
                                     observedStatus: afterStatus, error: failure)
-            lifecycle.finish(service, operation, status: afterStatus, succeeded: failure == nil)
-            show("Intent: \(intent)\nResult: \(result)\n" + (failure == nil ? "API returned success; lifecycle remains unverified." : "API error \(failure!.domain)/\(failure!.code); preserve both records."))
-        } catch { show("Refused/incomplete: \(error)\nIf an intent exists, inspect it and perform user cleanup before closing the slot.") }
+            show("Durable journal: \(journal.path)\nIntent: \(intent)\nResult: \(result)\n" + (failure == nil ? "API returned success; lifecycle remains unverified." : "API error \(failure!.domain)/\(failure!.code); preserve both records."))
+        } catch { journal?.revokeLiveAuthority(); show("Refused/incomplete: \(error)\nIf an intent exists, inspect it and perform user cleanup before closing the slot.") }
     }
 }
 
 func fail(_ text: String) -> Never { FileHandle.standardError.write(Data((text + "\n").utf8)); exit(2) }
 let args = Array(CommandLine.arguments.dropFirst())
 if args.isEmpty || args == ["plan"] {
-    print("DRY-RUN: S8ServiceHost ui --expect OWN_EXPECTATION.json; status --expect OWN_EXPECTATION.json. No service API called. Daemon mutation unavailable; no CLI apply/registration endpoint.")
+    print("DRY-RUN: S8ServiceHost ui --expect OWN_EXPECTATION.json; status --expect OWN_EXPECTATION.json; recovery --expect OWN_EXPECTATION.json. No service API called. Daemon mutation unavailable; no CLI apply/registration endpoint.")
     exit(0)
 }
-guard args.count == 3, ["ui", "status"].contains(args[0]), args[1] == "--expect" else {
-    fail("Only plan, ui --expect FILE, status --expect FILE are accepted; registration is a user UI action.")
+guard args.count == 3, ["ui", "status", "recovery"].contains(args[0]), args[1] == "--expect" else {
+    fail("Only plan, ui --expect FILE, status --expect FILE, recovery --expect FILE are accepted; registration is a user UI action.")
 }
 do {
     let expected = try readExpectation(args[2])
@@ -164,7 +182,13 @@ do {
     }
     guard Bundle.main.bundleIdentifier == "org.sanjbox.s8.fixture.host" else { fail("own containing bundle required") }
     let run = try fixtureRunID()
-    if args[0] == "status" {
+    if args[0] == "recovery" {
+        let inventory = try NativeSignedAppInventory.capture()
+        if let journal = try NativeRegistrationJournal.open(inventory: inventory, create: false) {
+            let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            print(String(decoding: try encoder.encode(journal.recoveryReport(inventory: inventory)), as: UTF8.self))
+        } else { print("No durable journal for this sealed run; ownership unknown. No service API called.") }
+    } else if args[0] == "status" {
         for service in FixtureService.allCases {
             var event = try ServiceEvent(runID: run, service: service, phase: "status", context: context)
             event.action = .status; event.status = status(service)

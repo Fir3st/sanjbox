@@ -28,7 +28,10 @@ parser každý grant odmítne kvůli neověřené identitě, bez plochy a konzol
 chybí povolený podporovaný type-30 DH backend, skutečný provider se syntetickými known-answer testy
 a nezávislé ověření serverové a UID/audit identity.
 [A6 #77](spikes/s8-signing/A6-H1-FOLLOWUP.md) je sloučené jako `4ad05d9` a dodává fuzzer skutečných
-H1 helper/reply/broker wire kontraktů a syntetické autorizační/restart workflow. A6 zůstává rozpracované: chybí kalibrovaná
+H1 helper/reply/broker wire kontraktů a syntetické autorizační/restart workflow. Navazující
+[A6 #82](spikes/s8-signing/NATIVE-RECOVERY.md) přidává nativní durable intent/result journal,
+signed-app inventuru a recovery bez obnovení autority; odmítnutá kontrola trvale revokuje i dosud
+živou autoritu. A6 zůstává rozpracované: chybí kalibrovaná
 SG-06 pozitivní attach kontrola, nativní daemon autorizace a registration ownership/cleanup přes
 restart; skutečné Personal Team/podmíněné self-signed podpisy, XPC/Mach/TCC a L2 nejsou ověřené.
 Zbývající A2/A3/A6 mají dosavadní vlastníky a konkrétní kroky i podmínky v IMPLEMENTATION.

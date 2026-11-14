@@ -119,3 +119,10 @@ adapter/approval, durable registrační ownership a cleanup přes restart, srovn
 a uživatelské Personal Team/podmíněné self-signed experimenty. XPC transport/Mach rights,
 audit-token/code/session autentizace, symlink/TOCTOU, TCC a živý L2 čekají na nativní implementaci,
 uživatele a laboratorní závislosti. S8 ani žádný SG případ nemění stav.
+
+## Navazující native recovery — 2026-11-14
+
+Výše popsaný výstup a evidence #77 zůstávají historicky beze změny. [Další vymezená implementace](NATIVE-RECOVERY.md)
+zapojuje skutečný durable filesystem journal a signed-app inventuru do nativního service hostu.
+Zbývající ownership oracle a post-restart unregister/cleanup neodvozuje z receiptů; daemon ani
+SG-06 neodblokovává. Podrobné nativní failure semantics a další podmínky jsou v novém dokumentu.
