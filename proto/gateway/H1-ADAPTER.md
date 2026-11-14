@@ -105,8 +105,12 @@ každé s vlastní mezí. Lokální budget/rate modelu určuje doplňková konfi
 - Upstream parser počítá i data, která handler zahodí (např. modelové ping eventy).
   Přes veřejné H1 API nelze podsunout klienta s většími limity; testovací factory je
   package-internal a fixtures dostávají stejný `UpstreamLimits`.
-- Každá hotová odpověď se kontroluje i po přepsání handlerem. Překročení se zahodí,
-  completion se dokončí jako neúspěch, audit je `failed/h1ResponseLimit/502`.
+- Každá hotová odpověď se kontroluje i po přepsání handlerem. Překročení se zahodí
+  a completion původního těla se dokončí jako neúspěch. Lokální router/handler denial
+  zachová původní status, `deniedByHandler` a důvod (včetně capacity markeru), ale vrátí
+  prázdné tělo. Např. DELETE s response limitem 1 zůstává `403/handlerForbidden`.
+  Ostatní nadlimitní odpovědi zůstávají `failed/h1ResponseLimit/502`; upstream parser
+  nadále odmítá větší těla ještě před handlerem, včetně upstream chybových odpovědí.
   SSE klientské bajty omezuje skutečný D3 handler přes `maximumOutputBytes`.
 - Lokální chyby v H1 režimu mají prázdné tělo, včetně chyby SSE před prvním eventem.
   Tím je respektovaný i nejmenší H1 response limit 1. Chyba po prvním eventu nechá

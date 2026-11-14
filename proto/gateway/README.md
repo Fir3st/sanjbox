@@ -165,7 +165,7 @@ swift test --package-path spikes/s5-gateway -c release
 /usr/bin/python3 -m unittest discover -s tools/tests
 ```
 
-114 Swift testů zahrnuje devět skutečných loopback/socket testů a odmítnutí nesouladu
+117 Swift testů zahrnuje devět skutečných loopback/socket testů a odmítnutí nesouladu
 originu před bindem, úspěšný přenos
 syntetického npm artefaktu, zrušení aktivního modelového handleru, timeout/backpressure,
 kapacitu a opětovný bind po úklidu. Dalších pět subprocess CLI testů ověřuje výchozí

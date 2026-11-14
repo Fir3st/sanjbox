@@ -1,6 +1,46 @@
 # WP1.H4 — lokální revize a validace
 
-## H1 adaptér — 2026-11-14
+## Oprava nálezu nezávislého review P3 — 2026-11-14
+
+Reviewer zjistil, že při validním H1 `responseBytesLimit = 1` lokální odmítnutí
+`DELETE /npm/fixture` měnilo `403/handlerForbidden` na
+`502/failed/h1ResponseLimit`, protože syntetické chybové tělo překračovalo mez.
+Otestovaný opravný commit kódu/testů je
+**`71034cefb5cc8220b1bee64307913353f6009394`**. Následný commit mění jen vlastní
+H4 dokumentaci a jediný řádek H4 v COVERAGE; prostředí je stejné jako níže.
+
+Nadlimitní router/handler denial nyní zachová status, `deniedByHandler`, původní
+důvod a případný `.capacity` marker; vrátí prázdné tělo. Původní response completion
+se dokončí jako neúspěch, protože původní tělo se neposlalo. Ostatní nadlimitní
+odpovědi zůstávají 502. Upstream parser se nemění a nadále odmítá větší těla včetně
+upstream chybových odpovědí; žádné rozšíření cílů, metod ani limitů.
+
+Tři nové regrese ověřují PUT/DELETE přes skutečný transport, handlerové 403/400 a
+původní audit bez DNS, souběžnou lokální capacity 503 s typovaným markerem, a přesnou
+upstream hranici: jednobajtové tělo projde, dvoubajtové skončí 502 při upstream
+statusu 200 i 403. Vše používá pouze syntetická data a in-memory upstream.
+
+| Ověření opravného commitu | Výsledek |
+|---|---|
+| všechny produkty, `swift build`, Debug / Release | prošlo / prošlo |
+| úplná gateway sada, `swift test`, Debug / Release | **117/117 / 117/117**, 0 failures, 0 skips |
+| `listener_cli.py`, Debug / Release | **5/5 / 5/5**, 0 skips |
+| `/usr/bin/python3 -m unittest discover -s tools/tests` | **94/94**, 0 skips |
+| `git diff --check` | prošlo |
+
+Příkazy použily vlastní scratch `/private/tmp/sanjbox-h4-h1-review-build`; po
+ověření byl odstraněn, malé textové logy zůstávají. Nedošlo k systémovým změnám,
+živým upstreamům, použití skutečných klíčů ani změně H1.
+
+Podmínka offline prototypu H4 z IMPLEMENTATION §0 je splněna: H1 prokazatelně řídí
+npm/PyPI/git/model i běžící knihovní listener a nepodporované konfigurace se odmítají.
+H4 proto evidujeme jako **✅ hotovo (offline prototyp)**. Opravný head má před merge
+ještě nezávisle zkontrolovat reviewer a jeho přesné CI; tento záznam jejich výsledek
+nepředjímá. CLI stále přijímá pouze draft, veřejné H1 API je popsáno níže. Brány a
+všech 155 akceptací zůstávají Neověřeno; produkční integrace ani autentizace klienta
+nejsou součástí tohoto dokončení. Následující záznamy zachovávají dřívější stav.
+
+## Původní H1 adaptér — 2026-11-14
 
 Výslovně zadané pokračování původních autorů janfiedler / Codex + Astra; navazující
 Astra, větev `codex/wp1-h4-h1-policy`. Základ čistého main:
