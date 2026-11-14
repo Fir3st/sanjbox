@@ -13,9 +13,9 @@ požadavek (R1–R8)  ←  brána (S0–S8, F2–F4)  ←  testové případy (T
 - Hotový balík neznamená prošlou bránu. Požadavek se odvozuje z bran, nikdy se nenastavuje přímo.
 - Postup aktualizace: [GUIDE.md §10](GUIDE.md#10-jak-aktualizovat-coverage).
 
-Poslední aktualizace: 2026-11-14 (podklad `main` `b183737` po merge A6
-[#83](https://github.com/Fir3st/sanjbox/pull/83), navazující na A6 #82, A3 #81, H4 #79, A3 #78,
-A6 #77 a plánovací/CI follow-up #80; tato revize doplňuje dílčí A3 [#84](https://github.com/Fir3st/sanjbox/pull/84)).
+Poslední aktualizace: 2026-11-14 (podklad `main` `fa9a001` po merge dílčích A3
+[#84](https://github.com/Fir3st/sanjbox/pull/84) a A6 [#83](https://github.com/Fir3st/sanjbox/pull/83),
+navazujících na A6 #82, A3 #81, H4 #79, A3 #78, A6 #77 a plánovací/CI follow-up #80).
 A3 má lokální syntetickou selection politiku, command/result tok a schválený offline type-30 provider;
 A6 má H1 wire fuzzer, syntetická service workflow, nativní durable journal/recovery inspection
 a read-only XPC message identity bez obnovy mutation authority.
