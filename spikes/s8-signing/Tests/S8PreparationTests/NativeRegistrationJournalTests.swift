@@ -290,6 +290,7 @@ private func changed<T: Codable>(_ value: T, field: String, replacement: Any) th
         #expect(fd >= 0)
         #expect(fcntl(fd, F_GETFD) & FD_CLOEXEC == FD_CLOEXEC)
         #expect(flock(fd, LOCK_EX | LOCK_NB) == 0)
+        #expect(flock(fd, LOCK_UN) == 0)
         close(fd)
     }
 }
@@ -375,4 +376,22 @@ private func testTool(_ executable: String, _ arguments: [String], seconds: Doub
     var original = stat(); var copied = stat()
     #expect(fstat(f.fd, &original) == 0 && fstat(duplicate, &copied) == 0)
     #expect(original.st_dev == copied.st_dev && original.st_ino == copied.st_ino)
+}
+
+@Test func nativeJournalOwnerReleaseUnlocksEvenWithInheritedDescriptionStillOpen() throws {
+    let f = try JournalFixture()
+    let owner = open(f.root, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+    try #require(owner >= 0)
+    try #require(flock(owner, LOCK_EX | LOCK_NB) == 0)
+    let inherited = JournalDirectoryDescriptors.duplicateForEnumeration(owner)
+    try #require(inherited >= 0)
+    defer { close(inherited) }
+    let independent = open(f.root, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+    try #require(independent >= 0)
+    defer { JournalDirectoryDescriptors.releaseLockOwner(independent) }
+    #expect(flock(independent, LOCK_EX | LOCK_NB) == -1)
+    JournalDirectoryDescriptors.releaseLockOwner(owner)
+    // A forked pre-exec child retains this same open-file description even with CLOEXEC.
+    #expect(fcntl(inherited, F_GETFD) >= 0)
+    #expect(flock(independent, LOCK_EX | LOCK_NB) == 0)
 }

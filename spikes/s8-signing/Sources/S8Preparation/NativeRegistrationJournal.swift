@@ -42,6 +42,12 @@ private func journalDirectoryIdentity(_ fd: Int32) throws -> JournalFileIdentity
     return JournalFileIdentity(s)
 }
 enum JournalDirectoryDescriptors {
+    static func releaseLockOwner(_ fd: Int32) {
+        // CLOEXEC cannot close descriptors in a forked child until exec. Release the shared
+        // open-file-description lock explicitly before dropping our final owning reference.
+        _ = flock(fd, LOCK_UN)
+        close(fd)
+    }
     static func duplicateForEnumeration(_ fd: Int32) -> Int32 {
         // dup followed by F_SETFD has a spawn race: a child can inherit the flock.
         fcntl(fd, F_DUPFD_CLOEXEC, 0)
@@ -314,9 +320,9 @@ public final class NativeRegistrationJournal {
             // Before this point catch owns the fd; afterwards deinit owns it (including load failure).
             transferred = true
             _ = try load()
-        } catch { if !transferred { close(opened) }; throw error }
+        } catch { if !transferred { JournalDirectoryDescriptors.releaseLockOwner(opened) }; throw error }
     }
-    deinit { close(fd) }
+    deinit { JournalDirectoryDescriptors.releaseLockOwner(fd) }
 
     private static func write(_ fd: Int32, name: String, data: Data) throws {
         try requireJournal(data.count <= 262_144, "record too large")
