@@ -31,3 +31,58 @@ bit, but virtual command 2 bypasses that test. The historical availability gap a
 a reviewed virtual-authorization policy, integrated result lifecycle and Apple DH provider are still
 missing. This review preserves the delegated bounded scope and terminal refusal; it does not claim
 A3 completion or authorize a live connection.
+
+## Next scoped continuation — 2026-11-14
+
+The user explicitly delegated the owned A3 continuation to a fresh Astra implementer on
+`codex/wp1-a3-auth-followup`, starting from clean main
+`7b8294e4fd28a3e62f4998baf39d3da1fd904ccb` after #78/#77. Original authorship remains
+janfiedler / Codex + Astra; the earlier review and evidence above are preserved.
+
+This follow-up owns only `spikes/s1-rfb/` and the A3 COVERAGE row. Its bounded target is
+a source-backed, explicitly local virtual-command authorization policy and the integrated S5
+command/result lifecycle (pending/denial, deadline, shared message budget and no console fallback),
+plus investigation of a supported public type-30 finite-field DH/MD5/AES backend. Implement crypto
+only if defensible without new unsourced dependencies, private API or hand-rolled cryptography;
+otherwise document the precise remaining blocker and deliver independently useful selection work.
+
+Validation uses this Mac, synthetic bytes and offline fixtures only. No live RFB/credentials,
+accounts, system settings or TCC; no laboratory acceptance changes. Completion requires source
+provenance, Debug/Release tests, updated package documentation and an independently reviewed draft
+PR. This follow-up does not claim full A3 completion if crypto or identity binding remains absent,
+and does not merge or enable auto-merge.
+
+### Delivered continuation and remaining condition
+
+Source/test commit `2c33df1` integrates explicit local virtual-only policy, the exact S5 command,
+pending/denial/grant parsing, a shared message budget and a fixed monotonic result deadline. Default
+selection remains refusal; even an opted-in grant stops before the missing independent identity,
+with no Apple framebuffer. [Validation](VALIDATION.md#local-virtual-selection-lifecycle-continuation--2026-11-14)
+records 54/54 Debug and Release tests, 28/28 CLI checks and 98/98 repository-tool tests.
+
+This is a concrete advance toward the original A3 completion condition, but the real type-30
+provider remains absent. [AUTH-BACKEND](AUTH-BACKEND.md) identifies the exact unblocking decision:
+a permitted, supported, independently reviewed arbitrary-modulus DH backend plus synthetic KATs.
+Another generic mock/docs continuation would not resolve it. Independent review of this local policy
+and lifecycle is pending; leave the PR draft. No live use, acceptance change, merge or auto-merge.
+
+
+## Integration review and next owner — PR #81, 2026-11-14
+
+A fresh Astra ExtraHigh reviewer independently inspected head
+`e702830781052f4163cb36095ab95040977d0b4d` against main
+`7b8294e4fd28a3e62f4998baf39d3da1fd904ccb`. The local mask policy and bounded S5 selection
+lifecycle have no actionable code finding; [the new validation entry](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14)
+records fresh tests. The stale current plan/README/coverage and pending-review wording are corrected;
+the historical handoff above remains unchanged. The coordinator owns exact-final-head CI and merge.
+
+Next implementation owner remains **janfiedler / Codex + Astra**, with explicit delegation required
+for another agent. Select a permitted, maintained, independently reviewed arbitrary-modulus type-30
+DH backend under AUTH-BACKEND's criteria, then implement the provider with independent synthetic
+known-answer vectors. A new dependency needs its concrete approval under GUIDE; this review grants
+none. Separately establish server identity/confidentiality and the expected non-console UID/audit
+session validation before any Apple surface. A local mask or reported grant is never that evidence.
+
+A3 remains active; no further generic mock/docs pass resolves these blockers. All 10 F1 gates and
+155 acceptance cases remain unverified, and Screen Sharing.app/L1-D and other workstream ownership
+are unchanged. No live authentication, network transport, account, settings, TCC or lab work is enabled.

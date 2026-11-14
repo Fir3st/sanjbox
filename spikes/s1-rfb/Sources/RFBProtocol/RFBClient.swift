@@ -1,6 +1,6 @@
 /// An offline, bounded RFB 3.8 protocol experiment, not an Apple session client.
 /// There is deliberately no transport, credential implementation, input, or clipboard API.
-/// Apple selection uses pinned S5 records but stops before an unverified command policy.
+/// Opted-in Apple selection uses pinned S5 records but stops before unverified identity.
 public struct RFBClient: Sendable {
     public enum AuthenticationPolicy: Sendable {
         /// Default: stop at the authentication boundary without selecting a type.
@@ -9,7 +9,7 @@ public struct RFBClient: Sendable {
         /// This is not a policy for a live server, even on localhost.
         case syntheticNoneOnly
         /// ONLY for owned synthetic fixtures offering exactly one type: ARD (30), per S4.
-        /// Accepts S5 records and refuses unverified command-mask interpretation; contains no
+        /// Accepts S5 records with a separately opted-in local selection policy; contains no
         /// cryptography and is not a policy for a live server.
         case syntheticAppleSubset
     }
@@ -18,7 +18,7 @@ public struct RFBClient: Sendable {
         case version, security, securityResult, serverInit, ready, update, failed, closed
         /// S4 type-30 DH challenge is being consumed.
         case appleChallenge
-        /// S5 length-framed SessionInfo; command policy remains unverified.
+        /// S5 length-framed SessionInfo/SessionResult; never implies a verified session.
         case session
     }
 
@@ -34,8 +34,14 @@ public struct RFBClient: Sendable {
         case invalidAppleCredentialResponse
         /// The virtual desktop was absent or offered as unavailable: no fallback exists.
         case sessionUnavailable
-        /// No reviewed policy authorizes virtual selection from the source-backed mask.
+        /// The default policy declined to authorize a synthetic virtual choice.
         case unverifiedSelectionPolicy
+        /// Peer denied the requested virtual selection; never retry or choose the console.
+        case sessionDenied
+        /// A peer grant cannot authenticate the expected non-console UID/audit session.
+        case unverifiedSessionIdentity
+        /// Explicit fixture instants moved backwards during selection.
+        case invalidClock
         /// Unsupported metadata, record version or malformed/budget-exceeding length.
         case invalidSelectionMessage
     }
@@ -67,6 +73,8 @@ public struct RFBClient: Sendable {
         public static let appleKeyBytes = 512
         public static let appleCredentialBytes = 4_096
         public static let appleSelectionBodyBytes = AppleSessionRecordCodec.maximumBodyBytes
+        /// Fixed TOTAL result-wait budget; pending records never extend it.
+        public static let appleSelectionWait: Duration = .seconds(30)
     }
 
     private enum State: Sendable {
@@ -75,6 +83,7 @@ public struct RFBClient: Sendable {
         case appleServerKey(keyLength: Int, generator: Int, modulus: [UInt8])
         case rejectionLength, rejectionBody(Int), serverInitHeader, serverName(Int)
         case sessionInfoHeader, sessionInfoBody(Int)
+        case sessionResultHeader, sessionResultBody(Int)
         case ready, updateHeader, rectangleHeader, pixels(Rectangle), failed, closed
     }
 
@@ -85,6 +94,9 @@ public struct RFBClient: Sendable {
 
     private let authenticationPolicy: AuthenticationPolicy
     private let appleCredentialProvider: (any AppleCredentialProvider)?
+    private let appleSelectionPolicy: AppleSelectionPolicy
+    private var selectionDeadline: ContinuousClock.Instant?
+    private var selectionLastInstant: ContinuousClock.Instant?
     private var state: State = .version
     private var buffer: [UInt8] = []
     private var cursor = 0
@@ -99,16 +111,18 @@ public struct RFBClient: Sendable {
     private var updateBytes = 0
     private var completedUpdate = false
     public private(set) var failure: Failure?
-    /// Last selection state survives failure/close. No S5 choice is currently authorized.
+    /// Last observed selection state survives failure/close; never proof of identity.
     public private(set) var session: AppleSession = .notOffered
 
     /// `appleCredentialProvider` is the only seam where S4's DH/AES exchange could live.
     /// This package ships no implementation; without a provider the Apple handshake stops
     /// before sending a credential response or ClientInit. See AppleSubset.swift.
     public init(authenticationPolicy: AuthenticationPolicy = .rejectAll,
-                appleCredentialProvider: (any AppleCredentialProvider)? = nil) {
+                appleCredentialProvider: (any AppleCredentialProvider)? = nil,
+                appleSelectionPolicy: AppleSelectionPolicy = .rejectAll) {
         self.authenticationPolicy = authenticationPolicy
         self.appleCredentialProvider = appleCredentialProvider
+        self.appleSelectionPolicy = appleSelectionPolicy
     }
 
     private var apple: Bool { authenticationPolicy == .syntheticAppleSubset }
@@ -120,7 +134,7 @@ public struct RFBClient: Sendable {
         case .securityResult, .rejectionLength, .rejectionBody: .securityResult
         case .serverInitHeader, .serverName: .serverInit
         case .appleChallengeHeader, .appleModulus, .appleServerKey: .appleChallenge
-        case .sessionInfoHeader, .sessionInfoBody: .session
+        case .sessionInfoHeader, .sessionInfoBody, .sessionResultHeader, .sessionResultBody: .session
         case .ready: .ready
         case .updateHeader, .rectangleHeader, .pixels: .update
         case .failed: .failed
@@ -141,9 +155,17 @@ public struct RFBClient: Sendable {
     /// Incremental parser: chunks may end at any byte, and may contain multiple messages.
     /// A protocol failure is terminal, discards buffered/pixel data, and returns no events
     /// from this call. Events already returned by earlier calls cannot be retracted.
-    public mutating func receive(_ bytes: [UInt8]) throws -> [Event] {
+    /// `now` defaults to the monotonic ContinuousClock; explicit instants are a fixture seam.
+    /// Call with an empty chunk to check the result deadline during silence. There is no timer.
+    public mutating func receive(_ bytes: [UInt8],
+                                 at now: ContinuousClock.Instant = .now) throws -> [Event] {
         guard phase != .failed, phase != .closed else { throw Failure.terminal }
         do {
+            if let deadline = selectionDeadline, let previous = selectionLastInstant {
+                guard now >= previous else { throw Failure.invalidClock }
+                guard now < deadline else { throw Failure.deadlineExceeded }
+                selectionLastInstant = now
+            }
             guard bytes.count <= Limits.chunkBytes,
                   bytes.count <= Limits.sessionWireBytes - wireBytes,
                   bytes.count <= Limits.bufferedBytes - bufferedByteCount else {
@@ -157,7 +179,7 @@ public struct RFBClient: Sendable {
             }
             buffer.append(contentsOf: bytes)
             var events: [Event] = []
-            while try step(events: &events) {}
+            while try step(events: &events, at: now) {}
             if cursor == buffer.count {
                 buffer.removeAll(keepingCapacity: true)
                 cursor = 0
@@ -195,8 +217,8 @@ public struct RFBClient: Sendable {
         cancel()
     }
 
-    /// A future transport must impose a monotonic total/idle deadline itself and call this.
-    /// The offline parser has no clock, waits, retries, reconnects, or timeout claim.
+    /// A future transport must schedule wakeups and impose handshake/idle deadlines itself.
+    /// This also terminates the S5 result wait; the parser has no timer, retry or reconnect.
     public mutating func expire() {
         guard phase != .failed, phase != .closed else { return }
         fail(.deadlineExceeded)
@@ -208,7 +230,7 @@ public struct RFBClient: Sendable {
         state = .closed
     }
 
-    private mutating func step(events: inout [Event]) throws -> Bool {
+    private mutating func step(events: inout [Event], at now: ContinuousClock.Instant) throws -> Bool {
         switch state {
         case .version:
             guard available(12) else { return false }
@@ -343,6 +365,7 @@ public struct RFBClient: Sendable {
         case .sessionInfoHeader:
             // S5 u16 body length, not a message-kind byte. Validate before waiting/copying.
             guard available(2) else { return false }
+            try consumeServerMessage()
             let bodyLength = read16()
             guard bodyLength >= 10, bodyLength <= Limits.appleSelectionBodyBytes else {
                 throw Failure.invalidSelectionMessage
@@ -351,19 +374,52 @@ public struct RFBClient: Sendable {
         case .sessionInfoBody(let bodyLength):
             guard available(bodyLength) else { return false }
             let record = Self.u16(bodyLength) + Array(buffer[cursor..<(cursor + bodyLength)])
-            _ = try AppleSessionRecordCodec.info(record)
+            let info = try AppleSessionRecordCodec.info(record)
             cursor += bodyLength
-            // Pinned session-select.js checks a per-command bit for console selection,
-            // but returns virtual command 2 without checking that mask. That client
-            // preference is not a reviewed virtual-authorization policy for this parser.
-            // Do not treat zero as a default or fall back to console. Command/result
-            // codecs are tested independently; no surface can be granted.
-            session = .unverified
-            throw Failure.unverifiedSelectionPolicy
+            guard appleSelectionPolicy != .rejectAll else {
+                session = .unverified
+                throw Failure.unverifiedSelectionPolicy
+            }
+            guard appleSelectionPolicy.permitsVirtualCommand(mask: info.allowedCommands) else {
+                session = .unavailable
+                throw Failure.sessionUnavailable
+            }
+            events.append(.send(AppleSessionRecordCodec.virtualCommand(for: info)))
+            session = .requestedVirtual
+            selectionDeadline = now.advanced(by: Limits.appleSelectionWait)
+            selectionLastInstant = now
+            state = .sessionResultHeader
+        case .sessionResultHeader:
+            guard available(2) else { return false }
+            // SessionInfo, every pending/final result, and standard server messages all
+            // debit one instance-wide counter. Fragmentation cannot reset or double debit it.
+            try consumeServerMessage()
+            let bodyLength = read16()
+            guard bodyLength >= 6, bodyLength <= Limits.appleSelectionBodyBytes else {
+                throw Failure.invalidSelectionMessage
+            }
+            state = .sessionResultBody(bodyLength)
+        case .sessionResultBody(let bodyLength):
+            guard available(bodyLength) else { return false }
+            let record = Self.u16(bodyLength) + Array(buffer[cursor..<(cursor + bodyLength)])
+            let result = try AppleSessionRecordCodec.result(record)
+            cursor += bodyLength
+            switch result.outcome {
+            case .pending:
+                session = .pendingVirtual
+                state = .sessionResultHeader // no resend, retry or deadline reset
+            case .denied:
+                session = .denied
+                throw Failure.sessionDenied
+            case .granted:
+                // S2 explicitly permits visible-screen sharing in some circumstances.
+                // A mask/command/status cannot prove non-console UID/audit identity.
+                session = .grantedUnverified
+                throw Failure.unverifiedSessionIdentity
+            }
         case .ready:
             guard available(1) else { return false }
-            guard messages < Limits.serverMessages else { throw Failure.resourceLimit }
-            messages += 1
+            try consumeServerMessage()
             switch read8() {
             case 0:
                 guard pendingRequest else { throw Failure.unsolicitedUpdate }
@@ -417,6 +473,11 @@ public struct RFBClient: Sendable {
         events.append(.framebufferUpdated)
     }
 
+    private mutating func consumeServerMessage() throws {
+        guard messages < Limits.serverMessages else { throw Failure.resourceLimit }
+        messages += 1
+    }
+
     private mutating func fail(_ error: Failure) {
         erase()
         failure = error
@@ -429,6 +490,8 @@ public struct RFBClient: Sendable {
         storage = []
         pendingRequest = false
         completedUpdate = false
+        selectionDeadline = nil
+        selectionLastInstant = nil
     }
 
     private func available(_ count: Int) -> Bool { count <= buffer.count - cursor }
