@@ -140,3 +140,12 @@ signatures and A7/L2 belong to the user after S1 and reviewed cleanup; another g
 does not satisfy these conditions.
 Source observations and hashes: [RESEARCH](RESEARCH.md#native-recovery-feasibility-2026-11-14).
 Exact test scope, failures encountered and cleanup: [VALIDATION](VALIDATION.md).
+
+
+## Navazující nativní message identity — 2026-11-14
+
+[NATIVE-XPC-IDENTITY](NATIVE-XPC-IDENTITY.md) přidává samostatný read-only adaptér
+`SecCodeCreateWithXPCMessage` a skutečné anonymous XPC kontroly v jednom vlastním
+procesu. Není zapojen do hostu, daemonu ani tohoto journalu; nepřináší trusted
+admin approval, registration continuity, obnovení autority ani cleanup. Původní
+#82 evidence a všechny výše uvedené hranice zůstávají platné.

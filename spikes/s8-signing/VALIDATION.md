@@ -599,3 +599,68 @@ continuity a bezpečný cleanup přes UI/login/reboot, kalibrovaný SG-06 positi
 skutečné podpisy a A7/L2 patří uživateli po S1 a přezkoumaném cleanup. A3 pokračuje povoleným
 reviewovaným type-30 DH backendem/providerem s nezávislými syntetickými KATs a serverovou/session
 identitou. Ani jedna dílčí implementace neuzavírá balík nebo laboratorní bránu.
+
+
+### Native XPC message identity continuation — 2026-11-14
+
+Base `main` **`98a80af368bdc941a072a9496ef50f1666dc3211`** (merged #82), branch
+`codex/wp1-a6-native-authority-next`; **janfiedler / Codex + Astra** authorship and
+explicit continuing-implementer handoff preserved. Scope and reproducible fixture
+steps: [NATIVE-XPC-IDENTITY](NATIVE-XPC-IDENTITY.md). Prior evidence is unchanged.
+Environment: arm64, **macOS 27.2.1 / 26B131**, Swift **6.4.2**, Xcode macOS 27.2 SDK.
+
+- Full S8 Swift suite: **79/79 Debug + 79/79 Release**, including four new native
+  policy/provenance unit tests and all 75 existing tests. Isolated scratch/cache/
+  module paths, `--build-system native --disable-sandbox`; native-backend deprecation
+  is still reported. Unit tests do not claim a hardened live sender.
+- Separate freshly copied, hardened ad-hoc/empty-entitlement executables: **8/8
+  actual anonymous-XPC controls per configuration**. OS message audit-token code
+  lookup and exact pin succeed; wrong live pin/UID/GID/session and forged local
+  dictionary refuse. Matched transport requirements pass and a wrong reply code
+  requirement produces the exact native error object, not a timeout-based pass.
+  External driver pins the sealed executable's CDHash before launch. All peers are
+  inside one owned process; no cross-process or cross-session result is claimed.
+- **5/5 CLI controls per configuration**: default/explicit plan, malformed pin,
+  wrong UID, wrong externally supplied pin. The latter proves that the fixture
+  does not silently replace policy with its own signature. After a diagnostic-only
+  fixture refinement, both products were rebuilt and all 8+5 controls rerun; the
+  adapter and unit-test sources did not change after the full-suite runs.
+- S8 Python tests: **60/60**, no failures/skips. `tools/progress.py --history-ref HEAD`
+  and `git diff --check` pass: **27/63** packages, **0/155** passed acceptance cases;
+  COVERAGE changes only the A6 row, keeping it partial. No shared contract changes.
+
+Logs, driver scripts and source/artifact hashes are in
+`/private/tmp/a6-xpc-native-stage/`: `tests-{debug,release}-final.log`,
+`native-{debug,release}-review.stdout`, `cli-controls-review.json`,
+`python-spike.log`, `review-summary.json`. Adapter SHA-256 is
+`5d0a258e981a40bb57797525e9e271491a178050d8d2fc019cbfcaa5756a61ad`;
+fixture source is `20dfb001cf276f5e49f8b0206471d817e13d7624d178d9689d9bc16ee290c496`.
+Current public SDK header hashes: `Security/SecCode.h`
+`293ccef2de6c872a4f5a4862a74bf96a9ade0f897f898813cd33e8e1d00459c4`,
+`xpc/connection.h` `fee99c719a44ff57f5f3bd9e3e2d2b5518d093a476c0df9d4fbcc6a358750d51`.
+
+**Preserved failures:** the first build lacked the manifest module-cache override;
+initial compile errors exposed Swift's required static-code conversion and signed
+ASID type, then were corrected. In the sandbox, 16 existing native journal tests
+refused unavailable own process/boot identity, and the first optional XPC transport
+requirement positive control timed out. Its unchanged binary passed outside that
+sandbox; the final native runs and full suites used the needed local XPC/read-only
+process permissions. Original `tests-debug-first.log` and `native-debug-first.stdout`
+remain failures, not acceptance evidence. A non-Sendable peer capture in the fixture
+was removed by obtaining the reply connection locally from the received message;
+final builds have no such warning.
+
+The fixture cancels its anonymous connections/listener and drains the queue; its
+process is bounded by an alarm and the external driver's timeout, and reaped by
+that driver. Existing tests remove only their owned synthetic files/children.
+The isolated build artifacts and logs are temporarily retained for independent
+review; they contain no registration state. **No ServiceManagement API, service
+executable/UI/daemon, named Mach registration, signing identity/Keychain, admin
+approval, attach/TCC, login/reboot or system change was performed.**
+
+This is a native code-identity prerequisite, **not trusted host/admin authorization**:
+policy provisioning remains untrusted/unimplemented, connection credentials are
+establishment-time values, and right transfer/credential drift/PID-reuse or separate
+processes have not been calibrated. The observation always denies mutation authority;
+service host, daemon, journal and post-handoff cleanup behavior are unchanged.
+**A6 remains partial; S8/SG-01…11 and all laboratory gates remain Neověřeno.**
