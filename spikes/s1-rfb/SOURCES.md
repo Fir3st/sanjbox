@@ -177,8 +177,11 @@ transport/wakeup scheduling and live-server/audit session binding. The scoped pu
 is recorded with exact files/hashes in [AUTH-BACKEND](AUTH-BACKEND.md): CommonCrypto's MD5/AES and
 CryptoKit's EC agreement do not supply S4's arbitrary-modulus DH, while legacy CDSA DH declarations
 are explicitly deprecated. No reviewed backend was established; this is not a claim that none exists.
-No custom bignum, private API or new dependency was introduced. A3 remains in progress until the
-provider and independent review of the integrated selection work satisfy its offline condition.
+No custom bignum, private API or new dependency was introduced. The integrated local selection
+work has passed [independent review](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14);
+A3 remains in progress because the permitted, supported, reviewed backend/provider and synthetic
+crypto known-answer tests are missing. Server and exact UID/audit identity must be independently
+validated before any Apple surface; neither the local mask rule nor this review supplies that evidence.
 
 ## Research outcome
 

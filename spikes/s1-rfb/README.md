@@ -78,9 +78,11 @@ Místní konzervativní pravidla, nikoli tvrzení o serveru:
    deklarace, ale SDK jeho použití od macOS 10.7 výslovně nedoporučuje. Bez zvoleného a reviewovaného
    backendu nelze dodat celý provider ani pravdivé end-to-end known-answer testy. Žádná nová
    závislost, privátní API, vlastní bignum nebo náhradní crypto se nepřidává.
-2. **Nezávislé review:** lokální výběrová politika a integrovaný command/result tok jsou dodané;
-   vyžadují review. Původní podmínku A3 tato změna posouvá konkrétním integrovaným tokem, ale bez
-   skutečného provideru ji celou nesplňuje. Další obecná příprava nenahrazuje rozhodnutí o backendu.
+2. **Reviewovaná selection část:** [nezávislé review #81](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14)
+   potvrzuje lokální výběrovou politiku a integrovaný command/result tok. Neověřuje serverovou
+   autorizaci ani identitu relace; původní offline podmínka A3 bez skutečného provideru stále není
+   splněná. Dosavadní vlastník pokračuje backendem/KATs a samostatným ověřením identity podle
+   [IMPLEMENTATION](../../docs/IMPLEMENTATION.md#0-co-dál); další obecný mock je nenahradí.
 3. **Živý klient:** server identity, confidentialita, schválená správa údajů, transport/partial writes,
    naplánované monotónní idle/total wakeups, pixel/encoding interoperabilita a samostatná vazba na
    přesné UID/audit session. To patří do následného review a uživatelského [LAB-NEXT](LAB-NEXT.md).

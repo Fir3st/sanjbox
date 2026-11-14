@@ -65,3 +65,24 @@ provider remains absent. [AUTH-BACKEND](AUTH-BACKEND.md) identifies the exact un
 a permitted, supported, independently reviewed arbitrary-modulus DH backend plus synthetic KATs.
 Another generic mock/docs continuation would not resolve it. Independent review of this local policy
 and lifecycle is pending; leave the PR draft. No live use, acceptance change, merge or auto-merge.
+
+
+## Integration review and next owner — PR #81, 2026-11-14
+
+A fresh Astra ExtraHigh reviewer independently inspected head
+`e702830781052f4163cb36095ab95040977d0b4d` against main
+`7b8294e4fd28a3e62f4998baf39d3da1fd904ccb`. The local mask policy and bounded S5 selection
+lifecycle have no actionable code finding; [the new validation entry](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14)
+records fresh tests. The stale current plan/README/coverage and pending-review wording are corrected;
+the historical handoff above remains unchanged. The coordinator owns exact-final-head CI and merge.
+
+Next implementation owner remains **janfiedler / Codex + Astra**, with explicit delegation required
+for another agent. Select a permitted, maintained, independently reviewed arbitrary-modulus type-30
+DH backend under AUTH-BACKEND's criteria, then implement the provider with independent synthetic
+known-answer vectors. A new dependency needs its concrete approval under GUIDE; this review grants
+none. Separately establish server identity/confidentiality and the expected non-console UID/audit
+session validation before any Apple surface. A local mask or reported grant is never that evidence.
+
+A3 remains active; no further generic mock/docs pass resolves these blockers. All 10 F1 gates and
+155 acceptance cases remain unverified, and Screen Sharing.app/L1-D and other workstream ownership
+are unchanged. No live authentication, network transport, account, settings, TCC or lab work is enabled.

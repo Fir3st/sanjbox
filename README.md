@@ -21,9 +21,12 @@ přes veřejné knihovní API a loopback listener, s explicitními doplňky a po
 CLI nadále přijímá draft; autentizace klienta a produkční integrace čekají na WP2.5/lab.
 [H6 harness](proto/escape/README.md) má dokončený offline katalog všech 155 případů a osm syntetických
 sond s lokální protistranou; [validace](proto/escape/VALIDATION.md) ponechává všechny akceptace
-neověřené. [A3 RFB prototyp](spikes/s1-rfb/README.md) z [#78](https://github.com/Fir3st/sanjbox/pull/78)
-je sloučený jako `8faf648`: přidává S5 record kodeky a odmítnutí před výběrem relace; DH provider,
-reviewovaná virtuální autorizace a integrovaný výběr chybí, takže A3 zůstává rozpracované.
+neověřené. [A3 RFB prototyp](spikes/s1-rfb/README.md) navazuje na sloučené #78 (`8faf648`):
+[#81](https://github.com/Fir3st/sanjbox/pull/81) přidává nezávisle reviewovanou lokální opt-in politiku,
+virtuální command/result tok, společný message budget a pevný deadline. Jde jen o syntetické fixtures;
+parser každý grant odmítne kvůli neověřené identitě, bez plochy a konzolového fallbacku. A3 zůstává rozpracované:
+chybí povolený podporovaný type-30 DH backend, skutečný provider se syntetickými known-answer testy
+a nezávislé ověření serverové a UID/audit identity.
 [A6 #77](spikes/s8-signing/A6-H1-FOLLOWUP.md) je sloučené jako `4ad05d9` a dodává fuzzer skutečných
 H1 helper/reply/broker wire kontraktů a syntetické autorizační/restart workflow. A6 zůstává rozpracované: chybí kalibrovaná
 SG-06 pozitivní attach kontrola, nativní daemon autorizace a registration ownership/cleanup přes

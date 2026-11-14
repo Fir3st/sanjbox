@@ -23,8 +23,9 @@ live client or close the original Apple-auth requirement. See [README](README.md
 **[implementátor]** The current binary has no live mode. A later separately reviewed change must:
 
 1. **[částečně hotovo]** S4 framing and S5 selection records/lifecycle are source-backed and bounded
-   offline. The local opt-in mask rule and integrated pending/denial/budget/deadline/no-fallback flow
-   need independent review. It intentionally does not adopt the upstream unchecked virtual branch.
+   offline. [Independent review](VALIDATION.md#integration-review-and-plan-handoff-for-pr-81--2026-11-14)
+   confirms the local opt-in mask rule and pending/denial/budget/deadline/no-fallback flow only;
+   it does not establish server authorization. The policy does not adopt the upstream unchecked virtual branch.
    Choose and review a supported type-30 backend, then implement the provider with independent
    synthetic known-answer vectors; do not guess cryptography or use private API. The precise
    blocker/criteria are in [AUTH-BACKEND](AUTH-BACKEND.md). Live command/capability interoperability
